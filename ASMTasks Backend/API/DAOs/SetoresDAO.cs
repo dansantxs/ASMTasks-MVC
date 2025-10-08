@@ -4,58 +4,6 @@ namespace API.DAOs
 {
     public class SetoresDAO
     {
-        public async Task<IEnumerable<Setor>> ObterTodosAsync(DbContext dbContext)
-        {
-            var setores = new List<Setor>();
-
-            await using var con = await dbContext.GetConnectionAsync();
-            await using var cmd = con.CreateCommand();
-            cmd.CommandText = "SELECT Id, Nome, Descricao, CriadoEm, Ativo, ResponsavelId FROM Setor";
-
-            await using var dr = await cmd.ExecuteReaderAsync();
-            while (await dr.ReadAsync())
-            {
-                var setor = new Setor
-                {
-                    Id = Convert.ToInt32(dr["Id"]),
-                    Nome = dr["Nome"].ToString(),
-                    Descricao = dr["Descricao"]?.ToString(),
-                    CriadoEm = Convert.ToDateTime(dr["CriadoEm"]),
-                    Ativo = Convert.ToBoolean(dr["Ativo"]),
-                    ResponsavelId = dr["ResponsavelId"] == DBNull.Value ? null : Convert.ToInt32(dr["ResponsavelId"])
-                };
-                setores.Add(setor);
-            }
-
-            return setores;
-        }
-
-        public async Task<Setor?> ObterPorIdAsync(DbContext dbContext, int id)
-        {
-            Setor? setor = null;
-
-            await using var con = await dbContext.GetConnectionAsync();
-            await using var cmd = con.CreateCommand();
-            cmd.CommandText = "SELECT Id, Nome, Descricao, CriadoEm, Ativo, ResponsavelId FROM Setor WHERE Id = @Id";
-            cmd.Parameters.AddWithValue("@Id", id);
-
-            await using var dr = await cmd.ExecuteReaderAsync();
-            if (await dr.ReadAsync())
-            {
-                setor = new Setor
-                {
-                    Id = Convert.ToInt32(dr["Id"]),
-                    Nome = dr["Nome"].ToString(),
-                    Descricao = dr["Descricao"]?.ToString(),
-                    CriadoEm = Convert.ToDateTime(dr["CriadoEm"]),
-                    Ativo = Convert.ToBoolean(dr["Ativo"]),
-                    ResponsavelId = dr["ResponsavelId"] == DBNull.Value ? null : Convert.ToInt32(dr["ResponsavelId"])
-                };
-            }
-
-            return setor;
-        }
-
         public async Task<int> CriarAsync(DbContext dbContext, Setor setor)
         {
             await using var con = await dbContext.GetConnectionAsync();
@@ -77,7 +25,6 @@ namespace API.DAOs
 
             return setor.Id;
         }
-
 
         public async Task<bool> AtualizarAsync(DbContext dbContext, Setor setor)
         {
@@ -130,6 +77,58 @@ namespace API.DAOs
             int count = Convert.ToInt32(result);
 
             return count > 0;
+        }
+
+        public async Task<IEnumerable<Setor>> ObterTodosAsync(DbContext dbContext)
+        {
+            var setores = new List<Setor>();
+
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = "SELECT Id, Nome, Descricao, CriadoEm, Ativo, ResponsavelId FROM Setor";
+
+            await using var dr = await cmd.ExecuteReaderAsync();
+            while (await dr.ReadAsync())
+            {
+                var setor = new Setor
+                {
+                    Id = Convert.ToInt32(dr["Id"]),
+                    Nome = dr["Nome"].ToString(),
+                    Descricao = dr["Descricao"]?.ToString(),
+                    CriadoEm = Convert.ToDateTime(dr["CriadoEm"]),
+                    Ativo = Convert.ToBoolean(dr["Ativo"]),
+                    ResponsavelId = dr["ResponsavelId"] == DBNull.Value ? null : Convert.ToInt32(dr["ResponsavelId"])
+                };
+                setores.Add(setor);
+            }
+
+            return setores;
+        }
+
+        public async Task<Setor?> ObterPorIdAsync(DbContext dbContext, int id)
+        {
+            Setor? setor = null;
+
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = "SELECT Id, Nome, Descricao, CriadoEm, Ativo, ResponsavelId FROM Setor WHERE Id = @Id";
+            cmd.Parameters.AddWithValue("@Id", id);
+
+            await using var dr = await cmd.ExecuteReaderAsync();
+            if (await dr.ReadAsync())
+            {
+                setor = new Setor
+                {
+                    Id = Convert.ToInt32(dr["Id"]),
+                    Nome = dr["Nome"].ToString(),
+                    Descricao = dr["Descricao"]?.ToString(),
+                    CriadoEm = Convert.ToDateTime(dr["CriadoEm"]),
+                    Ativo = Convert.ToBoolean(dr["Ativo"]),
+                    ResponsavelId = dr["ResponsavelId"] == DBNull.Value ? null : Convert.ToInt32(dr["ResponsavelId"])
+                };
+            }
+
+            return setor;
         }
 
         // Implementar o método de verificação de tarefas em andamento

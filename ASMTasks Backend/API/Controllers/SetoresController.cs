@@ -18,23 +18,6 @@ namespace API.Controllers
             _dbContext = dbContext;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> ObterTodos()
-        {
-            var setores = await Setor.ObterTodosAsync(_dbContext);
-            return Ok(setores);
-        }
-
-        [HttpGet("{id}")]
-        public async Task<IActionResult> ObterPorId(int id)
-        {
-            var setor = await Setor.ObterPorIdAsync(_dbContext, id);
-            if (setor == null)
-                return NotFound("Setor não encontrado.");
-
-            return Ok(setor);
-        }
-
         [HttpPost]
         public async Task<IActionResult> Criar([FromBody] SetorCriarRequest request)
         {
@@ -108,5 +91,21 @@ namespace API.Controllers
             }
         }
 
+        [HttpGet]
+        public async Task<IActionResult> ObterTodos()
+        {
+            var setores = await Setor.ObterTodosAsync(_dbContext);
+            return Ok(setores);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> ObterPorId(int id)
+        {
+            var setor = await Setor.ObterPorIdAsync(_dbContext, id);
+            if (setor == null)
+                return NotFound("Setor não encontrado.");
+
+            return Ok(setor);
+        }
     }
 }
