@@ -1,16 +1,6 @@
 [
   {
     "ContainingType": "API.Controllers.SetoresController",
-    "Method": "ObterTodos",
-    "RelativePath": "api/Setores",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "API.Controllers.SetoresController",
     "Method": "Criar",
     "RelativePath": "api/Setores",
     "HttpMethod": "POST",
@@ -27,18 +17,12 @@
   },
   {
     "ContainingType": "API.Controllers.SetoresController",
-    "Method": "ObterPorId",
-    "RelativePath": "api/Setores/{id}",
+    "Method": "ObterTodos",
+    "RelativePath": "api/Setores",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
-    "Parameters": [
-      {
-        "Name": "id",
-        "Type": "System.Int32",
-        "IsRequired": true
-      }
-    ],
+    "Parameters": [],
     "ReturnTypes": []
   },
   {
@@ -80,6 +64,22 @@
   },
   {
     "ContainingType": "API.Controllers.SetoresController",
+    "Method": "ObterPorId",
+    "RelativePath": "api/Setores/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API.Controllers.SetoresController",
     "Method": "Reativar",
     "RelativePath": "api/Setores/{id}/reativar",
     "HttpMethod": "PUT",
@@ -89,6 +89,22 @@
       {
         "Name": "id",
         "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API.Controllers.SetoresController",
+    "Method": "ObterPorTermo",
+    "RelativePath": "api/Setores/{termo}/filtrar",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "termo",
+        "Type": "System.String",
         "IsRequired": true
       }
     ],

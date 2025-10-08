@@ -12,16 +12,6 @@
   },
   "paths": {
     "/api/Setores": {
-      "get": {
-        "tags": [
-          "Setores"
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      },
       "post": {
         "tags": [
           "Setores"
@@ -50,30 +40,19 @@
             "description": "OK"
           }
         }
-      }
-    },
-    "/api/Setores/{id}": {
+      },
       "get": {
         "tags": [
           "Setores"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
         ],
         "responses": {
           "200": {
             "description": "OK"
           }
         }
-      },
+      }
+    },
+    "/api/Setores/{id}": {
       "put": {
         "tags": [
           "Setores"
@@ -134,6 +113,27 @@
             "description": "OK"
           }
         }
+      },
+      "get": {
+        "tags": [
+          "Setores"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
       }
     },
     "/api/Setores/{id}/reativar": {
@@ -149,6 +149,28 @@
             "schema": {
               "type": "integer",
               "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Setores/{termo}/filtrar": {
+      "get": {
+        "tags": [
+          "Setores"
+        ],
+        "parameters": [
+          {
+            "name": "termo",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
           }
         ],

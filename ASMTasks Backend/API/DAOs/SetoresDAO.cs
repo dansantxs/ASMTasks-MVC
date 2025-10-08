@@ -131,6 +131,38 @@ namespace API.DAOs
             return setor;
         }
 
+        public async Task<IEnumerable<Setor>> ObterPorTermoAsync(DbContext dbContext, string termo)
+        {
+            var setores = new List<Setor>();
+
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = @"
+                SELECT Id, Nome, Descricao, CriadoEm, Ativo, ResponsavelId 
+                FROM Setor 
+                WHERE Nome LIKE @Termo 
+                OR Descricao LIKE @Termo
+            "; //Adiciona a condição para buscar por responsável também, relacionando com a tabela Colaborador
+            cmd.Parameters.AddWithValue("@Termo", $"%{termo}%");
+
+            await using var dr = await cmd.ExecuteReaderAsync();
+            while (await dr.ReadAsync())
+            {
+                var setor = new Setor
+                {
+                    Id = Convert.ToInt32(dr["Id"]),
+                    Nome = dr["Nome"].ToString(),
+                    Descricao = dr["Descricao"]?.ToString(),
+                    CriadoEm = Convert.ToDateTime(dr["CriadoEm"]),
+                    Ativo = Convert.ToBoolean(dr["Ativo"]),
+                    ResponsavelId = dr["ResponsavelId"] == DBNull.Value ? null : Convert.ToInt32(dr["ResponsavelId"])
+                };
+                setores.Add(setor);
+            }
+
+            return setores;
+        }
+
         // Implementar o método de verificação de tarefas em andamento
     }
 }

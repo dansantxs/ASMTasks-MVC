@@ -67,5 +67,10 @@ namespace API.Models
         {
             return await _setoresDAO.ObterPorIdAsync(dbContext, id);
         }
+
+        public static async Task<IEnumerable<Setor>> ObterPorTermoAsync(DbContext dbContext, string termo)
+        {
+            return await _setoresDAO.ObterPorTermoAsync(dbContext, termo);
+        }
     }
 }
