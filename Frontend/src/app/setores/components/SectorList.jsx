@@ -1,11 +1,17 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+// Hook para garantir renderização apenas no cliente
+function useClientOnly() {
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => setIsClient(true), []);
+  return isClient;
+}
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Table, TableBody, TableCell, TableHead, TableRow } from '../ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Search, Edit, Trash2, Eye, RefreshCw } from 'lucide-react';
 
 // Sector type for JS (remove TS types)
@@ -17,11 +23,12 @@ export default function SectorList({
   onReactivate,
   viewMode,
 }) {
+  const isClient = useClientOnly();
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredSectors = sectors.filter(sector =>
-    sector.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    sector.responsibleName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (sector.name && sector.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (sector.responsibleName && sector.responsibleName.toLowerCase().includes(searchTerm.toLowerCase())) ||
     (sector.description && sector.description.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
@@ -50,7 +57,7 @@ export default function SectorList({
             <span className="font-medium">Responsável:</span> {sector.responsibleName}
           </p>
           <p className="text-sm text-muted-foreground">
-            <span className="font-medium">Criado em:</span> {new Date(sector.createdAt).toLocaleDateString('pt-BR')}
+            <span className="font-medium">Criado em:</span> <span suppressHydrationWarning>{isClient ? new Date(sector.createdAt).toLocaleDateString('pt-BR') : ''}</span>
           </p>
         </div>
         
@@ -115,7 +122,7 @@ export default function SectorList({
         </Badge>
       </TableCell>
       <TableCell className="text-sm text-muted-foreground">
-        {new Date(sector.createdAt).toLocaleDateString('pt-BR')}
+        <span suppressHydrationWarning>{isClient ? new Date(sector.createdAt).toLocaleDateString('pt-BR') : ''}</span>
       </TableCell>
       <TableCell className="text-right">
         <div className="flex gap-1 justify-end">

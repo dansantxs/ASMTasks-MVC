@@ -107,12 +107,5 @@ namespace API.Controllers
 
             return Ok(setor);
         }
-
-        [HttpGet("{termo}/filtrar")]
-        public async Task<IActionResult> ObterPorTermo(string termo)
-        {
-            var setores = await Setor.ObterPorTermoAsync(_dbContext, termo);
-            return Ok(setores);
-        }
     }
 }

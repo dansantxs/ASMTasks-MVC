@@ -4,6 +4,19 @@ using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Adiciona o serviço de CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend",
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:3000") // endereço do seu frontend
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials();
+        });
+});
+
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo
@@ -47,6 +60,9 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = ""; //habilitar a página inicial da API ser a doc.
     c.DocumentTitle = "Gerenciamento de Produtos - API V1";
 });
+
+// Usa o CORS (aplica a política "AllowFrontend")
+app.UseCors("AllowFrontend");
 
 // Configure the HTTP request pipeline.
 
