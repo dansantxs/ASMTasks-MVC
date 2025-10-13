@@ -2,41 +2,40 @@
 
 namespace API.DAOs
 {
-    public class SetoresDAO
+    public class PrioridadesDAO
     {
-        public async Task<int> CriarAsync(DbContext dbContext, Setor setor)
+        public async Task<int> CriarAsync(DbContext dbContext, Prioridade prioridade)
         {
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
             cmd.CommandText = @"
-                INSERT INTO Setor (Nome, Descricao, CriadoEm, Ativo, ResponsavelId)
-                VALUES (@Nome, @Descricao, @CriadoEm, @Ativo, @ResponsavelId);
+                INSERT INTO Prioridade (Nome, Descricao, Cor, CriadoEm, Ativo)
+                VALUES (@Nome, @Descricao, @Cor, @CriadoEm, @Ativo);
                 SELECT CAST(SCOPE_IDENTITY() AS int);
             ";
-
-            cmd.Parameters.AddWithValue("@Nome", setor.Nome);
-            cmd.Parameters.AddWithValue("@Descricao", (object)setor.Descricao ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@CriadoEm", setor.CriadoEm);
-            cmd.Parameters.AddWithValue("@Ativo", setor.Ativo);
-            cmd.Parameters.AddWithValue("@ResponsavelId", (object)setor.ResponsavelId ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@Nome", prioridade.Nome);
+            cmd.Parameters.AddWithValue("@Descricao", (object)prioridade.Descricao ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@Cor", prioridade.Cor);
+            cmd.Parameters.AddWithValue("@CriadoEm", prioridade.CriadoEm);
+            cmd.Parameters.AddWithValue("@Ativo", prioridade.Ativo);
 
             var result = await cmd.ExecuteScalarAsync();
-            setor.Id = Convert.ToInt32(result);
+            prioridade.Id = Convert.ToInt32(result);
 
-            return setor.Id;
+            return prioridade.Id;
         }
 
-        public async Task<bool> AtualizarAsync(DbContext dbContext, Setor setor)
+        public async Task<bool> AtualizarAsync(DbContext dbContext, Prioridade prioridade)
         {
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = @"UPDATE Setor 
-                                SET Nome = @Nome, Descricao = @Descricao, ResponsavelId = @ResponsavelId 
-                                WHERE Id = @Id";
-            cmd.Parameters.AddWithValue("@Id", setor.Id);
-            cmd.Parameters.AddWithValue("@Nome", setor.Nome);
-            cmd.Parameters.AddWithValue("@Descricao", (object)setor.Descricao ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@ResponsavelId", (object)setor.ResponsavelId ?? DBNull.Value);
+            cmd.CommandText = @"UPDATE Prioridade 
+                                SET Nome = @Nome, Descricao = @Descricao, Cor = @Cor 
+                                WHERE Id = @Id AND Ativo = 1";
+            cmd.Parameters.AddWithValue("@Id", prioridade.Id);
+            cmd.Parameters.AddWithValue("@Nome", prioridade.Nome);
+            cmd.Parameters.AddWithValue("@Descricao", (object)prioridade.Descricao ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@Cor", prioridade.Cor);
 
             int linhas = await cmd.ExecuteNonQueryAsync();
             return linhas > 0;
@@ -46,7 +45,7 @@ namespace API.DAOs
         {
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = "UPDATE Setor SET Ativo = 0 WHERE Id = @Id";
+            cmd.CommandText = "UPDATE Prioridade SET Ativo = 0 WHERE Id = @Id";
             cmd.Parameters.AddWithValue("@Id", id);
 
             int linhas = await cmd.ExecuteNonQueryAsync();
@@ -57,7 +56,7 @@ namespace API.DAOs
         {
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = "UPDATE Setor SET Ativo = 1 WHERE Id = @Id";
+            cmd.CommandText = "UPDATE Prioridade SET Ativo = 1 WHERE Id = @Id";
             cmd.Parameters.AddWithValue("@Id", id);
 
             int linhas = await cmd.ExecuteNonQueryAsync();
@@ -68,7 +67,7 @@ namespace API.DAOs
         {
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = @"SELECT COUNT(1) FROM Setor 
+            cmd.CommandText = @"SELECT COUNT(1) FROM Prioridade 
                                 WHERE Nome = @Nome AND (@Id IS NULL OR Id <> @Id)";
             cmd.Parameters.AddWithValue("@Nome", nome);
             cmd.Parameters.AddWithValue("@Id", (object)id ?? DBNull.Value);
@@ -79,56 +78,56 @@ namespace API.DAOs
             return count > 0;
         }
 
-        public async Task<IEnumerable<Setor>> ObterTodosAsync(DbContext dbContext)
+        public async Task<IEnumerable<Prioridade>> ObterTodosAsync(DbContext dbContext)
         {
-            var setores = new List<Setor>();
+            var prioridades = new List<Prioridade>();
 
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = "SELECT Id, Nome, Descricao, CriadoEm, Ativo, ResponsavelId FROM Setor";
+            cmd.CommandText = "SELECT Id, Nome, Descricao, Cor, CriadoEm, Ativo FROM Prioridade";
 
             await using var dr = await cmd.ExecuteReaderAsync();
             while (await dr.ReadAsync())
             {
-                var setor = new Setor
+                var prioridade = new Prioridade
                 {
                     Id = Convert.ToInt32(dr["Id"]),
                     Nome = dr["Nome"].ToString(),
                     Descricao = dr["Descricao"]?.ToString(),
+                    Cor = dr["Cor"].ToString(),
                     CriadoEm = Convert.ToDateTime(dr["CriadoEm"]),
-                    Ativo = Convert.ToBoolean(dr["Ativo"]),
-                    ResponsavelId = dr["ResponsavelId"] == DBNull.Value ? null : Convert.ToInt32(dr["ResponsavelId"])
+                    Ativo = Convert.ToBoolean(dr["Ativo"])
                 };
-                setores.Add(setor);
+                prioridades.Add(prioridade);
             }
 
-            return setores;
+            return prioridades;
         }
 
-        public async Task<Setor?> ObterPorIdAsync(DbContext dbContext, int id)
+        public async Task<Prioridade?> ObterPorIdAsync(DbContext dbContext, int id)
         {
-            Setor? setor = null;
+            Prioridade? prioridade = null;
 
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = "SELECT Id, Nome, Descricao, CriadoEm, Ativo, ResponsavelId FROM Setor WHERE Id = @Id";
+            cmd.CommandText = "SELECT Id, Nome, Descricao, Cor, CriadoEm, Ativo FROM Prioridade WHERE Id = @Id";
             cmd.Parameters.AddWithValue("@Id", id);
 
             await using var dr = await cmd.ExecuteReaderAsync();
             if (await dr.ReadAsync())
             {
-                setor = new Setor
+                prioridade = new Prioridade
                 {
                     Id = Convert.ToInt32(dr["Id"]),
                     Nome = dr["Nome"].ToString(),
                     Descricao = dr["Descricao"]?.ToString(),
+                    Cor = dr["Cor"].ToString(),
                     CriadoEm = Convert.ToDateTime(dr["CriadoEm"]),
-                    Ativo = Convert.ToBoolean(dr["Ativo"]),
-                    ResponsavelId = dr["ResponsavelId"] == DBNull.Value ? null : Convert.ToInt32(dr["ResponsavelId"])
+                    Ativo = Convert.ToBoolean(dr["Ativo"])
                 };
             }
 
-            return setor;
+            return prioridade;
         }
 
         // Implementar o método de verificação de tarefas em andamento
