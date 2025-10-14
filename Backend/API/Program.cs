@@ -49,6 +49,8 @@ Environment.SetEnvironmentVariable("STRING_CONEXAO", builder.Configuration["Stri
 DbContext dbContext = new DbContext();
 builder.Services.AddSingleton(dbContext);
 
+builder.Services.AddScoped<EtapasDAO>();
+builder.Services.AddScoped<PrioridadesDAO>();
 builder.Services.AddScoped<SetoresDAO>();
 
 var app = builder.Build();
