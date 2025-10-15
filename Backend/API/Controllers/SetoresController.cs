@@ -6,6 +6,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace API.Controllers
 {
+    /// <summary>
+    /// Gerencia os setores e departamentos da organização.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
@@ -18,7 +21,12 @@ namespace API.Controllers
             _dbContext = dbContext;
         }
 
+        /// <summary>
+        /// Cria um novo setor.
+        /// </summary>
         [HttpPost]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Criar([FromBody] SetorCriarRequest request)
         {
             try
@@ -39,7 +47,12 @@ namespace API.Controllers
             }
         }
 
+        /// <summary>
+        /// Atualiza um setor existente.
+        /// </summary>
         [HttpPut("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Atualizar(int id, [FromBody] SetorAtualizarRequest request)
         {
             try
@@ -61,7 +74,12 @@ namespace API.Controllers
             }
         }
 
+        /// <summary>
+        /// Inativa um setor.
+        /// </summary>
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Inativar(int id)
         {
             try
@@ -76,7 +94,12 @@ namespace API.Controllers
             }
         }
 
+        /// <summary>
+        /// Reativa um setor inativado.
+        /// </summary>
         [HttpPut("{id}/reativar")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Reativar(int id)
         {
             try
@@ -91,14 +114,23 @@ namespace API.Controllers
             }
         }
 
+        /// <summary>
+        /// Retorna todos os setores cadastrados.
+        /// </summary>
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> ObterTodos()
         {
             var setores = await Setor.ObterTodosAsync(_dbContext);
             return Ok(setores);
         }
 
+        /// <summary>
+        /// Busca um setor pelo ID.
+        /// </summary>
         [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> ObterPorId(int id)
         {
             var setor = await Setor.ObterPorIdAsync(_dbContext, id);

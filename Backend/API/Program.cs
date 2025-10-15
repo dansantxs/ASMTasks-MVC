@@ -4,46 +4,53 @@ using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Adiciona o serviço de CORS
+// CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend",
-        policy =>
-        {
-            policy.WithOrigins("http://localhost:3000") // endereço do seu frontend
-                  .AllowAnyHeader()
-                  .AllowAnyMethod()
-                  .AllowCredentials();
-        });
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:3000")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
 });
 
+// Configuração do Swagger
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo
     {
-        Title = "Gerenciamento da API...",
+        Title = "API de Gerenciamento - ASMTasks",
         Version = "v1",
-        Description = $@"<h3>Título <b>da API</b></h3>
-                                      <p>
-                                          Alguma descrição....
-                                      </p>",
-        Contact = new OpenApiContact
-        {
-            Name = "Suporte Unoeste",
-            Email = string.Empty,
-            Url = new Uri("https://www.unoeste.br"),
-        },
+        Description = @"
+Esta API gerencia entidades internas do sistema.
+
+### Recursos disponíveis:
+- **Etapas:** controle de fases de desenvolvimento.
+- **Prioridades:** definição de níveis de prioridade com cor, nome e descrição.
+- **Setores:** organização de departamentos e responsáveis.
+
+### Funcionalidades gerais:
+- Criação (`POST`)
+- Atualização (`PUT`)
+- Inativação (`DELETE`)
+- Reativação (`PUT /reativar`)
+- Consulta (`GET`)
+        "
     });
 
-    // Set the comments path for the Swagger JSON and UI.
+    // Incluir comentários XML (para gerar docs automáticas dos controllers e métodos)
     var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFilename);
+    if (File.Exists(xmlPath))
+        c.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
 });
 
-// Add services to the container.
+// Configurações gerais
 builder.Services.AddControllers();
 
-// Acessando o valor diretamente pelo builder.Configuration
+// Configura conexão
 Environment.SetEnvironmentVariable("STRING_CONEXAO", builder.Configuration["StringConexao"]);
 
 DbContext dbContext = new DbContext();
@@ -55,23 +62,18 @@ builder.Services.AddScoped<SetoresDAO>();
 
 var app = builder.Build();
 
+// Swagger UI
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
-    c.RoutePrefix = ""; //habilitar a página inicial da API ser a doc.
-    c.DocumentTitle = "Gerenciamento de Produtos - API V1";
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "API de Gerenciamento v1");
+    c.RoutePrefix = "";
+    c.DocumentTitle = "API de Gerenciamento ASMTasks - v1";
 });
 
-// Usa o CORS (aplica a política "AllowFrontend")
 app.UseCors("AllowFrontend");
 
-// Configure the HTTP request pipeline.
-
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();
