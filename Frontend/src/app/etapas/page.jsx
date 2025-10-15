@@ -1,0 +1,171 @@
+'use client';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Button } from '../ui/button';
+import { Plus, Workflow } from 'lucide-react';
+import { Toaster } from 'sonner';
+import StageForm from '../etapas/components/StageForm';
+import StageList from '../etapas/components/StageList';
+import ViewToggle from '../etapas/components/ViewToggle';
+import { DeleteConfirmDialog } from '../etapas/components/DeleteConfirmDialog';
+import StageViewDialog from '../etapas/components/StageViewDialog';
+import { toast } from 'sonner';
+import { getEtapas, criarEtapa, atualizarEtapa, inativarEtapa, reativarEtapa } from '../etapas/api/etapas';
+
+export default function EtapasPage() {
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [selectedStage, setSelectedStage] = useState(null);
+  const [viewMode, setViewMode] = useState('cards');
+
+  const queryClient = useQueryClient();
+
+  // Buscar etapas da API
+  const { data: etapasApi = [], isLoading } = useQuery({
+    queryKey: ["etapas"],
+    queryFn: getEtapas,
+  });
+
+  // Converter o formato da API para o formato esperado pelo componente
+  const stages = etapasApi.map(e => {
+    return {
+      id: e.id,
+      name: e.nome,
+      description: e.descricao,
+      active: e.ativo,
+      createdAt: e.criadoEm ?? new Date().toISOString(),
+    };
+  });
+
+  // Criar etapa
+  const criar = useMutation({
+    mutationFn: criarEtapa,
+    onSuccess: () => {
+      queryClient.invalidateQueries(["etapas"]);
+      setIsFormOpen(false);
+      toast.success("Etapa criada com sucesso!");
+    },
+    onError: () => toast.error("Erro ao criar etapa."),
+  });
+
+  // Atualizar etapa
+  const atualizar = useMutation({
+    mutationFn: ({ id, data }) => atualizarEtapa(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(["etapas"]);
+      setIsFormOpen(false);
+      toast.success("Etapa atualizada com sucesso!");
+    },
+    onError: () => toast.error("Erro ao atualizar etapa."),
+  });
+
+  // Inativar etapa
+  const excluir = useMutation({
+    mutationFn: inativarEtapa,
+    onSuccess: () => {
+      queryClient.invalidateQueries(["etapas"]);
+      setIsDeleteDialogOpen(false);
+      toast.success("Etapa inativada com sucesso!");
+    },
+    onError: () => toast.error("Erro ao inativar etapa."),
+  });
+
+  // Reativar etapa
+  const reativar = useMutation({
+    mutationFn: reativarEtapa,
+    onSuccess: () => {
+      queryClient.invalidateQueries(["etapas"]);
+      toast.success("Etapa reativada com sucesso!");
+    },
+    onError: () => toast.error("Erro ao reativar etapa."),
+  });
+
+  const handleSaveStage = (stageData) => {
+    // Converte os nomes do front para o formato da API
+    const dataAPI = {
+      nome: stageData.name,
+      descricao: stageData.description,
+    };
+
+    if (selectedStage)
+      atualizar.mutate({ id: selectedStage.id, data: dataAPI });
+    else
+      criar.mutate(dataAPI);
+  };
+
+  const handleConfirmDelete = () => {
+    if (selectedStage) excluir.mutate(selectedStage.id);
+  };
+
+  const handleReactivateStage = (stage) => reativar.mutate(stage.id);
+
+  if (isLoading) return <div className="p-6">Carregando etapas...</div>;
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto py-8 px-4">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-brand-blue/10 rounded-lg">
+              <Workflow className="h-6 w-6 text-brand-blue" />
+            </div>
+            <div>
+              <h1>Gerenciamento de Etapas</h1>
+              <p className="text-muted-foreground">
+                Gerencie as etapas do sistema
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
+            <Button 
+              onClick={() => { setSelectedStage(null); setIsFormOpen(true); }}
+              className="flex items-center gap-2 bg-brand-blue hover:bg-brand-blue-dark"
+            >
+              <Plus className="h-4 w-4" />
+              Nova Etapa
+            </Button>
+          </div>
+        </div>
+
+        {/* Lista de etapas */}
+        <StageList
+          stages={stages}
+          onEdit={(e) => { setSelectedStage(e); setIsFormOpen(true); }}
+          onDelete={(e) => { setSelectedStage(e); setIsDeleteDialogOpen(true); }}
+          onView={(e) => { setSelectedStage(e); setIsViewDialogOpen(true); }}
+          onReactivate={handleReactivateStage}
+          viewMode={viewMode}
+        />
+
+        {/* Modais */}
+        <StageForm
+          open={isFormOpen}
+          onOpenChange={setIsFormOpen}
+          stage={selectedStage}
+          onSave={handleSaveStage}
+          existingStages={stages}
+        />
+
+        <DeleteConfirmDialog
+          open={isDeleteDialogOpen}
+          onOpenChange={setIsDeleteDialogOpen}
+          stage={selectedStage}
+          onConfirm={handleConfirmDelete}
+        />
+
+        <StageViewDialog
+          open={isViewDialogOpen}
+          onOpenChange={setIsViewDialogOpen}
+          stage={selectedStage}
+          onReactivate={handleReactivateStage}
+        />
+
+        {/* Toast notifications */}
+        <Toaster position="top-right" />
+      </div>
+    </div>
+  );
+}
