@@ -6,46 +6,41 @@ import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import { Label } from '../../ui/label';
 import { Textarea } from '../../ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
 import { toast } from 'sonner';
 
-export default function SectorForm({ 
+export default function PriorityForm({ 
   open, 
   onOpenChange, 
-  sector, 
+  priority, 
   onSave, 
-  existingSectors,
-  employees 
+  existingPriorities
 }) {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    responsible: '',
-    responsibleName: '',
+    color: '#000000',
     active: true
   });
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    if (sector) {
+    if (priority) {
       setFormData({
-        name: sector.name,
-        description: sector.description || '',
-        responsible: sector.responsible,
-        responsibleName: sector.responsibleName,
-        active: sector.active
+        name: priority.name,
+        description: priority.description || '',
+        color: priority.color || '#000000',
+        active: priority.active
       });
     } else {
       setFormData({
         name: '',
         description: '',
-        responsible: '',
-        responsibleName: '',
+        color: '#000000',
         active: true
       });
     }
     setErrors({});
-  }, [sector, open]);
+  }, [priority, open]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -53,17 +48,17 @@ export default function SectorForm({
     if (!formData.name.trim()) {
       newErrors.name = 'Nome é obrigatório';
     } else {
-      const nameExists = existingSectors.some(s => 
-        s.name.toLowerCase() === formData.name.toLowerCase() && 
-        s.id !== (sector && sector.id)
+      const nameExists = existingPriorities.some(p => 
+        p.name.toLowerCase() === formData.name.toLowerCase() && 
+        p.id !== (priority && priority.id)
       );
       if (nameExists) {
-        newErrors.name = 'Já existe um setor com este nome';
+        newErrors.name = 'Já existe uma prioridade com este nome';
       }
     }
 
-    if (!formData.responsible) {
-      newErrors.responsible = 'Responsável é obrigatório';
+    if (!formData.color) {
+      newErrors.color = 'Cor da Prioridade é obrigatória';
     }
 
     setErrors(newErrors);
@@ -77,15 +72,13 @@ export default function SectorForm({
     }
     onSave(formData);
     onOpenChange(false);
-    toast.success(sector ? 'Setor atualizado com sucesso!' : 'Setor cadastrado com sucesso!');
+    toast.success(priority ? 'Prioridade atualizada com sucesso!' : 'Prioridade cadastrada com sucesso!');
   };
 
-  const handleResponsibleChange = (value) => {
-    const employee = employees.find(emp => emp.id === value);
+  const handleColorChange = (e) => {
     setFormData(prev => ({
       ...prev,
-      responsible: value,
-      responsibleName: employee ? employee.name : ''
+      color: e.target.value
     }));
   };
 
@@ -94,23 +87,23 @@ export default function SectorForm({
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
-            {sector ? 'Editar Setor' : 'Cadastrar Novo Setor'}
+            {priority ? 'Editar Prioridade' : 'Cadastrar Nova Prioridade'}
           </DialogTitle>
           <DialogDescription>
-            {sector 
-              ? 'Edite as informações do setor selecionado'
-              : 'Preencha os dados para criar um novo setor'
+            {priority 
+              ? 'Edite as informações da prioridade selecionada'
+              : 'Preencha os dados para criar uma nova prioridade'
             }
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Nome do Setor <span className="text-destructive">*</span></Label>
+            <Label htmlFor="name">Nome da Prioridade <span className="text-destructive">*</span></Label>
             <Input
               id="name"
               value={formData.name}
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              placeholder="Digite o nome do setor"
+              placeholder="Digite o nome da prioridade"
               className={errors.name ? 'border-destructive' : ''}
             />
             {errors.name && (
@@ -124,30 +117,23 @@ export default function SectorForm({
               id="description"
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Digite uma descrição para o setor (opcional)"
+              placeholder="Digite uma descrição para a prioridade (opcional)"
               rows={3}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="responsible">Responsável do Setor <span className="text-destructive">*</span></Label>
-            <Select 
-              value={formData.responsible} 
-              onValueChange={handleResponsibleChange}
-            >
-              <SelectTrigger className={errors.responsible ? 'border-destructive' : ''}>
-                <SelectValue placeholder="Selecione o responsável" />
-              </SelectTrigger>
-              <SelectContent>
-                {employees.filter(emp => emp.active).map((employee) => (
-                  <SelectItem key={employee.id} value={employee.id}>
-                    {employee.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.responsible && (
-              <p className="text-sm text-destructive">{errors.responsible}</p>
+            <Label htmlFor="color">Cor da Prioridade <span className="text-destructive">*</span></Label>
+            <Input
+              id="color"
+              type="color"
+              value={formData.color}
+              onChange={handleColorChange}
+              className={errors.color ? 'border-destructive h-10 w-16 p-1' : 'h-10 w-16 p-1'}
+              style={{ padding: 0, border: errors.color ? '1px solid #dc2626' : undefined }}
+            />
+            {errors.color && (
+              <p className="text-sm text-destructive">{errors.color}</p>
             )}
           </div>
 
@@ -163,7 +149,7 @@ export default function SectorForm({
               type="submit"
               className="bg-brand-blue hover:bg-brand-blue-dark"
             >
-              {sector ? 'Salvar Alterações' : 'Cadastrar Setor'}
+              {priority ? 'Salvar Alterações' : 'Cadastrar Prioridade'}
             </Button>
           </div>
         </form>

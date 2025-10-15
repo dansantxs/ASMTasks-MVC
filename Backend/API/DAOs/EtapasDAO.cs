@@ -9,7 +9,7 @@ namespace API.DAOs
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
             cmd.CommandText = @"
-                INSERT INTO EtapaDesenvolvimento (Nome, Descricao, CriadoEm, Ativo)
+                INSERT INTO Etapa (Nome, Descricao, CriadoEm, Ativo)
                 VALUES (@Nome, @Descricao, @CriadoEm, @Ativo);
                 SELECT CAST(SCOPE_IDENTITY() AS int);
             ";
@@ -29,7 +29,7 @@ namespace API.DAOs
         {
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = @"UPDATE EtapaDesenvolvimento 
+            cmd.CommandText = @"UPDATE Etapa 
                                 SET Nome = @Nome, Descricao = @Descricao
                                 WHERE Id = @Id";
             cmd.Parameters.AddWithValue("@Id", etapa.Id);
@@ -44,7 +44,7 @@ namespace API.DAOs
         {
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = "UPDATE EtapaDesenvolvimento SET Ativo = 0 WHERE Id = @Id";
+            cmd.CommandText = "UPDATE Etapa SET Ativo = 0 WHERE Id = @Id";
             cmd.Parameters.AddWithValue("@Id", id);
 
             int linhas = await cmd.ExecuteNonQueryAsync();
@@ -55,7 +55,7 @@ namespace API.DAOs
         {
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = "UPDATE EtapaDesenvolvimento SET Ativo = 1 WHERE Id = @Id";
+            cmd.CommandText = "UPDATE Etapa SET Ativo = 1 WHERE Id = @Id";
             cmd.Parameters.AddWithValue("@Id", id);
 
             int linhas = await cmd.ExecuteNonQueryAsync();
@@ -66,7 +66,7 @@ namespace API.DAOs
         {
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = @"SELECT COUNT(1) FROM EtapaDesenvolvimento 
+            cmd.CommandText = @"SELECT COUNT(1) FROM Etapa 
                                 WHERE Nome = @Nome AND (@Id IS NULL OR Id <> @Id)";
             cmd.Parameters.AddWithValue("@Nome", nome);
             cmd.Parameters.AddWithValue("@Id", (object)id ?? DBNull.Value);
@@ -83,7 +83,7 @@ namespace API.DAOs
 
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = "SELECT Id, Nome, Descricao, CriadoEm, Ativo FROM EtapaDesenvolvimento";
+            cmd.CommandText = "SELECT Id, Nome, Descricao, CriadoEm, Ativo FROM Etapa";
 
             await using var dr = await cmd.ExecuteReaderAsync();
             while (await dr.ReadAsync())
@@ -108,7 +108,7 @@ namespace API.DAOs
 
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = "SELECT Id, Nome, Descricao, CriadoEm, Ativo FROM EtapaDesenvolvimento WHERE Id = @Id";
+            cmd.CommandText = "SELECT Id, Nome, Descricao, CriadoEm, Ativo FROM Etapa WHERE Id = @Id";
             cmd.Parameters.AddWithValue("@Id", id);
 
             await using var dr = await cmd.ExecuteReaderAsync();

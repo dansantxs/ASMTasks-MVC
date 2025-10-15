@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from './ui/button';
+import { Button } from '../ui/button';
 import { Plus, Building2 } from 'lucide-react';
 import { Toaster } from 'sonner';
 import SectorForm from './components/SectorForm';

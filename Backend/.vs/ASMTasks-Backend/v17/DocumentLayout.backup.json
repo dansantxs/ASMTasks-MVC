@@ -3,36 +3,8 @@
   "WorkspaceRootPath": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|c:\\users\\daniel dos santos\\documents\\projetos\\asmtasks-mvc\\backend\\api\\models\\etapa.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|solutionrelative:api\\models\\etapa.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|c:\\users\\daniel dos santos\\documents\\projetos\\asmtasks-mvc\\backend\\api\\dtos\\etapas\\etaparesponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|solutionrelative:api\\dtos\\etapas\\etaparesponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|c:\\users\\daniel dos santos\\documents\\projetos\\asmtasks-mvc\\backend\\api\\dtos\\etapas\\etapacriarrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|solutionrelative:api\\dtos\\etapas\\etapacriarrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|c:\\users\\daniel dos santos\\documents\\projetos\\asmtasks-mvc\\backend\\api\\dtos\\etapas\\etapaatualizarrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|solutionrelative:api\\dtos\\etapas\\etapaatualizarrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|c:\\users\\daniel dos santos\\documents\\projetos\\asmtasks-mvc\\backend\\api\\daos\\etapasdao.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|solutionrelative:api\\daos\\etapasdao.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|c:\\users\\daniel dos santos\\documents\\projetos\\asmtasks-mvc\\backend\\api\\controllers\\etapascontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|solutionrelative:api\\controllers\\etapascontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|c:\\users\\daniel dos santos\\documents\\projetos\\asmtasks-mvc\\backend\\api\\controllers\\setorescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|solutionrelative:api\\controllers\\setorescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|c:\\users\\daniel dos santos\\documents\\projetos\\asmtasks-mvc\\backend\\api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|solutionrelative:api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -47,105 +19,14 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "Etapa.cs",
-              "DocumentMoniker": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\Models\\Etapa.cs",
-              "RelativeDocumentMoniker": "API\\Models\\Etapa.cs",
-              "ToolTip": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\Models\\Etapa.cs*",
-              "RelativeToolTip": "API\\Models\\Etapa.cs*",
-              "ViewState": "AgIAABEAAAAAAAAAAAAswAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-13T22:56:43.79Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "EtapaResponse.cs",
-              "DocumentMoniker": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\DTOs\\Etapas\\EtapaResponse.cs",
-              "RelativeDocumentMoniker": "API\\DTOs\\Etapas\\EtapaResponse.cs",
-              "ToolTip": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\DTOs\\Etapas\\EtapaResponse.cs*",
-              "RelativeToolTip": "API\\DTOs\\Etapas\\EtapaResponse.cs*",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-13T22:56:33.542Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "EtapaCriarRequest.cs",
-              "DocumentMoniker": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\DTOs\\Etapas\\EtapaCriarRequest.cs",
-              "RelativeDocumentMoniker": "API\\DTOs\\Etapas\\EtapaCriarRequest.cs",
-              "ToolTip": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\DTOs\\Etapas\\EtapaCriarRequest.cs*",
-              "RelativeToolTip": "API\\DTOs\\Etapas\\EtapaCriarRequest.cs*",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-13T22:56:25.626Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "EtapaAtualizarRequest.cs",
-              "DocumentMoniker": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\DTOs\\Etapas\\EtapaAtualizarRequest.cs",
-              "RelativeDocumentMoniker": "API\\DTOs\\Etapas\\EtapaAtualizarRequest.cs",
-              "ToolTip": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\DTOs\\Etapas\\EtapaAtualizarRequest.cs*",
-              "RelativeToolTip": "API\\DTOs\\Etapas\\EtapaAtualizarRequest.cs*",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-13T22:56:19.488Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
               "Title": "EtapasDAO.cs",
               "DocumentMoniker": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\DAOs\\EtapasDAO.cs",
               "RelativeDocumentMoniker": "API\\DAOs\\EtapasDAO.cs",
-              "ToolTip": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\DAOs\\EtapasDAO.cs*",
-              "RelativeToolTip": "API\\DAOs\\EtapasDAO.cs*",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "ToolTip": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\DAOs\\EtapasDAO.cs",
+              "RelativeToolTip": "API\\DAOs\\EtapasDAO.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAG4AAABVAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-13T22:56:06.131Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "SetoresController.cs",
-              "DocumentMoniker": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\Controllers\\SetoresController.cs",
-              "RelativeDocumentMoniker": "API\\Controllers\\SetoresController.cs",
-              "ToolTip": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\Controllers\\SetoresController.cs",
-              "RelativeToolTip": "API\\Controllers\\SetoresController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAACoAAABbAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-13T22:32:15.533Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "EtapasController.cs",
-              "DocumentMoniker": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\Controllers\\EtapasController.cs",
-              "RelativeDocumentMoniker": "API\\Controllers\\EtapasController.cs",
-              "ToolTip": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\Controllers\\EtapasController.cs*",
-              "RelativeToolTip": "API\\Controllers\\EtapasController.cs*",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-13T22:31:28.224Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "Program.cs",
-              "DocumentMoniker": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\Program.cs",
-              "RelativeDocumentMoniker": "API\\Program.cs",
-              "ToolTip": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\Program.cs*",
-              "RelativeToolTip": "API\\Program.cs*",
-              "ViewState": "AgIAADYAAAAAAAAAAAAAADQAAAApAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-13T22:31:06.476Z",
+              "WhenOpened": "2025-10-14T05:50:46.032Z",
               "EditorCaption": ""
             }
           ]
