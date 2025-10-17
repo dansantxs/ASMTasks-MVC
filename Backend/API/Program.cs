@@ -40,7 +40,6 @@ Esta API gerencia entidades internas do sistema.
         "
     });
 
-    // Incluir comentários XML (para gerar docs automáticas dos controllers e métodos)
     var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFilename);
     if (File.Exists(xmlPath))

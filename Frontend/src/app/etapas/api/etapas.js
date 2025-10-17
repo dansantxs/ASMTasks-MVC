@@ -16,7 +16,7 @@ export async function criarEtapa(data) {
     const res = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(etapaData),
+        body: JSON.stringify(data),
     });
     if (!res.ok) throw new Error("Erro ao criar etapa");
     return res.json();
@@ -26,7 +26,7 @@ export async function atualizarEtapa(id, data) {
     const res = await fetch(`${API_URL}/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(etapaData),
+        body: JSON.stringify(data),
     });
     if (!res.ok) throw new Error("Erro ao atualizar etapa");
     return true;

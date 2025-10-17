@@ -1,105 +1,12 @@
 {
   "Version": 1,
   "WorkspaceRootPath": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\",
-  "Documents": [
-    {
-      "AbsoluteMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|c:\\users\\daniel dos santos\\documents\\projetos\\asmtasks-mvc\\backend\\api\\controllers\\etapascontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|solutionrelative:api\\controllers\\etapascontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|c:\\users\\daniel dos santos\\documents\\projetos\\asmtasks-mvc\\backend\\api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|solutionrelative:api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|c:\\users\\daniel dos santos\\documents\\projetos\\asmtasks-mvc\\backend\\api\\controllers\\setorescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|solutionrelative:api\\controllers\\setorescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|c:\\users\\daniel dos santos\\documents\\projetos\\asmtasks-mvc\\backend\\api\\controllers\\prioridadescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|solutionrelative:api\\controllers\\prioridadescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|c:\\users\\daniel dos santos\\documents\\projetos\\asmtasks-mvc\\backend\\api\\daos\\etapasdao.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|solutionrelative:api\\daos\\etapasdao.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    }
-  ],
+  "Documents": [],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
       "VerticalTabListWidth": 256,
-      "DocumentGroups": [
-        {
-          "DockedWidth": 200,
-          "SelectedChildIndex": 3,
-          "Children": [
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "Program.cs",
-              "DocumentMoniker": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\Program.cs",
-              "RelativeDocumentMoniker": "API\\Program.cs",
-              "ToolTip": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\Program.cs",
-              "RelativeToolTip": "API\\Program.cs",
-              "ViewState": "AgIAADwAAAAAAAAAAAAAAEYAAAA0AAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-15T23:05:44.496Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "SetoresController.cs",
-              "DocumentMoniker": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\Controllers\\SetoresController.cs",
-              "RelativeDocumentMoniker": "API\\Controllers\\SetoresController.cs",
-              "ToolTip": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\Controllers\\SetoresController.cs",
-              "RelativeToolTip": "API\\Controllers\\SetoresController.cs",
-              "ViewState": "AgIAAHcAAAAAAAAAAAAAwI4AAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-15T23:05:37.251Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "PrioridadesController.cs",
-              "DocumentMoniker": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\Controllers\\PrioridadesController.cs",
-              "RelativeDocumentMoniker": "API\\Controllers\\PrioridadesController.cs",
-              "ToolTip": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\Controllers\\PrioridadesController.cs",
-              "RelativeToolTip": "API\\Controllers\\PrioridadesController.cs",
-              "ViewState": "AgIAAHcAAAAAAAAAAAAAAI4AAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-15T23:05:30.86Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "EtapasController.cs",
-              "DocumentMoniker": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\Controllers\\EtapasController.cs",
-              "RelativeDocumentMoniker": "API\\Controllers\\EtapasController.cs",
-              "ToolTip": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\Controllers\\EtapasController.cs",
-              "RelativeToolTip": "API\\Controllers\\EtapasController.cs",
-              "ViewState": "AgIAAAYAAAAAAAAAAAAAABAAAAAjAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-15T23:05:13.601Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "EtapasDAO.cs",
-              "DocumentMoniker": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\DAOs\\EtapasDAO.cs",
-              "RelativeDocumentMoniker": "API\\DAOs\\EtapasDAO.cs",
-              "ToolTip": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\DAOs\\EtapasDAO.cs",
-              "RelativeToolTip": "API\\DAOs\\EtapasDAO.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAG4AAABVAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-14T05:50:46.032Z",
-              "EditorCaption": ""
-            }
-          ]
-        }
-      ]
+      "DocumentGroups": []
     }
   ]
 }

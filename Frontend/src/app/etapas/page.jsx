@@ -10,7 +10,7 @@ import ViewToggle from '../etapas/components/ViewToggle';
 import { DeleteConfirmDialog } from '../etapas/components/DeleteConfirmDialog';
 import StageViewDialog from '../etapas/components/StageViewDialog';
 import { toast } from 'sonner';
-import { getEtapas, criarEtapa, atualizarEtapa, inativarEtapa, reativarEtapa } from '../etapas/api/etapas';
+import { getEtapas, criarEtapa, atualizarEtapa, inativarEtapa, reativarEtapa } from './api/etapas';
 
 export default function EtapasPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
