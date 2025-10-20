@@ -1,12 +1,12 @@
 'use client';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from '../ui/button';
+import { Button } from '../../shared/ui/button';
 import { Plus, Flag } from 'lucide-react';
 import { Toaster } from 'sonner';
 import PriorityForm from './components/PriorityForm';
 import PriorityList from './components/PriorityList';
-import ViewToggle from './components/ViewToggle';
+import ViewToggle from '../../shared/components/ViewToggle';
 import { DeleteConfirmDialog } from './components/DeleteConfirmDialog';
 import PriorityViewDialog from './components/PriorityViewDialog';
 import { toast } from 'sonner';

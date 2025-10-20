@@ -10,11 +10,9 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '../../ui/alert-dialog';
-import { Alert, AlertDescription } from '../../ui/alert';
+} from '../../../shared/ui/alert-dialog';
+import { Alert, AlertDescription } from '../../../shared/ui/alert';
 import { AlertTriangle } from 'lucide-react';
-
-// Remove TypeScript types and interfaces
 
 export function DeleteConfirmDialog({
   open,

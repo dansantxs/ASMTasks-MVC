@@ -1,12 +1,12 @@
 'use client';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from '../ui/button';
+import { Button } from '../../shared/ui/button';
 import { Plus, Building2 } from 'lucide-react';
 import { Toaster } from 'sonner';
 import SectorForm from './components/SectorForm';
 import SectorList from './components/SectorList';
-import ViewToggle from './components/ViewToggle';
+import ViewToggle from '../../shared/components/ViewToggle';
 import { DeleteConfirmDialog } from './components/DeleteConfirmDialog';
 import SectorViewDialog from './components/SectorViewDialog';
 import { toast } from 'sonner';

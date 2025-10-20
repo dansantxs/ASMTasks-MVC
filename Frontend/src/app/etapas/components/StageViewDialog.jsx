@@ -1,10 +1,10 @@
 'use client';
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../../ui/dialog';
-import { Badge } from '../../ui/badge';
-import { Button } from '../../ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
-import { Separator } from '../../ui/separator';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../../../shared/ui/dialog';
+import { Badge } from '../../../shared/ui/badge';
+import { Button } from '../../../shared/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../shared/ui/card';
+import { Separator } from '../../../shared/ui/separator';
 import { Calendar, Workflow, RefreshCw } from 'lucide-react';
 
 // Assume Stage is an object with the expected fields

@@ -7,11 +7,11 @@ function useClientOnly() {
   useEffect(() => setIsClient(true), []);
   return isClient;
 }
-import { Button } from '../../ui/button';
-import { Input } from '../../ui/input';
-import { Badge } from '../../ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../ui/table';
+import { Button } from '../../../shared/ui/button';
+import { Input } from '../../../shared/ui/input';
+import { Badge } from '../../../shared/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../shared/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../shared/ui/table';
 import { Search, Edit, Trash2, Eye, RefreshCw } from 'lucide-react';
 
 // Priority type for JS (remove TS types)
