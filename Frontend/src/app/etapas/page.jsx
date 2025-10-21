@@ -1,16 +1,16 @@
 'use client';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from '../../../shared/ui/button';
+import { Button } from '../../shared/ui/button';
 import { Plus, Workflow } from 'lucide-react';
 import { Toaster } from 'sonner';
-import StageForm from '../components/StageForm';
-import StageList from '../components/StageList';
-import ViewToggle from '../../../shared/components/ViewToggle';
-import { DeleteConfirmDialog } from '../components/DeleteConfirmDialog';
-import StageViewDialog from '../components/StageViewDialog';
+import { DeleteConfirmDialog } from './components/DeleteConfirmDialog';
+import StageForm from './components/StageForm';
+import StageList from './components/StageList';
+import StageViewDialog from './components/StageViewDialog';
+import ViewToggle from '../../shared/components/ViewToggle';
 import { toast } from 'sonner';
-import { getEtapas, criarEtapa, atualizarEtapa, inativarEtapa, reativarEtapa } from '../api/etapas';
+import { getEtapas, criarEtapa, atualizarEtapa, inativarEtapa, reativarEtapa } from './api/etapas';
 
 export default function EtapasPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
