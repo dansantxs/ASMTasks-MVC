@@ -1,6 +1,6 @@
-﻿namespace API.DTOs.Etapas
+﻿namespace API.DTOs.Cargos
 {
-    public class EtapaResponse
+    public class CargoResponse
     {
         public int Id { get; set; }
         public string Nome { get; set; } = string.Empty;

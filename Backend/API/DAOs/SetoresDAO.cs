@@ -132,5 +132,6 @@ namespace API.DAOs
         }
 
         // Implementar o método de verificação de tarefas em andamento
+        // Implementar o método de verificação colaboradores ativos
     }
 }

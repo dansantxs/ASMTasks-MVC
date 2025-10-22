@@ -1,4 +1,4 @@
-﻿namespace API.DTOs.EtapasDesenvolvimento
+﻿namespace API.DTOs.Etapas
 {
     public class EtapaCriarRequest
     {
