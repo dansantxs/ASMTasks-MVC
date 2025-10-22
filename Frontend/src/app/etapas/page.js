@@ -1,13 +1,13 @@
 'use client';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from '../../shared/ui/button';
+import { Button } from '../../ui/base/button';
 import { Plus, Workflow } from 'lucide-react';
 import { Toaster } from 'sonner';
 import { DeleteConfirmDialog } from './components/DeleteConfirmDialog';
 import StageForm from './components/StageForm';
 import StageList from './components/StageList';
-import StageViewDialog from './components/StageViewDialog';
+import StageViewDialog from './components/StageViewDialo';
 import ViewToggle from '../../shared/components/ViewToggle';
 import { toast } from 'sonner';
 import { getEtapas, criarEtapa, atualizarEtapa, inativarEtapa, reativarEtapa } from './api/etapas';

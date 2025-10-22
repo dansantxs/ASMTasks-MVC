@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../../../shared/ui/dialog';
-import { Button } from '../../../shared/ui/button';
-import { Input } from '../../../shared/ui/input';
-import { Label } from '../../../shared/ui/label';
-import { Textarea } from '../../../shared/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../shared/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../../../ui/base/dialog';
+import { Button } from '../../../ui/base/button';
+import { Input } from '../../../ui/form/input';
+import { Label } from '../../../ui/form/label';
+import { Textarea } from '../../../ui/form/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../ui/form/select';
 import { toast } from 'sonner';
 
 export default function SectorForm({ 

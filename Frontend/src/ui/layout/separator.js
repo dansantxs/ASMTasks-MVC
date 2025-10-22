@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Root as SeparatorRoot } from "@radix-ui/react-separator";
-import { cn } from "./utils"; // ajuste o caminho conforme necessário
+import { cn } from "../form/utils"; // ajuste o caminho conforme necessário
 
 function Separator({
   className,

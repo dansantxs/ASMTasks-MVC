@@ -1,43 +1,46 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../../../shared/ui/dialog';
-import { Button } from '../../../shared/ui/button';
-import { Input } from '../../../shared/ui/input';
-import { Label } from '../../../shared/ui/label';
-import { Textarea } from '../../../shared/ui/textarea';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../../../ui/base/dialog';
+import { Button } from '../../../ui/base/button';
+import { Input } from '../../../ui/form/input';
+import { Label } from '../../../ui/form/label';
+import { Textarea } from '../../../ui/form/textarea';
 import { toast } from 'sonner';
 
-export default function StageForm({ 
+export default function PriorityForm({ 
   open, 
   onOpenChange, 
-  stage, 
+  priority, 
   onSave, 
-  existingStages
+  existingPriorities
 }) {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
+    color: '#000000',
     active: true
   });
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    if (stage) {
+    if (priority) {
       setFormData({
-        name: stage.name,
-        description: stage.description || '',
-        active: stage.active
+        name: priority.name,
+        description: priority.description || '',
+        color: priority.color || '#000000',
+        active: priority.active
       });
     } else {
       setFormData({
         name: '',
         description: '',
+        color: '#000000',
         active: true
       });
     }
     setErrors({});
-  }, [stage, open]);
+  }, [priority, open]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -45,13 +48,17 @@ export default function StageForm({
     if (!formData.name.trim()) {
       newErrors.name = 'Nome é obrigatório';
     } else {
-      const nameExists = existingStages.some(s => 
-        s.name.toLowerCase() === formData.name.toLowerCase() && 
-        s.id !== (stage && stage.id)
+      const nameExists = existingPriorities.some(p => 
+        p.name.toLowerCase() === formData.name.toLowerCase() && 
+        p.id !== (priority && priority.id)
       );
       if (nameExists) {
-        newErrors.name = 'Já existe uma etapa com este nome';
+        newErrors.name = 'Já existe uma prioridade com este nome';
       }
+    }
+
+    if (!formData.color) {
+      newErrors.color = 'Cor da Prioridade é obrigatória';
     }
 
     setErrors(newErrors);
@@ -65,7 +72,14 @@ export default function StageForm({
     }
     onSave(formData);
     onOpenChange(false);
-    toast.success(stage ? 'Etapa atualizada com sucesso!' : 'Etapa cadastrada com sucesso!');
+    toast.success(priority ? 'Prioridade atualizada com sucesso!' : 'Prioridade cadastrada com sucesso!');
+  };
+
+  const handleColorChange = (e) => {
+    setFormData(prev => ({
+      ...prev,
+      color: e.target.value
+    }));
   };
 
   return (
@@ -73,23 +87,23 @@ export default function StageForm({
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
-            {stage ? 'Editar Etapa' : 'Cadastrar Nova Etapa'}
+            {priority ? 'Editar Prioridade' : 'Cadastrar Nova Prioridade'}
           </DialogTitle>
           <DialogDescription>
-            {stage 
-              ? 'Edite as informações da etapa selecionada'
-              : 'Preencha os dados para criar uma nova etapa'
+            {priority 
+              ? 'Edite as informações da prioridade selecionada'
+              : 'Preencha os dados para criar uma nova prioridade'
             }
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Nome da Etapa <span className="text-destructive">*</span></Label>
+            <Label htmlFor="name">Nome da Prioridade <span className="text-destructive">*</span></Label>
             <Input
               id="name"
               value={formData.name}
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              placeholder="Digite o nome da etapa"
+              placeholder="Digite o nome da prioridade"
               className={errors.name ? 'border-destructive' : ''}
             />
             {errors.name && (
@@ -103,9 +117,24 @@ export default function StageForm({
               id="description"
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Digite uma descrição para a etapa (opcional)"
+              placeholder="Digite uma descrição para a prioridade (opcional)"
               rows={3}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="color">Cor da Prioridade <span className="text-destructive">*</span></Label>
+            <Input
+              id="color"
+              type="color"
+              value={formData.color}
+              onChange={handleColorChange}
+              className={errors.color ? 'border-destructive h-10 w-16 p-1' : 'h-10 w-16 p-1'}
+              style={{ padding: 0, border: errors.color ? '1px solid #dc2626' : undefined }}
+            />
+            {errors.color && (
+              <p className="text-sm text-destructive">{errors.color}</p>
+            )}
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
@@ -120,7 +149,7 @@ export default function StageForm({
               type="submit"
               className="bg-brand-blue hover:bg-brand-blue-dark"
             >
-              {stage ? 'Salvar Alterações' : 'Cadastrar Etapa'}
+              {priority ? 'Salvar Alterações' : 'Cadastrar Prioridade'}
             </Button>
           </div>
         </form>

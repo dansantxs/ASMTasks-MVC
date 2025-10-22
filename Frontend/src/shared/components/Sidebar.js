@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { Home, ChevronDown, ChevronRight, Layers, Menu, X, Building2, Flag, Workflow } from 'lucide-react';
-import { cn } from '../ui/utils';
-import { Button } from '../ui/button';
+import { Home, ChevronDown, ChevronRight, Layers, Menu, X } from 'lucide-react';
+import { cn } from '../../ui/form/utils';
+import { Button } from '../../ui/base/button';
+import { cadastroItems } from "../config/menuItems";
 
 export function Sidebar({ currentPage, onNavigate }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -93,46 +94,26 @@ export function Sidebar({ currentPage, onNavigate }) {
           </button>
 
           {/* Submenu */}
-          {cadastrosExpanded && !isCollapsed && (
+          {cadastrosExpanded && (
             <div className="ml-4 mt-1 space-y-1">
-              <button
-                onClick={() => onNavigate('setores')}
-                className={cn(
-                  "w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors text-sm",
-                  currentPage === 'setores'
-                    ? "bg-[#1e3a8a] text-white"
-                    : "text-gray-400 hover:bg-gray-800 hover:text-gray-200"
-                )}
-              >
-                <Building2 className="h-4 w-4" />
-                <span>Setores</span>
-              </button>
-
-              <button
-                onClick={() => onNavigate('prioridades')}
-                className={cn(
-                  "w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors text-sm",
-                  currentPage === 'prioridades'
-                    ? "bg-[#1e3a8a] text-white"
-                    : "text-gray-400 hover:bg-gray-800 hover:text-gray-200"
-                )}
-              >
-                <Flag className="h-4 w-4" />
-                <span>Prioridades</span>
-              </button>
-
-              <button
-                onClick={() => onNavigate('etapas')}
-                className={cn(
-                  "w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors text-sm",
-                  currentPage === 'etapas'
-                    ? "bg-[#1e3a8a] text-white"
-                    : "text-gray-400 hover:bg-gray-800 hover:text-gray-200"
-                )}
-              >
-                <Workflow className="h-4 w-4" />
-                <span>Etapas</span>
-              </button>
+              {cadastroItems.map(item => {
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.key}
+                    onClick={() => onNavigate(item.key)}
+                    className={cn(
+                      "w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors text-sm",
+                      currentPage === item.key
+                        ? "bg-teal-600 text-white"
+                        : "text-gray-400 hover:bg-gray-800 hover:text-gray-200"
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {item.label}
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>

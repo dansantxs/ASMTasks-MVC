@@ -7,16 +7,16 @@ function useClientOnly() {
   useEffect(() => setIsClient(true), []);
   return isClient;
 }
-import { Button } from '../../../shared/ui/button';
-import { Input } from '../../../shared/ui/input';
-import { Badge } from '../../../shared/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '../../../shared/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../shared/ui/table';
+import { Button } from '../../../ui/base/button';
+import { Input } from '../../../ui/form/input';
+import { Badge } from '../../../ui/base/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/layout/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../ui/layout/table';
 import { Search, Edit, Trash2, Eye, RefreshCw } from 'lucide-react';
 
-// Priority type for JS (remove TS types)
-export default function PriorityList({
-  priorities,
+// Sector type for JS (remove TS types)
+export default function SectorList({
+  sectors,
   onEdit,
   onDelete,
   onView,
@@ -26,45 +26,38 @@ export default function PriorityList({
   const isClient = useClientOnly();
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredPriorities = priorities.filter(priority =>
-    (priority.name && priority.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (priority.description && priority.description.toLowerCase().includes(searchTerm.toLowerCase()))
+  const filteredSectors = sectors.filter(sector =>
+    (sector.name && sector.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (sector.responsibleName && sector.responsibleName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (sector.description && sector.description.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  const activePriorities = filteredPriorities.filter(priority => priority.active);
-  const inactivePriorities = filteredPriorities.filter(priority => !priority.active);
+  const activeSectors = filteredSectors.filter(sector => sector.active);
+  const inactiveSectors = filteredSectors.filter(sector => !sector.active);
 
-  const PriorityCard = ({ priority }) => (
-    <Card key={priority.id} className="hover:shadow-md transition-shadow border-l-4 border-l-brand-blue">
+  const SectorCard = ({ sector }) => (
+    <Card key={sector.id} className="hover:shadow-md transition-shadow border-l-4 border-l-brand-blue">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">{priority.name}</CardTitle>
-          <Badge variant={priority.active ? "default" : "secondary"} 
-                 className={priority.active ? "bg-brand-blue hover:bg-brand-blue-dark" : ""}>
-            {priority.active ? 'Ativo' : 'Inativo'}
+          <CardTitle className="text-lg">{sector.name}</CardTitle>
+          <Badge variant={sector.active ? "default" : "secondary"} 
+                 className={sector.active ? "bg-brand-blue hover:bg-brand-blue-dark" : ""}>
+            {sector.active ? 'Ativo' : 'Inativo'}
           </Badge>
         </div>
       </CardHeader>
       <CardContent className="pt-0">
         <div className="space-y-2">
-          {priority.description && (
+          {sector.description && (
             <p className="text-sm text-muted-foreground line-clamp-2">
-              {priority.description}
+              {sector.description}
             </p>
           )}
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span className="font-medium">Cor da Prioridade:</span>
-            <input
-              type="color"
-              value={priority.color || '#000000'}
-              disabled
-              style={{ width: 24, height: 24, border: 'none', background: 'none', padding: 0 }}
-              title={priority.color}
-            />
-            <span>{priority.color}</span>
-          </div>
           <p className="text-sm text-muted-foreground">
-            <span className="font-medium">Criado em:</span> <span suppressHydrationWarning>{isClient ? new Date(priority.createdAt).toLocaleDateString('pt-BR') : ''}</span>
+            <span className="font-medium">Responsável:</span> {sector.responsibleName}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            <span className="font-medium">Criado em:</span> <span suppressHydrationWarning>{isClient ? new Date(sector.createdAt).toLocaleDateString('pt-BR') : ''}</span>
           </p>
         </div>
         
@@ -72,7 +65,7 @@ export default function PriorityList({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => onView(priority)}
+            onClick={() => onView(sector)}
             className="flex items-center gap-1 border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white"
           >
             <Eye className="h-4 w-4" />
@@ -81,17 +74,17 @@ export default function PriorityList({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => onEdit(priority)}
+            onClick={() => onEdit(sector)}
             className="flex items-center gap-1"
           >
             <Edit className="h-4 w-4" />
             Editar
           </Button>
-          {priority.active ? (
+          {sector.active ? (
             <Button
               variant="outline"
               size="sm"
-              onClick={() => onDelete(priority)}
+              onClick={() => onDelete(sector)}
               className="flex items-center gap-1 text-destructive hover:text-destructive"
             >
               <Trash2 className="h-4 w-4" />
@@ -101,7 +94,7 @@ export default function PriorityList({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => onReactivate(priority)}
+              onClick={() => onReactivate(sector)}
               className="flex items-center gap-1 text-green-600 border-green-600 hover:bg-green-600 hover:text-white"
             >
               <RefreshCw className="h-4 w-4" />
@@ -113,41 +106,30 @@ export default function PriorityList({
     </Card>
   );
 
-  const PriorityRow = ({ priority }) => (
-    <TableRow key={priority.id} className="hover:bg-muted/50">
-      <TableCell className="font-medium">{priority.name}</TableCell>
+  const SectorRow = ({ sector }) => (
+    <TableRow key={sector.id} className="hover:bg-muted/50">
+      <TableCell className="font-medium">{sector.name}</TableCell>
       <TableCell className="max-w-xs">
-        <div className="text-sm text-muted-foreground truncate" title={priority.description || ''}>
-          {priority.description || '-'}
+        <div className="text-sm text-muted-foreground truncate" title={sector.description || ''}>
+          {sector.description || '-'}
         </div>
       </TableCell>
+      <TableCell>{sector.responsibleName}</TableCell>
       <TableCell>
-        <div className="flex items-center gap-2">
-          <input
-            type="color"
-            value={priority.color || '#000000'}
-            disabled
-            style={{ width: 24, height: 24, border: 'none', background: 'none', padding: 0 }}
-            title={priority.color}
-          />
-          <span className="text-sm">{priority.color}</span>
-        </div>
-      </TableCell>
-      <TableCell>
-        <Badge variant={priority.active ? "default" : "secondary"}
-               className={priority.active ? "bg-brand-blue hover:bg-brand-blue-dark" : ""}>
-          {priority.active ? 'Ativo' : 'Inativo'}
+        <Badge variant={sector.active ? "default" : "secondary"}
+               className={sector.active ? "bg-brand-blue hover:bg-brand-blue-dark" : ""}>
+          {sector.active ? 'Ativo' : 'Inativo'}
         </Badge>
       </TableCell>
       <TableCell className="text-sm text-muted-foreground">
-        <span suppressHydrationWarning>{isClient ? new Date(priority.createdAt).toLocaleDateString('pt-BR') : ''}</span>
+        <span suppressHydrationWarning>{isClient ? new Date(sector.createdAt).toLocaleDateString('pt-BR') : ''}</span>
       </TableCell>
       <TableCell className="text-right">
         <div className="flex gap-1 justify-end">
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onView(priority)}
+            onClick={() => onView(sector)}
             className="h-8 w-8 p-0 text-brand-blue hover:bg-brand-blue hover:text-white"
           >
             <Eye className="h-4 w-4" />
@@ -155,16 +137,16 @@ export default function PriorityList({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onEdit(priority)}
+            onClick={() => onEdit(sector)}
             className="h-8 w-8 p-0"
           >
             <Edit className="h-4 w-4" />
           </Button>
-          {priority.active ? (
+          {sector.active ? (
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onDelete(priority)}
+              onClick={() => onDelete(sector)}
               className="h-8 w-8 p-0 text-destructive hover:bg-destructive hover:text-destructive-foreground"
             >
               <Trash2 className="h-4 w-4" />
@@ -173,7 +155,7 @@ export default function PriorityList({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onReactivate(priority)}
+              onClick={() => onReactivate(sector)}
               className="h-8 w-8 p-0 text-green-600 hover:bg-green-600 hover:text-white"
             >
               <RefreshCw className="h-4 w-4" />
@@ -190,7 +172,7 @@ export default function PriorityList({
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
         <Input
-          placeholder="Buscar prioridades por nome ou descrição..."
+          placeholder="Buscar setores por nome, descrição ou responsável..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="pl-10"
@@ -199,31 +181,31 @@ export default function PriorityList({
 
       {viewMode === 'cards' ? (
         <>
-          {/* Prioridades Ativas - Cards */}
-          {activePriorities.length > 0 && (
+          {/* Setores Ativos - Cards */}
+          {activeSectors.length > 0 && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3>Prioridades Ativas</h3>
-                <Badge variant="outline" className="border-brand-blue text-brand-blue">{activePriorities.length}</Badge>
+                <h3>Setores Ativos</h3>
+                <Badge variant="outline" className="border-brand-blue text-brand-blue">{activeSectors.length}</Badge>
               </div>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {activePriorities.map(priority => (
-                  <PriorityCard key={priority.id} priority={priority} />
+                {activeSectors.map(sector => (
+                  <SectorCard key={sector.id} sector={sector} />
                 ))}
               </div>
             </div>
           )}
 
-          {/* Prioridades Inativas - Cards */}
-          {inactivePriorities.length > 0 && (
+          {/* Setores Inativos - Cards */}
+          {inactiveSectors.length > 0 && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3>Prioridades Inativas</h3>
-                <Badge variant="outline">{inactivePriorities.length}</Badge>
+                <h3>Setores Inativos</h3>
+                <Badge variant="outline">{inactiveSectors.length}</Badge>
               </div>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {inactivePriorities.map(priority => (
-                  <PriorityCard key={priority.id} priority={priority} />
+                {inactiveSectors.map(sector => (
+                  <SectorCard key={sector.id} sector={sector} />
                 ))}
               </div>
             </div>
@@ -231,28 +213,28 @@ export default function PriorityList({
         </>
       ) : (
         <>
-          {/* Prioridades Ativas - Lista */}
-          {activePriorities.length > 0 && (
+          {/* Setores Ativos - Lista */}
+          {activeSectors.length > 0 && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3>Prioridades Ativas</h3>
-                <Badge variant="outline" className="border-brand-blue text-brand-blue">{activePriorities.length}</Badge>
+                <h3>Setores Ativos</h3>
+                <Badge variant="outline" className="border-brand-blue text-brand-blue">{activeSectors.length}</Badge>
               </div>
               <div className="border rounded-lg">
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-brand-blue/5">
-                      <TableHead className="font-medium text-brand-blue">Nome da Prioridade</TableHead>
+                      <TableHead className="font-medium text-brand-blue">Nome do Setor</TableHead>
                       <TableHead className="font-medium text-brand-blue">Descrição</TableHead>
-                      <TableHead className="font-medium text-brand-blue">Cor da Prioridade</TableHead>
+                      <TableHead className="font-medium text-brand-blue">Responsável</TableHead>
                       <TableHead className="font-medium text-brand-blue">Status</TableHead>
                       <TableHead className="font-medium text-brand-blue">Data de Criação</TableHead>
                       <TableHead className="text-right font-medium text-brand-blue">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {activePriorities.map(priority => (
-                      <PriorityRow key={priority.id} priority={priority} />
+                    {activeSectors.map(sector => (
+                      <SectorRow key={sector.id} sector={sector} />
                     ))}
                   </TableBody>
                 </Table>
@@ -260,28 +242,28 @@ export default function PriorityList({
             </div>
           )}
 
-          {/* Prioridades Inativas - Lista */}
-          {inactivePriorities.length > 0 && (
+          {/* Setores Inativos - Lista */}
+          {inactiveSectors.length > 0 && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3>Prioridades Inativas</h3>
-                <Badge variant="outline">{inactivePriorities.length}</Badge>
+                <h3>Setores Inativos</h3>
+                <Badge variant="outline">{inactiveSectors.length}</Badge>
               </div>
               <div className="border rounded-lg">
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-muted/30">
-                      <TableHead>Nome da Prioridade</TableHead>
+                      <TableHead>Nome do Setor</TableHead>
                       <TableHead>Descrição</TableHead>
-                      <TableHead>Cor da Prioridade</TableHead>
+                      <TableHead>Responsável</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Data de Criação</TableHead>
                       <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {inactivePriorities.map(priority => (
-                      <PriorityRow key={priority.id} priority={priority} />
+                    {inactiveSectors.map(sector => (
+                      <SectorRow key={sector.id} sector={sector} />
                     ))}
                   </TableBody>
                 </Table>
@@ -292,17 +274,17 @@ export default function PriorityList({
       )}
 
       {/* Estado vazio */}
-      {filteredPriorities.length === 0 && (
+      {filteredSectors.length === 0 && (
         <div className="text-center py-12">
           <div className="space-y-3">
             <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center">
               <Search className="h-6 w-6 text-muted-foreground" />
             </div>
-            <h3>Nenhuma prioridade encontrada</h3>
+            <h3>Nenhum setor encontrado</h3>
             <p className="text-muted-foreground max-w-md mx-auto">
               {searchTerm 
-                ? `Não encontramos prioridades que correspondam à busca "${searchTerm}".`
-                : 'Ainda não há prioridades cadastradas no sistema.'
+                ? `Não encontramos setores que correspondam à busca "${searchTerm}".`
+                : 'Ainda não há setores cadastrados no sistema.'
               }
             </p>
           </div>

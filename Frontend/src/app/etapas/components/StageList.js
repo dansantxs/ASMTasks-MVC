@@ -7,11 +7,11 @@ function useClientOnly() {
   useEffect(() => setIsClient(true), []);
   return isClient;
 }
-import { Button } from '../../../shared/ui/button';
-import { Input } from '../../../shared/ui/input';
-import { Badge } from '../../../shared/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '../../../shared/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../shared/ui/table';
+import { Button } from '../../../ui/base/button';
+import { Input } from '../../../ui/form/input';
+import { Badge } from '../../../ui/base/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/layout/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../ui/layout/table';
 import { Search, Edit, Trash2, Eye, RefreshCw } from 'lucide-react';
 
 // Stage type for JS (remove TS types)

@@ -1,4 +1,4 @@
-import { Button } from '../ui/button';
+import { Button } from '../../ui/base/button';
 import { LayoutGrid, List } from 'lucide-react';
 
 export default function ViewToggle({ viewMode, onViewModeChange }) {

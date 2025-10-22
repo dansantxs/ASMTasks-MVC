@@ -10,8 +10,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '../../../shared/ui/alert-dialog';
-import { Alert, AlertDescription } from '../../../shared/ui/alert';
+} from '../../../ui/feedback/alert/alert-dialog';
+import { Alert, AlertDescription } from '../../../ui/feedback/alert/alert';
 import { AlertTriangle } from 'lucide-react';
 
 export function DeleteConfirmDialog({

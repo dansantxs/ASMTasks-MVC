@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from '../../shared/ui/button';
+import { Button } from '../../ui/base/button';
 import { Plus, Flag } from 'lucide-react';
 import { Toaster } from 'sonner';
 import PriorityForm from './components/PriorityForm';

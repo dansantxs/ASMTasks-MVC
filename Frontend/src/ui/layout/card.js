@@ -1,5 +1,5 @@
 import React from "react";
-import { cn } from "./utils";
+import { cn } from "../form/utils";
 
 function Card({ className, ...props }) {
   return (

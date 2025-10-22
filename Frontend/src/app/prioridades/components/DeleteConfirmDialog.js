@@ -10,8 +10,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '../../../shared/ui/alert-dialog';
-import { Alert, AlertDescription } from '../../../shared/ui/alert';
+} from '../../../ui/feedback/alert/alert-dialog';
+import { Alert, AlertDescription } from '../../../ui/feedback/alert/alert';
 import { AlertTriangle } from 'lucide-react';
 
 // Remove TypeScript types and interfaces
@@ -19,12 +19,12 @@ import { AlertTriangle } from 'lucide-react';
 export function DeleteConfirmDialog({
   open,
   onOpenChange,
-  stage,
+  priority,
   onConfirm,
   hasActiveTasks,
   activeTasksCount = 0,
 }) {
-  if (!stage) return null;
+  if (!priority) return null;
 
   const handleConfirm = () => {
     if (!hasActiveTasks) {
@@ -37,21 +37,21 @@ export function DeleteConfirmDialog({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
-            {hasActiveTasks ? 'Não é possível excluir a etapa' : 'Confirmar exclusão'}
+            {hasActiveTasks ? 'Não é possível excluir a prioridade' : 'Confirmar exclusão'}
           </AlertDialogTitle>
           <AlertDialogDescription asChild>
             {hasActiveTasks ? (
               <div className="space-y-4">
                 <div>
-                  A etapa <strong>"{stage.name}"</strong> não pode ser excluída porque possui{' '}
+                  A prioridade <strong>"{priority.name}"</strong> não pode ser excluída porque possui{' '}
                   <strong>{activeTasksCount} tarefa(s) em andamento</strong>.
                 </div>
 
                 <Alert className="border-amber-200 bg-amber-50">
                   <AlertTriangle className="h-4 w-4 text-amber-600" />
                   <AlertDescription className="text-amber-800">
-                    Para excluir esta etapa, primeiro você deve realocar todas as tarefas em andamento
-                    para outras etapas ou finalizá-las.
+                    Para excluir esta prioridade, primeiro você deve realocar todas as tarefas em andamento
+                    para outras prioridades ou finalizá-las.
                   </AlertDescription>
                 </Alert>
 
@@ -63,11 +63,11 @@ export function DeleteConfirmDialog({
             ) : (
               <div className="space-y-4">
                 <div>
-                  Tem certeza que deseja excluir a etapa <strong>"{stage.name}"</strong>?
+                  Tem certeza que deseja excluir a prioridade <strong>"{priority.name}"</strong>?
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  Esta ação irá inativar a etapa, preservando o histórico de tarefas associadas.
-                  A etapa não aparecerá mais nas listagens ativas, mas poderá ser reativada posteriormente.
+                  Esta ação irá inativar a prioridade, preservando o histórico de tarefas associadas.
+                  A prioridade não aparecerá mais nas listagens ativas, mas poderá ser reativada posteriormente.
                 </div>
               </div>
             )}
