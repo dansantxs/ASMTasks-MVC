@@ -7,7 +7,7 @@ import { Toaster } from 'sonner';
 import { DeleteConfirmDialog } from './components/DeleteConfirmDialog';
 import StageForm from './components/StageForm';
 import StageList from './components/StageList';
-import StageViewDialog from './components/StageViewDialo';
+import StageViewDialog from './components/StageViewDialog';
 import ViewToggle from '../../shared/components/ViewToggle';
 import { toast } from 'sonner';
 import { getEtapas, criarEtapa, atualizarEtapa, inativarEtapa, reativarEtapa } from './api/etapas';

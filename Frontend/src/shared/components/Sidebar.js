@@ -20,16 +20,15 @@ export function Sidebar({ currentPage, onNavigate }) {
   return (
     <div
       className={cn(
-        "bg-[#0f172a] text-white h-screen flex flex-col border-r border-gray-800 transition-all duration-300",
+        "fixed top-0 left-0 bg-[#0f172a] text-white h-screen flex flex-col border-r border-gray-800 transition-all duration-300",
         isCollapsed ? "w-20" : "w-64"
       )}
     >
-      {/* Header */}
       <div className="p-4 border-b border-gray-800 flex items-center justify-between">
         {!isCollapsed && (
           <div>
-            <h2 className="text-white">Sistema de Gestão</h2>
-            <p className="text-gray-400 text-sm mt-1">Gerenciamento</p>
+            <h2 className="text-white">ASM Tasks</h2>
+            <p className="text-gray-400 text-sm mt-1">Gerenciamento de Tarefas</p>
           </div>
         )}
         <Button
@@ -42,9 +41,7 @@ export function Sidebar({ currentPage, onNavigate }) {
         </Button>
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 p-4 space-y-2">
-        {/* Início */}
         <button
           onClick={() => onNavigate('inicio')}
           className={cn(
@@ -60,7 +57,6 @@ export function Sidebar({ currentPage, onNavigate }) {
           {!isCollapsed && <span>Início</span>}
         </button>
 
-        {/* Cadastros */}
         <div>
           <button
             onClick={() => {
@@ -74,52 +70,50 @@ export function Sidebar({ currentPage, onNavigate }) {
             className={cn(
               "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors",
               ['setores', 'prioridades', 'etapas'].includes(currentPage)
-                ? "bg-gray-800 text-white"
-                : "text-gray-300 hover:bg-gray-800",
+              ? "bg-gray-800 text-white"
+              : "text-gray-300 hover:bg-gray-800",
               isCollapsed && "justify-center px-2"
             )}
             title={isCollapsed ? "Cadastros" : undefined}
-          >
+            >
             <Layers className="h-5 w-5 flex-shrink-0" />
             {!isCollapsed && (
               <>
-                <span className="flex-1 text-left">Cadastros</span>
-                {cadastrosExpanded ? (
-                  <ChevronDown className="h-4 w-4 flex-shrink-0" />
-                ) : (
-                  <ChevronRight className="h-4 w-4 flex-shrink-0" />
-                )}
+              <span className="flex-1 text-left">Cadastros</span>
+              {cadastrosExpanded ? (
+                <ChevronDown className="h-4 w-4 flex-shrink-0" />
+              ) : (
+                <ChevronRight className="h-4 w-4 flex-shrink-0" />
+              )}
               </>
             )}
           </button>
 
-          {/* Submenu */}
-          {cadastrosExpanded && (
-            <div className="ml-4 mt-1 space-y-1">
-              {cadastroItems.map(item => {
-                const Icon = item.icon;
-                return (
-                  <button
-                    key={item.key}
-                    onClick={() => onNavigate(item.key)}
-                    className={cn(
-                      "w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors text-sm",
-                      currentPage === item.key
-                        ? "bg-teal-600 text-white"
-                        : "text-gray-400 hover:bg-gray-800 hover:text-gray-200"
-                    )}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {item.label}
-                  </button>
-                );
-              })}
-            </div>
+          {cadastrosExpanded && !isCollapsed && (
+          <div className="ml-4 mt-1 space-y-1">
+            {cadastroItems.map(item => {
+            const Icon = item.icon;
+            return (
+              <button
+              key={item.key}
+              onClick={() => onNavigate(item.key)}
+              className={cn(
+                "w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors text-sm",
+                currentPage === item.key
+                ? "bg-teal-600 text-white"
+                : "text-gray-400 hover:bg-gray-800 hover:text-gray-200"
+              )}
+              >
+              <Icon className="h-4 w-4" />
+              {!isCollapsed && <span>{item.label}</span>}
+              </button>
+            );
+            })}
+          </div>
           )}
         </div>
       </nav>
 
-      {/* Footer - opcional, pode mostrar versão ou usuário */}
       {!isCollapsed && (
         <div className="p-4 border-t border-gray-800">
           <p className="text-gray-500 text-xs text-center">v1.0.0</p>

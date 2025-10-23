@@ -16,7 +16,11 @@ export default function ClientLayout({ children }) {
   return (
     <div className="flex bg-background text-foreground min-h-screen">
       <Sidebar currentPage={currentPage} onNavigate={handleNavigate} />
-      <main className="flex-1 overflow-y-auto">
+      <main
+        className={`flex-1 overflow-y-auto transition-all duration-300 ${
+          "ml-64"
+        }`}
+      >
         {children}
       </main>
     </div>

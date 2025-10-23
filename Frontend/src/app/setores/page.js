@@ -7,7 +7,7 @@ import { Toaster } from 'sonner';
 import SectorForm from './components/SectorForm';
 import SectorList from './components/SectorList';
 import ViewToggle from '../../shared/components/ViewToggle';
-import { DeleteConfirmDialog } from './components/DeleteConfirmDialo';
+import { DeleteConfirmDialog } from './components/DeleteConfirmDialog';
 import SectorViewDialog from './components/SectorViewDialog';
 import { toast } from 'sonner';
 import { getSetores, criarSetor, atualizarSetor, inativarSetor, reativarSetor } from './api/setores';
