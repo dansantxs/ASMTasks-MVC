@@ -7,7 +7,6 @@ import { Input } from '../../../ui/form/input';
 import { Label } from '../../../ui/form/label';
 import { Textarea } from '../../../ui/form/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../ui/form/select';
-import { toast } from 'sonner';
 
 export default function SectorForm({ 
   open, 
@@ -76,8 +75,6 @@ export default function SectorForm({
       return;
     }
     onSave(formData);
-    onOpenChange(false);
-    toast.success(sector ? 'Setor atualizado com sucesso!' : 'Setor cadastrado com sucesso!');
   };
 
   const handleResponsibleChange = (value) => {

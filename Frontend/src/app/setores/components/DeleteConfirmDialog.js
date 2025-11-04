@@ -20,12 +20,14 @@ export function DeleteConfirmDialog({
   sector,
   onConfirm,
   hasActiveTasks,
-  activeTasksCount = 0,
+  hasActiveEmployees,
 }) {
   if (!sector) return null;
 
+  const hasBlockingItems = !!(hasActiveTasks || hasActiveEmployees);
+
   const handleConfirm = () => {
-    if (!hasActiveTasks) {
+    if (!hasBlockingItems) {
       onConfirm();
     }
   };
@@ -35,27 +37,30 @@ export function DeleteConfirmDialog({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
-            {hasActiveTasks ? 'Não é possível excluir o setor' : 'Confirmar exclusão'}
+            {hasBlockingItems ? 'Não é possível excluir o setor' : 'Confirmar exclusão'}
           </AlertDialogTitle>
           <AlertDialogDescription asChild>
-            {hasActiveTasks ? (
+            {hasBlockingItems ? (
               <div className="space-y-4">
                 <div>
-                  O setor <strong>"{sector.name}"</strong> não pode ser excluído porque possui{' '}
-                  <strong>{activeTasksCount} tarefa(s) em andamento</strong>.
+                  O setor <strong>"{sector.name}"</strong> não pode ser excluído porque possui:
                 </div>
+
+                <ul className="ml-4 list-disc space-y-1">
+                  {hasActiveTasks && <li><strong>Tarefas em andamento</strong></li>}
+                  {hasActiveEmployees && <li><strong>Empregados ativos neste setor</strong></li>}
+                </ul>
 
                 <Alert className="border-amber-200 bg-amber-50">
                   <AlertTriangle className="h-4 w-4 text-amber-600" />
                   <AlertDescription className="text-amber-800">
-                    Para excluir este setor, primeiro você deve realocar todas as tarefas em andamento
-                    para outros setores ou finalizá-las.
+                    Para excluir este setor, primeiro realoque ou finalize as tarefas em andamento
+                    e realoque ou remova os empregados ativos deste setor.
                   </AlertDescription>
                 </Alert>
 
                 <div className="text-sm text-muted-foreground">
-                  Esta validação garante que o histórico de tarefas seja preservado e que não haja
-                  tarefas órfãs no sistema.
+                  Esta validação garante que o histórico de tarefas e a alocação de empregados seja preservado e que não haja itens órfãos no sistema.
                 </div>
               </div>
             ) : (
@@ -73,9 +78,9 @@ export function DeleteConfirmDialog({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>
-            {hasActiveTasks ? 'Entendi' : 'Cancelar'}
+            {hasBlockingItems ? 'Entendi' : 'Cancelar'}
           </AlertDialogCancel>
-          {!hasActiveTasks && (
+          {!hasBlockingItems && (
             <AlertDialogAction
               onClick={handleConfirm}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"

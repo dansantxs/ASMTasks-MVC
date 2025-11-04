@@ -1,4 +1,4 @@
-﻿using API.DAOs;
+﻿using API.DB;
 using API.DTOs.Cargos;
 using API.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -14,9 +14,9 @@ namespace API.Controllers
     [Produces("application/json")]
     public class CargosController : ControllerBase
     {
-        private readonly DbContext _dbContext;
+        private readonly DBContext _dbContext;
 
-        public CargosController(DbContext dbContext)
+        public CargosController(DBContext dbContext)
         {
             _dbContext = dbContext;
         }
@@ -53,9 +53,9 @@ namespace API.Controllers
             {
                 return BadRequest(new { erro = ex.Message });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Ocorreu um erro ao criar o cargo." });
+                return StatusCode(500, new { erro = "Ocorreu um erro ao criar o cargo.", detalhe = ex.Message });
             }
         }
 
@@ -94,14 +94,14 @@ namespace API.Controllers
             {
                 return BadRequest(new { erro = ex.Message });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Ocorreu um erro ao atualizar o cargo." });
+                return StatusCode(500, new { erro = "Ocorreu um erro ao atualizar o cargo.", detalhe = ex.Message });
             }
         }
 
         /// <summary>
-        /// Inativa um cargo (soft delete).
+        /// Inativa um cargo.
         /// </summary>
         /// <param name="id">ID do cargo a ser inativado.</param>
         /// <response code="204">Cargo inativado com sucesso.</response>
@@ -122,9 +122,9 @@ namespace API.Controllers
                 await cargo.InativarAsync(_dbContext);
                 return NoContent();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Ocorreu um erro ao inativar o cargo." });
+                return StatusCode(500, new { erro = "Ocorreu um erro ao inativar o cargo.", detalhe = ex.Message });
             }
         }
 
@@ -150,9 +150,9 @@ namespace API.Controllers
                 await cargo.ReativarAsync(_dbContext);
                 return NoContent();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Ocorreu um erro ao reativar o cargo." });
+                return StatusCode(500, new { erro = "Ocorreu um erro ao reativar o cargo.", detalhe = ex.Message });
             }
         }
 
@@ -171,7 +171,15 @@ namespace API.Controllers
             if (cargos == null || !cargos.Any())
                 return NoContent();
 
-            return Ok(cargos);
+            var response = cargos.Select(cargo => new CargoResponse
+            {
+                Id = cargo.Id,
+                Nome = cargo.Nome,
+                Descricao = cargo.Descricao,
+                Ativo = cargo.Ativo
+            });
+
+            return Ok(response);
         }
 
         /// <summary>
@@ -190,7 +198,15 @@ namespace API.Controllers
             if (cargo == null)
                 return NotFound(new { erro = "Cargo não encontrado." });
 
-            return Ok(cargo);
+            var response = new CargoResponse
+            {
+                Id = cargo.Id,
+                Nome = cargo.Nome,
+                Descricao = cargo.Descricao,
+                Ativo = cargo.Ativo
+            };
+
+            return Ok(response);
         }
     }
 }

@@ -5,10 +5,7 @@ import { Badge } from '../../../ui/base/badge';
 import { Button } from '../../../ui/base/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/layout/card';
 import { Separator } from '../../../ui/layout/separator';
-import { Calendar, User, Building2, RefreshCw } from 'lucide-react';
-
-// Remove TypeScript types
-// Assume Sector is an object with the expected fields
+import { User, Building2, RefreshCw } from 'lucide-react';
 
 export default function SectorViewDialog({ open, onOpenChange, sector, onReactivate }) {
   if (!sector) return null;
@@ -27,7 +24,6 @@ export default function SectorViewDialog({ open, onOpenChange, sector, onReactiv
         </DialogHeader>
         
         <div className="space-y-6">
-          {/* Informações principais */}
           <Card>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
@@ -57,27 +53,9 @@ export default function SectorViewDialog({ open, onOpenChange, sector, onReactiv
                   <p className="font-medium">{sector.responsibleName}</p>
                 </div>
               </div>
-              
-              <Separator />
-              
-              <div className="flex items-center gap-3">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Data de Criação</p>
-                  <p className="font-medium">
-                    {new Date(sector.createdAt).toLocaleDateString('pt-BR', {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
-                  </p>
-                </div>
-              </div>
             </CardContent>
           </Card>
 
-          {/* Informações adicionais */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Informações do Sistema</CardTitle>

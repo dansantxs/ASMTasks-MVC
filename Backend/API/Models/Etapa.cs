@@ -1,4 +1,5 @@
-﻿using API.DAOs;
+﻿using API.DB;
+using API.DB.DAOs;
 using System.ComponentModel.DataAnnotations;
 
 namespace API.Models
@@ -10,10 +11,9 @@ namespace API.Models
         public int Id { get; set; }
         public string Nome { get; set; } = string.Empty;
         public string? Descricao { get; set; }
-        public DateTime CriadoEm { get; set; } = DateTime.UtcNow;
         public bool Ativo { get; set; } = true;
 
-        public async Task<int> CriarAsync(DbContext dbContext)
+        public async Task<int> CriarAsync(DBContext dbContext)
         {
             if (string.IsNullOrWhiteSpace(Nome))
                 throw new ValidationException("O nome da etapa é obrigatório.");
@@ -21,13 +21,12 @@ namespace API.Models
             if (await _etapasDAO.VerificarExistenciaPorNomeAsync(dbContext, Nome))
                 throw new ValidationException("Já existe uma etapa com esse nome.");
 
-            CriadoEm = DateTime.UtcNow;
             Ativo = true;
 
             return await _etapasDAO.CriarAsync(dbContext, this);
         }
 
-        public async Task AtualizarAsync(DbContext dbContext)
+        public async Task AtualizarAsync(DBContext dbContext)
         {
             if (string.IsNullOrWhiteSpace(Nome))
                 throw new ValidationException("O nome da etapa é obrigatório.");
@@ -40,7 +39,7 @@ namespace API.Models
                 throw new ValidationException("Etapa não encontrada.");
         }
 
-        public async Task InativarAsync(DbContext dbContext)
+        public async Task InativarAsync(DBContext dbContext)
         {
             // verificar se existem tarefas em andamento
 
@@ -49,19 +48,19 @@ namespace API.Models
                 throw new ValidationException("Etapa não encontrada.");
         }
 
-        public async Task ReativarAsync(DbContext dbContext)
+        public async Task ReativarAsync(DBContext dbContext)
         {
             var reativado = await _etapasDAO.ReativarAsync(dbContext, Id);
             if (!reativado)
                 throw new ValidationException("Etapa não encontrada.");
         }
 
-        public static async Task<IEnumerable<Etapa>> ObterTodosAsync(DbContext dbContext)
+        public static async Task<IEnumerable<Etapa>> ObterTodosAsync(DBContext dbContext)
         {
             return await _etapasDAO.ObterTodosAsync(dbContext);
         }
 
-        public static async Task<Etapa?> ObterPorIdAsync(DbContext dbContext, int id)
+        public static async Task<Etapa?> ObterPorIdAsync(DBContext dbContext, int id)
         {
             return await _etapasDAO.ObterPorIdAsync(dbContext, id);
         }

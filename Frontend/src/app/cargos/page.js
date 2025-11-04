@@ -32,7 +32,6 @@ export default function CargosPage() {
       name: e.nome,
       description: e.descricao,
       active: e.ativo,
-      createdAt: e.criadoEm ?? new Date().toISOString(),
     };
   });
 

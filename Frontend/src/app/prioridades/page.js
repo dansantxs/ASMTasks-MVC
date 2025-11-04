@@ -36,7 +36,6 @@ export default function PrioridadesPage() {
       description: p.descricao,
       color: color,
       active: p.ativo,
-      createdAt: p.criadoEm ?? new Date().toISOString(),
     };
   });
 

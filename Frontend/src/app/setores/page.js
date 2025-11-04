@@ -10,19 +10,8 @@ import ViewToggle from '../../shared/components/ViewToggle';
 import { DeleteConfirmDialog } from './components/DeleteConfirmDialog';
 import SectorViewDialog from './components/SectorViewDialog';
 import { toast } from 'sonner';
-import { getSetores, criarSetor, atualizarSetor, inativarSetor, reativarSetor } from './api/setores';
-
-// Mock data para colaboradores
-const mockEmployees = [
-  { id: '1', name: 'Ana Silva', active: true },
-  { id: '2', name: 'Carlos Santos', active: true },
-  { id: '3', name: 'Maria Oliveira', active: true },
-  { id: '4', name: 'João Ferreira', active: true },
-  { id: '5', name: 'Lucia Costa', active: true },
-  { id: '6', name: 'Pedro Almeida', active: true },
-  { id: '7', name: 'Sofia Rodrigues', active: true },
-  { id: '8', name: 'Rafael Lima', active: true }
-];
+import { getSetores, criarSetor, atualizarSetor, inativarSetor, reativarSetor, verificarColaboradoresAtivos } from './api/setores';
+import { getColaboradores } from '../colaboradores/api/colaboradores';
 
 export default function SetoresPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -33,16 +22,25 @@ export default function SetoresPage() {
 
   const queryClient = useQueryClient();
 
-  // Buscar setores da API
   const { data: setoresApi = [], isLoading } = useQuery({
     queryKey: ["setores"],
     queryFn: getSetores,
   });
 
-  // Converter o formato da API para o formato esperado pelo componente
+  const { data: colaboradoresApi = [], isLoading: loadingColaboradores } = useQuery({
+    queryKey: ["colaboradores"],
+    queryFn: getColaboradores,
+  });
+
+  const employees = colaboradoresApi.map(c => ({
+    id: c.id.toString(),
+    name: c.nome,
+    active: c.ativo
+  }));
+
   const sectors = setoresApi.map(s => {
     const responsibleId = s.responsavelId?.toString() ?? "";
-    const responsibleEmployee = mockEmployees.find(e => e.id === responsibleId);
+    const responsibleEmployee = employees.find(e => e.id === responsibleId);
     return {
       id: s.id,
       name: s.nome,
@@ -50,11 +48,9 @@ export default function SetoresPage() {
       responsible: responsibleId,
       responsibleName: responsibleEmployee ? responsibleEmployee.name : "—",
       active: s.ativo,
-      createdAt: s.criadoEm ?? new Date().toISOString(),
     };
   });
 
-  // Criar setor
   const criar = useMutation({
     mutationFn: criarSetor,
     onSuccess: () => {
@@ -62,10 +58,9 @@ export default function SetoresPage() {
       setIsFormOpen(false);
       toast.success("Setor criado com sucesso!");
     },
-    onError: () => toast.error("Erro ao criar setor."),
+    onError: (error) => toast.error(error?.message ?? "Erro ao criar setor."),
   });
 
-  // Atualizar setor
   const atualizar = useMutation({
     mutationFn: ({ id, data }) => atualizarSetor(id, data),
     onSuccess: () => {
@@ -73,10 +68,9 @@ export default function SetoresPage() {
       setIsFormOpen(false);
       toast.success("Setor atualizado com sucesso!");
     },
-    onError: () => toast.error("Erro ao atualizar setor."),
+    onError: (error) => toast.error(error?.message ?? "Erro ao atualizar setor."),
   });
 
-  // Inativar setor
   const excluir = useMutation({
     mutationFn: inativarSetor,
     onSuccess: () => {
@@ -84,21 +78,19 @@ export default function SetoresPage() {
       setIsDeleteDialogOpen(false);
       toast.success("Setor inativado com sucesso!");
     },
-    onError: () => toast.error("Erro ao inativar setor."),
+    onError: (error) => toast.error(error?.message ?? "Erro ao inativar setor."),
   });
 
-  // Reativar setor
   const reativar = useMutation({
     mutationFn: reativarSetor,
     onSuccess: () => {
       queryClient.invalidateQueries(["setores"]);
       toast.success("Setor reativado com sucesso!");
     },
-    onError: () => toast.error("Erro ao reativar setor."),
+    onError: (error) => toast.error(error?.message ?? "Erro ao reativar setor."),
   });
 
   const handleSaveSector = (sectorData) => {
-    // Converte os nomes do front para o formato da API
     const dataAPI = {
       nome: sectorData.name,
       descricao: sectorData.description,
@@ -117,12 +109,11 @@ export default function SetoresPage() {
 
   const handleReactivateSector = (sector) => reativar.mutate(sector.id);
 
-  if (isLoading) return <div className="p-6">Carregando setores...</div>;
+  if (isLoading || loadingColaboradores) return <div className="p-6">Carregando setores...</div>;
 
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto py-8 px-4">
-        {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-brand-blue/10 rounded-lg">
@@ -147,7 +138,6 @@ export default function SetoresPage() {
           </div>
         </div>
 
-        {/* Lista de setores */}
         <SectorList
           sectors={sectors}
           onEdit={(s) => { setSelectedSector(s); setIsFormOpen(true); }}
@@ -157,14 +147,13 @@ export default function SetoresPage() {
           viewMode={viewMode}
         />
 
-        {/* Modais */}
         <SectorForm
           open={isFormOpen}
           onOpenChange={setIsFormOpen}
           sector={selectedSector}
           onSave={handleSaveSector}
           existingSectors={sectors}
-          employees={mockEmployees}
+          employees={employees}
         />
 
         <DeleteConfirmDialog
@@ -181,7 +170,6 @@ export default function SetoresPage() {
           onReactivate={handleReactivateSector}
         />
 
-        {/* Toast notifications */}
         <Toaster position="top-right" />
       </div>
     </div>

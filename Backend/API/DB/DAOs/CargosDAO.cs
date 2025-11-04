@@ -1,22 +1,21 @@
 ﻿using API.Models;
 
-namespace API.DAOs
+namespace API.DB.DAOs
 {
     public class CargosDAO
     {
-        public async Task<int> CriarAsync(DbContext dbContext, Cargo cargo)
+        public async Task<int> CriarAsync(DBContext dbContext, Cargo cargo)
         {
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
             cmd.CommandText = @"
-                INSERT INTO Cargo (Nome, Descricao, CriadoEm, Ativo)
-                VALUES (@Nome, @Descricao, @CriadoEm, @Ativo);
+                INSERT INTO Cargo (Nome, Descricao, Ativo)
+                VALUES (@Nome, @Descricao, @Ativo);
                 SELECT CAST(SCOPE_IDENTITY() AS int);
             ";
 
             cmd.Parameters.AddWithValue("@Nome", cargo.Nome);
             cmd.Parameters.AddWithValue("@Descricao", (object)cargo.Descricao ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@CriadoEm", cargo.CriadoEm);
             cmd.Parameters.AddWithValue("@Ativo", cargo.Ativo);
 
             var result = await cmd.ExecuteScalarAsync();
@@ -25,7 +24,7 @@ namespace API.DAOs
             return cargo.Id;
         }
 
-        public async Task<bool> AtualizarAsync(DbContext dbContext, Cargo cargo)
+        public async Task<bool> AtualizarAsync(DBContext dbContext, Cargo cargo)
         {
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
@@ -43,13 +42,13 @@ namespace API.DAOs
             return linhas > 0;
         }
 
-        public async Task<IEnumerable<Cargo>> ObterTodosAsync(DbContext dbContext)
+        public async Task<IEnumerable<Cargo>> ObterTodosAsync(DBContext dbContext)
         {
             var cargos = new List<Cargo>();
 
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = "SELECT Id, Nome, Descricao, CriadoEm, Ativo FROM Cargo";
+            cmd.CommandText = "SELECT Id, Nome, Descricao, Ativo FROM Cargo";
 
             await using var dr = await cmd.ExecuteReaderAsync();
             while (await dr.ReadAsync())
@@ -59,7 +58,6 @@ namespace API.DAOs
                     Id = Convert.ToInt32(dr["Id"]),
                     Nome = dr["Nome"].ToString()!,
                     Descricao = dr["Descricao"]?.ToString(),
-                    CriadoEm = Convert.ToDateTime(dr["CriadoEm"]),
                     Ativo = Convert.ToBoolean(dr["Ativo"])
                 });
             }
@@ -67,11 +65,11 @@ namespace API.DAOs
             return cargos;
         }
 
-        public async Task<Cargo?> ObterPorIdAsync(DbContext dbContext, int id)
+        public async Task<Cargo?> ObterPorIdAsync(DBContext dbContext, int id)
         {
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = "SELECT Id, Nome, Descricao, CriadoEm, Ativo FROM Cargo WHERE Id = @Id";
+            cmd.CommandText = "SELECT Id, Nome, Descricao, Ativo FROM Cargo WHERE Id = @Id";
             cmd.Parameters.AddWithValue("@Id", id);
 
             await using var dr = await cmd.ExecuteReaderAsync();
@@ -82,7 +80,6 @@ namespace API.DAOs
                     Id = Convert.ToInt32(dr["Id"]),
                     Nome = dr["Nome"].ToString()!,
                     Descricao = dr["Descricao"]?.ToString(),
-                    CriadoEm = Convert.ToDateTime(dr["CriadoEm"]),
                     Ativo = Convert.ToBoolean(dr["Ativo"])
                 };
             }
@@ -90,7 +87,7 @@ namespace API.DAOs
             return null;
         }
 
-        public async Task<bool> InativarAsync(DbContext dbContext, int id)
+        public async Task<bool> InativarAsync(DBContext dbContext, int id)
         {
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
@@ -101,7 +98,7 @@ namespace API.DAOs
             return linhasAfetadas > 0;
         }
 
-        public async Task<bool> ReativarAsync(DbContext dbContext, int id)
+        public async Task<bool> ReativarAsync(DBContext dbContext, int id)
         {
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
@@ -112,7 +109,7 @@ namespace API.DAOs
             return linhasAfetadas > 0;
         }
 
-        public async Task<bool> VerificarExistenciaPorNomeAsync(DbContext dbContext, string nome, int? id = null)
+        public async Task<bool> VerificarExistenciaPorNomeAsync(DBContext dbContext, string nome, int? id = null)
         {
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
@@ -132,6 +129,17 @@ namespace API.DAOs
             return total > 0;
         }
 
-        // Implementar o método de verificação colaboradores ativos
+        public async Task<bool> VerificarColaboradoresAtivosAsync(DBContext dbContext, int cargoId)
+        {
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = @"SELECT COUNT(1) FROM Colaborador WHERE CargoId = @CargoId AND Ativo = 1";
+            cmd.Parameters.AddWithValue("@CargoId", cargoId);
+
+            var result = await cmd.ExecuteScalarAsync(); ;
+            int count = Convert.ToInt32(result);
+
+            return count > 0;
+        }
     }
 }

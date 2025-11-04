@@ -1,73 +1,71 @@
 ﻿using API.Models;
 
-namespace API.DAOs
+namespace API.DB.DAOs
 {
-    public class PrioridadesDAO
+    public class EtapasDAO
     {
-        public async Task<int> CriarAsync(DbContext dbContext, Prioridade prioridade)
+        public async Task<int> CriarAsync(DBContext dbContext, Etapa etapa)
         {
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
             cmd.CommandText = @"
-                INSERT INTO Prioridade (Nome, Descricao, Cor, CriadoEm, Ativo)
-                VALUES (@Nome, @Descricao, @Cor, @CriadoEm, @Ativo);
+                INSERT INTO Etapa (Nome, Descricao, Ativo)
+                VALUES (@Nome, @Descricao, @Ativo);
                 SELECT CAST(SCOPE_IDENTITY() AS int);
             ";
-            cmd.Parameters.AddWithValue("@Nome", prioridade.Nome);
-            cmd.Parameters.AddWithValue("@Descricao", (object)prioridade.Descricao ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@Cor", prioridade.Cor);
-            cmd.Parameters.AddWithValue("@CriadoEm", prioridade.CriadoEm);
-            cmd.Parameters.AddWithValue("@Ativo", prioridade.Ativo);
+
+            cmd.Parameters.AddWithValue("@Nome", etapa.Nome);
+            cmd.Parameters.AddWithValue("@Descricao", (object)etapa.Descricao ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@Ativo", etapa.Ativo);
 
             var result = await cmd.ExecuteScalarAsync();
-            prioridade.Id = Convert.ToInt32(result);
+            etapa.Id = Convert.ToInt32(result);
 
-            return prioridade.Id;
+            return etapa.Id;
         }
 
-        public async Task<bool> AtualizarAsync(DbContext dbContext, Prioridade prioridade)
+        public async Task<bool> AtualizarAsync(DBContext dbContext, Etapa etapa)
         {
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = @"UPDATE Prioridade 
-                                SET Nome = @Nome, Descricao = @Descricao, Cor = @Cor 
-                                WHERE Id = @Id AND Ativo = 1";
-            cmd.Parameters.AddWithValue("@Id", prioridade.Id);
-            cmd.Parameters.AddWithValue("@Nome", prioridade.Nome);
-            cmd.Parameters.AddWithValue("@Descricao", (object)prioridade.Descricao ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@Cor", prioridade.Cor);
+            cmd.CommandText = @"UPDATE Etapa 
+                                SET Nome = @Nome, Descricao = @Descricao
+                                WHERE Id = @Id";
+            cmd.Parameters.AddWithValue("@Id", etapa.Id);
+            cmd.Parameters.AddWithValue("@Nome", etapa.Nome);
+            cmd.Parameters.AddWithValue("@Descricao", (object)etapa.Descricao ?? DBNull.Value);
 
             int linhas = await cmd.ExecuteNonQueryAsync();
             return linhas > 0;
         }
 
-        public async Task<bool> InativarAsync(DbContext dbContext, int id)
+        public async Task<bool> InativarAsync(DBContext dbContext, int id)
         {
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = "UPDATE Prioridade SET Ativo = 0 WHERE Id = @Id";
+            cmd.CommandText = "UPDATE Etapa SET Ativo = 0 WHERE Id = @Id";
             cmd.Parameters.AddWithValue("@Id", id);
 
             int linhas = await cmd.ExecuteNonQueryAsync();
             return linhas > 0;
         }
 
-        public async Task<bool> ReativarAsync(DbContext dbContext, int id)
+        public async Task<bool> ReativarAsync(DBContext dbContext, int id)
         {
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = "UPDATE Prioridade SET Ativo = 1 WHERE Id = @Id";
+            cmd.CommandText = "UPDATE Etapa SET Ativo = 1 WHERE Id = @Id";
             cmd.Parameters.AddWithValue("@Id", id);
 
             int linhas = await cmd.ExecuteNonQueryAsync();
             return linhas > 0;
         }
 
-        public async Task<bool> VerificarExistenciaPorNomeAsync(DbContext dbContext, string nome, int? id = null)
+        public async Task<bool> VerificarExistenciaPorNomeAsync(DBContext dbContext, string nome, int? id = null)
         {
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = @"SELECT COUNT(1) FROM Prioridade 
+            cmd.CommandText = @"SELECT COUNT(1) FROM Etapa 
                                 WHERE Nome = @Nome AND (@Id IS NULL OR Id <> @Id)";
             cmd.Parameters.AddWithValue("@Nome", nome);
             cmd.Parameters.AddWithValue("@Id", (object)id ?? DBNull.Value);
@@ -78,56 +76,52 @@ namespace API.DAOs
             return count > 0;
         }
 
-        public async Task<IEnumerable<Prioridade>> ObterTodosAsync(DbContext dbContext)
+        public async Task<IEnumerable<Etapa>> ObterTodosAsync(DBContext dbContext)
         {
-            var prioridades = new List<Prioridade>();
+            var etapaes = new List<Etapa>();
 
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = "SELECT Id, Nome, Descricao, Cor, CriadoEm, Ativo FROM Prioridade";
+            cmd.CommandText = "SELECT Id, Nome, Descricao, Ativo FROM Etapa";
 
             await using var dr = await cmd.ExecuteReaderAsync();
             while (await dr.ReadAsync())
             {
-                var prioridade = new Prioridade
+                var etapa = new Etapa
                 {
                     Id = Convert.ToInt32(dr["Id"]),
                     Nome = dr["Nome"].ToString(),
                     Descricao = dr["Descricao"]?.ToString(),
-                    Cor = dr["Cor"].ToString(),
-                    CriadoEm = Convert.ToDateTime(dr["CriadoEm"]),
                     Ativo = Convert.ToBoolean(dr["Ativo"])
                 };
-                prioridades.Add(prioridade);
+                etapaes.Add(etapa);
             }
 
-            return prioridades;
+            return etapaes;
         }
 
-        public async Task<Prioridade?> ObterPorIdAsync(DbContext dbContext, int id)
+        public async Task<Etapa?> ObterPorIdAsync(DBContext dbContext, int id)
         {
-            Prioridade? prioridade = null;
+            Etapa? etapa = null;
 
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = "SELECT Id, Nome, Descricao, Cor, CriadoEm, Ativo FROM Prioridade WHERE Id = @Id";
+            cmd.CommandText = "SELECT Id, Nome, Descricao, Ativo FROM Etapa WHERE Id = @Id";
             cmd.Parameters.AddWithValue("@Id", id);
 
             await using var dr = await cmd.ExecuteReaderAsync();
             if (await dr.ReadAsync())
             {
-                prioridade = new Prioridade
+                etapa = new Etapa
                 {
                     Id = Convert.ToInt32(dr["Id"]),
                     Nome = dr["Nome"].ToString(),
                     Descricao = dr["Descricao"]?.ToString(),
-                    Cor = dr["Cor"].ToString(),
-                    CriadoEm = Convert.ToDateTime(dr["CriadoEm"]),
                     Ativo = Convert.ToBoolean(dr["Ativo"])
                 };
             }
 
-            return prioridade;
+            return etapa;
         }
 
         // Implementar o método de verificação de tarefas em andamento

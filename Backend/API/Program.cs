@@ -1,4 +1,5 @@
-using API.DAOs;
+using API.DB;
+using API.DB.DAOs;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 
@@ -27,8 +28,10 @@ builder.Services.AddSwaggerGen(c =>
 Esta API gerencia entidades internas do sistema.
 
 ### Recursos disponíveis:
+- **Cargos:** definição de funções/posições dentro da organização.
+- **Colaboradores:** gerenciamento de usuários/funcionários.
 - **Etapas:** controle de fases de desenvolvimento.
-- **Prioridades:** definição de níveis de prioridade com cor, nome e descrição.
+- **Prioridades:** definição de níveis de prioridade.
 - **Setores:** organização de departamentos e responsáveis.
 
 ### Funcionalidades gerais:
@@ -52,7 +55,7 @@ builder.Services.AddControllers();
 // Configura conexão
 Environment.SetEnvironmentVariable("STRING_CONEXAO", builder.Configuration["StringConexao"]);
 
-DbContext dbContext = new DbContext();
+DBContext dbContext = new DBContext();
 builder.Services.AddSingleton(dbContext);
 
 builder.Services.AddScoped<EtapasDAO>();

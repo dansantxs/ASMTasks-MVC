@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-// Hook para garantir renderização apenas no cliente
+
 function useClientOnly() {
   const [isClient, setIsClient] = useState(false);
   useEffect(() => setIsClient(true), []);
@@ -14,7 +14,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/layout/car
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../ui/layout/table';
 import { Search, Edit, Trash2, Eye, RefreshCw } from 'lucide-react';
 
-// Sector type for JS (remove TS types)
 export default function SectorList({
   sectors,
   onEdit,
@@ -55,9 +54,6 @@ export default function SectorList({
           )}
           <p className="text-sm text-muted-foreground">
             <span className="font-medium">Responsável:</span> {sector.responsibleName}
-          </p>
-          <p className="text-sm text-muted-foreground">
-            <span className="font-medium">Criado em:</span> <span suppressHydrationWarning>{isClient ? new Date(sector.createdAt).toLocaleDateString('pt-BR') : ''}</span>
           </p>
         </div>
         
@@ -121,9 +117,6 @@ export default function SectorList({
           {sector.active ? 'Ativo' : 'Inativo'}
         </Badge>
       </TableCell>
-      <TableCell className="text-sm text-muted-foreground">
-        <span suppressHydrationWarning>{isClient ? new Date(sector.createdAt).toLocaleDateString('pt-BR') : ''}</span>
-      </TableCell>
       <TableCell className="text-right">
         <div className="flex gap-1 justify-end">
           <Button
@@ -168,7 +161,6 @@ export default function SectorList({
 
   return (
     <div className="space-y-6">
-      {/* Barra de busca */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
         <Input
@@ -181,7 +173,6 @@ export default function SectorList({
 
       {viewMode === 'cards' ? (
         <>
-          {/* Setores Ativos - Cards */}
           {activeSectors.length > 0 && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -196,7 +187,6 @@ export default function SectorList({
             </div>
           )}
 
-          {/* Setores Inativos - Cards */}
           {inactiveSectors.length > 0 && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -213,7 +203,6 @@ export default function SectorList({
         </>
       ) : (
         <>
-          {/* Setores Ativos - Lista */}
           {activeSectors.length > 0 && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -242,7 +231,6 @@ export default function SectorList({
             </div>
           )}
 
-          {/* Setores Inativos - Lista */}
           {inactiveSectors.length > 0 && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -273,7 +261,6 @@ export default function SectorList({
         </>
       )}
 
-      {/* Estado vazio */}
       {filteredSectors.length === 0 && (
         <div className="text-center py-12">
           <div className="space-y-3">

@@ -1,4 +1,5 @@
-﻿using API.DAOs;
+﻿using API.DB;
+using API.DB.DAOs;
 using System.ComponentModel.DataAnnotations;
 
 namespace API.Models
@@ -10,12 +11,11 @@ namespace API.Models
         public int Id { get; set; }
         public string Nome { get; set; } = string.Empty;
         public string? Descricao { get; set; }
-        public DateTime CriadoEm { get; set; } = DateTime.UtcNow;
         public bool Ativo { get; set; } = true;
-        public int? ResponsavelId { get; set; }
+        public int ResponsavelId { get; set; }
         public Colaborador? Responsavel { get; set; }
 
-        public async Task<int> CriarAsync(DbContext dbContext)
+        public async Task<int> CriarAsync(DBContext dbContext)
         {
             if (string.IsNullOrWhiteSpace(Nome))
                 throw new ValidationException("O nome do setor é obrigatório.");
@@ -23,13 +23,12 @@ namespace API.Models
             if (await _setoresDAO.VerificarExistenciaPorNomeAsync(dbContext, Nome))
                 throw new ValidationException("Já existe um setor com esse nome.");
 
-            CriadoEm = DateTime.UtcNow;
             Ativo = true;
 
             return await _setoresDAO.CriarAsync(dbContext, this);
         }
 
-        public async Task AtualizarAsync(DbContext dbContext)
+        public async Task AtualizarAsync(DBContext dbContext)
         {
             if (string.IsNullOrWhiteSpace(Nome))
                 throw new ValidationException("O nome do setor é obrigatório.");
@@ -42,8 +41,11 @@ namespace API.Models
                 throw new ValidationException("Setor não encontrado.");
         }
 
-        public async Task InativarAsync(DbContext dbContext)
+        public async Task InativarAsync(DBContext dbContext)
         {
+            if(await _setoresDAO.VerificarColaboradoresAtivosAsync(dbContext, Id))
+                throw new ValidationException("Não é possível inativar o setor pois existem colaboradores ativos vinculados a ele.");
+
             // verificar se existem tarefas em andamento
 
             var inativado = await _setoresDAO.InativarAsync(dbContext, Id);
@@ -51,21 +53,26 @@ namespace API.Models
                 throw new ValidationException("Setor não encontrado.");
         }
 
-        public async Task ReativarAsync(DbContext dbContext)
+        public async Task ReativarAsync(DBContext dbContext)
         {
             var reativado = await _setoresDAO.ReativarAsync(dbContext, Id);
             if (!reativado)
                 throw new ValidationException("Setor não encontrado.");
         }
 
-        public static async Task<IEnumerable<Setor>> ObterTodosAsync(DbContext dbContext)
+        public static async Task<IEnumerable<Setor>> ObterTodosAsync(DBContext dbContext)
         {
             return await _setoresDAO.ObterTodosAsync(dbContext);
         }
 
-        public static async Task<Setor?> ObterPorIdAsync(DbContext dbContext, int id)
+        public static async Task<Setor?> ObterPorIdAsync(DBContext dbContext, int id)
         {
             return await _setoresDAO.ObterPorIdAsync(dbContext, id);
+        }
+
+        public static async Task<bool> VerificarColaboradoresAtivosAsync(DBContext dbContext, int setorId)
+        {
+            return await _setoresDAO.VerificarColaboradoresAtivosAsync(dbContext, setorId);
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using API.DAOs;
+﻿using API.DB;
 using API.DTOs.Setores;
 using API.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -14,9 +14,9 @@ namespace API.Controllers
     [Produces("application/json")]
     public class SetoresController : ControllerBase
     {
-        private readonly DbContext _dbContext;
+        private readonly DBContext _dbContext;
 
-        public SetoresController(DbContext dbContext)
+        public SetoresController(DBContext dbContext)
         {
             _dbContext = dbContext;
         }
@@ -54,9 +54,9 @@ namespace API.Controllers
             {
                 return BadRequest(new { erro = ex.Message });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Ocorreu um erro ao criar o setor." });
+                return StatusCode(500, new { erro = "Ocorreu um erro ao criar o setor.", detalhe = ex.Message });
             }
         }
 
@@ -96,9 +96,9 @@ namespace API.Controllers
             {
                 return BadRequest(new { erro = ex.Message });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Ocorreu um erro ao atualizar o setor." });
+                return StatusCode(500, new { erro = "Ocorreu um erro ao atualizar o setor.", detalhe = ex.Message });
             }
         }
 
@@ -124,9 +124,13 @@ namespace API.Controllers
                 await setor.InativarAsync(_dbContext);
                 return NoContent();
             }
-            catch (Exception)
+            catch (ValidationException ex)
             {
-                return StatusCode(500, new { erro = "Ocorreu um erro ao inativar o setor." });
+                return BadRequest(new { erro = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { erro = "Ocorreu um erro ao inativar o setor.", detalhe = ex.Message });
             }
         }
 
@@ -152,9 +156,9 @@ namespace API.Controllers
                 await setor.ReativarAsync(_dbContext);
                 return NoContent();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Ocorreu um erro ao reativar o setor." });
+                return StatusCode(500, new { erro = "Ocorreu um erro ao reativar o setor.", detalhe = ex.Message });
             }
         }
 
@@ -173,7 +177,16 @@ namespace API.Controllers
             if (setores == null || !setores.Any())
                 return NoContent();
 
-            return Ok(setores);
+            var response = setores.Select(setor => new SetorResponse
+            {
+                Id = setor.Id,
+                Nome = setor.Nome,
+                Descricao = setor.Descricao,
+                Ativo = setor.Ativo,
+                ResponsavelId = setor.ResponsavelId
+            });
+
+            return Ok(response);
         }
 
         /// <summary>
@@ -192,7 +205,44 @@ namespace API.Controllers
             if (setor == null)
                 return NotFound(new { erro = "Setor não encontrado." });
 
-            return Ok(setor);
+            var response = new SetorResponse
+            {
+                Id = setor.Id,
+                Nome = setor.Nome,
+                Descricao = setor.Descricao,
+                Ativo = setor.Ativo,
+                ResponsavelId = setor.ResponsavelId
+            };
+
+            return Ok(response);
+        }
+
+        /// <summary>
+        /// Verifica se um setor possui colaboradores ativos.
+        /// </summary>
+        /// <param name="setorId">ID do setor a ser verificado.</param>
+        /// <response code="200">Retorna um objeto com a propriedade 'possuiColaboradoresAtivos'.</response>
+        /// <response code="404">Setor não encontrado.</response>
+        /// <response code="500">Erro interno ao verificar os colaboradores ativos do setor.</response>
+        [HttpGet("{setorId}/colaboradores/ativos")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> VerificarColaboradoresAtivos(int setorId)
+        {
+            try
+            {
+                var setor = await Setor.ObterPorIdAsync(_dbContext, setorId);
+                if (setor == null)
+                    return NotFound(new { erro = "Setor não encontrado." });
+
+                var possuiColaboradoresAtivos = await Setor.VerificarColaboradoresAtivosAsync(_dbContext, setorId);
+                return Ok(new { possuiColaboradoresAtivos });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { erro = "Ocorreu um erro ao verificar os colaboradores ativos do setor.", detalhe = ex.Message });
+            }
         }
     }
 }

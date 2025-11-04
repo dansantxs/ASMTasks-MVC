@@ -1,4 +1,4 @@
-﻿using API.DAOs;
+﻿using API.DB;
 using API.DTOs.Prioridades;
 using API.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -14,9 +14,9 @@ namespace API.Controllers
     [Produces("application/json")]
     public class PrioridadesController : ControllerBase
     {
-        private readonly DbContext _dbContext;
+        private readonly DBContext _dbContext;
 
-        public PrioridadesController(DbContext dbContext)
+        public PrioridadesController(DBContext dbContext)
         {
             _dbContext = dbContext;
         }
@@ -173,7 +173,16 @@ namespace API.Controllers
             if (prioridades == null || !prioridades.Any())
                 return NoContent();
 
-            return Ok(prioridades);
+            var response = prioridades.Select(prioridade => new PrioridadeResponse
+            {
+                Id = prioridade.Id,
+                Nome = prioridade.Nome,
+                Descricao = prioridade.Descricao,
+                Cor = prioridade.Cor,
+                Ativo = prioridade.Ativo
+            });
+
+            return Ok(response);
         }
 
         /// <summary>
@@ -192,7 +201,16 @@ namespace API.Controllers
             if (prioridade == null)
                 return NotFound(new { erro = "Prioridade não encontrada." });
 
-            return Ok(prioridade);
+            var response = new PrioridadeResponse
+            {
+                Id = prioridade.Id,
+                Nome = prioridade.Nome,
+                Descricao = prioridade.Descricao,
+                Cor = prioridade.Cor,
+                Ativo = prioridade.Ativo
+            };
+
+            return Ok(response);
         }
     }
 }

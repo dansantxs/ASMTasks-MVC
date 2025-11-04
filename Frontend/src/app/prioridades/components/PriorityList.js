@@ -63,9 +63,6 @@ export default function PriorityList({
             />
             <span>{priority.color}</span>
           </div>
-          <p className="text-sm text-muted-foreground">
-            <span className="font-medium">Criado em:</span> <span suppressHydrationWarning>{isClient ? new Date(priority.createdAt).toLocaleDateString('pt-BR') : ''}</span>
-          </p>
         </div>
         
         <div className="flex gap-2 mt-4">
@@ -138,9 +135,6 @@ export default function PriorityList({
                className={priority.active ? "bg-brand-blue hover:bg-brand-blue-dark" : ""}>
           {priority.active ? 'Ativo' : 'Inativo'}
         </Badge>
-      </TableCell>
-      <TableCell className="text-sm text-muted-foreground">
-        <span suppressHydrationWarning>{isClient ? new Date(priority.createdAt).toLocaleDateString('pt-BR') : ''}</span>
       </TableCell>
       <TableCell className="text-right">
         <div className="flex gap-1 justify-end">

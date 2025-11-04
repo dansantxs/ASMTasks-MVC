@@ -1,12 +1,12 @@
 ﻿using Microsoft.Data.SqlClient;
 
-namespace API.DAOs
+namespace API.DB
 {
-    public class DbContext
+    public class DBContext
     {
         private readonly string _strCon;
 
-        public DbContext()
+        public DBContext()
         {
             try
             {

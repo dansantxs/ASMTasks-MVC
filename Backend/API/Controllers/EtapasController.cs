@@ -1,4 +1,5 @@
-﻿using API.DAOs;
+﻿using API.DB;
+using API.DTOs.Cargos;
 using API.DTOs.Etapas;
 using API.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -14,9 +15,9 @@ namespace API.Controllers
     [Produces("application/json")]
     public class EtapasController : ControllerBase
     {
-        private readonly DbContext _dbContext;
+        private readonly DBContext _dbContext;
 
-        public EtapasController(DbContext dbContext)
+        public EtapasController(DBContext dbContext)
         {
             _dbContext = dbContext;
         }
@@ -101,7 +102,7 @@ namespace API.Controllers
         }
 
         /// <summary>
-        /// Inativa uma etapa (soft delete).
+        /// Inativa uma etapa.
         /// </summary>
         /// <param name="id">ID da etapa a ser inativada.</param>
         /// <response code="204">Etapa inativada com sucesso.</response>
@@ -171,7 +172,15 @@ namespace API.Controllers
             if (etapas == null || !etapas.Any())
                 return NoContent();
 
-            return Ok(etapas);
+            var response = etapas.Select(etapa => new EtapaResponse
+            {
+                Id = etapa.Id,
+                Nome = etapa.Nome,
+                Descricao = etapa.Descricao,
+                Ativo = etapa.Ativo
+            });
+
+            return Ok(response);
         }
 
         /// <summary>
@@ -190,7 +199,15 @@ namespace API.Controllers
             if (etapa == null)
                 return NotFound(new { erro = "Etapa não encontrada." });
 
-            return Ok(etapa);
+            var response = new EtapaResponse
+            {
+                Id = etapa.Id,
+                Nome = etapa.Nome,
+                Descricao = etapa.Descricao,
+                Ativo = etapa.Ativo
+            };
+
+            return Ok(response);
         }
     }
 }

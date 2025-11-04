@@ -45,21 +45,6 @@ export default function PositionViewDialog({ open, onOpenChange, position, onRea
                   <Separator />
                 </>
               )}
-              
-              <div className="flex items-center gap-3">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Data de Criação</p>
-                  <p className="font-medium">
-                    {new Date(position.createdAt).toLocaleDateString('pt-BR', {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
-                  </p>
-                </div>
-              </div>
             </CardContent>
           </Card>
 
