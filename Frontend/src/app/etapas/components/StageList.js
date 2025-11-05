@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-// Hook para garantir renderização apenas no cliente
 function useClientOnly() {
   const [isClient, setIsClient] = useState(false);
   useEffect(() => setIsClient(true), []);
@@ -14,7 +13,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/layout/car
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../ui/layout/table';
 import { Search, Edit, Trash2, Eye, RefreshCw } from 'lucide-react';
 
-// Stage type for JS (remove TS types)
 export default function StageList({
   stages,
   onEdit,
@@ -26,34 +24,33 @@ export default function StageList({
   const isClient = useClientOnly();
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredStages = stages.filter(stage =>
-    (stage.name && stage.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (stage.description && stage.description.toLowerCase().includes(searchTerm.toLowerCase()))
+  const filteredStages = stages.filter(
+    (stage) =>
+      (stage.name && stage.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (stage.description && stage.description.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  const activeStages = filteredStages.filter(stage => stage.active);
-  const inactiveStages = filteredStages.filter(stage => !stage.active);
+  const activeStages = filteredStages.filter((stage) => stage.active);
+  const inactiveStages = filteredStages.filter((stage) => !stage.active);
 
   const StageCard = ({ stage }) => (
     <Card key={stage.id} className="hover:shadow-md transition-shadow border-l-4 border-l-brand-blue">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">{stage.name}</CardTitle>
-          <Badge variant={stage.active ? "default" : "secondary"} 
-                 className={stage.active ? "bg-brand-blue hover:bg-brand-blue-dark" : ""}>
+          <Badge
+            variant={stage.active ? 'default' : 'secondary'}
+            className={stage.active ? 'bg-brand-blue hover:bg-brand-blue-dark' : ''}
+          >
             {stage.active ? 'Ativo' : 'Inativo'}
           </Badge>
         </div>
       </CardHeader>
       <CardContent className="pt-0">
         <div className="space-y-2">
-          {stage.description && (
-            <p className="text-sm text-muted-foreground line-clamp-2">
-              {stage.description}
-            </p>
-          )}
+          {stage.description && <p className="text-sm text-muted-foreground line-clamp-2">{stage.description}</p>}
         </div>
-        
+
         <div className="flex gap-2 mt-4">
           <Button
             variant="outline"
@@ -64,12 +61,7 @@ export default function StageList({
             <Eye className="h-4 w-4" />
             Visualizar
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onEdit(stage)}
-            className="flex items-center gap-1"
-          >
+          <Button variant="outline" size="sm" onClick={() => onEdit(stage)} className="flex items-center gap-1">
             <Edit className="h-4 w-4" />
             Editar
           </Button>
@@ -108,8 +100,10 @@ export default function StageList({
         </div>
       </TableCell>
       <TableCell>
-        <Badge variant={stage.active ? "default" : "secondary"}
-               className={stage.active ? "bg-brand-blue hover:bg-brand-blue-dark" : ""}>
+        <Badge
+          variant={stage.active ? 'default' : 'secondary'}
+          className={stage.active ? 'bg-brand-blue hover:bg-brand-blue-dark' : ''}
+        >
           {stage.active ? 'Ativo' : 'Inativo'}
         </Badge>
       </TableCell>
@@ -123,12 +117,7 @@ export default function StageList({
           >
             <Eye className="h-4 w-4" />
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onEdit(stage)}
-            className="h-8 w-8 p-0"
-          >
+          <Button variant="ghost" size="sm" onClick={() => onEdit(stage)} className="h-8 w-8 p-0">
             <Edit className="h-4 w-4" />
           </Button>
           {stage.active ? (
@@ -157,7 +146,6 @@ export default function StageList({
 
   return (
     <div className="space-y-6">
-      {/* Barra de busca */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
         <Input
@@ -170,22 +158,22 @@ export default function StageList({
 
       {viewMode === 'cards' ? (
         <>
-          {/* Etapas Ativas - Cards */}
           {activeStages.length > 0 && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3>Etapas Ativas</h3>
-                <Badge variant="outline" className="border-brand-blue text-brand-blue">{activeStages.length}</Badge>
+                <Badge variant="outline" className="border-brand-blue text-brand-blue">
+                  {activeStages.length}
+                </Badge>
               </div>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {activeStages.map(stage => (
+                {activeStages.map((stage) => (
                   <StageCard key={stage.id} stage={stage} />
                 ))}
               </div>
             </div>
           )}
 
-          {/* Etapas Inativas - Cards */}
           {inactiveStages.length > 0 && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -193,7 +181,7 @@ export default function StageList({
                 <Badge variant="outline">{inactiveStages.length}</Badge>
               </div>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {inactiveStages.map(stage => (
+                {inactiveStages.map((stage) => (
                   <StageCard key={stage.id} stage={stage} />
                 ))}
               </div>
@@ -202,12 +190,13 @@ export default function StageList({
         </>
       ) : (
         <>
-          {/* Etapas Ativas - Lista */}
           {activeStages.length > 0 && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3>Etapas Ativas</h3>
-                <Badge variant="outline" className="border-brand-blue text-brand-blue">{activeStages.length}</Badge>
+                <Badge variant="outline" className="border-brand-blue text-brand-blue">
+                  {activeStages.length}
+                </Badge>
               </div>
               <div className="border rounded-lg">
                 <Table>
@@ -221,7 +210,7 @@ export default function StageList({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {activeStages.map(stage => (
+                    {activeStages.map((stage) => (
                       <StageRow key={stage.id} stage={stage} />
                     ))}
                   </TableBody>
@@ -230,7 +219,6 @@ export default function StageList({
             </div>
           )}
 
-          {/* Etapas Inativas - Lista */}
           {inactiveStages.length > 0 && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -249,7 +237,7 @@ export default function StageList({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {inactiveStages.map(stage => (
+                    {inactiveStages.map((stage) => (
                       <StageRow key={stage.id} stage={stage} />
                     ))}
                   </TableBody>
@@ -260,7 +248,6 @@ export default function StageList({
         </>
       )}
 
-      {/* Estado vazio */}
       {filteredStages.length === 0 && (
         <div className="text-center py-12">
           <div className="space-y-3">
@@ -269,10 +256,9 @@ export default function StageList({
             </div>
             <h3>Nenhuma etapa encontrada</h3>
             <p className="text-muted-foreground max-w-md mx-auto">
-              {searchTerm 
+              {searchTerm
                 ? `Não encontramos etapas que correspondam à busca "${searchTerm}".`
-                : 'Ainda não há etapas cadastradas no sistema.'
-              }
+                : 'Ainda não há etapas cadastradas no sistema.'}
             </p>
           </div>
         </div>

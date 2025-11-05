@@ -14,15 +14,12 @@ import {
 import { Alert, AlertDescription } from '../../../ui/feedback/alert/alert';
 import { AlertTriangle } from 'lucide-react';
 
-// Remove TypeScript types and interfaces
-
 export function DeleteConfirmDialog({
   open,
   onOpenChange,
   stage,
   onConfirm,
   hasActiveTasks,
-  activeTasksCount = 0,
 }) {
   if (!stage) return null;
 
@@ -43,8 +40,7 @@ export function DeleteConfirmDialog({
             {hasActiveTasks ? (
               <div className="space-y-4">
                 <div>
-                  A etapa <strong>"{stage.name}"</strong> não pode ser excluída porque possui{' '}
-                  <strong>{activeTasksCount} tarefa(s) em andamento</strong>.
+                  A etapa <strong>"{stage.name}"</strong> não pode ser excluída porque possui tarefas em andamento.
                 </div>
 
                 <Alert className="border-amber-200 bg-amber-50">

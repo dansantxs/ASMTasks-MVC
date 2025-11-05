@@ -21,13 +21,11 @@ export default function PrioridadesPage() {
 
   const queryClient = useQueryClient();
 
-  // Buscar prioridades da API
   const { data: prioridadesApi = [], isLoading } = useQuery({
     queryKey: ["prioridades"],
     queryFn: getPrioridades,
   });
 
-  // Converter o formato da API para o formato esperado pelo componente
   const priorities = prioridadesApi.map(p => {
     const color = p.cor ?? "#000000";
     return {
@@ -39,7 +37,6 @@ export default function PrioridadesPage() {
     };
   });
 
-  // Criar prioridade
   const criar = useMutation({
     mutationFn: criarPrioridade,
     onSuccess: () => {
@@ -47,10 +44,9 @@ export default function PrioridadesPage() {
       setIsFormOpen(false);
       toast.success("Prioridade criada com sucesso!");
     },
-    onError: () => toast.error("Erro ao criar prioridade."),
+    onError: (error) => toast.error(error?.message || "Erro ao criar prioridade."),
   });
 
-  // Atualizar prioridade
   const atualizar = useMutation({
     mutationFn: ({ id, data }) => atualizarPrioridade(id, data),
     onSuccess: () => {
@@ -58,10 +54,9 @@ export default function PrioridadesPage() {
       setIsFormOpen(false);
       toast.success("Prioridade atualizada com sucesso!");
     },
-    onError: () => toast.error("Erro ao atualizar prioridade."),
+    onError: (error) => toast.error(error?.message || "Erro ao atualizar prioridade."),
   });
 
-  // Inativar prioridade
   const excluir = useMutation({
     mutationFn: inativarPrioridade,
     onSuccess: () => {
@@ -69,21 +64,19 @@ export default function PrioridadesPage() {
       setIsDeleteDialogOpen(false);
       toast.success("Prioridade inativada com sucesso!");
     },
-    onError: () => toast.error("Erro ao inativar prioridade."),
+    onError: (error) => toast.error(error?.message || "Erro ao inativar prioridade."),
   });
 
-  // Reativar prioridade
   const reativar = useMutation({
     mutationFn: reativarPrioridade,
     onSuccess: () => {
       queryClient.invalidateQueries(["prioridades"]);
       toast.success("Prioridade reativada com sucesso!");
     },
-    onError: () => toast.error("Erro ao reativar prioridade."),
+    onError: (error) => toast.error(error?.message || "Erro ao reativar prioridade."),
   });
 
   const handleSavePriority = (priorityData) => {
-    // Converte os nomes do front para o formato da API
     const dataAPI = {
       nome: priorityData.name,
       descricao: priorityData.description,
@@ -107,7 +100,6 @@ export default function PrioridadesPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto py-8 px-4">
-        {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-brand-blue/10 rounded-lg">
@@ -122,7 +114,7 @@ export default function PrioridadesPage() {
           </div>
           <div className="flex items-center gap-3">
             <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
-            <Button 
+            <Button
               onClick={() => { setSelectedPriority(null); setIsFormOpen(true); }}
               className="flex items-center gap-2 bg-brand-blue hover:bg-brand-blue-dark"
             >
@@ -132,7 +124,6 @@ export default function PrioridadesPage() {
           </div>
         </div>
 
-        {/* Lista de prioridades */}
         <PriorityList
           priorities={priorities}
           onEdit={(p) => { setSelectedPriority(p); setIsFormOpen(true); }}
@@ -142,7 +133,6 @@ export default function PrioridadesPage() {
           viewMode={viewMode}
         />
 
-        {/* Modais */}
         <PriorityForm
           open={isFormOpen}
           onOpenChange={setIsFormOpen}
@@ -165,7 +155,6 @@ export default function PrioridadesPage() {
           onReactivate={handleReactivatePriority}
         />
 
-        {/* Toast notifications */}
         <Toaster position="top-right" />
       </div>
     </div>

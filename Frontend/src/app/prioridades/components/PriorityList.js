@@ -1,12 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-// Hook para garantir renderização apenas no cliente
-function useClientOnly() {
-  const [isClient, setIsClient] = useState(false);
-  useEffect(() => setIsClient(true), []);
-  return isClient;
-}
 import { Button } from '../../../ui/base/button';
 import { Input } from '../../../ui/form/input';
 import { Badge } from '../../../ui/base/badge';
@@ -14,7 +8,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/layout/car
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../ui/layout/table';
 import { Search, Edit, Trash2, Eye, RefreshCw } from 'lucide-react';
 
-// Priority type for JS (remove TS types)
+function useClientOnly() {
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => setIsClient(true), []);
+  return isClient;
+}
+
 export default function PriorityList({
   priorities,
   onEdit,
@@ -39,8 +38,10 @@ export default function PriorityList({
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">{priority.name}</CardTitle>
-          <Badge variant={priority.active ? "default" : "secondary"} 
-                 className={priority.active ? "bg-brand-blue hover:bg-brand-blue-dark" : ""}>
+          <Badge
+            variant={priority.active ? "default" : "secondary"}
+            className={priority.active ? "bg-brand-blue hover:bg-brand-blue-dark" : ""}
+          >
             {priority.active ? 'Ativo' : 'Inativo'}
           </Badge>
         </div>
@@ -64,7 +65,7 @@ export default function PriorityList({
             <span>{priority.color}</span>
           </div>
         </div>
-        
+
         <div className="flex gap-2 mt-4">
           <Button
             variant="outline"
@@ -131,8 +132,10 @@ export default function PriorityList({
         </div>
       </TableCell>
       <TableCell>
-        <Badge variant={priority.active ? "default" : "secondary"}
-               className={priority.active ? "bg-brand-blue hover:bg-brand-blue-dark" : ""}>
+        <Badge
+          variant={priority.active ? "default" : "secondary"}
+          className={priority.active ? "bg-brand-blue hover:bg-brand-blue-dark" : ""}
+        >
           {priority.active ? 'Ativo' : 'Inativo'}
         </Badge>
       </TableCell>
@@ -180,7 +183,6 @@ export default function PriorityList({
 
   return (
     <div className="space-y-6">
-      {/* Barra de busca */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
         <Input
@@ -193,7 +195,6 @@ export default function PriorityList({
 
       {viewMode === 'cards' ? (
         <>
-          {/* Prioridades Ativas - Cards */}
           {activePriorities.length > 0 && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -208,7 +209,6 @@ export default function PriorityList({
             </div>
           )}
 
-          {/* Prioridades Inativas - Cards */}
           {inactivePriorities.length > 0 && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -225,7 +225,6 @@ export default function PriorityList({
         </>
       ) : (
         <>
-          {/* Prioridades Ativas - Lista */}
           {activePriorities.length > 0 && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -254,7 +253,6 @@ export default function PriorityList({
             </div>
           )}
 
-          {/* Prioridades Inativas - Lista */}
           {inactivePriorities.length > 0 && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -285,7 +283,6 @@ export default function PriorityList({
         </>
       )}
 
-      {/* Estado vazio */}
       {filteredPriorities.length === 0 && (
         <div className="text-center py-12">
           <div className="space-y-3">
@@ -294,7 +291,7 @@ export default function PriorityList({
             </div>
             <h3>Nenhuma prioridade encontrada</h3>
             <p className="text-muted-foreground max-w-md mx-auto">
-              {searchTerm 
+              {searchTerm
                 ? `Não encontramos prioridades que correspondam à busca "${searchTerm}".`
                 : 'Ainda não há prioridades cadastradas no sistema.'
               }

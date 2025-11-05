@@ -123,6 +123,10 @@ namespace API.Controllers
                 await etapa.InativarAsync(_dbContext);
                 return NoContent();
             }
+            catch (ValidationException ex)
+            {
+                return BadRequest(new { erro = ex.Message });
+            }
             catch (Exception)
             {
                 return StatusCode(500, new { erro = "Ocorreu um erro ao inativar a etapa." });

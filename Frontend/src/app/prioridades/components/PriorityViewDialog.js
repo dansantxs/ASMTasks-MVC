@@ -5,9 +5,7 @@ import { Badge } from '../../../ui/base/badge';
 import { Button } from '../../../ui/base/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/layout/card';
 import { Separator } from '../../../ui/layout/separator';
-import { Calendar, Palette, Flag, RefreshCw } from 'lucide-react';
-
-// Assume Priority is an object with the expected fields
+import { Palette, Flag, RefreshCw } from 'lucide-react';
 
 export default function PriorityViewDialog({ open, onOpenChange, priority, onReactivate }) {
   if (!priority) return null;
@@ -24,15 +22,16 @@ export default function PriorityViewDialog({ open, onOpenChange, priority, onRea
             Visualize todas as informações detalhadas da prioridade
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-6">
-          {/* Informações principais */}
           <Card>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-xl">{priority.name}</CardTitle>
-                <Badge variant={priority.active ? "default" : "secondary"}
-                       className={priority.active ? "bg-brand-blue hover:bg-brand-blue-dark" : ""}>
+                <Badge
+                  variant={priority.active ? 'default' : 'secondary'}
+                  className={priority.active ? 'bg-brand-blue hover:bg-brand-blue-dark' : ''}
+                >
                   {priority.active ? 'Ativo' : 'Inativo'}
                 </Badge>
               </div>
@@ -44,11 +43,11 @@ export default function PriorityViewDialog({ open, onOpenChange, priority, onRea
                     <p className="text-sm text-muted-foreground mb-1">Descrição</p>
                     <p className="text-sm leading-relaxed">{priority.description}</p>
                   </div>
-                  
+
                   <Separator />
                 </>
               )}
-              
+
               <div className="flex items-center gap-3">
                 <Palette className="h-4 w-4 text-muted-foreground" />
                 <div>
@@ -63,12 +62,9 @@ export default function PriorityViewDialog({ open, onOpenChange, priority, onRea
                   <span className="ml-2 font-mono text-xs">{priority.color}</span>
                 </div>
               </div>
-              
-              <Separator />
             </CardContent>
           </Card>
 
-          {/* Informações adicionais */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Informações do Sistema</CardTitle>
@@ -86,14 +82,13 @@ export default function PriorityViewDialog({ open, onOpenChange, priority, onRea
                   </p>
                 </div>
               </div>
-              
+
               {!priority.active && (
                 <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <p className="text-sm text-amber-800">
-                        <strong>Prioridade Inativa:</strong> Esta prioridade foi excluída logicamente do sistema. 
-                        Todas as tarefas associadas foram preservadas para manter o histórico.
+                        <strong>Prioridade Inativa:</strong> Esta prioridade foi excluída logicamente do sistema. Todas as tarefas associadas foram preservadas para manter o histórico.
                       </p>
                     </div>
                     {onReactivate && (

@@ -5,7 +5,7 @@ import { Badge } from '../../../ui/base/badge';
 import { Button } from '../../../ui/base/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/layout/card';
 import { Separator } from '../../../ui/layout/separator';
-import { Calendar, Briefcase, RefreshCw } from 'lucide-react';
+import { Briefcase, RefreshCw } from 'lucide-react';
 
 export default function PositionViewDialog({ open, onOpenChange, position, onReactivate }) {
   if (!position) return null;
@@ -41,8 +41,6 @@ export default function PositionViewDialog({ open, onOpenChange, position, onRea
                     <p className="text-sm text-muted-foreground mb-1">Descrição</p>
                     <p className="text-sm leading-relaxed">{position.description}</p>
                   </div>
-                  
-                  <Separator />
                 </>
               )}
             </CardContent>

@@ -20,7 +20,6 @@ export function DeleteConfirmDialog({
   position,
   onConfirm,
   hasActiveCollaborators = true,
-  activeCollaboratorsCount = 1,
 }) {
   if (!position) return null;
 
@@ -42,7 +41,7 @@ export function DeleteConfirmDialog({
               <div className="space-y-4">
                 <div>
                   O cargo <strong>"{position.name}"</strong> não pode ser excluído porque possui{' '}
-                  <strong>{activeCollaboratorsCount} colaborador(es) ativo(s)</strong>.
+                  <strong>colaboradores ativos</strong>.
                 </div>
 
                 <Alert className="border-amber-200 bg-amber-50">

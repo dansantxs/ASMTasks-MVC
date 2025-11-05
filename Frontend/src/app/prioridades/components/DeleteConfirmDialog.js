@@ -14,15 +14,12 @@ import {
 import { Alert, AlertDescription } from '../../../ui/feedback/alert/alert';
 import { AlertTriangle } from 'lucide-react';
 
-// Remove TypeScript types and interfaces
-
 export function DeleteConfirmDialog({
   open,
   onOpenChange,
   priority,
   onConfirm,
   hasActiveTasks,
-  activeTasksCount = 0,
 }) {
   if (!priority) return null;
 
@@ -44,7 +41,7 @@ export function DeleteConfirmDialog({
               <div className="space-y-4">
                 <div>
                   A prioridade <strong>"{priority.name}"</strong> não pode ser excluída porque possui{' '}
-                  <strong>{activeTasksCount} tarefa(s) em andamento</strong>.
+                  <strong>tarefas em andamento</strong>.
                 </div>
 
                 <Alert className="border-amber-200 bg-amber-50">

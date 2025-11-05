@@ -3,13 +3,12 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from '../../ui/base/button';
 import { Plus, Briefcase } from 'lucide-react';
-import { Toaster } from 'sonner';
+import { Toaster, toast } from 'sonner';
 import { DeleteConfirmDialog } from './components/DeleteConfirmDialog';
 import PositionForm from './components/PositionForm';
 import PositionList from './components/PositionList';
 import PositionViewDialog from './components/PositionViewDialog';
 import ViewToggle from '../../shared/components/ViewToggle';
-import { toast } from 'sonner';
 import { getCargos, criarCargo, atualizarCargo, inativarCargo, reativarCargo } from './api/cargos';
 
 export default function CargosPage() {
@@ -42,7 +41,7 @@ export default function CargosPage() {
       setIsFormOpen(false);
       toast.success("Cargo criado com sucesso!");
     },
-    onError: () => toast.error("Erro ao criar cargo."),
+    onError: (error) => toast.error(error?.message || "Erro ao criar cargo."),
   });
 
   const atualizar = useMutation({
@@ -52,7 +51,7 @@ export default function CargosPage() {
       setIsFormOpen(false);
       toast.success("Cargo atualizado com sucesso!");
     },
-    onError: () => toast.error("Erro ao atualizar cargo."),
+    onError: (error) => toast.error(error?.message || "Erro ao atualizar cargo."),
   });
 
   const excluir = useMutation({
@@ -62,7 +61,7 @@ export default function CargosPage() {
       setIsDeleteDialogOpen(false);
       toast.success("Cargo inativado com sucesso!");
     },
-    onError: () => toast.error("Erro ao inativar cargo."),
+    onError: (error) => toast.error(error?.message || "Erro ao inativar cargo."),
   });
 
   const reativar = useMutation({
@@ -71,7 +70,7 @@ export default function CargosPage() {
       queryClient.invalidateQueries(["cargos"]);
       toast.success("Cargo reativado com sucesso!");
     },
-    onError: () => toast.error("Erro ao reativar cargo."),
+    onError: (error) => toast.error(error?.message || "Erro ao reativar cargo."),
   });
 
   const handleSavePosition = (positionData) => {

@@ -21,13 +21,11 @@ export default function EtapasPage() {
 
   const queryClient = useQueryClient();
 
-  // Buscar etapas da API
   const { data: etapasApi = [], isLoading } = useQuery({
     queryKey: ["etapas"],
     queryFn: getEtapas,
   });
 
-  // Converter o formato da API para o formato esperado pelo componente
   const stages = etapasApi.map(e => {
     return {
       id: e.id,
@@ -37,7 +35,6 @@ export default function EtapasPage() {
     };
   });
 
-  // Criar etapa
   const criar = useMutation({
     mutationFn: criarEtapa,
     onSuccess: () => {
@@ -45,10 +42,9 @@ export default function EtapasPage() {
       setIsFormOpen(false);
       toast.success("Etapa criada com sucesso!");
     },
-    onError: () => toast.error("Erro ao criar etapa."),
+    onError: (error) => toast.error(error?.message ?? "Erro ao criar etapa."),
   });
 
-  // Atualizar etapa
   const atualizar = useMutation({
     mutationFn: ({ id, data }) => atualizarEtapa(id, data),
     onSuccess: () => {
@@ -56,10 +52,9 @@ export default function EtapasPage() {
       setIsFormOpen(false);
       toast.success("Etapa atualizada com sucesso!");
     },
-    onError: () => toast.error("Erro ao atualizar etapa."),
+    onError: (error) => toast.error(error?.message ?? "Erro ao atualizar etapa."),
   });
 
-  // Inativar etapa
   const excluir = useMutation({
     mutationFn: inativarEtapa,
     onSuccess: () => {
@@ -67,30 +62,26 @@ export default function EtapasPage() {
       setIsDeleteDialogOpen(false);
       toast.success("Etapa inativada com sucesso!");
     },
-    onError: () => toast.error("Erro ao inativar etapa."),
+    onError: (error) => toast.error(error?.message ?? "Erro ao inativar etapa."),
   });
 
-  // Reativar etapa
   const reativar = useMutation({
     mutationFn: reativarEtapa,
     onSuccess: () => {
       queryClient.invalidateQueries(["etapas"]);
       toast.success("Etapa reativada com sucesso!");
     },
-    onError: () => toast.error("Erro ao reativar etapa."),
+    onError: (error) => toast.error(error?.message ?? "Erro ao reativar etapa."),
   });
 
   const handleSaveStage = (stageData) => {
-    // Converte os nomes do front para o formato da API
     const dataAPI = {
       nome: stageData.name,
       descricao: stageData.description,
     };
 
-    if (selectedStage)
-      atualizar.mutate({ id: selectedStage.id, data: dataAPI });
-    else
-      criar.mutate(dataAPI);
+    if (selectedStage) atualizar.mutate({ id: selectedStage.id, data: dataAPI });
+    else criar.mutate(dataAPI);
   };
 
   const handleConfirmDelete = () => {
@@ -104,7 +95,6 @@ export default function EtapasPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto py-8 px-4">
-        {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-brand-blue/10 rounded-lg">
@@ -112,15 +102,16 @@ export default function EtapasPage() {
             </div>
             <div>
               <h1>Gerenciamento de Etapas</h1>
-              <p className="text-muted-foreground">
-                Gerencie as etapas do sistema
-              </p>
+              <p className="text-muted-foreground">Gerencie as etapas do sistema</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
-            <Button 
-              onClick={() => { setSelectedStage(null); setIsFormOpen(true); }}
+            <Button
+              onClick={() => {
+                setSelectedStage(null);
+                setIsFormOpen(true);
+              }}
               className="flex items-center gap-2 bg-brand-blue hover:bg-brand-blue-dark"
             >
               <Plus className="h-4 w-4" />
@@ -129,17 +120,24 @@ export default function EtapasPage() {
           </div>
         </div>
 
-        {/* Lista de etapas */}
         <StageList
           stages={stages}
-          onEdit={(e) => { setSelectedStage(e); setIsFormOpen(true); }}
-          onDelete={(e) => { setSelectedStage(e); setIsDeleteDialogOpen(true); }}
-          onView={(e) => { setSelectedStage(e); setIsViewDialogOpen(true); }}
+          onEdit={(e) => {
+            setSelectedStage(e);
+            setIsFormOpen(true);
+          }}
+          onDelete={(e) => {
+            setSelectedStage(e);
+            setIsDeleteDialogOpen(true);
+          }}
+          onView={(e) => {
+            setSelectedStage(e);
+            setIsViewDialogOpen(true);
+          }}
           onReactivate={handleReactivateStage}
           viewMode={viewMode}
         />
 
-        {/* Modais */}
         <StageForm
           open={isFormOpen}
           onOpenChange={setIsFormOpen}
@@ -162,7 +160,6 @@ export default function EtapasPage() {
           onReactivate={handleReactivateStage}
         />
 
-        {/* Toast notifications */}
         <Toaster position="top-right" />
       </div>
     </div>

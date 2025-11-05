@@ -5,15 +5,21 @@ import { cn } from '../../ui/form/utils';
 import { Button } from '../../ui/base/button';
 import { cadastroItems } from "../config/menuItems";
 
-export function Sidebar({ currentPage, onNavigate }) {
+export function Sidebar({ currentPage, onNavigate, onToggleCollapse }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [cadastrosExpanded, setCadastrosExpanded] = useState(true);
 
   const toggleSidebar = () => {
-    setIsCollapsed(!isCollapsed);
-    
-    if (isCollapsed) {
+    const newState = !isCollapsed;
+    setIsCollapsed(newState);
+    if (newState) {
+      setCadastrosExpanded(false);
+    } else {
       setCadastrosExpanded(true);
+    }
+
+    if (onToggleCollapse) {
+      onToggleCollapse(newState);
     }
   };
 

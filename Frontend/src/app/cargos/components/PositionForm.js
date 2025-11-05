@@ -64,8 +64,6 @@ export default function PositionForm({
       return;
     }
     onSave(formData);
-    onOpenChange(false);
-    toast.success(position ? 'Cargo atualizado com sucesso!' : 'Cargo cadastrado com sucesso!');
   };
 
   return (

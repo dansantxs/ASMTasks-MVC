@@ -7,6 +7,7 @@ namespace API.Models
     public class Setor
     {
         private static readonly SetoresDAO _setoresDAO = new SetoresDAO();
+        private static readonly ColaboradoresDAO _colaboradoresDAO = new ColaboradoresDAO();
 
         public int Id { get; set; }
         public string Nome { get; set; } = string.Empty;
@@ -23,6 +24,10 @@ namespace API.Models
             if (await _setoresDAO.VerificarExistenciaPorNomeAsync(dbContext, Nome))
                 throw new ValidationException("Já existe um setor com esse nome.");
 
+            Responsavel = await _colaboradoresDAO.ObterPorIdAsync(dbContext, ResponsavelId);
+            if (Responsavel == null || !Responsavel.Ativo)
+                throw new ValidationException("O colaborador responsável informado não existe ou está inativo.");
+
             Ativo = true;
 
             return await _setoresDAO.CriarAsync(dbContext, this);
@@ -36,6 +41,10 @@ namespace API.Models
             if (await _setoresDAO.VerificarExistenciaPorNomeAsync(dbContext, Nome, Id))
                 throw new ValidationException("Já existe outro setor com esse nome.");
 
+            Responsavel = await _colaboradoresDAO.ObterPorIdAsync(dbContext, ResponsavelId);
+            if (Responsavel == null || !Responsavel.Ativo)
+                throw new ValidationException("O colaborador responsável informado não existe ou está inativo.");
+
             var atualizado = await _setoresDAO.AtualizarAsync(dbContext, this);
             if (!atualizado)
                 throw new ValidationException("Setor não encontrado.");
@@ -43,7 +52,7 @@ namespace API.Models
 
         public async Task InativarAsync(DBContext dbContext)
         {
-            if(await _setoresDAO.VerificarColaboradoresAtivosAsync(dbContext, Id))
+            if (await _setoresDAO.VerificarColaboradoresAtivosAsync(dbContext, Id))
                 throw new ValidationException("Não é possível inativar o setor pois existem colaboradores ativos vinculados a ele.");
 
             // verificar se existem tarefas em andamento

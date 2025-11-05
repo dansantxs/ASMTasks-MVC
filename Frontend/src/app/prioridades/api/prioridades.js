@@ -1,15 +1,45 @@
 const API_URL = "https://localhost:7199/api/prioridades";
 
+async function handleResponse(res) {
+    const text = await res.text();
+    let data = null;
+    try {
+        data = text ? JSON.parse(text) : null;
+    } catch {}
+
+    if (!res.ok) {
+        let msg = "Erro inesperado.";
+        if (data) {
+            if (data.erro) msg = data.erro;
+            else if (data.message) msg = data.message;
+            else if (data.errors) {
+                const flat = Object.values(data.errors).flat();
+                if (flat.length) msg = flat.join("\n");
+            }
+            if (data.detalhe && data.detalhe !== msg) {
+                msg += `\nDetalhe: ${data.detalhe}`;
+            }
+        } else {
+            msg = `${res.status} ${res.statusText}`;
+        }
+        const error = new Error(msg);
+        error.status = res.status;
+        error.data = data;
+        throw error;
+    }
+
+    if (res.status === 204) return null;
+    return data;
+}
+
 export async function getPrioridades() {
     const res = await fetch(API_URL, { cache: "no-store" });
-    if (!res.ok) throw new Error("Erro ao buscar prioridades");
-    return res.json();
+    return handleResponse(res);
 }
 
 export async function getPrioridadeById(id) {
     const res = await fetch(`${API_URL}/${id}`, { cache: "no-store" });
-    if (!res.ok) throw new Error("Erro ao buscar prioridade");
-    return res.json();
+    return handleResponse(res);
 }
 
 export async function criarPrioridade(data) {
@@ -18,8 +48,7 @@ export async function criarPrioridade(data) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
     });
-    if (!res.ok) throw new Error("Erro ao criar prioridade");
-    return res.json();
+    return handleResponse(res);
 }
 
 export async function atualizarPrioridade(id, data) {
@@ -28,18 +57,15 @@ export async function atualizarPrioridade(id, data) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
     });
-    if (!res.ok) throw new Error("Erro ao atualizar prioridade");
-    return true;
+    return handleResponse(res);
 }
 
 export async function inativarPrioridade(id) {
     const res = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
-    if (!res.ok) throw new Error("Erro ao inativar prioridade");
-    return true;
+    return handleResponse(res);
 }
 
 export async function reativarPrioridade(id) {
     const res = await fetch(`${API_URL}/${id}/reativar`, { method: "PUT" });
-    if (!res.ok) throw new Error("Erro ao reativar prioridade");
-    return true;
+    return handleResponse(res);
 }

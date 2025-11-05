@@ -122,6 +122,10 @@ namespace API.Controllers
                 await cargo.InativarAsync(_dbContext);
                 return NoContent();
             }
+            catch (ValidationException ex)
+            {
+                return BadRequest(new { erro = ex.Message });
+            }
             catch (Exception ex)
             {
                 return StatusCode(500, new { erro = "Ocorreu um erro ao inativar o cargo.", detalhe = ex.Message });

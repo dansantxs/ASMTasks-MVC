@@ -64,8 +64,6 @@ export default function StageForm({
       return;
     }
     onSave(formData);
-    onOpenChange(false);
-    toast.success(stage ? 'Etapa atualizada com sucesso!' : 'Etapa cadastrada com sucesso!');
   };
 
   return (

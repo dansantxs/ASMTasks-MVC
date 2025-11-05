@@ -7,6 +7,8 @@ namespace API.Models
     public class Colaborador
     {
         private static readonly ColaboradoresDAO _colaboradoresDAO = new ColaboradoresDAO();
+        private readonly SetoresDAO _setoresDAO = new SetoresDAO();
+        private readonly CargosDAO _cargosDAO = new CargosDAO();
 
         public int Id { get; set; }
         public string Nome { get; set; } = string.Empty;
@@ -38,6 +40,14 @@ namespace API.Models
             if (await _colaboradoresDAO.VerificarExistenciaPorCPFAsync(dbContext, CPF))
                 throw new ValidationException("Já existe um colaborador com esse CPF.");
 
+            Setor = await _setoresDAO.ObterPorIdAsync(dbContext, SetorId);
+            if (Setor == null || !Setor.Ativo)
+                throw new ValidationException("O setor informado não existe ou está inativo.");
+
+            Cargo = await _cargosDAO.ObterPorIdAsync(dbContext, CargoId);
+            if (Cargo == null || !Cargo.Ativo)
+                throw new ValidationException("O cargo informado não existe ou está inativo.");
+
             Ativo = true;
             DataAdmissao = DateTime.UtcNow;
 
@@ -54,6 +64,14 @@ namespace API.Models
 
             if (await _colaboradoresDAO.VerificarExistenciaPorCPFAsync(dbContext, CPF, Id))
                 throw new ValidationException("Já existe outro colaborador com esse CPF.");
+
+            Setor = await _setoresDAO.ObterPorIdAsync(dbContext, SetorId);
+            if (Setor == null || !Setor.Ativo)
+                throw new ValidationException("O setor informado não existe ou está inativo.");
+
+            Cargo = await _cargosDAO.ObterPorIdAsync(dbContext, CargoId);
+            if (Cargo == null || !Cargo.Ativo)
+                throw new ValidationException("O cargo informado não existe ou está inativo.");
 
             var atualizado = await _colaboradoresDAO.AtualizarAsync(dbContext, this);
             if (!atualizado)

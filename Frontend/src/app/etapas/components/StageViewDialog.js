@@ -4,10 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Badge } from '../../../ui/base/badge';
 import { Button } from '../../../ui/base/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/layout/card';
-import { Separator } from '../../../ui/layout/separator';
-import { Calendar, Workflow, RefreshCw } from 'lucide-react';
-
-// Assume Stage is an object with the expected fields
+import { Workflow, RefreshCw } from 'lucide-react';
 
 export default function StageViewDialog({ open, onOpenChange, stage, onReactivate }) {
   if (!stage) return null;
@@ -24,15 +21,15 @@ export default function StageViewDialog({ open, onOpenChange, stage, onReactivat
             Visualize todas as informações detalhadas da etapa
           </DialogDescription>
         </DialogHeader>
-        
         <div className="space-y-6">
-          {/* Informações principais */}
           <Card>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-xl">{stage.name}</CardTitle>
-                <Badge variant={stage.active ? "default" : "secondary"}
-                       className={stage.active ? "bg-brand-blue hover:bg-brand-blue-dark" : ""}>
+                <Badge
+                  variant={stage.active ? 'default' : 'secondary'}
+                  className={stage.active ? 'bg-brand-blue hover:bg-brand-blue-dark' : ''}
+                >
                   {stage.active ? 'Ativo' : 'Inativo'}
                 </Badge>
               </div>
@@ -44,14 +41,10 @@ export default function StageViewDialog({ open, onOpenChange, stage, onReactivat
                     <p className="text-sm text-muted-foreground mb-1">Descrição</p>
                     <p className="text-sm leading-relaxed">{stage.description}</p>
                   </div>
-                  
-                  <Separator />
                 </>
               )}
             </CardContent>
           </Card>
-
-          {/* Informações adicionais */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Informações do Sistema</CardTitle>
@@ -69,14 +62,13 @@ export default function StageViewDialog({ open, onOpenChange, stage, onReactivat
                   </p>
                 </div>
               </div>
-              
               {!stage.active && (
                 <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <p className="text-sm text-amber-800">
-                        <strong>Etapa Inativa:</strong> Esta etapa foi excluída logicamente do sistema. 
-                        Todas as tarefas associadas foram preservadas para manter o histórico.
+                        <strong>Etapa Inativa:</strong> Esta etapa foi excluída logicamente do sistema. Todas as tarefas
+                        associadas foram preservadas para manter o histórico.
                       </p>
                     </div>
                     {onReactivate && (
