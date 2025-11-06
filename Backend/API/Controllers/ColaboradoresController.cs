@@ -216,7 +216,8 @@ namespace API.Controllers
                 DataAdmissao = c.DataAdmissao,
                 Ativo = c.Ativo,
                 SetorId = c.SetorId,
-                CargoId = c.CargoId
+                CargoId = c.CargoId,
+                ResponsavelPorSetor = Colaborador.VerificarResponsavelSetorAsync(_dbContext, c.Id).Result
             });
 
             return Ok(response);
@@ -255,7 +256,8 @@ namespace API.Controllers
                 DataAdmissao = colaborador.DataAdmissao,
                 Ativo = colaborador.Ativo,
                 SetorId = colaborador.SetorId,
-                CargoId = colaborador.CargoId
+                CargoId = colaborador.CargoId,
+                ResponsavelPorSetor = await Colaborador.VerificarResponsavelSetorAsync(_dbContext, colaborador.Id)
             };
 
             return Ok(response);

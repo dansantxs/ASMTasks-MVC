@@ -183,7 +183,8 @@ namespace API.Controllers
                 Nome = setor.Nome,
                 Descricao = setor.Descricao,
                 Ativo = setor.Ativo,
-                ResponsavelId = setor.ResponsavelId
+                ResponsavelId = setor.ResponsavelId,
+                PossuiFuncionariosAtivos = Setor.VerificarColaboradoresAtivosAsync(_dbContext, setor.Id).Result
             });
 
             return Ok(response);
@@ -211,38 +212,11 @@ namespace API.Controllers
                 Nome = setor.Nome,
                 Descricao = setor.Descricao,
                 Ativo = setor.Ativo,
-                ResponsavelId = setor.ResponsavelId
+                ResponsavelId = setor.ResponsavelId,
+                PossuiFuncionariosAtivos = await Setor.VerificarColaboradoresAtivosAsync(_dbContext, setor.Id)
             };
 
             return Ok(response);
-        }
-
-        /// <summary>
-        /// Verifica se um setor possui colaboradores ativos.
-        /// </summary>
-        /// <param name="setorId">ID do setor a ser verificado.</param>
-        /// <response code="200">Retorna um objeto com a propriedade 'possuiColaboradoresAtivos'.</response>
-        /// <response code="404">Setor não encontrado.</response>
-        /// <response code="500">Erro interno ao verificar os colaboradores ativos do setor.</response>
-        [HttpGet("{setorId}/colaboradores/ativos")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> VerificarColaboradoresAtivos(int setorId)
-        {
-            try
-            {
-                var setor = await Setor.ObterPorIdAsync(_dbContext, setorId);
-                if (setor == null)
-                    return NotFound(new { erro = "Setor não encontrado." });
-
-                var possuiColaboradoresAtivos = await Setor.VerificarColaboradoresAtivosAsync(_dbContext, setorId);
-                return Ok(new { possuiColaboradoresAtivos });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { erro = "Ocorreu um erro ao verificar os colaboradores ativos do setor.", detalhe = ex.Message });
-            }
         }
     }
 }

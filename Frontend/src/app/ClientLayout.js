@@ -9,10 +9,15 @@ export default function ClientLayout({ children }) {
   const router = useRouter();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
-  const currentPage = pathname.split("/")[1] || "inicio";
+  const pathParts = pathname.split("/");
+  const currentPage = pathParts[2] || (pathParts[1] === "" ? "inicio" : pathParts[1]);
 
   const handleNavigate = (page) => {
-    router.push(page === "inicio" ? "/" : `/${page}`);
+    if (page === "inicio") {
+      router.push("/");
+    } else {
+      router.push(`/cadastros/${page}`);
+    }
   };
 
   return (

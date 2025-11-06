@@ -988,39 +988,5 @@
         "StatusCode": 500
       }
     ]
-  },
-  {
-    "ContainingType": "API.Controllers.SetoresController",
-    "Method": "VerificarColaboradoresAtivos",
-    "RelativePath": "api/Setores/{setorId}/colaboradores/ativos",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "setorId",
-        "Type": "System.Int32",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": [
-      {
-        "Type": "System.Void",
-        "MediaTypes": [],
-        "StatusCode": 200
-      },
-      {
-        "Type": "Microsoft.AspNetCore.Mvc.ProblemDetails",
-        "MediaTypes": [
-          "application/json"
-        ],
-        "StatusCode": 404
-      },
-      {
-        "Type": "System.Void",
-        "MediaTypes": [],
-        "StatusCode": 500
-      }
-    ]
   }
 ]

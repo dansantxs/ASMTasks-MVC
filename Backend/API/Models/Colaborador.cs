@@ -106,5 +106,10 @@ namespace API.Models
         {
             return await _colaboradoresDAO.ObterPorIdAsync(dbContext, id);
         }
+
+        public static async Task<bool> VerificarResponsavelSetorAsync(DBContext dbContext, int colaboradorId)
+        {
+            return await _colaboradoresDAO.VerificarResponsavelSetorAsync(dbContext, colaboradorId);
+        }
     }
 }

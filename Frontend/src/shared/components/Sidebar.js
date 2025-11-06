@@ -130,6 +130,13 @@ export function Sidebar({ currentPage, onNavigate, onToggleCollapse }) {
 }
 
 Sidebar.propTypes = {
-  currentPage: PropTypes.oneOf(['inicio', 'setores', 'prioridades', 'etapas']).isRequired,
+  currentPage: PropTypes.oneOf([
+    'inicio',
+    'cargos',
+    'colaboradores',
+    'etapas',
+    'prioridades',
+    'setores'
+  ]).isRequired,
   onNavigate: PropTypes.func.isRequired,
 };

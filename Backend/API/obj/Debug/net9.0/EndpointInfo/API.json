@@ -1120,42 +1120,6 @@
           }
         }
       }
-    },
-    "/api/Setores/{setorId}/colaboradores/ativos": {
-      "get": {
-        "tags": [
-          "Setores"
-        ],
-        "parameters": [
-          {
-            "name": "setorId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        }
-      }
     }
   },
   "components": {
