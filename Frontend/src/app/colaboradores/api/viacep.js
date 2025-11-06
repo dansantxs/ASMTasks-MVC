@@ -1,3 +1,5 @@
+const VIACEP_URL = 'https://viacep.com.br/ws';
+
 export async function buscarEnderecoPorCep(cep) {
   const apenasNumeros = cep.replace(/\D/g, '');
   if (apenasNumeros.length !== 8) return null;

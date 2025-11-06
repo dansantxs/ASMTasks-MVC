@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '../../../ui/form/select';
+import { buscarEnderecoPorCep } from '../api/viacep';
 
 export default function EmployeeForm({
   open,
@@ -46,6 +47,7 @@ export default function EmployeeForm({
   });
 
   const [errors, setErrors] = useState({});
+  const [buscandoCep, setBuscandoCep] = useState(false);
 
   useEffect(() => {
     if (employee) {
@@ -87,6 +89,29 @@ export default function EmployeeForm({
     }
     setErrors({});
   }, [employee, open]);
+
+  useEffect(() => {
+    const carregarEndereco = async () => {
+      const cepLimpo = formData.cep.replace(/\D/g, '');
+      if (cepLimpo.length === 8) {
+        setBuscandoCep(true);
+        const endereco = await buscarEnderecoPorCep(formData.cep);
+        setBuscandoCep(false);
+
+        if (endereco) {
+          setFormData((prev) => ({
+            ...prev,
+            logradouro: endereco.logradouro,
+            bairro: endereco.bairro,
+            cidade: endereco.cidade,
+            uf: endereco.uf
+          }));
+        }
+      }
+    };
+
+    carregarEndereco();
+  }, [formData.cep]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -184,7 +209,7 @@ export default function EmployeeForm({
           <section>
             <h3 className="text-base font-semibold mb-3">Endereço</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <InputField id="cep" label="CEP" value={formData.cep} onChange={setFormData} placeholder="00000-000" />
+              <InputField id="cep" label={`CEP ${buscandoCep ? '(buscando...)' : ''}`} value={formData.cep} onChange={setFormData} placeholder="00000-000"/>
               <InputField id="cidade" label="Cidade" value={formData.cidade} onChange={setFormData} placeholder="Ex: São Paulo" />
               <InputField id="uf" label="UF" value={formData.uf} onChange={setFormData} placeholder="SP" />
             </div>

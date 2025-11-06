@@ -3,6 +3,10 @@
   "WorkspaceRootPath": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|c:\\users\\daniel dos santos\\documents\\projetos\\asmtasks-mvc\\backend\\api\\controllers\\cargoscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|solutionrelative:api\\controllers\\cargoscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|c:\\users\\daniel dos santos\\documents\\projetos\\asmtasks-mvc\\backend\\api\\controllers\\colaboradorescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|solutionrelative:api\\controllers\\colaboradorescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -30,11 +34,24 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 0,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
+              "Title": "CargosController.cs",
+              "DocumentMoniker": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\Controllers\\CargosController.cs",
+              "RelativeDocumentMoniker": "API\\Controllers\\CargosController.cs",
+              "ToolTip": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\Controllers\\CargosController.cs",
+              "RelativeToolTip": "API\\Controllers\\CargosController.cs",
+              "ViewState": "AgIAADwAAAAAAAAAAAAYwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-06T06:11:57.888Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
               "Title": "ColaboradoresDAO.cs",
               "DocumentMoniker": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\DB\\DAOs\\ColaboradoresDAO.cs",
               "RelativeDocumentMoniker": "API\\DB\\DAOs\\ColaboradoresDAO.cs",
@@ -42,12 +59,11 @@
               "RelativeToolTip": "API\\DB\\DAOs\\ColaboradoresDAO.cs",
               "ViewState": "AgIAAKUAAAAAAAAAAAAuwAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-05T01:16:24.148Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-05T01:16:24.148Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 5,
               "Title": "API.http",
               "DocumentMoniker": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\API.http",
               "RelativeDocumentMoniker": "API\\API.http",
@@ -59,20 +75,20 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "ColaboradoresController.cs",
               "DocumentMoniker": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\Controllers\\ColaboradoresController.cs",
               "RelativeDocumentMoniker": "API\\Controllers\\ColaboradoresController.cs",
               "ToolTip": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\Controllers\\ColaboradoresController.cs",
               "RelativeToolTip": "API\\Controllers\\ColaboradoresController.cs",
-              "ViewState": "AgIAAOwAAAAAAAAAAAAiwPQAAAAmAAAAAAAAAA==",
+              "ViewState": "AgIAAE4AAAAAAAAAAAAawF0AAAAMAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-11-05T00:47:48.659Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 4,
               "Title": "Setor.cs",
               "DocumentMoniker": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\Models\\Setor.cs",
               "RelativeDocumentMoniker": "API\\Models\\Setor.cs",
@@ -84,7 +100,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "Colaborador.cs",
               "DocumentMoniker": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\Models\\Colaborador.cs",
               "RelativeDocumentMoniker": "API\\Models\\Colaborador.cs",
