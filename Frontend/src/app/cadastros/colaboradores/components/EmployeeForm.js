@@ -20,6 +20,58 @@ import {
 } from '../../../../ui/form/select';
 import { buscarEnderecoPorCep } from '../api/viacep';
 
+const validarCPF = (cpf) => {
+  cpf = cpf.replace(/\D/g, '');
+  if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
+  
+  let soma = 0;
+  for (let i = 0; i < 9; i++) soma += parseInt(cpf.charAt(i)) * (10 - i);
+  let resto = 11 - (soma % 11);
+  let digito1 = resto >= 10 ? 0 : resto;
+  
+  soma = 0;
+  for (let i = 0; i < 10; i++) soma += parseInt(cpf.charAt(i)) * (11 - i);
+  resto = 11 - (soma % 11);
+  let digito2 = resto >= 10 ? 0 : resto;
+  
+  return parseInt(cpf.charAt(9)) === digito1 && parseInt(cpf.charAt(10)) === digito2;
+};
+
+const mascararCPF = (value) => {
+  return value
+    .replace(/\D/g, '')
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d{1,2})$/, '$1-$2')
+    .substring(0, 14);
+};
+
+const mascararCEP = (value) => {
+  return value
+    .replace(/\D/g, '')
+    .replace(/(\d{5})(\d)/, '$1-$2')
+    .substring(0, 9);
+};
+
+const mascararTelefone = (value) => {
+  return value
+    .replace(/\D/g, '')
+    .replace(/(\d{2})(\d)/, '($1) $2')
+    .replace(/(\d{5})(\d)/, '$1-$2')
+    .substring(0, 15);
+};
+
+const calcularIdade = (dataNascimento) => {
+  const hoje = new Date();
+  const nascimento = new Date(dataNascimento);
+  let idade = hoje.getFullYear() - nascimento.getFullYear();
+  const mes = hoje.getMonth() - nascimento.getMonth();
+  if (mes < 0 || (mes === 0 && hoje.getDate() < nascimento.getDate())) {
+    idade--;
+  }
+  return idade;
+};
+
 export default function EmployeeForm({
   open,
   onOpenChange,
@@ -53,10 +105,10 @@ export default function EmployeeForm({
     if (employee) {
       setFormData({
         name: employee.name || '',
-        cpf: employee.cpf || '',
+        cpf: mascararCPF(employee.cpf || ''),
         email: employee.email || '',
-        telefone: employee.telefone || '',
-        cep: employee.cep || '',
+        telefone: mascararTelefone(employee.telefone || ''),
+        cep: mascararCEP(employee.cep || ''),
         cidade: employee.cidade || '',
         uf: employee.uf || '',
         logradouro: employee.logradouro || '',
@@ -95,7 +147,7 @@ export default function EmployeeForm({
       const cepLimpo = formData.cep.replace(/\D/g, '');
       if (cepLimpo.length === 8) {
         setBuscandoCep(true);
-        const endereco = await buscarEnderecoPorCep(formData.cep);
+        const endereco = await buscarEnderecoPorCep(cepLimpo);
         setBuscandoCep(false);
 
         if (endereco) {
@@ -116,11 +168,47 @@ export default function EmployeeForm({
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.name.trim()) newErrors.name = 'Nome é obrigatório';
-    if (!formData.cpf.trim()) newErrors.cpf = 'CPF é obrigatório';
+    const nomes = formData.name.trim().split(/\s+/);
+    if (!formData.name.trim()) {
+      newErrors.name = 'Nome é obrigatório';
+    } else if (nomes.length < 2 || nomes.some(n => n.length === 0)) {
+      newErrors.name = 'Digite nome e sobrenome';
+    }
+
+    if (!formData.cpf.trim()) {
+      newErrors.cpf = 'CPF é obrigatório';
+    } else if (!validarCPF(formData.cpf)) {
+      newErrors.cpf = 'CPF inválido';
+    }
+
     if (!formData.email.trim()) newErrors.email = 'E-mail é obrigatório';
-    if (!formData.dataNascimento.trim()) newErrors.dataNascimento = 'Data de nascimento é obrigatória';
-    if (!formData.dataAdmissao.trim()) newErrors.dataAdmissao = 'Data de admissão é obrigatória';
+    
+    if (!formData.dataNascimento.trim()) {
+      newErrors.dataNascimento = 'Data de nascimento é obrigatória';
+    } else {
+      const dataNasc = new Date(formData.dataNascimento + 'T00:00:00');
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+      
+      if (dataNasc >= hoje) {
+        newErrors.dataNascimento = 'Data de nascimento não pode ser futura';
+      } else if (calcularIdade(formData.dataNascimento) < 18) {
+        newErrors.dataNascimento = 'Colaborador deve ser maior de 18 anos';
+      }
+    }
+
+    if (!formData.dataAdmissao.trim()) {
+      newErrors.dataAdmissao = 'Data de admissão é obrigatória';
+    } else {
+      const dataAdm = new Date(formData.dataAdmissao + 'T00:00:00');
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+      
+      if (dataAdm > hoje) {
+        newErrors.dataAdmissao = 'Data de admissão não pode ser futura';
+      }
+    }
+
     if (!formData.setorId) newErrors.setorId = 'Setor é obrigatório';
     if (!formData.cargoId) newErrors.cargoId = 'Cargo é obrigatório';
 
@@ -131,12 +219,35 @@ export default function EmployeeForm({
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-    onSave(formData);
+    
+    const dataToSave = {
+      ...formData,
+      cpf: formData.cpf.replace(/\D/g, ''),
+      telefone: formData.telefone.replace(/\D/g, ''),
+      cep: formData.cep.replace(/\D/g, '')
+    };
+    
+    onSave(dataToSave);
+  };
+
+  const handleCPFChange = (e) => {
+    const masked = mascararCPF(e.target.value);
+    setFormData(prev => ({ ...prev, cpf: masked }));
+  };
+
+  const handleCEPChange = (e) => {
+    const masked = mascararCEP(e.target.value);
+    setFormData(prev => ({ ...prev, cep: masked }));
+  };
+
+  const handleTelefoneChange = (e) => {
+    const masked = mascararTelefone(e.target.value);
+    setFormData(prev => ({ ...prev, telefone: masked }));
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {employee ? 'Editar Colaborador' : 'Cadastrar Novo Colaborador'}
@@ -148,7 +259,7 @@ export default function EmployeeForm({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <section>
             <h3 className="text-base font-semibold mb-3">Informações pessoais</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -169,8 +280,9 @@ export default function EmployeeForm({
                 <Input
                   id="cpf"
                   value={formData.cpf}
-                  onChange={(e) => setFormData(prev => ({ ...prev, cpf: e.target.value }))}
+                  onChange={handleCPFChange}
                   placeholder="000.000.000-00"
+                  maxLength={14}
                   className={errors.cpf ? 'border-destructive' : ''}
                 />
                 {errors.cpf && <p className="text-sm text-destructive">{errors.cpf}</p>}
@@ -199,8 +311,9 @@ export default function EmployeeForm({
                 <Input
                   id="telefone"
                   value={formData.telefone}
-                  onChange={(e) => setFormData(prev => ({ ...prev, telefone: e.target.value }))}
+                  onChange={handleTelefoneChange}
                   placeholder="(00) 00000-0000"
+                  maxLength={15}
                 />
               </div>
             </div>
@@ -208,15 +321,65 @@ export default function EmployeeForm({
 
           <section>
             <h3 className="text-base font-semibold mb-3">Endereço</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <InputField id="cep" label={`CEP ${buscandoCep ? '(buscando...)' : ''}`} value={formData.cep} onChange={setFormData} placeholder="00000-000"/>
-              <InputField id="cidade" label="Cidade" value={formData.cidade} onChange={setFormData} placeholder="Ex: São Paulo" />
-              <InputField id="uf" label="UF" value={formData.uf} onChange={setFormData} placeholder="SP" />
+            <div className="grid grid-cols-12 gap-4">
+              <div className="col-span-3">
+                <Label htmlFor="cep">CEP {buscandoCep && '(buscando...)'}</Label>
+                <Input
+                  id="cep"
+                  value={formData.cep}
+                  onChange={handleCEPChange}
+                  placeholder="00000-000"
+                  maxLength={9}
+                />
+              </div>
+              <div className="col-span-9">
+                <Label htmlFor="logradouro">Logradouro</Label>
+                <Input
+                  id="logradouro"
+                  value={formData.logradouro}
+                  onChange={(e) => setFormData(prev => ({ ...prev, logradouro: e.target.value }))}
+                  placeholder="Rua, Avenida, etc."
+                />
+              </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
-              <InputField id="logradouro" label="Logradouro" value={formData.logradouro} onChange={setFormData} placeholder="Rua, Avenida, etc." />
-              <InputField id="bairro" label="Bairro" value={formData.bairro} onChange={setFormData} />
-              <InputField id="numero" label="Número" value={formData.numero} onChange={setFormData} />
+            <div className="grid grid-cols-12 gap-4 mt-3">
+              <div className="col-span-10">
+                <Label htmlFor="bairro">Bairro</Label>
+                <Input
+                  id="bairro"
+                  value={formData.bairro}
+                  onChange={(e) => setFormData(prev => ({ ...prev, bairro: e.target.value }))}
+                />
+              </div>
+              <div className="col-span-2">
+                <Label htmlFor="numero">Nº</Label>
+                <Input
+                  id="numero"
+                  value={formData.numero}
+                  onChange={(e) => setFormData(prev => ({ ...prev, numero: e.target.value }))}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-12 gap-4 mt-3">
+              <div className="col-span-10">
+                <Label htmlFor="cidade">Cidade</Label>
+                <Input
+                  id="cidade"
+                  value={formData.cidade}
+                  onChange={(e) => setFormData(prev => ({ ...prev, cidade: e.target.value }))}
+                  placeholder="Ex: São Paulo"
+                />
+              </div>
+              <div className="col-span-2">
+                <Label htmlFor="uf">UF</Label>
+                <Input
+                  id="uf"
+                  value={formData.uf}
+                  onChange={(e) => setFormData(prev => ({ ...prev, uf: e.target.value.toUpperCase() }))}
+                  placeholder="SP"
+                  maxLength={2}
+                />
+              </div>
             </div>
           </section>
 
@@ -280,20 +443,6 @@ export default function EmployeeForm({
         </form>
       </DialogContent>
     </Dialog>
-  );
-}
-
-function InputField({ id, label, value, onChange, placeholder }) {
-  return (
-    <div>
-      <Label htmlFor={id}>{label}</Label>
-      <Input
-        id={id}
-        value={value}
-        onChange={(e) => onChange(prev => ({ ...prev, [id]: e.target.value }))}
-        placeholder={placeholder}
-      />
-    </div>
   );
 }
 

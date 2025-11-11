@@ -29,13 +29,75 @@ namespace API.Models
         public int CargoId { get; set; }
         public Cargo? Cargo { get; set; }
 
-        public async Task<int> CriarAsync(DBContext dbContext)
+        private bool ValidarCPF(string cpf)
+        {
+            cpf = cpf.Replace(".", "").Replace("-", "").Trim();
+            
+            if (cpf.Length != 11)
+                return false;
+
+            if (cpf.Distinct().Count() == 1)
+                return false;
+
+            int[] multiplicador1 = new int[9] { 10, 9, 8, 7, 6, 5, 4, 3, 2 };
+            int[] multiplicador2 = new int[10] { 11, 10, 9, 8, 7, 6, 5, 4, 3, 2 };
+
+            string tempCpf = cpf.Substring(0, 9);
+            int soma = 0;
+
+            for (int i = 0; i < 9; i++)
+                soma += int.Parse(tempCpf[i].ToString()) * multiplicador1[i];
+
+            int resto = soma % 11;
+            resto = resto < 2 ? 0 : 11 - resto;
+
+            string digito = resto.ToString();
+            tempCpf += digito;
+            soma = 0;
+
+            for (int i = 0; i < 10; i++)
+                soma += int.Parse(tempCpf[i].ToString()) * multiplicador2[i];
+
+            resto = soma % 11;
+            resto = resto < 2 ? 0 : 11 - resto;
+
+            digito += resto.ToString();
+
+            return cpf.EndsWith(digito);
+        }
+
+        private void ValidarDados()
         {
             if (string.IsNullOrWhiteSpace(Nome))
                 throw new ValidationException("O nome é obrigatório.");
 
+            var partesNome = Nome.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (partesNome.Length < 2)
+                throw new ValidationException("Digite nome e sobrenome.");
+
             if (string.IsNullOrWhiteSpace(CPF))
                 throw new ValidationException("O CPF é obrigatório.");
+
+            if (!ValidarCPF(CPF))
+                throw new ValidationException("O CPF informado é inválido.");
+
+            if (DataNascimento > DateTime.Now)
+                throw new ValidationException("A data de nascimento não pode ser futura.");
+
+            var idade = DateTime.Now.Year - DataNascimento.Year;
+            if (DataNascimento > DateTime.Now.AddYears(-idade))
+                idade--;
+
+            if (idade < 18)
+                throw new ValidationException("O colaborador deve ter pelo menos 18 anos.");
+
+            if (DataAdmissao > DateTime.Now)
+                throw new ValidationException("A data de admissão não pode ser futura.");
+        }
+
+        public async Task<int> CriarAsync(DBContext dbContext)
+        {
+            ValidarDados();
 
             if (await _colaboradoresDAO.VerificarExistenciaPorCPFAsync(dbContext, CPF))
                 throw new ValidationException("Já existe um colaborador com esse CPF.");
@@ -49,18 +111,13 @@ namespace API.Models
                 throw new ValidationException("O cargo informado não existe ou está inativo.");
 
             Ativo = true;
-            DataAdmissao = DateTime.UtcNow;
 
             return await _colaboradoresDAO.CriarAsync(dbContext, this);
         }
 
         public async Task AtualizarAsync(DBContext dbContext)
         {
-            if (string.IsNullOrWhiteSpace(Nome))
-                throw new ValidationException("O nome é obrigatório.");
-
-            if (string.IsNullOrWhiteSpace(CPF))
-                throw new ValidationException("O CPF é obrigatório.");
+            ValidarDados();
 
             if (await _colaboradoresDAO.VerificarExistenciaPorCPFAsync(dbContext, CPF, Id))
                 throw new ValidationException("Já existe outro colaborador com esse CPF.");
