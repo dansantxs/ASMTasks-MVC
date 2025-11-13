@@ -3,20 +3,28 @@
   "WorkspaceRootPath": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|c:\\users\\daniel dos santos\\documents\\projetos\\asmtasks-mvc\\backend\\api\\controllers\\colaboradorescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|solutionrelative:api\\controllers\\colaboradorescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|c:\\users\\daniel dos santos\\documents\\projetos\\asmtasks-mvc\\backend\\api\\controllers\\clientescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|solutionrelative:api\\controllers\\clientescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|c:\\users\\daniel dos santos\\documents\\projetos\\asmtasks-mvc\\backend\\api\\models\\colaborador.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|solutionrelative:api\\models\\colaborador.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|c:\\users\\daniel dos santos\\documents\\projetos\\asmtasks-mvc\\backend\\api\\db\\daos\\clientesdao.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|solutionrelative:api\\db\\daos\\clientesdao.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|c:\\users\\daniel dos santos\\documents\\projetos\\asmtasks-mvc\\backend\\api\\dtos\\colaboradores\\colaboradorcriarrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|solutionrelative:api\\dtos\\colaboradores\\colaboradorcriarrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|c:\\users\\daniel dos santos\\documents\\projetos\\asmtasks-mvc\\backend\\api\\models\\cliente.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|solutionrelative:api\\models\\cliente.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|c:\\users\\daniel dos santos\\documents\\projetos\\asmtasks-mvc\\backend\\api\\dtos\\colaboradores\\colaboradoratualizarrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|solutionrelative:api\\dtos\\colaboradores\\colaboradoratualizarrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|c:\\users\\daniel dos santos\\documents\\projetos\\asmtasks-mvc\\backend\\api\\dtos\\clientes\\clientecriarrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|solutionrelative:api\\dtos\\clientes\\clientecriarrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|c:\\users\\daniel dos santos\\documents\\projetos\\asmtasks-mvc\\backend\\api\\dtos\\clientes\\clienteresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|solutionrelative:api\\dtos\\clientes\\clienteresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|c:\\users\\daniel dos santos\\documents\\projetos\\asmtasks-mvc\\backend\\api\\dtos\\clientes\\clienteatualizarrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{18DF0E44-1B6B-43D7-BD94-87BD0CB4733F}|API\\API.csproj|solutionrelative:api\\dtos\\clientes\\clienteatualizarrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -26,56 +34,84 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 3,
+          "SelectedChildIndex": 5,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "Colaborador.cs",
-              "DocumentMoniker": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\Models\\Colaborador.cs",
-              "RelativeDocumentMoniker": "API\\Models\\Colaborador.cs",
-              "ToolTip": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\Models\\Colaborador.cs",
-              "RelativeToolTip": "API\\Models\\Colaborador.cs",
-              "ViewState": "AgIAAAMAAAAAAAAAAAAAAEkAAABRAAAAAAAAAA==",
+              "DocumentIndex": 2,
+              "Title": "Cliente.cs",
+              "DocumentMoniker": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\Models\\Cliente.cs",
+              "RelativeDocumentMoniker": "API\\Models\\Cliente.cs",
+              "ToolTip": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\Models\\Cliente.cs",
+              "RelativeToolTip": "API\\Models\\Cliente.cs",
+              "ViewState": "AgIAAHwAAAAAAAAAAAAQwJEAAAAMAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-07T01:00:28.651Z",
+              "WhenOpened": "2025-11-12T22:50:34.188Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "ColaboradorCriarRequest.cs",
-              "DocumentMoniker": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\DTOs\\Colaboradores\\ColaboradorCriarRequest.cs",
-              "RelativeDocumentMoniker": "API\\DTOs\\Colaboradores\\ColaboradorCriarRequest.cs",
-              "ToolTip": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\DTOs\\Colaboradores\\ColaboradorCriarRequest.cs",
-              "RelativeToolTip": "API\\DTOs\\Colaboradores\\ColaboradorCriarRequest.cs",
+              "DocumentIndex": 4,
+              "Title": "ClienteResponse.cs",
+              "DocumentMoniker": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\DTOs\\Clientes\\ClienteResponse.cs",
+              "RelativeDocumentMoniker": "API\\DTOs\\Clientes\\ClienteResponse.cs",
+              "ToolTip": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\DTOs\\Clientes\\ClienteResponse.cs",
+              "RelativeToolTip": "API\\DTOs\\Clientes\\ClienteResponse.cs",
+              "ViewState": "AgIAAA8AAAAAAAAAAAA4wBQAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-12T22:49:54.65Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "ClienteAtualizarRequest.cs",
+              "DocumentMoniker": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\DTOs\\Clientes\\ClienteAtualizarRequest.cs",
+              "RelativeDocumentMoniker": "API\\DTOs\\Clientes\\ClienteAtualizarRequest.cs",
+              "ToolTip": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\DTOs\\Clientes\\ClienteAtualizarRequest.cs",
+              "RelativeToolTip": "API\\DTOs\\Clientes\\ClienteAtualizarRequest.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-07T00:59:52.804Z"
+              "WhenOpened": "2025-11-12T22:49:52.944Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "ClientesDAO.cs",
+              "DocumentMoniker": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\DB\\DAOs\\ClientesDAO.cs",
+              "RelativeDocumentMoniker": "API\\DB\\DAOs\\ClientesDAO.cs",
+              "ToolTip": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\DB\\DAOs\\ClientesDAO.cs",
+              "RelativeToolTip": "API\\DB\\DAOs\\ClientesDAO.cs",
+              "ViewState": "AgIAACUAAAAAAAAAAAASwCoAAAAMAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-12T22:48:44.244Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 3,
-              "Title": "ColaboradorAtualizarRequest.cs",
-              "DocumentMoniker": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\DTOs\\Colaboradores\\ColaboradorAtualizarRequest.cs",
-              "RelativeDocumentMoniker": "API\\DTOs\\Colaboradores\\ColaboradorAtualizarRequest.cs",
-              "ToolTip": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\DTOs\\Colaboradores\\ColaboradorAtualizarRequest.cs",
-              "RelativeToolTip": "API\\DTOs\\Colaboradores\\ColaboradorAtualizarRequest.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Title": "ClienteCriarRequest.cs",
+              "DocumentMoniker": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\DTOs\\Clientes\\ClienteCriarRequest.cs",
+              "RelativeDocumentMoniker": "API\\DTOs\\Clientes\\ClienteCriarRequest.cs",
+              "ToolTip": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\DTOs\\Clientes\\ClienteCriarRequest.cs",
+              "RelativeToolTip": "API\\DTOs\\Clientes\\ClienteCriarRequest.cs",
+              "ViewState": "AgIAAAIAAAAAAAAAAAAxwBMAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-07T00:59:41.21Z"
+              "WhenOpened": "2025-11-12T22:47:29.777Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "ColaboradoresController.cs",
-              "DocumentMoniker": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\Controllers\\ColaboradoresController.cs",
-              "RelativeDocumentMoniker": "API\\Controllers\\ColaboradoresController.cs",
-              "ToolTip": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\Controllers\\ColaboradoresController.cs",
-              "RelativeToolTip": "API\\Controllers\\ColaboradoresController.cs",
-              "ViewState": "AgIAACQAAAAAAAAAAAAYwCkAAAAMAAAAAAAAAA==",
+              "Title": "ClientesController.cs",
+              "DocumentMoniker": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\Controllers\\ClientesController.cs",
+              "RelativeDocumentMoniker": "API\\Controllers\\ClientesController.cs",
+              "ToolTip": "C:\\Users\\Daniel dos Santos\\Documents\\Projetos\\ASMTasks-MVC\\Backend\\API\\Controllers\\ClientesController.cs*",
+              "RelativeToolTip": "API\\Controllers\\ClientesController.cs*",
+              "ViewState": "AgIAAE8AAAAAAAAAAAAnwFwAAAAcAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-06T12:20:08.75Z",
+              "WhenOpened": "2025-11-12T22:46:36.018Z",
               "EditorCaption": ""
             }
           ]

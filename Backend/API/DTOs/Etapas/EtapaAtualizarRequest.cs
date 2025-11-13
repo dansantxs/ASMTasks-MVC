@@ -1,8 +1,6 @@
 ﻿namespace API.DTOs.Etapas
 {
-    public class EtapaAtualizarRequest
+    public class EtapaAtualizarRequest : EtapaCriarRequest
     {
-        public string Nome { get; set; } = string.Empty;
-        public string? Descricao { get; set; }
     }
 }

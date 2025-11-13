@@ -33,6 +33,7 @@ Esta API gerencia entidades internas do sistema.
 - **Etapas:** controle de fases de desenvolvimento.
 - **Prioridades:** definição de níveis de prioridade.
 - **Setores:** organização de departamentos e responsáveis.
+- **Clientes:** gerenciamento de clientes.
 
 ### Funcionalidades gerais:
 - Criação (`POST`)
@@ -61,6 +62,9 @@ builder.Services.AddSingleton(dbContext);
 builder.Services.AddScoped<EtapasDAO>();
 builder.Services.AddScoped<PrioridadesDAO>();
 builder.Services.AddScoped<SetoresDAO>();
+builder.Services.AddScoped<CargosDAO>();
+builder.Services.AddScoped<ColaboradoresDAO>();
+builder.Services.AddScoped<ClientesDAO>();
 
 var app = builder.Build();
 

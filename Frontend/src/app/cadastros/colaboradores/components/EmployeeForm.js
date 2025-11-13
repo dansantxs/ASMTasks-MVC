@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '../../../../ui/form/select';
-import { buscarEnderecoPorCep } from '../api/viacep';
+import { buscarEnderecoPorCep } from '../../../../shared/api/viacep';
 
 const validarCPF = (cpf) => {
   cpf = cpf.replace(/\D/g, '');

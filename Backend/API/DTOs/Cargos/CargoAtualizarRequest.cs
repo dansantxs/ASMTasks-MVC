@@ -1,8 +1,6 @@
 ﻿namespace API.DTOs.Cargos
 {
-    public class CargoAtualizarRequest
+    public class CargoAtualizarRequest : CargoCriarRequest
     {
-        public string Nome { get; set; } = string.Empty;
-        public string? Descricao { get; set; }
     }
 }
