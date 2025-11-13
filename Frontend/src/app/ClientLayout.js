@@ -1,6 +1,6 @@
 'use client';
 
-import { Sidebar } from "../shared/components/Sidebar";
+import { Sidebar } from '@core/presentation/components/navigation/Sidebar';
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 
