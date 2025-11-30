@@ -1,0 +1,203 @@
+import React, { useState } from 'react';
+import PropTypes from 'prop-types';
+import { Home, ChevronDown, ChevronRight, Layers, Menu, X, BarChart3 } from 'lucide-react';
+import { cn } from '../../ui/form/utils';
+import { Button } from '../../ui/base/button';
+import { cadastroItems, relatorioItems } from "../config/menuItems";
+
+export function Sidebar({ currentPath, onNavigate, onToggleCollapse }) {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [cadastrosExpanded, setCadastrosExpanded] = useState(true);
+  const [relatoriosExpanded, setRelatoriosExpanded] = useState(true);
+
+  const toggleSidebar = () => {
+    const newState = !isCollapsed;
+    setIsCollapsed(newState);
+    if (newState) {
+      setCadastrosExpanded(false);
+      setRelatoriosExpanded(false);
+    } else {
+      setCadastrosExpanded(true);
+      setRelatoriosExpanded(true);
+    }
+
+    if (onToggleCollapse) {
+      onToggleCollapse(newState);
+    }
+  };
+
+  const pathParts = currentPath.split('/');
+  const currentSection = pathParts[1] || 'inicio';
+  const currentKey = pathParts[2] || currentSection;
+  const isCadastros = currentSection === 'cadastros';
+  const isRelatorios = currentSection === 'relatorios';
+
+  return (
+    <div
+      className={cn(
+        "fixed top-0 left-0 bg-[#0f172a] text-white h-screen flex flex-col border-r border-gray-800 transition-all duration-300",
+        isCollapsed ? "w-20" : "w-64"
+      )}
+    >
+      <div className="p-4 border-b border-gray-800 flex items-center justify-between">
+        {!isCollapsed && (
+          <div>
+            <h2 className="text-white">ASM Tasks</h2>
+            <p className="text-gray-400 text-sm mt-1">Gerenciamento de Tarefas</p>
+          </div>
+        )}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleSidebar}
+          className="text-gray-400 hover:text-white hover:bg-gray-800 ml-auto"
+        >
+          {isCollapsed ? <Menu className="h-5 w-5" /> : <X className="h-5 w-5" />}
+        </Button>
+      </div>
+
+      <nav className="flex-1 p-4 space-y-2">
+        <button
+          onClick={() => onNavigate('/')}
+          className={cn(
+            "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors",
+            currentSection === 'inicio'
+              ? "bg-[#1e3a8a] text-white"
+              : "text-gray-300 hover:bg-gray-800",
+            isCollapsed && "justify-center px-2"
+          )}
+          title={isCollapsed ? "Início" : undefined}
+        >
+          <Home className="h-5 w-5 flex-shrink-0" />
+          {!isCollapsed && <span>Início</span>}
+        </button>
+
+        <div>
+          <button
+            onClick={() => {
+              if (isCollapsed) {
+                setIsCollapsed(false);
+                setCadastrosExpanded(true);
+              } else {
+                setCadastrosExpanded(!cadastrosExpanded);
+              }
+            }}
+            className={cn(
+              "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors",
+              isCadastros
+                ? "bg-gray-800 text-white"
+                : "text-gray-300 hover:bg-gray-800",
+              isCollapsed && "justify-center px-2"
+            )}
+            title={isCollapsed ? "Cadastros" : undefined}
+            >
+            <Layers className="h-5 w-5 flex-shrink-0" />
+            {!isCollapsed && (
+              <>
+                <span className="flex-1 text-left">Cadastros</span>
+                {cadastrosExpanded ? (
+                  <ChevronDown className="h-4 w-4 flex-shrink-0" />
+                ) : (
+                  <ChevronRight className="h-4 w-4 flex-shrink-0" />
+                )}
+              </>
+            )}
+          </button>
+
+          {cadastrosExpanded && !isCollapsed && (
+          <div className="ml-4 mt-1 space-y-1">
+              {cadastroItems.map(item => {
+                const Icon = item.icon;
+                const isActive = isCadastros && currentKey === item.key;
+                return (
+                  <button
+                    key={item.key}
+                    onClick={() => onNavigate(`/cadastros/${item.key}`)}
+                    className={cn(
+                      "w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors text-sm",
+                      isActive
+                        ? "bg-teal-600 text-white"
+                        : "text-gray-400 hover:bg-gray-800 hover:text-gray-200"
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {!isCollapsed && <span>{item.label}</span>}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        <div>
+          <button
+            onClick={() => {
+              if (isCollapsed) {
+                setIsCollapsed(false);
+                setRelatoriosExpanded(true);
+              } else {
+                setRelatoriosExpanded(!relatoriosExpanded);
+              }
+            }}
+            className={cn(
+              "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors",
+              isRelatorios
+                ? "bg-gray-800 text-white"
+                : "text-gray-300 hover:bg-gray-800",
+              isCollapsed && "justify-center px-2"
+            )}
+            title={isCollapsed ? "Relatórios" : undefined}
+          >
+            <BarChart3 className="h-5 w-5 flex-shrink-0" />
+            {!isCollapsed && (
+              <>
+                <span className="flex-1 text-left">Relatórios</span>
+                {relatoriosExpanded ? (
+                  <ChevronDown className="h-4 w-4 flex-shrink-0" />
+                ) : (
+                  <ChevronRight className="h-4 w-4 flex-shrink-0" />
+                )}
+              </>
+            )}
+          </button>
+
+          {relatoriosExpanded && !isCollapsed && (
+            <div className="ml-4 mt-1 space-y-1">
+              {relatorioItems.map(item => {
+                const Icon = item.icon;
+                const isActive = isRelatorios && currentKey === item.key;
+                return (
+                  <button
+                    key={item.key}
+                    onClick={() => onNavigate(`/relatorios/${item.key}`)}
+                    className={cn(
+                      "w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors text-sm",
+                      isActive
+                        ? "bg-teal-600 text-white"
+                        : "text-gray-400 hover:bg-gray-800 hover:text-gray-200"
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {!isCollapsed && <span>{item.label}</span>}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </nav>
+
+      {!isCollapsed && (
+        <div className="p-4 border-t border-gray-800">
+          <p className="text-gray-500 text-xs text-center">v1.0.0</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+Sidebar.propTypes = {
+  currentPath: PropTypes.string.isRequired,
+  onNavigate: PropTypes.func.isRequired,
+  onToggleCollapse: PropTypes.func,
+};
