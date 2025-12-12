@@ -29,6 +29,32 @@ const columns = [
 ];
 
 const formatDate = (value) => (value ? new Date(value).toLocaleDateString('pt-BR') : ' ');
+const companyLegalName = 'Razão Social: Alvaro Shioji Matsuda';
+const companyFantasyName = 'Nome Fantasia: Always System Manager';
+const reportTitle = 'Relatório de Clientes';
+const logoPath = '/logo-asm.png';
+let cachedLogoDataUrl = null;
+
+const getLogoDataUrl = async () => {
+  if (cachedLogoDataUrl) return cachedLogoDataUrl;
+
+  try {
+    const response = await fetch(logoPath);
+    if (!response.ok) return null;
+    const blob = await response.blob();
+    const reader = new FileReader();
+    return await new Promise((resolve) => {
+      reader.onloadend = () => {
+        cachedLogoDataUrl = reader.result;
+        resolve(reader.result);
+      };
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    console.error('Erro ao carregar o logotipo para o PDF/Excel', error);
+    return null;
+  }
+};
 
 export default function ClientesReportPage() {
   const [search, setSearch] = useState('');
@@ -75,8 +101,8 @@ export default function ClientesReportPage() {
           statusFilter === 'todos' ||
           (statusFilter === 'ativos' && item.rawAtivo) ||
           (statusFilter === 'inativos' && !item.rawAtivo);
-        return matchesSearch && matchesTipo && matchesStatus;
-      }),
+      return matchesSearch && matchesTipo && matchesStatus;
+    }),
     [data, search, tipoFilter, statusFilter]
   );
 
@@ -130,31 +156,105 @@ export default function ClientesReportPage() {
     );
   };
 
-  const exportToPDF = () => {
+  const buildFiltersSummary = (activeColumns) => {
+    const filters = [
+      search ? `Busca: ${search}` : null,
+      tipoFilter !== 'todos'
+        ? `Tipo: ${tipoFilter === 'F' ? 'Pessoa Física' : 'Pessoa Jurídica'}`
+        : null,
+      statusFilter !== 'todos'
+        ? `Status: ${statusFilter === 'ativos' ? 'Ativos' : 'Inativos'}`
+        : null,
+    ].filter(Boolean);
+
+    const columnsSummary =
+      activeColumns.length > 0
+        ? `Colunas: ${activeColumns.map((c) => c.label).join(', ')}`
+        : 'Nenhuma coluna selecionada';
+
+    const filtersSummary = filters.length > 0 ? filters.join(' | ') : 'Nenhum filtro aplicado';
+    return { filtersSummary, columnsSummary };
+  };
+
+  const exportToPDF = async () => {
     const doc = new jsPDF();
     const activeColumns = columns.filter((c) => selectedColumns.includes(c.id));
+    const { filtersSummary, columnsSummary } = buildFiltersSummary(activeColumns);
     const body = sortedData.map((row) => activeColumns.map((col) => row[col.id] ?? ''));
+    const emissionDate = new Date().toLocaleString('pt-BR');
+    const logoDataUrl = await getLogoDataUrl();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
 
     autoTable(doc, {
       head: [activeColumns.map((c) => c.label)],
       body,
       styles: { fontSize: 8 },
+      headStyles: { overflow: 'ellipsize' },
+      margin: { top: 52, bottom: 22, left: 14, right: 14 },
+      didDrawPage: () => {
+        doc.setFontSize(12);
+        doc.text(reportTitle, 14, 16);
+
+        if (logoDataUrl) {
+          doc.addImage(logoDataUrl, 'PNG', pageWidth - 50, 10, 36, 28);
+        }
+
+        doc.setFontSize(9);
+        doc.text(`Data de emissão: ${emissionDate}`, 14, 24);
+
+        const filtersLines = doc.splitTextToSize(`Filtros: ${filtersSummary}`, pageWidth - 70);
+        const filtersStartY = 30;
+        doc.text(filtersLines, 14, filtersStartY);
+
+        const columnsLines = doc.splitTextToSize(columnsSummary, pageWidth - 70);
+        const columnsStartY = filtersStartY + filtersLines.length * 6;
+        doc.text(columnsLines, 14, columnsStartY);
+
+        doc.setFontSize(8);
+        doc.text(companyLegalName, 14, pageHeight - 14);
+        doc.text(companyFantasyName, 14, pageHeight - 8);
+        doc.text(
+          `Página ${doc.internal.getNumberOfPages()}`,
+          pageWidth - 14,
+          pageHeight - 8,
+          { align: 'right' }
+        );
+      },
     });
 
     doc.save('relatorio-clientes.pdf');
   };
 
-  const exportToExcel = () => {
+  const exportToExcel = async () => {
     const activeColumns = columns.filter((c) => selectedColumns.includes(c.id));
-    const worksheetData = sortedData.map((row) => {
-      const item = {};
-      activeColumns.forEach((col) => {
-        item[col.label] = row[col.id] ?? '';
-      });
-      return item;
-    });
+    const { filtersSummary, columnsSummary } = buildFiltersSummary(activeColumns);
+    const emissionDate = new Date().toLocaleString('pt-BR');
 
-    const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+    const headerRows = [
+      [reportTitle],
+      [`Data de emissão: ${emissionDate}`],
+      [`Filtros: ${filtersSummary}`],
+      [columnsSummary],
+      [],
+      activeColumns.map((c) => c.label),
+    ];
+
+    const dataRows = sortedData.map((row) => activeColumns.map((col) => row[col.id] ?? ''));
+    const footerRows = [[], [companyLegalName], [companyFantasyName]];
+
+    const worksheet = XLSX.utils.aoa_to_sheet([...headerRows, ...dataRows, ...footerRows]);
+
+    if (activeColumns.length > 1) {
+      const lastColumnIndex = activeColumns.length - 1;
+      worksheet['!merges'] = [
+        { s: { r: 0, c: 0 }, e: { r: 0, c: lastColumnIndex } },
+        { s: { r: 1, c: 0 }, e: { r: 1, c: lastColumnIndex } },
+        { s: { r: 2, c: 0 }, e: { r: 2, c: lastColumnIndex } },
+        { s: { r: 3, c: 0 }, e: { r: 3, c: lastColumnIndex } },
+      ];
+    }
+
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Clientes');
     XLSX.writeFile(workbook, 'relatorio-clientes.xlsx');
