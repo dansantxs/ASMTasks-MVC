@@ -7,8 +7,8 @@ import { cadastroItems, relatorioItems } from "../config/menuItems";
 
 export function Sidebar({ currentPath, onNavigate, onToggleCollapse }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [cadastrosExpanded, setCadastrosExpanded] = useState(true);
-  const [relatoriosExpanded, setRelatoriosExpanded] = useState(true);
+  const [cadastrosExpanded, setCadastrosExpanded] = useState(false);
+  const [relatoriosExpanded, setRelatoriosExpanded] = useState(false);
 
   const toggleSidebar = () => {
     const newState = !isCollapsed;
@@ -17,8 +17,8 @@ export function Sidebar({ currentPath, onNavigate, onToggleCollapse }) {
       setCadastrosExpanded(false);
       setRelatoriosExpanded(false);
     } else {
-      setCadastrosExpanded(true);
-      setRelatoriosExpanded(true);
+      setCadastrosExpanded(false);
+      setRelatoriosExpanded(false);
     }
 
     if (onToggleCollapse) {
@@ -56,7 +56,7 @@ export function Sidebar({ currentPath, onNavigate, onToggleCollapse }) {
         </Button>
       </div>
 
-      <nav className="flex-1 p-4 space-y-2">
+      <nav className="flex-1 min-h-0 overflow-y-auto p-4 space-y-2">
         <button
           onClick={() => onNavigate('/')}
           className={cn(
