@@ -19,7 +19,7 @@ export function DeleteConfirmDialog({
   onOpenChange,
   position,
   onConfirm,
-  hasActiveCollaborators = true,
+  hasActiveCollaborators,
 }) {
   if (!position) return null;
 
