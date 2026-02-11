@@ -72,6 +72,12 @@ const calcularIdade = (dataNascimento) => {
   return idade;
 };
 
+const getTodayDateString = () => {
+  const hoje = new Date();
+  const timezoneOffset = hoje.getTimezoneOffset() * 60000;
+  return new Date(hoje.getTime() - timezoneOffset).toISOString().split('T')[0];
+};
+
 export default function EmployeeForm({
   open,
   onOpenChange,
@@ -92,7 +98,7 @@ export default function EmployeeForm({
     bairro: '',
     numero: '',
     dataNascimento: '',
-    dataAdmissao: '',
+    dataAdmissao: getTodayDateString(),
     setorId: '',
     cargoId: '',
     active: true
@@ -133,7 +139,7 @@ export default function EmployeeForm({
         bairro: '',
         numero: '',
         dataNascimento: '',
-        dataAdmissao: '',
+        dataAdmissao: getTodayDateString(),
         setorId: '',
         cargoId: '',
         active: true
@@ -197,16 +203,13 @@ export default function EmployeeForm({
       }
     }
 
-    if (!formData.dataAdmissao.trim()) {
-      newErrors.dataAdmissao = 'Data de admissão é obrigatória';
-    } else {
-      const dataAdm = new Date(formData.dataAdmissao + 'T00:00:00');
-      const hoje = new Date();
-      hoje.setHours(0, 0, 0, 0);
-      
-      if (dataAdm > hoje) {
-        newErrors.dataAdmissao = 'Data de admissão não pode ser futura';
-      }
+    const dataAdmissaoValidacao = formData.dataAdmissao || getTodayDateString();
+    const dataAdm = new Date(dataAdmissaoValidacao + 'T00:00:00');
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+    
+    if (dataAdm > hoje) {
+      newErrors.dataAdmissao = 'Data de admissão não pode ser futura';
     }
 
     if (!formData.setorId) newErrors.setorId = 'Setor é obrigatório';
@@ -222,6 +225,7 @@ export default function EmployeeForm({
     
     const dataToSave = {
       ...formData,
+      dataAdmissao: formData.dataAdmissao || getTodayDateString(),
       cpf: formData.cpf.replace(/\D/g, ''),
       telefone: formData.telefone.replace(/\D/g, ''),
       cep: formData.cep.replace(/\D/g, '')
@@ -399,12 +403,15 @@ export default function EmployeeForm({
               </div>
 
               <div>
-                <Label htmlFor="dataAdmissao">Data de Admissão <span className="text-destructive">*</span></Label>
+                <Label htmlFor="dataAdmissao">
+                  Data de Admissão {employee ? <span className="text-destructive">*</span> : '(automática no cadastro)'}
+                </Label>
                 <Input
                   id="dataAdmissao"
                   type="date"
                   value={formData.dataAdmissao}
                   onChange={(e) => setFormData(prev => ({ ...prev, dataAdmissao: e.target.value }))}
+                  disabled={!employee}
                   className={errors.dataAdmissao ? 'border-destructive' : ''}
                 />
                 {errors.dataAdmissao && <p className="text-sm text-destructive">{errors.dataAdmissao}</p>}
