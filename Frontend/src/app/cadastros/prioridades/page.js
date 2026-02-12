@@ -34,6 +34,7 @@ export default function PrioridadesPage() {
       description: p.descricao,
       color: color,
       active: p.ativo,
+      hasActiveTasks: p.possuiTarefasAtivas ?? false,
     };
   });
 
@@ -146,6 +147,7 @@ export default function PrioridadesPage() {
           onOpenChange={setIsDeleteDialogOpen}
           priority={selectedPriority}
           onConfirm={handleConfirmDelete}
+          hasActiveTasks={selectedPriority?.hasActiveTasks}
         />
 
         <PriorityViewDialog

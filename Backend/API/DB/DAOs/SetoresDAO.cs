@@ -9,16 +9,14 @@ namespace API.DB.DAOs
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
             cmd.CommandText = @"
-                INSERT INTO Setor (Nome, Descricao, Ativo, ResponsavelId)
-                VALUES (@Nome, @Descricao, @Ativo, @ResponsavelId);
+                INSERT INTO Setor (Nome, Descricao, Ativo)
+                VALUES (@Nome, @Descricao, @Ativo);
                 SELECT CAST(SCOPE_IDENTITY() AS int);
             ";
 
             cmd.Parameters.AddWithValue("@Nome", setor.Nome);
             cmd.Parameters.AddWithValue("@Descricao", (object)setor.Descricao ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Ativo", setor.Ativo);
-            cmd.Parameters.AddWithValue("@ResponsavelId", setor.ResponsavelId);
-
             var result = await cmd.ExecuteScalarAsync();
             setor.Id = Convert.ToInt32(result);
 
@@ -30,13 +28,11 @@ namespace API.DB.DAOs
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
             cmd.CommandText = @"UPDATE Setor 
-                                SET Nome = @Nome, Descricao = @Descricao, ResponsavelId = @ResponsavelId 
+                                SET Nome = @Nome, Descricao = @Descricao 
                                 WHERE Id = @Id";
             cmd.Parameters.AddWithValue("@Id", setor.Id);
             cmd.Parameters.AddWithValue("@Nome", setor.Nome);
             cmd.Parameters.AddWithValue("@Descricao", (object)setor.Descricao ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@ResponsavelId", setor.ResponsavelId);
-
             int linhas = await cmd.ExecuteNonQueryAsync();
             return linhas > 0;
         }
@@ -69,7 +65,7 @@ namespace API.DB.DAOs
 
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = "SELECT Id, Nome, Descricao, Ativo, ResponsavelId FROM Setor";
+            cmd.CommandText = "SELECT Id, Nome, Descricao, Ativo FROM Setor";
 
             await using var dr = await cmd.ExecuteReaderAsync();
             while (await dr.ReadAsync())
@@ -79,8 +75,7 @@ namespace API.DB.DAOs
                     Id = Convert.ToInt32(dr["Id"]),
                     Nome = dr["Nome"].ToString(),
                     Descricao = dr["Descricao"]?.ToString(),
-                    Ativo = Convert.ToBoolean(dr["Ativo"]),
-                    ResponsavelId = Convert.ToInt32(dr["ResponsavelId"])
+                    Ativo = Convert.ToBoolean(dr["Ativo"])
                 };
                 setores.Add(setor);
             }
@@ -94,7 +89,7 @@ namespace API.DB.DAOs
 
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = "SELECT Id, Nome, Descricao, Ativo, ResponsavelId FROM Setor WHERE Id = @Id";
+            cmd.CommandText = "SELECT Id, Nome, Descricao, Ativo FROM Setor WHERE Id = @Id";
             cmd.Parameters.AddWithValue("@Id", id);
 
             await using var dr = await cmd.ExecuteReaderAsync();
@@ -105,8 +100,7 @@ namespace API.DB.DAOs
                     Id = Convert.ToInt32(dr["Id"]),
                     Nome = dr["Nome"].ToString(),
                     Descricao = dr["Descricao"]?.ToString(),
-                    Ativo = Convert.ToBoolean(dr["Ativo"]),
-                    ResponsavelId = Convert.ToInt32(dr["ResponsavelId"])
+                    Ativo = Convert.ToBoolean(dr["Ativo"])
                 };
             }
 

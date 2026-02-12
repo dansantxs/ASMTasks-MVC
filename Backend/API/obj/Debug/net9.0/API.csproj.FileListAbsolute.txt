@@ -326,7 +326,6 @@ C:\Users\Daniel dos Santos\Documents\GitHub\ASMTasks-MVC\Backend\API\obj\Debug\n
 C:\Users\Daniel dos Santos\Documents\GitHub\ASMTasks-MVC\Backend\API\obj\Debug\net9.0\staticwebassets.build.json.cache
 C:\Users\Daniel dos Santos\Documents\GitHub\ASMTasks-MVC\Backend\API\obj\Debug\net9.0\staticwebassets.development.json
 C:\Users\Daniel dos Santos\Documents\GitHub\ASMTasks-MVC\Backend\API\obj\Debug\net9.0\staticwebassets.build.endpoints.json
-C:\Users\Daniel dos Santos\Documents\GitHub\ASMTasks-MVC\Backend\API\obj\Debug\net9.0\staticwebassets.upToDateCheck.txt
 C:\Users\Daniel dos Santos\Documents\GitHub\ASMTasks-MVC\Backend\API\obj\Debug\net9.0\API.csproj.Up2Date
 C:\Users\Daniel dos Santos\Documents\GitHub\ASMTasks-MVC\Backend\API\obj\Debug\net9.0\API.dll
 C:\Users\Daniel dos Santos\Documents\GitHub\ASMTasks-MVC\Backend\API\obj\Debug\net9.0\refint\API.dll
@@ -334,3 +333,4 @@ C:\Users\Daniel dos Santos\Documents\GitHub\ASMTasks-MVC\Backend\API\obj\Debug\n
 C:\Users\Daniel dos Santos\Documents\GitHub\ASMTasks-MVC\Backend\API\obj\Debug\net9.0\API.genruntimeconfig.cache
 C:\Users\Daniel dos Santos\Documents\GitHub\ASMTasks-MVC\Backend\API\obj\Debug\net9.0\ref\API.dll
 C:\Users\Daniel dos Santos\Documents\GitHub\ASMTasks-MVC\Backend\API\obj\Debug\net9.0\swae.build.ex.cache
+C:\Users\Daniel dos Santos\Documents\GitHub\ASMTasks-MVC\Backend\API\obj\Debug\net9.0\staticwebassets.upToDateCheck.txt

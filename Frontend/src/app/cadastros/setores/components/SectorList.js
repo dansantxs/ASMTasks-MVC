@@ -1,18 +1,18 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-
-function useClientOnly() {
-  const [isClient, setIsClient] = useState(false);
-  useEffect(() => setIsClient(true), []);
-  return isClient;
-}
 import { Button } from '../../../../ui/base/button';
 import { Input } from '../../../../ui/form/input';
 import { Badge } from '../../../../ui/base/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../../ui/layout/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../../ui/layout/table';
 import { Search, Edit, Trash2, Eye, RefreshCw } from 'lucide-react';
+
+function useClientOnly() {
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => setIsClient(true), []);
+  return isClient;
+}
 
 export default function SectorList({
   sectors,
@@ -25,22 +25,20 @@ export default function SectorList({
   const isClient = useClientOnly();
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredSectors = sectors.filter(sector =>
+  const filteredSectors = sectors.filter((sector) =>
     (sector.name && sector.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (sector.responsibleName && sector.responsibleName.toLowerCase().includes(searchTerm.toLowerCase())) ||
     (sector.description && sector.description.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  const activeSectors = filteredSectors.filter(sector => sector.active);
-  const inactiveSectors = filteredSectors.filter(sector => !sector.active);
+  const activeSectors = filteredSectors.filter((sector) => sector.active);
+  const inactiveSectors = filteredSectors.filter((sector) => !sector.active);
 
   const SectorCard = ({ sector }) => (
     <Card key={sector.id} className="hover:shadow-md transition-shadow border-l-4 border-l-brand-blue">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">{sector.name}</CardTitle>
-          <Badge variant={sector.active ? "default" : "secondary"} 
-                 className={sector.active ? "bg-brand-blue hover:bg-brand-blue-dark" : ""}>
+          <Badge variant={sector.active ? "default" : "secondary"} className={sector.active ? "bg-brand-blue hover:bg-brand-blue-dark" : ""}>
             {sector.active ? 'Ativo' : 'Inativo'}
           </Badge>
         </div>
@@ -52,11 +50,8 @@ export default function SectorList({
               {sector.description}
             </p>
           )}
-          <p className="text-sm text-muted-foreground">
-            <span className="font-medium">Responsável:</span> {sector.responsibleName}
-          </p>
         </div>
-        
+
         <div className="flex gap-2 mt-4">
           <Button
             variant="outline"
@@ -110,10 +105,8 @@ export default function SectorList({
           {sector.description || '-'}
         </div>
       </TableCell>
-      <TableCell>{sector.responsibleName}</TableCell>
       <TableCell>
-        <Badge variant={sector.active ? "default" : "secondary"}
-               className={sector.active ? "bg-brand-blue hover:bg-brand-blue-dark" : ""}>
+        <Badge variant={sector.active ? "default" : "secondary"} className={sector.active ? "bg-brand-blue hover:bg-brand-blue-dark" : ""}>
           {sector.active ? 'Ativo' : 'Inativo'}
         </Badge>
       </TableCell>
@@ -164,7 +157,7 @@ export default function SectorList({
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
         <Input
-          placeholder="Buscar setores por nome, descrição ou responsável..."
+          placeholder="Buscar setores por nome ou descricao..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="pl-10"
@@ -180,7 +173,7 @@ export default function SectorList({
                 <Badge variant="outline" className="border-brand-blue text-brand-blue">{activeSectors.length}</Badge>
               </div>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {activeSectors.map(sector => (
+                {activeSectors.map((sector) => (
                   <SectorCard key={sector.id} sector={sector} />
                 ))}
               </div>
@@ -194,7 +187,7 @@ export default function SectorList({
                 <Badge variant="outline">{inactiveSectors.length}</Badge>
               </div>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {inactiveSectors.map(sector => (
+                {inactiveSectors.map((sector) => (
                   <SectorCard key={sector.id} sector={sector} />
                 ))}
               </div>
@@ -214,15 +207,13 @@ export default function SectorList({
                   <TableHeader>
                     <TableRow className="bg-brand-blue/5">
                       <TableHead className="font-medium text-brand-blue">Nome do Setor</TableHead>
-                      <TableHead className="font-medium text-brand-blue">Descrição</TableHead>
-                      <TableHead className="font-medium text-brand-blue">Responsável</TableHead>
+                      <TableHead className="font-medium text-brand-blue">Descricao</TableHead>
                       <TableHead className="font-medium text-brand-blue">Status</TableHead>
-                      <TableHead className="font-medium text-brand-blue">Data de Criação</TableHead>
-                      <TableHead className="text-right font-medium text-brand-blue">Ações</TableHead>
+                      <TableHead className="text-right font-medium text-brand-blue">Acoes</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {activeSectors.map(sector => (
+                    {activeSectors.map((sector) => (
                       <SectorRow key={sector.id} sector={sector} />
                     ))}
                   </TableBody>
@@ -242,15 +233,13 @@ export default function SectorList({
                   <TableHeader>
                     <TableRow className="bg-muted/30">
                       <TableHead>Nome do Setor</TableHead>
-                      <TableHead>Descrição</TableHead>
-                      <TableHead>Responsável</TableHead>
+                      <TableHead>Descricao</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Data de Criação</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
+                      <TableHead className="text-right">Acoes</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {inactiveSectors.map(sector => (
+                    {inactiveSectors.map((sector) => (
                       <SectorRow key={sector.id} sector={sector} />
                     ))}
                   </TableBody>
@@ -261,7 +250,7 @@ export default function SectorList({
         </>
       )}
 
-      {filteredSectors.length === 0 && (
+      {isClient && filteredSectors.length === 0 && (
         <div className="text-center py-12">
           <div className="space-y-3">
             <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center">
@@ -269,9 +258,9 @@ export default function SectorList({
             </div>
             <h3>Nenhum setor encontrado</h3>
             <p className="text-muted-foreground max-w-md mx-auto">
-              {searchTerm 
-                ? `Não encontramos setores que correspondam à busca "${searchTerm}".`
-                : 'Ainda não há setores cadastrados no sistema.'
+              {searchTerm
+                ? `Nao encontramos setores que correspondam a busca "${searchTerm}".`
+                : 'Ainda nao ha setores cadastrados no sistema.'
               }
             </p>
           </div>

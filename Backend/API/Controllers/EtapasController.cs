@@ -181,7 +181,8 @@ namespace API.Controllers
                 Id = etapa.Id,
                 Nome = etapa.Nome,
                 Descricao = etapa.Descricao,
-                Ativo = etapa.Ativo
+                Ativo = etapa.Ativo,
+                PossuiTarefasAtivas = false
             });
 
             return Ok(response);
@@ -208,7 +209,8 @@ namespace API.Controllers
                 Id = etapa.Id,
                 Nome = etapa.Nome,
                 Descricao = etapa.Descricao,
-                Ativo = etapa.Ativo
+                Ativo = etapa.Ativo,
+                PossuiTarefasAtivas = false
             };
 
             return Ok(response);

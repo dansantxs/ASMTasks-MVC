@@ -1736,10 +1736,6 @@
           "descricao": {
             "type": "string",
             "nullable": true
-          },
-          "responsavelId": {
-            "type": "integer",
-            "format": "int32"
           }
         },
         "additionalProperties": false
@@ -1754,10 +1750,6 @@
           "descricao": {
             "type": "string",
             "nullable": true
-          },
-          "responsavelId": {
-            "type": "integer",
-            "format": "int32"
           }
         },
         "additionalProperties": false

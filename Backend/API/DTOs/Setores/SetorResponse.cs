@@ -7,6 +7,6 @@
         public string? Descricao { get; set; }
         public bool Ativo { get; set; }
         public bool PossuiFuncionariosAtivos { get; set; }
-        public int ResponsavelId { get; set; }
+        public bool PossuiTarefasAtivas { get; set; }
     }
 }

@@ -173,7 +173,8 @@ namespace API.Controllers
                 Numero = c.Numero,
                 Site = c.Site,
                 DataReferencia = c.DataReferencia,
-                Ativo = c.Ativo
+                Ativo = c.Ativo,
+                PossuiTarefasAtivas = false
             });
 
             return Ok(response);
@@ -206,7 +207,8 @@ namespace API.Controllers
                 Numero = c.Numero,
                 Site = c.Site,
                 DataReferencia = c.DataReferencia,
-                Ativo = c.Ativo
+                Ativo = c.Ativo,
+                PossuiTarefasAtivas = false
             };
 
             return Ok(response);

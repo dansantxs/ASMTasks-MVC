@@ -172,19 +172,6 @@ namespace API.DB.DAOs
             return count > 0;
         }
 
-        public async Task<bool> VerificarResponsavelSetorAsync(DBContext dbContext, int colaboradorId)
-        {
-            await using var con = await dbContext.GetConnectionAsync();
-            await using var cmd = con.CreateCommand();
-            cmd.CommandText = @"SELECT COUNT(1) FROM Setor WHERE ResponsavelId = @ColaboradorId AND Ativo = 1";
-            cmd.Parameters.AddWithValue("@ColaboradorId", colaboradorId);
-
-            var result = await cmd.ExecuteScalarAsync(); ;
-            int count = Convert.ToInt32(result);
-
-            return count > 0;
-        }
-
         // Implementar o método de verificação de tarefas em andamento
     }
 }

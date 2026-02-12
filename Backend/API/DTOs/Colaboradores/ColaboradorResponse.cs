@@ -16,7 +16,7 @@ namespace API.DTOs.Colaboradores
         public DateTime DataNascimento { get; set; }
         public DateTime DataAdmissao { get; set; }
         public bool Ativo { get; set; } = true;
-        public bool ResponsavelPorSetor { get; set; } = false;
+        public bool PossuiTarefasAtivas { get; set; } = false;
         public int SetorId { get; set; }
         public int CargoId { get; set; }
     }

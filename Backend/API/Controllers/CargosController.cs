@@ -180,7 +180,9 @@ namespace API.Controllers
                 Id = cargo.Id,
                 Nome = cargo.Nome,
                 Descricao = cargo.Descricao,
-                Ativo = cargo.Ativo
+                Ativo = cargo.Ativo,
+                PossuiColaboradoresAtivos = Cargo.VerificarColaboradoresAtivosAsync(_dbContext, cargo.Id).Result,
+                PossuiTarefasAtivas = false
             });
 
             return Ok(response);
@@ -207,7 +209,9 @@ namespace API.Controllers
                 Id = cargo.Id,
                 Nome = cargo.Nome,
                 Descricao = cargo.Descricao,
-                Ativo = cargo.Ativo
+                Ativo = cargo.Ativo,
+                PossuiColaboradoresAtivos = await Cargo.VerificarColaboradoresAtivosAsync(_dbContext, cargo.Id),
+                PossuiTarefasAtivas = false
             };
 
             return Ok(response);

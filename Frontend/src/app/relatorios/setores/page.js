@@ -13,13 +13,11 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { getSetores } from '../../cadastros/setores/api/setores';
-import { getColaboradores } from '../../cadastros/colaboradores/api/colaboradores';
 
 const columns = [
   { id: 'id', label: 'ID' },
   { id: 'name', label: 'Nome do Setor' },
   { id: 'description', label: 'Descricao' },
-  { id: 'responsibleName', label: 'Responsavel' },
   { id: 'status', label: 'Status' },
 ];
 
@@ -53,7 +51,6 @@ const getLogoDataUrl = async () => {
 export default function SetoresReportPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
-  const [responsibleFilter, setResponsibleFilter] = useState('todos');
   const [sortConfig, setSortConfig] = useState({ column: null, direction: 'asc' });
   const [selectedColumns, setSelectedColumns] = useState(columns.map((c) => c.id));
 
@@ -62,34 +59,18 @@ export default function SetoresReportPage() {
     queryFn: getSetores,
   });
 
-  const { data: colaboradoresApi = [], isLoading: loadingColaboradores } = useQuery({
-    queryKey: ['relatorio-setores-colaboradores'],
-    queryFn: getColaboradores,
-  });
-
-  const colaboradoresAtivos = useMemo(
-    () =>
-      colaboradoresApi
-        .filter((c) => c.ativo)
-        .map((c) => ({ id: c.id, nome: c.nome })),
-    [colaboradoresApi]
-  );
-
   const data = useMemo(
     () =>
       setoresApi.map((s) => {
-        const responsavel = colaboradoresApi.find((c) => c.id === s.responsavelId);
         return {
           id: s.id,
           name: s.nome || ' ',
           description: s.descricao || ' ',
-          responsibleName: responsavel?.nome || ' ',
-          responsibleId: s.responsavelId || null,
           status: s.ativo ? 'Ativo' : 'Inativo',
           rawAtivo: s.ativo,
         };
       }),
-    [setoresApi, colaboradoresApi]
+    [setoresApi]
   );
 
   const filteredData = useMemo(
@@ -97,21 +78,17 @@ export default function SetoresReportPage() {
       data.filter((item) => {
         const name = item.name ? item.name.toLowerCase() : '';
         const description = item.description ? item.description.toLowerCase() : '';
-        const responsibleName = item.responsibleName ? item.responsibleName.toLowerCase() : '';
         const searchLower = search.toLowerCase();
         const matchesSearch =
           name.includes(searchLower) ||
-          description.includes(searchLower) ||
-          responsibleName.includes(searchLower);
+          description.includes(searchLower);
         const matchesStatus =
           statusFilter === 'todos' ||
           (statusFilter === 'ativos' && item.rawAtivo) ||
           (statusFilter === 'inativos' && !item.rawAtivo);
-        const matchesResponsible =
-          responsibleFilter === 'todos' || item.responsibleId === Number(responsibleFilter);
-        return matchesSearch && matchesStatus && matchesResponsible;
+        return matchesSearch && matchesStatus;
       }),
-    [data, search, statusFilter, responsibleFilter]
+    [data, search, statusFilter]
   );
 
   const sortedData = useMemo(() => {
@@ -124,7 +101,6 @@ export default function SetoresReportPage() {
       id: (a, b) => compareNumbers(a.id, b.id),
       name: (a, b) => compareStrings(a.name, b.name),
       description: (a, b) => compareStrings(a.description, b.description),
-      responsibleName: (a, b) => compareStrings(a.responsibleName, b.responsibleName),
       status: (a, b) => compareStrings(a.status, b.status),
     };
 
@@ -152,18 +128,12 @@ export default function SetoresReportPage() {
     );
   };
 
-  const getResponsavelNome = (id) => {
-    const colaborador = colaboradoresAtivos.find((c) => c.id === Number(id));
-    return colaborador ? colaborador.nome : '';
-  };
-
   const buildFiltersSummary = (activeColumns) => {
     const filters = [
       search ? `Busca: ${search}` : null,
       statusFilter !== 'todos'
         ? `Status: ${statusFilter === 'ativos' ? 'Ativos' : 'Inativos'}`
         : null,
-      responsibleFilter !== 'todos' ? `Responsavel: ${getResponsavelNome(responsibleFilter)}` : null,
     ].filter(Boolean);
 
     const columnsSummary =
@@ -259,7 +229,7 @@ export default function SetoresReportPage() {
     XLSX.writeFile(workbook, 'relatorio-setores.xlsx');
   };
 
-  if (loadingSetores || loadingColaboradores) {
+  if (loadingSetores) {
     return <div className="p-6">Carregando relatorio de setores...</div>;
   }
 
@@ -298,7 +268,7 @@ export default function SetoresReportPage() {
                 <div className="md:col-span-2">
                   <Label>Busca</Label>
                   <Input
-                    placeholder="Busque por nome, descricao ou responsavel"
+                    placeholder="Busque por nome ou descricao"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                   />
@@ -318,24 +288,6 @@ export default function SetoresReportPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label>Responsavel</Label>
-                  <Select value={responsibleFilter} onValueChange={setResponsibleFilter}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Responsavel" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="todos">Todos</SelectItem>
-                      {colaboradoresAtivos.map((colaborador) => (
-                        <SelectItem key={colaborador.id} value={String(colaborador.id)}>
-                          {colaborador.nome}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
             </CardContent>
           </Card>
 

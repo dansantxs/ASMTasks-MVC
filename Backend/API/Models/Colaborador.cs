@@ -137,9 +137,6 @@ namespace API.Models
 
         public async Task InativarAsync(DBContext dbContext)
         {
-            if (await _colaboradoresDAO.VerificarResponsavelSetorAsync(dbContext, Id))
-                throw new ValidationException("Não é possível inativar o colaborador pois ele é responsável por um setor ativo.");
-
             // verificar se existem tarefas em andamento
 
             var inativado = await _colaboradoresDAO.InativarAsync(dbContext, Id);
@@ -164,9 +161,5 @@ namespace API.Models
             return await _colaboradoresDAO.ObterPorIdAsync(dbContext, id);
         }
 
-        public static async Task<bool> VerificarResponsavelSetorAsync(DBContext dbContext, int colaboradorId)
-        {
-            return await _colaboradoresDAO.VerificarResponsavelSetorAsync(dbContext, colaboradorId);
-        }
     }
 }

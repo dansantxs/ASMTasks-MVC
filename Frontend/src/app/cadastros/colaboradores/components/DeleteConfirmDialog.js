@@ -20,11 +20,10 @@ export function DeleteConfirmDialog({
   employee,
   onConfirm,
   hasActiveTasks,
-  isResponsibleForSector,
 }) {
   if (!employee) return null;
 
-  const hasBlockingItems = !!(hasActiveTasks || isResponsibleForSector);
+  const hasBlockingItems = !!hasActiveTasks;
 
   const handleConfirm = () => {
     if (!hasBlockingItems) {
@@ -50,29 +49,21 @@ export function DeleteConfirmDialog({
                 </div>
 
                 <ul className="ml-4 list-disc space-y-1">
-                  {isResponsibleForSector && (
-                    <li>
-                      <strong>Responsabilidade por um setor ativo</strong>
-                    </li>
-                  )}
-                  {hasActiveTasks && (
-                    <li>
-                      <strong>Tarefas em andamento</strong>
-                    </li>
-                  )}
+                  <li>
+                    <strong>Tarefas em andamento</strong>
+                  </li>
                 </ul>
 
                 <Alert className="border-amber-200 bg-amber-50">
                   <AlertTriangle className="h-4 w-4 text-amber-600" />
                   <AlertDescription className="text-amber-800">
-                    Para inativar este colaborador, primeiro transfira a responsabilidade do setor
-                    para outro colaborador ativo e/ou realoque ou finalize as tarefas em andamento.
+                    Para inativar este colaborador, primeiro realoque ou finalize as tarefas em andamento.
                   </AlertDescription>
                 </Alert>
 
                 <div className="text-sm text-muted-foreground">
-                  Esta validação garante que o histórico de tarefas e os vínculos com setores sejam preservados
-                  e que não haja registros órfãos no sistema.
+                  Esta validação garante que o histórico de tarefas seja preservado e que não haja registros
+                  órfãos no sistema.
                 </div>
               </div>
             ) : (

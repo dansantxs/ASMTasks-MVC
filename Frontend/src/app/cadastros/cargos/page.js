@@ -31,6 +31,7 @@ export default function CargosPage() {
       name: e.nome,
       description: e.descricao,
       active: e.ativo,
+      hasActiveCollaborators: e.possuiColaboradoresAtivos ?? false,
     };
   });
 
@@ -142,6 +143,7 @@ export default function CargosPage() {
           onOpenChange={setIsDeleteDialogOpen}
           position={selectedPosition}
           onConfirm={handleConfirmDelete}
+          hasActiveCollaborators={selectedPosition?.hasActiveCollaborators}
         />
 
         <PositionViewDialog
