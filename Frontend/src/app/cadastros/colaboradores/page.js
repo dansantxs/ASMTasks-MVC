@@ -48,7 +48,7 @@ export default function ColaboradoresPage() {
       email: c.email,
       telefone: c.telefone,
       active: c.ativo,
-      isResponsibleForSector: c.responsavelPorSetor,
+      hasActiveTasks: c.possuiTarefasAtivas ?? false,
       setorId: c.setorId,
       cargoId: c.cargoId,
       dataNascimento: c.dataNascimento,
@@ -207,7 +207,7 @@ export default function ColaboradoresPage() {
           onOpenChange={setIsDeleteDialogOpen}
           employee={selectedEmployee}
           onConfirm={handleConfirmDelete}
-          isResponsibleForSector={selectedEmployee?.isResponsibleForSector}
+          hasActiveTasks={selectedEmployee?.hasActiveTasks}
         />
 
         <EmployeeViewDialog

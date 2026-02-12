@@ -65,5 +65,10 @@ namespace API.Models
         {
             return await _cargosDAO.ObterPorIdAsync(dbContext, id);
         }
+
+        public static async Task<bool> VerificarColaboradoresAtivosAsync(DBContext dbContext, int cargoId)
+        {
+            return await _cargosDAO.VerificarColaboradoresAtivosAsync(dbContext, cargoId);
+        }
     }
 }

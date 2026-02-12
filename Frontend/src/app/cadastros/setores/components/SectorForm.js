@@ -6,22 +6,18 @@ import { Button } from '../../../../ui/base/button';
 import { Input } from '../../../../ui/form/input';
 import { Label } from '../../../../ui/form/label';
 import { Textarea } from '../../../../ui/form/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../../ui/form/select';
 
-export default function SectorForm({ 
-  open, 
-  onOpenChange, 
-  sector, 
-  onSave, 
+export default function SectorForm({
+  open,
+  onOpenChange,
+  sector,
+  onSave,
   existingSectors,
-  employees 
 }) {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    responsible: '',
-    responsibleName: '',
-    active: true
+    active: true,
   });
   const [errors, setErrors] = useState({});
 
@@ -30,17 +26,13 @@ export default function SectorForm({
       setFormData({
         name: sector.name,
         description: sector.description || '',
-        responsible: sector.responsible,
-        responsibleName: sector.responsibleName,
-        active: sector.active
+        active: sector.active,
       });
     } else {
       setFormData({
         name: '',
         description: '',
-        responsible: '',
-        responsibleName: '',
-        active: true
+        active: true,
       });
     }
     setErrors({});
@@ -50,19 +42,15 @@ export default function SectorForm({
     const newErrors = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Nome é obrigatório';
+      newErrors.name = 'Nome e obrigatorio';
     } else {
-      const nameExists = existingSectors.some(s => 
-        s.name.toLowerCase() === formData.name.toLowerCase() && 
+      const nameExists = existingSectors.some(s =>
+        s.name.toLowerCase() === formData.name.toLowerCase() &&
         s.id !== (sector && sector.id)
       );
       if (nameExists) {
-        newErrors.name = 'Já existe um setor com este nome';
+        newErrors.name = 'Ja existe um setor com este nome';
       }
-    }
-
-    if (!formData.responsible) {
-      newErrors.responsible = 'Responsável é obrigatório';
     }
 
     setErrors(newErrors);
@@ -71,19 +59,8 @@ export default function SectorForm({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
     onSave(formData);
-  };
-
-  const handleResponsibleChange = (value) => {
-    const employee = employees.find(emp => emp.id === value);
-    setFormData(prev => ({
-      ...prev,
-      responsible: value,
-      responsibleName: employee ? employee.name : ''
-    }));
   };
 
   return (
@@ -94,8 +71,8 @@ export default function SectorForm({
             {sector ? 'Editar Setor' : 'Cadastrar Novo Setor'}
           </DialogTitle>
           <DialogDescription>
-            {sector 
-              ? 'Edite as informações do setor selecionado'
+            {sector
+              ? 'Edite as informacoes do setor selecionado'
               : 'Preencha os dados para criar um novo setor'
             }
           </DialogDescription>
@@ -116,51 +93,29 @@ export default function SectorForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Descrição</Label>
+            <Label htmlFor="description">Descricao</Label>
             <Textarea
               id="description"
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Digite uma descrição para o setor (opcional)"
+              placeholder="Digite uma descricao para o setor (opcional)"
               rows={3}
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="responsible">Responsável do Setor <span className="text-destructive">*</span></Label>
-            <Select 
-              value={formData.responsible} 
-              onValueChange={handleResponsibleChange}
-            >
-              <SelectTrigger className={errors.responsible ? 'border-destructive' : ''}>
-                <SelectValue placeholder="Selecione o responsável" />
-              </SelectTrigger>
-              <SelectContent>
-                {employees.filter(emp => emp.active).map((employee) => (
-                  <SelectItem key={employee.id} value={employee.id}>
-                    {employee.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.responsible && (
-              <p className="text-sm text-destructive">{errors.responsible}</p>
-            )}
-          </div>
-
           <div className="flex justify-end gap-3 pt-4">
-            <Button 
-              type="button" 
-              variant="outline" 
+            <Button
+              type="button"
+              variant="outline"
               onClick={() => onOpenChange(false)}
             >
               Cancelar
             </Button>
-            <Button 
+            <Button
               type="submit"
               className="bg-brand-blue hover:bg-brand-blue-dark"
             >
-              {sector ? 'Salvar Alterações' : 'Cadastrar Setor'}
+              {sector ? 'Salvar Alteracoes' : 'Cadastrar Setor'}
             </Button>
           </div>
         </form>

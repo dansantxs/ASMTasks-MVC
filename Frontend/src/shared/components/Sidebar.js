@@ -10,19 +10,22 @@ export function Sidebar({ currentPath, onNavigate, onToggleCollapse }) {
   const [cadastrosExpanded, setCadastrosExpanded] = useState(false);
   const [relatoriosExpanded, setRelatoriosExpanded] = useState(false);
 
+  const setCollapsedState = (newState) => {
+    setIsCollapsed(newState);
+    if (onToggleCollapse) {
+      onToggleCollapse(newState);
+    }
+  };
+
   const toggleSidebar = () => {
     const newState = !isCollapsed;
-    setIsCollapsed(newState);
+    setCollapsedState(newState);
     if (newState) {
       setCadastrosExpanded(false);
       setRelatoriosExpanded(false);
     } else {
       setCadastrosExpanded(false);
       setRelatoriosExpanded(false);
-    }
-
-    if (onToggleCollapse) {
-      onToggleCollapse(newState);
     }
   };
 
@@ -76,7 +79,7 @@ export function Sidebar({ currentPath, onNavigate, onToggleCollapse }) {
           <button
             onClick={() => {
               if (isCollapsed) {
-                setIsCollapsed(false);
+                setCollapsedState(false);
                 setCadastrosExpanded(true);
               } else {
                 setCadastrosExpanded(!cadastrosExpanded);
@@ -133,7 +136,7 @@ export function Sidebar({ currentPath, onNavigate, onToggleCollapse }) {
           <button
             onClick={() => {
               if (isCollapsed) {
-                setIsCollapsed(false);
+                setCollapsedState(false);
                 setRelatoriosExpanded(true);
               } else {
                 setRelatoriosExpanded(!relatoriosExpanded);

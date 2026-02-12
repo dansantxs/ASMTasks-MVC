@@ -19,5 +19,6 @@
         public string? Site { get; set; }
         public DateTime? DataReferencia { get; set; }
         public bool Ativo { get; set; }
+        public bool PossuiTarefasAtivas { get; set; }
     }
 }

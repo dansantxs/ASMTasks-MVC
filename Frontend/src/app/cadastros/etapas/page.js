@@ -32,6 +32,7 @@ export default function EtapasPage() {
       name: e.nome,
       description: e.descricao,
       active: e.ativo,
+      hasActiveTasks: e.possuiTarefasAtivas ?? false,
     };
   });
 
@@ -151,6 +152,7 @@ export default function EtapasPage() {
           onOpenChange={setIsDeleteDialogOpen}
           stage={selectedStage}
           onConfirm={handleConfirmDelete}
+          hasActiveTasks={selectedStage?.hasActiveTasks}
         />
 
         <StageViewDialog

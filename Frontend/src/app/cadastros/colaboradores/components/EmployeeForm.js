@@ -404,7 +404,7 @@ export default function EmployeeForm({
 
               <div>
                 <Label htmlFor="dataAdmissao">
-                  Data de Admissão {employee ? <span className="text-destructive">*</span> : '(automática no cadastro)'}
+                  Data de Admissão {employee ? <span className="text-destructive">*</span> : ''}
                 </Label>
                 <Input
                   id="dataAdmissao"

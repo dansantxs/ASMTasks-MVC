@@ -217,7 +217,7 @@ namespace API.Controllers
                 Ativo = c.Ativo,
                 SetorId = c.SetorId,
                 CargoId = c.CargoId,
-                ResponsavelPorSetor = Colaborador.VerificarResponsavelSetorAsync(_dbContext, c.Id).Result
+                PossuiTarefasAtivas = false
             });
 
             return Ok(response);
@@ -257,7 +257,7 @@ namespace API.Controllers
                 Ativo = colaborador.Ativo,
                 SetorId = colaborador.SetorId,
                 CargoId = colaborador.CargoId,
-                ResponsavelPorSetor = await Colaborador.VerificarResponsavelSetorAsync(_dbContext, colaborador.Id)
+                PossuiTarefasAtivas = false
             };
 
             return Ok(response);

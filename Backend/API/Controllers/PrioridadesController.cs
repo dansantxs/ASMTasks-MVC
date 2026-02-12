@@ -183,7 +183,8 @@ namespace API.Controllers
                 Nome = prioridade.Nome,
                 Descricao = prioridade.Descricao,
                 Cor = prioridade.Cor,
-                Ativo = prioridade.Ativo
+                Ativo = prioridade.Ativo,
+                PossuiTarefasAtivas = false
             });
 
             return Ok(response);
@@ -211,7 +212,8 @@ namespace API.Controllers
                 Nome = prioridade.Nome,
                 Descricao = prioridade.Descricao,
                 Cor = prioridade.Cor,
-                Ativo = prioridade.Ativo
+                Ativo = prioridade.Ativo,
+                PossuiTarefasAtivas = false
             };
 
             return Ok(response);

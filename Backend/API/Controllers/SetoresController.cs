@@ -43,8 +43,7 @@ namespace API.Controllers
                 var setor = new Setor
                 {
                     Nome = request.Nome,
-                    Descricao = request.Descricao,
-                    ResponsavelId = request.ResponsavelId
+                    Descricao = request.Descricao
                 };
 
                 var id = await setor.CriarAsync(_dbContext);
@@ -87,7 +86,6 @@ namespace API.Controllers
 
                 setor.Nome = request.Nome;
                 setor.Descricao = request.Descricao;
-                setor.ResponsavelId = request.ResponsavelId;
 
                 await setor.AtualizarAsync(_dbContext);
                 return NoContent();
@@ -183,8 +181,8 @@ namespace API.Controllers
                 Nome = setor.Nome,
                 Descricao = setor.Descricao,
                 Ativo = setor.Ativo,
-                ResponsavelId = setor.ResponsavelId,
-                PossuiFuncionariosAtivos = Setor.VerificarColaboradoresAtivosAsync(_dbContext, setor.Id).Result
+                PossuiFuncionariosAtivos = Setor.VerificarColaboradoresAtivosAsync(_dbContext, setor.Id).Result,
+                PossuiTarefasAtivas = false
             });
 
             return Ok(response);
@@ -212,8 +210,8 @@ namespace API.Controllers
                 Nome = setor.Nome,
                 Descricao = setor.Descricao,
                 Ativo = setor.Ativo,
-                ResponsavelId = setor.ResponsavelId,
-                PossuiFuncionariosAtivos = await Setor.VerificarColaboradoresAtivosAsync(_dbContext, setor.Id)
+                PossuiFuncionariosAtivos = await Setor.VerificarColaboradoresAtivosAsync(_dbContext, setor.Id),
+                PossuiTarefasAtivas = false
             };
 
             return Ok(response);

@@ -49,6 +49,7 @@ export default function ClientesPage() {
     numero: c.numero,
     site: c.site,
     dataReferencia: c.dataReferencia,
+    hasActiveTasks: c.possuiTarefasAtivas ?? false,
   }));
 
   const criar = useMutation({
@@ -183,6 +184,7 @@ export default function ClientesPage() {
           onOpenChange={setIsDeleteDialogOpen}
           client={selectedClient}
           onConfirm={handleConfirmDelete}
+          hasActiveTasks={selectedClient?.hasActiveTasks}
         />
 
         <ClientViewDialog

@@ -1,17 +1,16 @@
 'use client';
+
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from '../../../ui/base/button';
 import { Plus, Building2 } from 'lucide-react';
-import { Toaster } from 'sonner';
+import { Toaster, toast } from 'sonner';
 import SectorForm from './components/SectorForm';
 import SectorList from './components/SectorList';
 import ViewToggle from '../../../shared/components/ViewToggle';
 import { DeleteConfirmDialog } from './components/DeleteConfirmDialog';
 import SectorViewDialog from './components/SectorViewDialog';
-import { toast } from 'sonner';
 import { getSetores, criarSetor, atualizarSetor, inativarSetor, reativarSetor } from './api/setores';
-import { getColaboradores } from '../colaboradores/api/colaboradores';
 
 export default function SetoresPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -27,30 +26,14 @@ export default function SetoresPage() {
     queryFn: getSetores,
   });
 
-  const { data: colaboradoresApi = [], isLoading: loadingColaboradores } = useQuery({
-    queryKey: ["colaboradores"],
-    queryFn: getColaboradores,
-  });
-
-  const employees = colaboradoresApi.map(c => ({
-    id: c.id.toString(),
-    name: c.nome,
-    active: c.ativo
+  const sectors = setoresApi.map(s => ({
+    id: s.id,
+    name: s.nome,
+    description: s.descricao,
+    active: s.ativo,
+    hasActiveEmployees: s.possuiFuncionariosAtivos,
+    hasActiveTasks: s.possuiTarefasAtivas ?? false,
   }));
-
-  const sectors = setoresApi.map(s => {
-    const responsibleId = s.responsavelId?.toString() ?? "";
-    const responsibleEmployee = employees.find(e => e.id === responsibleId);
-    return {
-      id: s.id,
-      name: s.nome,
-      description: s.descricao,
-      responsible: responsibleId,
-      responsibleName: responsibleEmployee ? responsibleEmployee.name : "—",
-      active: s.ativo,
-      hasActiveEmployees: s.possuiFuncionariosAtivos
-    };
-  });
 
   const criar = useMutation({
     mutationFn: criarSetor,
@@ -95,13 +78,10 @@ export default function SetoresPage() {
     const dataAPI = {
       nome: sectorData.name,
       descricao: sectorData.description,
-      responsavelId: parseInt(sectorData.responsible) || null,
     };
 
-    if (selectedSector)
-      atualizar.mutate({ id: selectedSector.id, data: dataAPI });
-    else
-      criar.mutate(dataAPI);
+    if (selectedSector) atualizar.mutate({ id: selectedSector.id, data: dataAPI });
+    else criar.mutate(dataAPI);
   };
 
   const handleConfirmDelete = () => {
@@ -110,7 +90,7 @@ export default function SetoresPage() {
 
   const handleReactivateSector = (sector) => reativar.mutate(sector.id);
 
-  if (isLoading || loadingColaboradores) return <div className="p-6">Carregando setores...</div>;
+  if (isLoading) return <div className="p-6">Carregando setores...</div>;
 
   return (
     <div className="min-h-screen bg-background">
@@ -123,13 +103,13 @@ export default function SetoresPage() {
             <div>
               <h1>Gerenciamento de Setores</h1>
               <p className="text-muted-foreground">
-                Gerencie os setores da empresa e seus responsáveis
+                Gerencie os setores da empresa
               </p>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
-            <Button 
+            <Button
               onClick={() => { setSelectedSector(null); setIsFormOpen(true); }}
               className="flex items-center gap-2 bg-brand-blue hover:bg-brand-blue-dark"
             >
@@ -154,7 +134,6 @@ export default function SetoresPage() {
           sector={selectedSector}
           onSave={handleSaveSector}
           existingSectors={sectors}
-          employees={employees}
         />
 
         <DeleteConfirmDialog
@@ -162,6 +141,7 @@ export default function SetoresPage() {
           onOpenChange={setIsDeleteDialogOpen}
           sector={selectedSector}
           onConfirm={handleConfirmDelete}
+          hasActiveTasks={selectedSector?.hasActiveTasks}
           hasActiveEmployees={selectedSector?.hasActiveEmployees}
         />
 
