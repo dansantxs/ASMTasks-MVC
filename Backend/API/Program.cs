@@ -34,6 +34,7 @@ Esta API gerencia entidades internas do sistema.
 - **Prioridades:** definição de níveis de prioridade.
 - **Setores:** organização de departamentos e responsáveis.
 - **Clientes:** gerenciamento de clientes.
+- **Atendimentos:** agenda de atendimentos com validacao de conflito de horario.
 
 ### Funcionalidades gerais:
 - Criação (`POST`)
@@ -65,6 +66,7 @@ builder.Services.AddScoped<SetoresDAO>();
 builder.Services.AddScoped<CargosDAO>();
 builder.Services.AddScoped<ColaboradoresDAO>();
 builder.Services.AddScoped<ClientesDAO>();
+builder.Services.AddScoped<AtendimentosDAO>();
 
 var app = builder.Build();
 
@@ -83,3 +85,4 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 app.Run();
+

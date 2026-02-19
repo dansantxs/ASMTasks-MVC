@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { Home, ChevronDown, ChevronRight, Layers, Menu, X, BarChart3 } from 'lucide-react';
+import { Home, ChevronDown, ChevronRight, Layers, Menu, X, BarChart3, CalendarDays } from 'lucide-react';
 import { cn } from '../../ui/form/utils';
 import { Button } from '../../ui/base/button';
 import { cadastroItems, relatorioItems } from "../config/menuItems";
@@ -34,6 +34,7 @@ export function Sidebar({ currentPath, onNavigate, onToggleCollapse }) {
   const currentKey = pathParts[2] || currentSection;
   const isCadastros = currentSection === 'cadastros';
   const isRelatorios = currentSection === 'relatorios';
+  const isAtendimentos = currentSection === 'atendimentos';
 
   return (
     <div
@@ -131,6 +132,21 @@ export function Sidebar({ currentPath, onNavigate, onToggleCollapse }) {
             </div>
           )}
         </div>
+
+        <button
+          onClick={() => onNavigate('/atendimentos/agenda')}
+          className={cn(
+            "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors",
+            isAtendimentos
+              ? "bg-gray-800 text-white"
+              : "text-gray-300 hover:bg-gray-800",
+            isCollapsed && "justify-center px-2"
+          )}
+          title={isCollapsed ? "Atendimento" : undefined}
+        >
+          <CalendarDays className="h-5 w-5 flex-shrink-0" />
+          {!isCollapsed && <span>Atendimento</span>}
+        </button>
 
         <div>
           <button
