@@ -5,6 +5,8 @@ namespace API.DB.DAOs
 {
     public class AtendimentosDAO
     {
+        private readonly AtendimentoColaboradoresDAO _atendimentoColaboradoresDAO = new AtendimentoColaboradoresDAO();
+
         public async Task<int> CriarAsync(DBContext dbContext, Atendimento atendimento)
         {
             await using var con = await dbContext.GetConnectionAsync();
@@ -35,7 +37,7 @@ namespace API.DB.DAOs
                 var result = await cmd.ExecuteScalarAsync();
                 atendimento.Id = Convert.ToInt32(result);
 
-                await InserirColaboradoresAsync(con, transaction, atendimento.Id, atendimento.ColaboradoresIds);
+                await _atendimentoColaboradoresDAO.InserirColaboradoresAsync(con, transaction, atendimento.Id, atendimento.ColaboradoresIds);
                 await transaction.CommitAsync();
 
                 return atendimento.Id;
@@ -82,13 +84,8 @@ namespace API.DB.DAOs
                     return false;
                 }
 
-                await using var cmdDelete = con.CreateCommand();
-                cmdDelete.Transaction = transaction;
-                cmdDelete.CommandText = "DELETE FROM AtendimentoColaborador WHERE AtendimentoId = @AtendimentoId";
-                cmdDelete.Parameters.AddWithValue("@AtendimentoId", atendimento.Id);
-                await cmdDelete.ExecuteNonQueryAsync();
-
-                await InserirColaboradoresAsync(con, transaction, atendimento.Id, atendimento.ColaboradoresIds);
+                await _atendimentoColaboradoresDAO.RemoverPorAtendimentoIdAsync(con, transaction, atendimento.Id);
+                await _atendimentoColaboradoresDAO.InserirColaboradoresAsync(con, transaction, atendimento.Id, atendimento.ColaboradoresIds);
                 await transaction.CommitAsync();
 
                 return true;
@@ -171,7 +168,7 @@ namespace API.DB.DAOs
             }
 
             foreach (var atendimento in lista)
-                atendimento.ColaboradoresIds = (await ObterColaboradoresIdsAsync(dbContext, atendimento.Id)).ToList();
+                atendimento.ColaboradoresIds = (await _atendimentoColaboradoresDAO.ObterColaboradoresIdsAsync(dbContext, atendimento.Id)).ToList();
 
             return lista;
         }
@@ -208,30 +205,9 @@ namespace API.DB.DAOs
             }
 
             if (atendimento != null)
-                atendimento.ColaboradoresIds = (await ObterColaboradoresIdsAsync(dbContext, atendimento.Id)).ToList();
+                atendimento.ColaboradoresIds = (await _atendimentoColaboradoresDAO.ObterColaboradoresIdsAsync(dbContext, atendimento.Id)).ToList();
 
             return atendimento;
-        }
-
-        public async Task<IEnumerable<int>> ObterColaboradoresIdsAsync(DBContext dbContext, int atendimentoId)
-        {
-            var ids = new List<int>();
-
-            await using var con = await dbContext.GetConnectionAsync();
-            await using var cmd = con.CreateCommand();
-            cmd.CommandText = @"
-                SELECT ColaboradorId
-                FROM AtendimentoColaborador
-                WHERE AtendimentoId = @AtendimentoId
-                ORDER BY ColaboradorId;
-            ";
-            cmd.Parameters.AddWithValue("@AtendimentoId", atendimentoId);
-
-            await using var dr = await cmd.ExecuteReaderAsync();
-            while (await dr.ReadAsync())
-                ids.Add(Convert.ToInt32(dr["ColaboradorId"]));
-
-            return ids;
         }
 
         public async Task<bool> ExisteConflitoHorarioAsync(
@@ -265,24 +241,5 @@ namespace API.DB.DAOs
             return count > 0;
         }
 
-        private static async Task InserirColaboradoresAsync(
-            SqlConnection connection,
-            SqlTransaction transaction,
-            int atendimentoId,
-            IEnumerable<int> colaboradoresIds)
-        {
-            foreach (var colaboradorId in colaboradoresIds.Distinct())
-            {
-                await using var cmd = connection.CreateCommand();
-                cmd.Transaction = transaction;
-                cmd.CommandText = @"
-                    INSERT INTO AtendimentoColaborador (AtendimentoId, ColaboradorId)
-                    VALUES (@AtendimentoId, @ColaboradorId);
-                ";
-                cmd.Parameters.AddWithValue("@AtendimentoId", atendimentoId);
-                cmd.Parameters.AddWithValue("@ColaboradorId", colaboradorId);
-                await cmd.ExecuteNonQueryAsync();
-            }
-        }
     }
 }

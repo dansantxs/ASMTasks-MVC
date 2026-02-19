@@ -67,6 +67,7 @@ builder.Services.AddScoped<CargosDAO>();
 builder.Services.AddScoped<ColaboradoresDAO>();
 builder.Services.AddScoped<ClientesDAO>();
 builder.Services.AddScoped<AtendimentosDAO>();
+builder.Services.AddScoped<AtendimentoColaboradoresDAO>();
 
 var app = builder.Build();
 
@@ -85,4 +86,6 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 app.Run();
+
+
 
