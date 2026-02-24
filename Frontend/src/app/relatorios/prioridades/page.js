@@ -49,6 +49,17 @@ const getLogoDataUrl = async () => {
   }
 };
 
+function hexToRgb(hex) {
+  const match = /^#([0-9a-f]{6})$/i.exec(hex ?? '');
+  if (!match) return null;
+  const raw = match[1];
+  return {
+    r: parseInt(raw.slice(0, 2), 16),
+    g: parseInt(raw.slice(2, 4), 16),
+    b: parseInt(raw.slice(4, 6), 16),
+  };
+}
+
 export default function PrioridadesReportPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
@@ -152,7 +163,10 @@ export default function PrioridadesReportPage() {
     const doc = new jsPDF();
     const activeColumns = columns.filter((c) => selectedColumns.includes(c.id));
     const { filtersSummary, columnsSummary } = buildFiltersSummary(activeColumns);
-    const body = sortedData.map((row) => activeColumns.map((col) => row[col.id] ?? ''));
+    const body = sortedData.map((row) =>
+      activeColumns.map((col) => (col.id === 'color' ? row.color : row[col.id] ?? ''))
+    );
+    const colorColumnIndex = activeColumns.findIndex((col) => col.id === 'color');
     const emissionDate = new Date().toLocaleString('pt-BR');
     const logoDataUrl = await getLogoDataUrl();
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -164,6 +178,19 @@ export default function PrioridadesReportPage() {
       styles: { fontSize: 8 },
       headStyles: { overflow: 'ellipsize' },
       margin: { top: 52, bottom: 22, left: 14, right: 14 },
+      didDrawCell: (data) => {
+        if (data.section !== 'body' || data.column.index !== colorColumnIndex) return;
+        const rgb = hexToRgb(String(data.cell.raw ?? ''));
+        if (!rgb) return;
+
+        const size = 3.2;
+        const x = data.cell.x + 1.6;
+        const y = data.cell.y + (data.cell.height - size) / 2;
+        doc.setFillColor(rgb.r, rgb.g, rgb.b);
+        doc.rect(x, y, size, size, 'F');
+        doc.setDrawColor(120);
+        doc.rect(x, y, size, size);
+      },
       didDrawPage: () => {
         doc.setFontSize(12);
         doc.text(reportTitle, 14, 16);
@@ -182,6 +209,9 @@ export default function PrioridadesReportPage() {
         const columnsLines = doc.splitTextToSize(columnsSummary, pageWidth - 70);
         const columnsStartY = filtersStartY + filtersLines.length * 6;
         doc.text(columnsLines, 14, columnsStartY);
+
+        doc.setDrawColor(200);
+        doc.line(14, pageHeight - 18, pageWidth - 14, pageHeight - 18);
 
         doc.setFontSize(8);
         doc.text(companyLegalName, 14, pageHeight - 14);
@@ -342,9 +372,23 @@ export default function PrioridadesReportPage() {
                 <TableBody>
                   {sortedData.map((row) => (
                     <TableRow key={row.id} className="hover:bg-muted/40">
-                      {activeColumns.map((col) => (
-                        <TableCell key={col.id}>{row[col.id]}</TableCell>
-                      ))}
+                      {activeColumns.map((col) => {
+                        if (col.id !== 'color') {
+                          return <TableCell key={col.id}>{row[col.id]}</TableCell>;
+                        }
+
+                        return (
+                          <TableCell key={col.id}>
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="h-3.5 w-3.5 rounded-sm border border-slate-300"
+                                style={{ backgroundColor: row.color }}
+                              />
+                              <span>{row.color}</span>
+                            </div>
+                          </TableCell>
+                        );
+                      })}
                     </TableRow>
                   ))}
                   {filteredData.length === 0 && (
@@ -363,3 +407,4 @@ export default function PrioridadesReportPage() {
     </div>
   );
 }
+

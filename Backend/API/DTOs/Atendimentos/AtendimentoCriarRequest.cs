@@ -9,5 +9,6 @@ namespace API.DTOs.Atendimentos
         public DateTime DataHoraInicio { get; set; }
         public DateTime? DataHoraFim { get; set; }
         public List<int> ColaboradoresIds { get; set; } = new List<int>();
+        public List<int> NotificacoesMinutosAntecedencia { get; set; } = new List<int>();
     }
 }

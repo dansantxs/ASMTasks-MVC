@@ -5,8 +5,6 @@ namespace API.DB.DAOs
 {
     public class AtendimentosDAO
     {
-        private readonly AtendimentoColaboradoresDAO _atendimentoColaboradoresDAO = new AtendimentoColaboradoresDAO();
-
         public async Task<int> CriarAsync(DBContext dbContext, Atendimento atendimento)
         {
             await using var con = await dbContext.GetConnectionAsync();
@@ -37,7 +35,8 @@ namespace API.DB.DAOs
                 var result = await cmd.ExecuteScalarAsync();
                 atendimento.Id = Convert.ToInt32(result);
 
-                await _atendimentoColaboradoresDAO.InserirColaboradoresAsync(con, transaction, atendimento.Id, atendimento.ColaboradoresIds);
+                await InserirColaboradoresAsync(con, transaction, atendimento.Id, atendimento.ColaboradoresIds);
+                await InserirNotificacoesAsync(con, transaction, atendimento.Id, atendimento.NotificacoesMinutosAntecedencia);
                 await transaction.CommitAsync();
 
                 return atendimento.Id;
@@ -84,8 +83,10 @@ namespace API.DB.DAOs
                     return false;
                 }
 
-                await _atendimentoColaboradoresDAO.RemoverPorAtendimentoIdAsync(con, transaction, atendimento.Id);
-                await _atendimentoColaboradoresDAO.InserirColaboradoresAsync(con, transaction, atendimento.Id, atendimento.ColaboradoresIds);
+                await RemoverColaboradoresPorAtendimentoIdAsync(con, transaction, atendimento.Id);
+                await InserirColaboradoresAsync(con, transaction, atendimento.Id, atendimento.ColaboradoresIds);
+                await RemoverNotificacoesPorAtendimentoIdAsync(con, transaction, atendimento.Id);
+                await InserirNotificacoesAsync(con, transaction, atendimento.Id, atendimento.NotificacoesMinutosAntecedencia);
                 await transaction.CommitAsync();
 
                 return true;
@@ -136,48 +137,58 @@ namespace API.DB.DAOs
             var lista = new List<Atendimento>();
 
             await using var con = await dbContext.GetConnectionAsync();
-            await using var cmd = con.CreateCommand();
-            cmd.CommandText = @"
-                SELECT Id, Titulo, Descricao, ClienteId, CadastradoPorColaboradorId, DataHoraInicio, DataHoraFim, Status, Ativo, DataCadastro
-                FROM Atendimento
-                WHERE (@DataInicio IS NULL OR DataHoraInicio >= @DataInicio)
-                  AND (@DataFim IS NULL OR DataHoraInicio <= @DataFim)
-                ORDER BY DataHoraInicio;
-            ";
-            cmd.Parameters.AddWithValue("@DataInicio", (object?)dataInicio ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@DataFim", (object?)dataFim ?? DBNull.Value);
+            await AtualizarAtendimentosVencidosAsync(con);
 
-            await using var dr = await cmd.ExecuteReaderAsync();
-            while (await dr.ReadAsync())
             {
-                var atendimento = new Atendimento
-                {
-                    Id = Convert.ToInt32(dr["Id"]),
-                    Titulo = dr["Titulo"].ToString() ?? string.Empty,
-                    Descricao = dr["Descricao"]?.ToString(),
-                    ClienteId = Convert.ToInt32(dr["ClienteId"]),
-                    CadastradoPorColaboradorId = Convert.ToInt32(dr["CadastradoPorColaboradorId"]),
-                    DataHoraInicio = Convert.ToDateTime(dr["DataHoraInicio"]),
-                    DataHoraFim = dr["DataHoraFim"] == DBNull.Value ? null : Convert.ToDateTime(dr["DataHoraFim"]),
-                    Status = Convert.ToChar(dr["Status"]),
-                    Ativo = Convert.ToBoolean(dr["Ativo"]),
-                    DataCadastro = Convert.ToDateTime(dr["DataCadastro"])
-                };
+                await using var cmd = con.CreateCommand();
+                cmd.CommandText = @"
+                    SELECT Id, Titulo, Descricao, ClienteId, CadastradoPorColaboradorId, DataHoraInicio, DataHoraFim, Status, Ativo, DataCadastro
+                    FROM Atendimento
+                    WHERE (@DataInicio IS NULL OR COALESCE(DataHoraFim, DataHoraInicio) >= @DataInicio)
+                      AND (@DataFim IS NULL OR DataHoraInicio <= @DataFim)
+                    ORDER BY DataHoraInicio;
+                ";
+                cmd.Parameters.AddWithValue("@DataInicio", (object?)dataInicio ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@DataFim", (object?)dataFim ?? DBNull.Value);
 
-                lista.Add(atendimento);
+                await using var dr = await cmd.ExecuteReaderAsync();
+                while (await dr.ReadAsync())
+                {
+                    var atendimento = new Atendimento
+                    {
+                        Id = Convert.ToInt32(dr["Id"]),
+                        Titulo = dr["Titulo"].ToString() ?? string.Empty,
+                        Descricao = dr["Descricao"]?.ToString(),
+                        ClienteId = Convert.ToInt32(dr["ClienteId"]),
+                        CadastradoPorColaboradorId = Convert.ToInt32(dr["CadastradoPorColaboradorId"]),
+                        DataHoraInicio = Convert.ToDateTime(dr["DataHoraInicio"]),
+                        DataHoraFim = dr["DataHoraFim"] == DBNull.Value ? null : Convert.ToDateTime(dr["DataHoraFim"]),
+                        Status = Convert.ToChar(dr["Status"]),
+                        Ativo = Convert.ToBoolean(dr["Ativo"]),
+                        DataCadastro = Convert.ToDateTime(dr["DataCadastro"])
+                    };
+
+                    lista.Add(atendimento);
+                }
             }
 
             foreach (var atendimento in lista)
-                atendimento.ColaboradoresIds = (await _atendimentoColaboradoresDAO.ObterColaboradoresIdsAsync(dbContext, atendimento.Id)).ToList();
+            {
+                atendimento.ColaboradoresIds = (await ObterColaboradoresIdsAsync(con, atendimento.Id)).ToList();
+                atendimento.NotificacoesMinutosAntecedencia = (await ObterNotificacoesAsync(con, atendimento.Id)).ToList();
+            }
 
             return lista;
         }
 
-        public async Task<Atendimento?> ObterPorIdAsync(DBContext dbContext, int id)
+        public async Task<Atendimento?> ObterPorIdAsync(DBContext dbContext, int id, bool aplicarAutoFinalizacao = true)
         {
             Atendimento? atendimento = null;
 
             await using var con = await dbContext.GetConnectionAsync();
+            if (aplicarAutoFinalizacao)
+                await AtualizarAtendimentosVencidosAsync(con);
+
             await using var cmd = con.CreateCommand();
             cmd.CommandText = @"
                 SELECT Id, Titulo, Descricao, ClienteId, CadastradoPorColaboradorId, DataHoraInicio, DataHoraFim, Status, Ativo, DataCadastro
@@ -186,26 +197,31 @@ namespace API.DB.DAOs
             ";
             cmd.Parameters.AddWithValue("@Id", id);
 
-            await using var dr = await cmd.ExecuteReaderAsync();
-            if (await dr.ReadAsync())
             {
-                atendimento = new Atendimento
+                await using var dr = await cmd.ExecuteReaderAsync();
+                if (await dr.ReadAsync())
                 {
-                    Id = Convert.ToInt32(dr["Id"]),
-                    Titulo = dr["Titulo"].ToString() ?? string.Empty,
-                    Descricao = dr["Descricao"]?.ToString(),
-                    ClienteId = Convert.ToInt32(dr["ClienteId"]),
-                    CadastradoPorColaboradorId = Convert.ToInt32(dr["CadastradoPorColaboradorId"]),
-                    DataHoraInicio = Convert.ToDateTime(dr["DataHoraInicio"]),
-                    DataHoraFim = dr["DataHoraFim"] == DBNull.Value ? null : Convert.ToDateTime(dr["DataHoraFim"]),
-                    Status = Convert.ToChar(dr["Status"]),
-                    Ativo = Convert.ToBoolean(dr["Ativo"]),
-                    DataCadastro = Convert.ToDateTime(dr["DataCadastro"])
-                };
+                    atendimento = new Atendimento
+                    {
+                        Id = Convert.ToInt32(dr["Id"]),
+                        Titulo = dr["Titulo"].ToString() ?? string.Empty,
+                        Descricao = dr["Descricao"]?.ToString(),
+                        ClienteId = Convert.ToInt32(dr["ClienteId"]),
+                        CadastradoPorColaboradorId = Convert.ToInt32(dr["CadastradoPorColaboradorId"]),
+                        DataHoraInicio = Convert.ToDateTime(dr["DataHoraInicio"]),
+                        DataHoraFim = dr["DataHoraFim"] == DBNull.Value ? null : Convert.ToDateTime(dr["DataHoraFim"]),
+                        Status = Convert.ToChar(dr["Status"]),
+                        Ativo = Convert.ToBoolean(dr["Ativo"]),
+                        DataCadastro = Convert.ToDateTime(dr["DataCadastro"])
+                    };
+                }
             }
 
             if (atendimento != null)
-                atendimento.ColaboradoresIds = (await _atendimentoColaboradoresDAO.ObterColaboradoresIdsAsync(dbContext, atendimento.Id)).ToList();
+            {
+                atendimento.ColaboradoresIds = (await ObterColaboradoresIdsAsync(con, atendimento.Id)).ToList();
+                atendimento.NotificacoesMinutosAntecedencia = (await ObterNotificacoesAsync(con, atendimento.Id)).ToList();
+            }
 
             return atendimento;
         }
@@ -226,8 +242,8 @@ namespace API.DB.DAOs
                 WHERE ac.ColaboradorId = @ColaboradorId
                   AND a.Ativo = 1
                   AND (@AtendimentoIdIgnorar IS NULL OR a.Id <> @AtendimentoIdIgnorar)
-                  AND @NovoInicio < COALESCE(a.DataHoraFim, a.DataHoraInicio)
-                  AND a.DataHoraInicio < COALESCE(@NovoFim, @NovoInicio);
+                  AND @NovoInicio < COALESCE(a.DataHoraFim, DATEADD(MINUTE, 1, a.DataHoraInicio))
+                  AND a.DataHoraInicio < COALESCE(@NovoFim, DATEADD(MINUTE, 1, @NovoInicio));
             ";
 
             cmd.Parameters.AddWithValue("@ColaboradorId", colaboradorId);
@@ -239,6 +255,125 @@ namespace API.DB.DAOs
             int count = Convert.ToInt32(result);
 
             return count > 0;
+        }
+
+        private static async Task AtualizarAtendimentosVencidosAsync(SqlConnection connection)
+        {
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"
+                UPDATE Atendimento
+                SET Status = 'R'
+                WHERE Ativo = 1
+                  AND Status = 'A'
+                  AND DataHoraFim IS NOT NULL
+                  AND DataHoraFim <= @Agora;
+            ";
+            cmd.Parameters.AddWithValue("@Agora", DateTime.Now);
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        private static async Task InserirColaboradoresAsync(
+            SqlConnection connection,
+            SqlTransaction transaction,
+            int atendimentoId,
+            IEnumerable<int> colaboradoresIds)
+        {
+            foreach (var colaboradorId in colaboradoresIds.Distinct())
+            {
+                await using var cmd = connection.CreateCommand();
+                cmd.Transaction = transaction;
+                cmd.CommandText = @"
+                    INSERT INTO AtendimentoColaborador (AtendimentoId, ColaboradorId)
+                    VALUES (@AtendimentoId, @ColaboradorId);
+                ";
+                cmd.Parameters.AddWithValue("@AtendimentoId", atendimentoId);
+                cmd.Parameters.AddWithValue("@ColaboradorId", colaboradorId);
+                await cmd.ExecuteNonQueryAsync();
+            }
+        }
+
+        private static async Task RemoverColaboradoresPorAtendimentoIdAsync(
+            SqlConnection connection,
+            SqlTransaction transaction,
+            int atendimentoId)
+        {
+            await using var cmd = connection.CreateCommand();
+            cmd.Transaction = transaction;
+            cmd.CommandText = "DELETE FROM AtendimentoColaborador WHERE AtendimentoId = @AtendimentoId";
+            cmd.Parameters.AddWithValue("@AtendimentoId", atendimentoId);
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        private static async Task<IEnumerable<int>> ObterColaboradoresIdsAsync(SqlConnection connection, int atendimentoId)
+        {
+            var ids = new List<int>();
+
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"
+                SELECT ColaboradorId
+                FROM AtendimentoColaborador
+                WHERE AtendimentoId = @AtendimentoId
+                ORDER BY ColaboradorId;
+            ";
+            cmd.Parameters.AddWithValue("@AtendimentoId", atendimentoId);
+
+            await using var dr = await cmd.ExecuteReaderAsync();
+            while (await dr.ReadAsync())
+                ids.Add(Convert.ToInt32(dr["ColaboradorId"]));
+
+            return ids;
+        }
+
+        private static async Task InserirNotificacoesAsync(
+            SqlConnection connection,
+            SqlTransaction transaction,
+            int atendimentoId,
+            IEnumerable<int> notificacoesMinutos)
+        {
+            foreach (var minutos in notificacoesMinutos.Distinct().OrderBy(x => x))
+            {
+                await using var cmd = connection.CreateCommand();
+                cmd.Transaction = transaction;
+                cmd.CommandText = @"
+                    INSERT INTO AtendimentoNotificacao (AtendimentoId, MinutosAntecedencia)
+                    VALUES (@AtendimentoId, @MinutosAntecedencia);
+                ";
+                cmd.Parameters.AddWithValue("@AtendimentoId", atendimentoId);
+                cmd.Parameters.AddWithValue("@MinutosAntecedencia", minutos);
+                await cmd.ExecuteNonQueryAsync();
+            }
+        }
+
+        private static async Task RemoverNotificacoesPorAtendimentoIdAsync(
+            SqlConnection connection,
+            SqlTransaction transaction,
+            int atendimentoId)
+        {
+            await using var cmd = connection.CreateCommand();
+            cmd.Transaction = transaction;
+            cmd.CommandText = "DELETE FROM AtendimentoNotificacao WHERE AtendimentoId = @AtendimentoId";
+            cmd.Parameters.AddWithValue("@AtendimentoId", atendimentoId);
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        private static async Task<IEnumerable<int>> ObterNotificacoesAsync(SqlConnection connection, int atendimentoId)
+        {
+            var notificacoes = new List<int>();
+
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"
+                SELECT MinutosAntecedencia
+                FROM AtendimentoNotificacao
+                WHERE AtendimentoId = @AtendimentoId
+                ORDER BY MinutosAntecedencia;
+            ";
+            cmd.Parameters.AddWithValue("@AtendimentoId", atendimentoId);
+
+            await using var dr = await cmd.ExecuteReaderAsync();
+            while (await dr.ReadAsync())
+                notificacoes.Add(Convert.ToInt32(dr["MinutosAntecedencia"]));
+
+            return notificacoes;
         }
 
     }
