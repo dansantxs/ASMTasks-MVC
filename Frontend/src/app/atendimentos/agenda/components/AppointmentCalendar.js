@@ -16,18 +16,23 @@ function formatHour(date) {
   return new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(date);
 }
 
-function isSameDay(a, b) {
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  );
+function overlapsDay(appointment, day) {
+  const dayStart = new Date(day);
+  dayStart.setHours(0, 0, 0, 0);
+
+  const dayEnd = new Date(day);
+  dayEnd.setHours(23, 59, 59, 999);
+
+  const start = appointment.dataHoraInicio;
+  const end = appointment.dataHoraFim ?? appointment.dataHoraInicio;
+
+  return start <= dayEnd && end >= dayStart;
 }
 
 export default function AppointmentCalendar({ days, appointments, onSelectAppointment }) {
   const byDay = days.map((day) =>
     appointments
-      .filter((a) => isSameDay(a.dataHoraInicio, day))
+      .filter((a) => overlapsDay(a, day))
       .sort((a, b) => a.dataHoraInicio - b.dataHoraInicio)
   );
 
@@ -36,8 +41,8 @@ export default function AppointmentCalendar({ days, appointments, onSelectAppoin
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
-        <Badge className="bg-brand-blue hover:bg-brand-blue-dark">Agendados: {totalAgendados}</Badge>
-        <Badge variant="outline" className="border-emerald-600 text-emerald-700">
+        <Badge className="bg-emerald-600 hover:bg-emerald-700">Agendados: {totalAgendados}</Badge>
+        <Badge variant="outline" className="border-slate-500 text-slate-700">
           Realizados: {totalRealizados}
         </Badge>
       </div>
@@ -59,8 +64,8 @@ export default function AppointmentCalendar({ days, appointments, onSelectAppoin
                     onClick={() => onSelectAppointment?.(item)}
                     className={`rounded-md border p-2 text-sm ${
                       item.status === 'R'
-                        ? 'bg-emerald-50 border-emerald-200'
-                        : 'bg-brand-blue/5 border-brand-blue/20'
+                        ? 'bg-slate-100 border-slate-300'
+                        : 'bg-emerald-50 border-emerald-200'
                     } w-full text-left transition-colors hover:bg-accent`}
                   >
                     <p className="font-medium leading-tight">{item.titulo}</p>

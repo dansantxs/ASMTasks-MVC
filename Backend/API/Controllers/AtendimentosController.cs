@@ -34,7 +34,8 @@ namespace API.Controllers
                     CadastradoPorColaboradorId = request.CadastradoPorColaboradorId,
                     DataHoraInicio = request.DataHoraInicio,
                     DataHoraFim = request.DataHoraFim,
-                    ColaboradoresIds = request.ColaboradoresIds
+                    ColaboradoresIds = request.ColaboradoresIds,
+                    NotificacoesMinutosAntecedencia = request.NotificacoesMinutosAntecedencia
                 };
 
                 var id = await atendimento.CriarAsync(_dbContext);
@@ -59,7 +60,7 @@ namespace API.Controllers
         {
             try
             {
-                var atendimento = await Atendimento.ObterPorIdAsync(_dbContext, id);
+                var atendimento = await Atendimento.ObterPorIdAsync(_dbContext, id, aplicarAutoFinalizacao: false);
                 if (atendimento == null)
                     return NotFound(new { erro = "Atendimento nao encontrado." });
 
@@ -70,6 +71,7 @@ namespace API.Controllers
                 atendimento.DataHoraInicio = request.DataHoraInicio;
                 atendimento.DataHoraFim = request.DataHoraFim;
                 atendimento.ColaboradoresIds = request.ColaboradoresIds;
+                atendimento.NotificacoesMinutosAntecedencia = request.NotificacoesMinutosAntecedencia;
 
                 await atendimento.AtualizarAsync(_dbContext);
                 return NoContent();
@@ -205,7 +207,8 @@ namespace API.Controllers
                 Status = a.Status,
                 Ativo = a.Ativo,
                 DataCadastro = a.DataCadastro,
-                ColaboradoresIds = a.ColaboradoresIds
+                ColaboradoresIds = a.ColaboradoresIds,
+                NotificacoesMinutosAntecedencia = a.NotificacoesMinutosAntecedencia
             });
 
             return Ok(response);
@@ -232,7 +235,8 @@ namespace API.Controllers
                 Status = a.Status,
                 Ativo = a.Ativo,
                 DataCadastro = a.DataCadastro,
-                ColaboradoresIds = a.ColaboradoresIds
+                ColaboradoresIds = a.ColaboradoresIds,
+                NotificacoesMinutosAntecedencia = a.NotificacoesMinutosAntecedencia
             };
 
             return Ok(response);

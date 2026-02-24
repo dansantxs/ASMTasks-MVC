@@ -19,6 +19,7 @@ namespace API.Models
         public bool Ativo { get; set; } = true;
         public DateTime DataCadastro { get; set; }
         public List<int> ColaboradoresIds { get; set; } = new List<int>();
+        public List<int> NotificacoesMinutosAntecedencia { get; set; } = new List<int>();
 
         private void ValidarDados()
         {
@@ -42,6 +43,9 @@ namespace API.Models
 
             if (ColaboradoresIds.Any(id => id <= 0))
                 throw new ValidationException("Lista de colaboradores contem IDs invalidos.");
+
+            if (NotificacoesMinutosAntecedencia.Any(min => min <= 0))
+                throw new ValidationException("Os tempos de notificacao devem ser maiores que zero.");
         }
 
         private async Task ValidarEntidadesRelacionadasAsync(DBContext dbContext)
@@ -92,6 +96,7 @@ namespace API.Models
             Status = 'A';
             DataCadastro = DateTime.Now;
             ColaboradoresIds = ColaboradoresIds.Distinct().ToList();
+            NotificacoesMinutosAntecedencia = NotificacoesMinutosAntecedencia.Distinct().OrderBy(x => x).ToList();
 
             return await _atendimentosDAO.CriarAsync(dbContext, this);
         }
@@ -106,6 +111,7 @@ namespace API.Models
             await ValidarConflitosHorarioAsync(dbContext, Id);
 
             ColaboradoresIds = ColaboradoresIds.Distinct().ToList();
+            NotificacoesMinutosAntecedencia = NotificacoesMinutosAntecedencia.Distinct().OrderBy(x => x).ToList();
             var atualizado = await _atendimentosDAO.AtualizarAsync(dbContext, this);
             if (!atualizado)
                 throw new ValidationException("Atendimento nao encontrado.");
@@ -113,6 +119,9 @@ namespace API.Models
 
         public async Task InativarAsync(DBContext dbContext)
         {
+            if (Status == 'R')
+                throw new ValidationException("Nao e permitido excluir um atendimento concluido.");
+
             var inativado = await _atendimentosDAO.InativarAsync(dbContext, Id);
             if (!inativado)
                 throw new ValidationException("Atendimento nao encontrado.");
@@ -146,9 +155,9 @@ namespace API.Models
             return await _atendimentosDAO.ObterTodosAsync(dbContext, dataInicio, dataFim);
         }
 
-        public static async Task<Atendimento?> ObterPorIdAsync(DBContext dbContext, int id)
+        public static async Task<Atendimento?> ObterPorIdAsync(DBContext dbContext, int id, bool aplicarAutoFinalizacao = true)
         {
-            return await _atendimentosDAO.ObterPorIdAsync(dbContext, id);
+            return await _atendimentosDAO.ObterPorIdAsync(dbContext, id, aplicarAutoFinalizacao);
         }
     }
 }

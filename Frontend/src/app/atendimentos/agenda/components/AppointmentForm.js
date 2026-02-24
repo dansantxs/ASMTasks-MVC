@@ -20,6 +20,13 @@ import {
   SelectValue,
 } from '../../../../ui/form/select';
 
+const notificationOptions = [
+  { label: '30 minutos antes', value: 30 },
+  { label: '1 hora antes', value: 60 },
+  { label: '3 horas antes', value: 180 },
+  { label: '1 dia antes', value: 1440 },
+];
+
 function toDateTimeLocalValue(date) {
   const local = new Date(date);
   local.setMinutes(local.getMinutes() - local.getTimezoneOffset());
@@ -43,6 +50,7 @@ export default function AppointmentForm({
     dataHoraInicio: '',
     dataHoraFim: '',
     colaboradoresIds: [],
+    notificacoesMinutosAntecedencia: [],
   });
   const [errors, setErrors] = useState({});
 
@@ -72,6 +80,7 @@ export default function AppointmentForm({
           : '',
         dataHoraFim: appointment.dataHoraFim ? toDateTimeLocalValue(appointment.dataHoraFim) : '',
         colaboradoresIds: appointment.colaboradoresIds ?? [],
+        notificacoesMinutosAntecedencia: appointment.notificacoesMinutosAntecedencia ?? [],
       });
       setErrors({});
       return;
@@ -91,6 +100,7 @@ export default function AppointmentForm({
       dataHoraInicio: toDateTimeLocalValue(base),
       dataHoraFim: toDateTimeLocalValue(fim),
       colaboradoresIds: [],
+      notificacoesMinutosAntecedencia: [],
     });
     setErrors({});
   }, [open, appointment]);
@@ -103,6 +113,18 @@ export default function AppointmentForm({
         colaboradoresIds: already
           ? prev.colaboradoresIds.filter((item) => item !== id)
           : [...prev.colaboradoresIds, id],
+      };
+    });
+  };
+
+  const toggleNotificacao = (value) => {
+    setFormData((prev) => {
+      const already = prev.notificacoesMinutosAntecedencia.includes(value);
+      return {
+        ...prev,
+        notificacoesMinutosAntecedencia: already
+          ? prev.notificacoesMinutosAntecedencia.filter((item) => item !== value)
+          : [...prev.notificacoesMinutosAntecedencia, value],
       };
     });
   };
@@ -143,6 +165,7 @@ export default function AppointmentForm({
       dataHoraInicio: formData.dataHoraInicio,
       dataHoraFim: formData.dataHoraFim || null,
       colaboradoresIds: formData.colaboradoresIds.map(Number),
+      notificacoesMinutosAntecedencia: formData.notificacoesMinutosAntecedencia.map(Number),
     });
   };
 
@@ -173,12 +196,12 @@ export default function AppointmentForm({
             </div>
 
             <div className="md:col-span-2">
-              <Label htmlFor="descricao">Descricao</Label>
+              <Label htmlFor="descricao">Descrição</Label>
               <Textarea
                 id="descricao"
                 value={formData.descricao}
                 onChange={(e) => setFormData((prev) => ({ ...prev, descricao: e.target.value }))}
-                placeholder="Observacoes do atendimento (opcional)"
+                placeholder="Observacoes do atendimento"
               />
             </div>
 
@@ -241,7 +264,7 @@ export default function AppointmentForm({
             </div>
 
             <div>
-              <Label htmlFor="dataHoraFim">Data/hora fim (opcional)</Label>
+              <Label htmlFor="dataHoraFim">Data/hora fim</Label>
               <Input
                 id="dataHoraFim"
                 type="datetime-local"
@@ -276,6 +299,25 @@ export default function AppointmentForm({
             {errors.colaboradoresIds && (
               <p className="text-sm text-destructive mt-1">{errors.colaboradoresIds}</p>
             )}
+          </div>
+
+          <div>
+            <Label>Notificacoes antes do atendimento</Label>
+            <div className="mt-2 rounded-md border p-3 grid grid-cols-1 md:grid-cols-2 gap-2">
+              {notificationOptions.map((option) => (
+                <label
+                  key={option.value}
+                  className="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-muted/40 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={formData.notificacoesMinutosAntecedencia.includes(option.value)}
+                    onChange={() => toggleNotificacao(option.value)}
+                  />
+                  <span className="text-sm">{option.label}</span>
+                </label>
+              ))}
+            </div>
           </div>
 
           <div className="flex justify-end gap-3 pt-2">

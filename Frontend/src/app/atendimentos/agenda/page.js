@@ -73,6 +73,7 @@ export default function AgendaAtendimentosPage() {
   const { data: atendimentosApi = [], isLoading: isLoadingAtendimentos } = useQuery({
     queryKey: ['atendimentos', toIso(weekStart), toIso(weekEnd)],
     queryFn: () => getAtendimentos(toIso(weekStart), toIso(weekEnd)),
+    refetchOnWindowFocus: false,
   });
 
   const clientesById = useMemo(() => {
@@ -102,6 +103,7 @@ export default function AgendaAtendimentosPage() {
         status: item.status,
         ativo: item.ativo,
         colaboradoresIds: item.colaboradoresIds ?? [],
+        notificacoesMinutosAntecedencia: item.notificacoesMinutosAntecedencia ?? [],
         colaboradoresNomes: (item.colaboradoresIds ?? [])
           .map((id) => colaboradoresById.get(id))
           .filter(Boolean),
@@ -142,10 +144,14 @@ export default function AgendaAtendimentosPage() {
 
   const desmarcarConclusao = useMutation({
     mutationFn: marcarAtendimentoComoAgendado,
-    onSuccess: () => {
-      queryClient.invalidateQueries(['atendimentos']);
-      setIsViewOpen(false);
-      setSelectedAppointment(null);
+    onSuccess: (_, id) => {
+      queryClient.setQueriesData({ queryKey: ['atendimentos'] }, (old) => {
+        if (!Array.isArray(old)) return old;
+        return old.map((item) => (item.id === id ? { ...item, status: 'A' } : item));
+      });
+      setSelectedAppointment((prev) =>
+        prev?.id === id ? { ...prev, status: 'A' } : prev
+      );
       toast.success('Atendimento retornou para agendado.');
     },
     onError: (error) => toast.error(error?.message ?? 'Erro ao desmarcar atendimento concluido.'),
@@ -263,7 +269,11 @@ export default function AgendaAtendimentosPage() {
               ? desmarcarConclusao.mutate(selectedAppointment.id)
               : concluir.mutate(selectedAppointment.id))
           }
-          onDelete={() => selectedAppointment?.id && excluir.mutate(selectedAppointment.id)}
+          onDelete={() =>
+            selectedAppointment?.id &&
+            selectedAppointment?.status !== 'R' &&
+            excluir.mutate(selectedAppointment.id)
+          }
           isTogglingConclude={concluir.isPending || desmarcarConclusao.isPending}
           isDeleting={excluir.isPending}
         />

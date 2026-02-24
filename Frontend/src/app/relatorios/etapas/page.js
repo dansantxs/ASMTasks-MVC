@@ -175,6 +175,8 @@ export default function EtapasReportPage() {
         const columnsLines = doc.splitTextToSize(columnsSummary, pageWidth - 70);
         const columnsStartY = filtersStartY + filtersLines.length * 6;
         doc.text(columnsLines, 14, columnsStartY);
+        doc.setDrawColor(200);
+        doc.line(14, pageHeight - 18, pageWidth - 14, pageHeight - 18);
 
         doc.setFontSize(8);
         doc.text(companyLegalName, 14, pageHeight - 14);
@@ -356,3 +358,4 @@ export default function EtapasReportPage() {
     </div>
   );
 }
+
