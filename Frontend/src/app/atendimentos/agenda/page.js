@@ -49,6 +49,8 @@ export default function AgendaAtendimentosPage() {
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
+  const [filteredColaboradoresIds, setFilteredColaboradoresIds] = useState([]);
+  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const weekEnd = useMemo(() => endOfWeek(weekStart), [weekStart]);
@@ -109,6 +111,22 @@ export default function AgendaAtendimentosPage() {
           .filter(Boolean),
       }));
   }, [atendimentosApi, clientesById, colaboradoresById]);
+
+  const atendimentosFiltrados = useMemo(() => {
+    if (filteredColaboradoresIds.length === 0) return atendimentos;
+
+    return atendimentos.filter((atendimento) =>
+      atendimento.colaboradoresIds?.some((id) => filteredColaboradoresIds.includes(id))
+    );
+  }, [atendimentos, filteredColaboradoresIds]);
+
+  const toggleFiltroColaborador = (colaboradorId) => {
+    setFilteredColaboradoresIds((prev) =>
+      prev.includes(colaboradorId)
+        ? prev.filter((id) => id !== colaboradorId)
+        : [...prev, colaboradorId]
+    );
+  };
 
   const criar = useMutation({
     mutationFn: criarAtendimento,
@@ -241,11 +259,56 @@ export default function AgendaAtendimentosPage() {
         {isLoadingAtendimentos ? (
           <div className="p-6">Carregando agenda...</div>
         ) : (
-          <AppointmentCalendar
-            days={weekDays}
-            appointments={atendimentos}
-            onSelectAppointment={handleOpenView}
-          />
+          <div className="space-y-4">
+            <div className="rounded-lg border bg-card p-4 space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsFilterPanelOpen((prev) => !prev)}
+                >
+                  {isFilterPanelOpen ? 'Ocultar filtro de colaboradores' : 'Mostrar filtro de colaboradores'}
+                </Button>
+                {filteredColaboradoresIds.length > 0 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setFilteredColaboradoresIds([])}
+                  >
+                    Limpar filtro
+                  </Button>
+                )}
+              </div>
+
+              {isFilterPanelOpen && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                  {colaboradores
+                    .filter((colaborador) => colaborador.ativo)
+                    .map((colaborador) => (
+                      <label
+                        key={colaborador.id}
+                        className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm hover:bg-muted/40 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={filteredColaboradoresIds.includes(colaborador.id)}
+                          onChange={() => toggleFiltroColaborador(colaborador.id)}
+                        />
+                        <span>{colaborador.nome}</span>
+                      </label>
+                    ))}
+                </div>
+              )}
+            </div>
+
+            <AppointmentCalendar
+              days={weekDays}
+              appointments={atendimentosFiltrados}
+              onSelectAppointment={handleOpenView}
+            />
+          </div>
         )}
 
         <AppointmentForm
