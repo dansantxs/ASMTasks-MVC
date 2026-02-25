@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '../../../ui/base/button';
 import { ChevronLeft, ChevronRight, Plus, CalendarDays } from 'lucide-react';
@@ -18,6 +18,7 @@ import {
   marcarAtendimentoComoAgendado,
   marcarAtendimentoComoRealizado,
 } from './api/atendimentos';
+import { getStoredSession } from '../../../shared/auth/session';
 
 function startOfWeek(date) {
   const d = new Date(date);
@@ -52,6 +53,9 @@ export default function AgendaAtendimentosPage() {
   const [filteredColaboradoresIds, setFilteredColaboradoresIds] = useState([]);
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const queryClient = useQueryClient();
+  const session = getStoredSession();
+  const colaboradorLogadoId = Number(session?.colaboradorId ?? 0);
+  const colaboradorLogadoNome = session?.colaboradorNome ?? '';
 
   const weekEnd = useMemo(() => endOfWeek(weekStart), [weekStart]);
   const weekDays = useMemo(() => {
@@ -99,6 +103,7 @@ export default function AgendaAtendimentosPage() {
         descricao: item.descricao,
         clienteId: item.clienteId,
         cadastradoPorColaboradorId: item.cadastradoPorColaboradorId,
+        cadastradoPorNome: colaboradoresById.get(item.cadastradoPorColaboradorId) ?? null,
         clienteNome: clientesById.get(item.clienteId) ?? null,
         dataHoraInicio: new Date(item.dataHoraInicio),
         dataHoraFim: item.dataHoraFim ? new Date(item.dataHoraFim) : null,
@@ -127,6 +132,12 @@ export default function AgendaAtendimentosPage() {
         : [...prev, colaboradorId]
     );
   };
+
+  useEffect(() => {
+    if (colaboradorLogadoId > 0 && filteredColaboradoresIds.length === 0) {
+      setFilteredColaboradoresIds([colaboradorLogadoId]);
+    }
+  }, [colaboradorLogadoId, filteredColaboradoresIds.length]);
 
   const criar = useMutation({
     mutationFn: criarAtendimento,
@@ -317,6 +328,7 @@ export default function AgendaAtendimentosPage() {
           clientes={clientes}
           colaboradores={colaboradores}
           appointment={selectedAppointment}
+          colaboradorLogadoNome={colaboradorLogadoNome}
           onSave={handleSave}
           isSaving={criar.isPending || atualizar.isPending}
         />

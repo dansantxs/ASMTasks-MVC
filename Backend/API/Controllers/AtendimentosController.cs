@@ -1,7 +1,9 @@
 using API.DB;
 using API.DTOs.Atendimentos;
 using API.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using System.ComponentModel.DataAnnotations;
 
 namespace API.Controllers
@@ -9,6 +11,7 @@ namespace API.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
+    [Authorize]
     public class AtendimentosController : ControllerBase
     {
         private readonly DBContext _dbContext;
@@ -31,7 +34,7 @@ namespace API.Controllers
                     Titulo = request.Titulo,
                     Descricao = request.Descricao,
                     ClienteId = request.ClienteId,
-                    CadastradoPorColaboradorId = request.CadastradoPorColaboradorId,
+                    CadastradoPorColaboradorId = ObterColaboradorIdLogado(),
                     DataHoraInicio = request.DataHoraInicio,
                     DataHoraFim = request.DataHoraFim,
                     ColaboradoresIds = request.ColaboradoresIds,
@@ -67,7 +70,6 @@ namespace API.Controllers
                 atendimento.Titulo = request.Titulo;
                 atendimento.Descricao = request.Descricao;
                 atendimento.ClienteId = request.ClienteId;
-                atendimento.CadastradoPorColaboradorId = request.CadastradoPorColaboradorId;
                 atendimento.DataHoraInicio = request.DataHoraInicio;
                 atendimento.DataHoraFim = request.DataHoraFim;
                 atendimento.ColaboradoresIds = request.ColaboradoresIds;
@@ -159,6 +161,15 @@ namespace API.Controllers
             {
                 return StatusCode(500, new { erro = "Erro ao atualizar status do atendimento.", detalhe = ex.Message });
             }
+        }
+
+        private int ObterColaboradorIdLogado()
+        {
+            var claim = User.FindFirstValue("colaboradorId");
+            if (!int.TryParse(claim, out var colaboradorId) || colaboradorId <= 0)
+                throw new ValidationException("Token invalido para identificar colaborador.");
+
+            return colaboradorId;
         }
 
         [HttpPut("{id}/agendar")]

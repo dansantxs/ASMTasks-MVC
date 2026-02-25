@@ -2,7 +2,7 @@
   "openapi": "3.0.4",
   "info": {
     "title": "API de Gerenciamento - ASMTasks",
-    "description": "\r\nEsta API gerencia entidades internas do sistema.\r\n\r\n### Recursos disponíveis:\r\n- **Cargos:** definição de funções/posições dentro da organização.\r\n- **Colaboradores:** gerenciamento de usuários/funcionários.\r\n- **Etapas:** controle de fases de desenvolvimento.\r\n- **Prioridades:** definição de níveis de prioridade.\r\n- **Setores:** organização de departamentos e responsáveis.\r\n- **Clientes:** gerenciamento de clientes.\r\n- **Atendimentos:** agenda de atendimentos com validacao de conflito de horario.\r\n\r\n### Funcionalidades gerais:\r\n- Criação (`POST`)\r\n- Atualização (`PUT`)\r\n- Inativação (`DELETE`)\r\n- Reativação (`PUT /reativar`)\r\n- Consulta (`GET`)\r\n        ",
+    "description": "\nEsta API gerencia entidades internas do sistema.\n\n### Recursos disponiveis:\n- **Cargos:** definicao de funcoes/posicoes dentro da organizacao.\n- **Colaboradores:** gerenciamento de usuarios/funcionarios.\n- **Etapas:** controle de fases de desenvolvimento.\n- **Prioridades:** definicao de niveis de prioridade.\n- **Setores:** organizacao de departamentos e responsaveis.\n- **Clientes:** gerenciamento de clientes.\n- **Atendimentos:** agenda de atendimentos com validacao de conflito de horario.\n\n### Funcionalidades gerais:\n- Criacao (`POST`)\n- Atualizacao (`PUT`)\n- Inativacao (`DELETE`)\n- Reativacao (`PUT /reativar`)\n- Consulta (`GET`)\n        ",
     "version": "v1"
   },
   "paths": {
@@ -315,6 +315,171 @@
           },
           "500": {
             "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/Auth/login": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Auth/me": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Auth/alterar-senha": {
+      "put": {
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlterarSenhaRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlterarSenhaRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlterarSenhaRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Auth/alterar-login": {
+      "put": {
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlterarLoginRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlterarLoginRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlterarLoginRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         }
       }
@@ -1660,6 +1825,30 @@
   },
   "components": {
     "schemas": {
+      "AlterarLoginRequest": {
+        "type": "object",
+        "properties": {
+          "novoLogin": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "AlterarSenhaRequest": {
+        "type": "object",
+        "properties": {
+          "senhaAtual": {
+            "type": "string",
+            "nullable": true
+          },
+          "novaSenha": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "AtendimentoAtualizarRequest": {
         "type": "object",
         "properties": {
@@ -1672,10 +1861,6 @@
             "nullable": true
           },
           "clienteId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "cadastradoPorColaboradorId": {
             "type": "integer",
             "format": "int32"
           },
@@ -1719,10 +1904,6 @@
             "nullable": true
           },
           "clienteId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "cadastradoPorColaboradorId": {
             "type": "integer",
             "format": "int32"
           },
@@ -2070,6 +2251,20 @@
         },
         "additionalProperties": false
       },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "login": {
+            "type": "string",
+            "nullable": true
+          },
+          "senha": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "PrioridadeAtualizarRequest": {
         "type": "object",
         "properties": {
@@ -2161,6 +2356,19 @@
         },
         "additionalProperties": false
       }
+    },
+    "securitySchemes": {
+      "Bearer": {
+        "type": "http",
+        "description": "Informe o token JWT no formato: Bearer {token}",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
     }
-  }
+  },
+  "security": [
+    {
+      "Bearer": [ ]
+    }
+  ]
 }

@@ -1,7 +1,8 @@
-const API_BASE_URL = "https://localhost:7199/api";
-const ATENDIMENTOS_API_URL = `${API_BASE_URL}/atendimentos`;
-const CLIENTES_API_URL = `${API_BASE_URL}/clientes`;
-const COLABORADORES_API_URL = `${API_BASE_URL}/colaboradores`;
+import { apiFetch } from '../../../../shared/api/http';
+
+const ATENDIMENTOS_API_URL = `/atendimentos`;
+const CLIENTES_API_URL = `/clientes`;
+const COLABORADORES_API_URL = `/colaboradores`;
 
 async function handleResponse(res) {
   const text = await res.text();
@@ -41,7 +42,7 @@ export async function getAtendimentos(dataInicio, dataFim) {
   if (dataFim) params.set("dataFim", dataFim);
 
   const query = params.toString();
-  const res = await fetch(
+  const res = await apiFetch(
     query ? `${ATENDIMENTOS_API_URL}?${query}` : ATENDIMENTOS_API_URL,
     { cache: "no-store" }
   );
@@ -50,7 +51,7 @@ export async function getAtendimentos(dataInicio, dataFim) {
 }
 
 export async function criarAtendimento(payload) {
-  const res = await fetch(ATENDIMENTOS_API_URL, {
+  const res = await apiFetch(ATENDIMENTOS_API_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -60,7 +61,7 @@ export async function criarAtendimento(payload) {
 }
 
 export async function atualizarAtendimento(id, payload) {
-  const res = await fetch(`${ATENDIMENTOS_API_URL}/${id}`, {
+  const res = await apiFetch(`${ATENDIMENTOS_API_URL}/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -70,7 +71,7 @@ export async function atualizarAtendimento(id, payload) {
 }
 
 export async function marcarAtendimentoComoRealizado(id) {
-  const res = await fetch(`${ATENDIMENTOS_API_URL}/${id}/realizar`, {
+  const res = await apiFetch(`${ATENDIMENTOS_API_URL}/${id}/realizar`, {
     method: "PUT",
   });
 
@@ -78,7 +79,7 @@ export async function marcarAtendimentoComoRealizado(id) {
 }
 
 export async function marcarAtendimentoComoAgendado(id) {
-  const res = await fetch(`${ATENDIMENTOS_API_URL}/${id}/agendar`, {
+  const res = await apiFetch(`${ATENDIMENTOS_API_URL}/${id}/agendar`, {
     method: "PUT",
   });
 
@@ -86,7 +87,7 @@ export async function marcarAtendimentoComoAgendado(id) {
 }
 
 export async function inativarAtendimento(id) {
-  const res = await fetch(`${ATENDIMENTOS_API_URL}/${id}`, {
+  const res = await apiFetch(`${ATENDIMENTOS_API_URL}/${id}`, {
     method: "DELETE",
   });
 
@@ -94,13 +95,13 @@ export async function inativarAtendimento(id) {
 }
 
 export async function getClientes() {
-  const res = await fetch(CLIENTES_API_URL, { cache: "no-store" });
+  const res = await apiFetch(CLIENTES_API_URL, { cache: "no-store" });
   const data = await handleResponse(res);
   return data ?? [];
 }
 
 export async function getColaboradores() {
-  const res = await fetch(COLABORADORES_API_URL, { cache: "no-store" });
+  const res = await apiFetch(COLABORADORES_API_URL, { cache: "no-store" });
   const data = await handleResponse(res);
   return data ?? [];
 }

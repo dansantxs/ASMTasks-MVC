@@ -2,16 +2,78 @@
 
 import { Sidebar } from "../shared/components/Sidebar";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import {
+  clearSession,
+  getInactivityLimitMs,
+  getStoredSession,
+  isSessionValid,
+  touchSessionActivity,
+} from "../shared/auth/session";
 
 export default function ClientLayout({ children }) {
   const pathname = usePathname();
   const router = useRouter();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isAuthChecked, setIsAuthChecked] = useState(false);
+  const isLoginPage = pathname === "/login";
+
+  const session = useMemo(() => getStoredSession(), [pathname]);
 
   const handleNavigate = (path) => {
     router.push(path);
   };
+
+  const handleLogout = () => {
+    clearSession();
+    router.replace("/login");
+  };
+
+  useEffect(() => {
+    if (isLoginPage) {
+      if (isSessionValid()) {
+        router.replace('/atendimentos/agenda');
+        return;
+      }
+      setIsAuthChecked(true);
+      return;
+    }
+
+    if (!isSessionValid()) {
+      clearSession();
+      router.replace("/login");
+      return;
+    }
+
+    setIsAuthChecked(true);
+  }, [isLoginPage, pathname, router]);
+
+  useEffect(() => {
+    if (isLoginPage || !isAuthChecked) return;
+
+    const updateActivity = () => touchSessionActivity();
+    const events = ["mousemove", "keydown", "click", "scroll", "touchstart"];
+    events.forEach((eventName) => window.addEventListener(eventName, updateActivity));
+
+    const interval = setInterval(() => {
+      const stored = getStoredSession();
+      const lastActivity = stored?.ultimoAcessoEm ?? 0;
+      if (Date.now() - lastActivity > getInactivityLimitMs()) {
+        handleLogout();
+      }
+    }, 15000);
+
+    return () => {
+      clearInterval(interval);
+      events.forEach((eventName) => window.removeEventListener(eventName, updateActivity));
+    };
+  }, [isLoginPage, isAuthChecked]);
+
+  if (!isAuthChecked) return null;
+
+  if (isLoginPage) {
+    return <>{children}</>;
+  }
 
   return (
     <div className="flex bg-background text-foreground min-h-screen">
@@ -19,6 +81,8 @@ export default function ClientLayout({ children }) {
         currentPath={pathname}
         onNavigate={handleNavigate}
         onToggleCollapse={setIsSidebarCollapsed}
+        colaboradorNome={session?.colaboradorNome ?? ""}
+        onLogout={handleLogout}
       />
 
       <main

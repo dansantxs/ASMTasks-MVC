@@ -1,11 +1,13 @@
-using API.DB;
+ï»¿using API.DB;
 using API.DB.DAOs;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
@@ -17,7 +19,6 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Configuração do Swagger
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo
@@ -27,22 +28,47 @@ builder.Services.AddSwaggerGen(c =>
         Description = @"
 Esta API gerencia entidades internas do sistema.
 
-### Recursos disponíveis:
-- **Cargos:** definição de funções/posições dentro da organização.
-- **Colaboradores:** gerenciamento de usuários/funcionários.
+### Recursos disponiveis:
+- **Cargos:** definicao de funcoes/posicoes dentro da organizacao.
+- **Colaboradores:** gerenciamento de usuarios/funcionarios.
 - **Etapas:** controle de fases de desenvolvimento.
-- **Prioridades:** definição de níveis de prioridade.
-- **Setores:** organização de departamentos e responsáveis.
+- **Prioridades:** definicao de niveis de prioridade.
+- **Setores:** organizacao de departamentos e responsaveis.
 - **Clientes:** gerenciamento de clientes.
 - **Atendimentos:** agenda de atendimentos com validacao de conflito de horario.
 
 ### Funcionalidades gerais:
-- Criação (`POST`)
-- Atualização (`PUT`)
-- Inativação (`DELETE`)
-- Reativação (`PUT /reativar`)
+- Criacao (`POST`)
+- Atualizacao (`PUT`)
+- Inativacao (`DELETE`)
+- Reativacao (`PUT /reativar`)
 - Consulta (`GET`)
         "
+    });
+
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Informe o token JWT no formato: Bearer {token}"
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
     });
 
     var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
@@ -51,11 +77,31 @@ Esta API gerencia entidades internas do sistema.
         c.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
 });
 
-// Configurações gerais
 builder.Services.AddControllers();
 
-// Configura conexão
 Environment.SetEnvironmentVariable("STRING_CONEXAO", builder.Configuration["StringConexao"]);
+
+var jwtKey = builder.Configuration["Jwt:Key"] ?? "ASMTasks.Jwt.Key.AlterarEmProducao.2026";
+var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "ASMTasks";
+var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "ASMTasks.Frontend";
+var key = Encoding.UTF8.GetBytes(jwtKey);
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtIssuer,
+            ValidAudience = jwtAudience,
+            IssuerSigningKey = new SymmetricSecurityKey(key),
+            ClockSkew = TimeSpan.Zero
+        };
+    });
 
 DBContext dbContext = new DBContext();
 builder.Services.AddSingleton(dbContext);
@@ -67,10 +113,10 @@ builder.Services.AddScoped<CargosDAO>();
 builder.Services.AddScoped<ColaboradoresDAO>();
 builder.Services.AddScoped<ClientesDAO>();
 builder.Services.AddScoped<AtendimentosDAO>();
+builder.Services.AddScoped<UsuariosDAO>();
 
 var app = builder.Build();
 
-// Swagger UI
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
@@ -82,9 +128,7 @@ app.UseSwaggerUI(c =>
 app.UseCors("AllowFrontend");
 
 app.UseHttpsRedirection();
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.Run();
-
-
-

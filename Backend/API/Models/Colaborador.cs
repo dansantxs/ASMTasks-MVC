@@ -1,6 +1,7 @@
-﻿using API.DB;
+using API.DB;
 using API.DB.DAOs;
 using System.ComponentModel.DataAnnotations;
+using System.Text.RegularExpressions;
 
 namespace API.Models
 {
@@ -29,10 +30,15 @@ namespace API.Models
         public int CargoId { get; set; }
         public Cargo? Cargo { get; set; }
 
+        private static string ApenasDigitos(string? valor)
+        {
+            return Regex.Replace(valor ?? string.Empty, "[^0-9]", "");
+        }
+
         private bool ValidarCPF(string cpf)
         {
-            cpf = cpf.Replace(".", "").Replace("-", "").Trim();
-            
+            cpf = ApenasDigitos(cpf);
+
             if (cpf.Length != 11)
                 return false;
 
@@ -66,6 +72,49 @@ namespace API.Models
             return cpf.EndsWith(digito);
         }
 
+        private static string FormatarCPF(string? cpf)
+        {
+            var digitos = ApenasDigitos(cpf);
+            if (digitos.Length != 11)
+                return digitos;
+
+            return Regex.Replace(digitos, @"(\d{3})(\d{3})(\d{3})(\d{2})", "$1.$2.$3-$4");
+        }
+
+        private static string? FormatarTelefone(string? telefone)
+        {
+            var digitos = ApenasDigitos(telefone);
+            if (string.IsNullOrWhiteSpace(digitos))
+                return null;
+
+            if (digitos.Length == 11)
+                return Regex.Replace(digitos, @"(\d{2})(\d{5})(\d{4})", "($1) $2-$3");
+
+            if (digitos.Length == 10)
+                return Regex.Replace(digitos, @"(\d{2})(\d{4})(\d{4})", "($1) $2-$3");
+
+            return digitos;
+        }
+
+        private static string? FormatarCEP(string? cep)
+        {
+            var digitos = ApenasDigitos(cep);
+            if (string.IsNullOrWhiteSpace(digitos))
+                return null;
+
+            if (digitos.Length == 8)
+                return Regex.Replace(digitos, @"(\d{5})(\d{3})", "$1-$2");
+
+            return digitos;
+        }
+
+        private void NormalizarCampos()
+        {
+            CPF = FormatarCPF(CPF);
+            Telefone = FormatarTelefone(Telefone);
+            CEP = FormatarCEP(CEP);
+        }
+
         private void ValidarDados()
         {
             if (string.IsNullOrWhiteSpace(Nome))
@@ -97,6 +146,7 @@ namespace API.Models
 
         public async Task<int> CriarAsync(DBContext dbContext)
         {
+            NormalizarCampos();
             ValidarDados();
 
             if (await _colaboradoresDAO.VerificarExistenciaPorCPFAsync(dbContext, CPF))
@@ -112,11 +162,14 @@ namespace API.Models
 
             Ativo = true;
 
-            return await _colaboradoresDAO.CriarAsync(dbContext, this);
+            var id = await _colaboradoresDAO.CriarAsync(dbContext, this);
+            await Usuario.CriarAutomaticamenteParaColaboradorAsync(dbContext, this);
+            return id;
         }
 
         public async Task AtualizarAsync(DBContext dbContext)
         {
+            NormalizarCampos();
             ValidarDados();
 
             if (await _colaboradoresDAO.VerificarExistenciaPorCPFAsync(dbContext, CPF, Id))
@@ -142,6 +195,8 @@ namespace API.Models
             var inativado = await _colaboradoresDAO.InativarAsync(dbContext, Id);
             if (!inativado)
                 throw new ValidationException("Colaborador não encontrado.");
+
+            await Usuario.InativarPorColaboradorIdAsync(dbContext, Id);
         }
 
         public async Task ReativarAsync(DBContext dbContext)
@@ -149,6 +204,8 @@ namespace API.Models
             var reativado = await _colaboradoresDAO.ReativarAsync(dbContext, Id);
             if (!reativado)
                 throw new ValidationException("Colaborador não encontrado.");
+
+            await Usuario.ReativarPorColaboradorIdAsync(dbContext, Id);
         }
 
         public static async Task<IEnumerable<Colaborador>> ObterTodosAsync(DBContext dbContext)
