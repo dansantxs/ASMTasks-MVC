@@ -65,6 +65,7 @@ export default function AppointmentViewDialog({
             </Badge>
           </div>
           <p><span className="font-medium">Cliente:</span> {appointment.clienteNome ?? `#${appointment.clienteId}`}</p>
+          <p><span className="font-medium">Cadastrado por:</span> {appointment.cadastradoPorNome ?? `#${appointment.cadastradoPorColaboradorId}`}</p>
           <p><span className="font-medium">Inicio:</span> {formatDateTime(appointment.dataHoraInicio)}</p>
           <p><span className="font-medium">Fim:</span> {formatDateTime(appointment.dataHoraFim)}</p>
           <p><span className="font-medium">Colaboradores:</span> {appointment.colaboradoresNomes.join(', ') || '-'}</p>

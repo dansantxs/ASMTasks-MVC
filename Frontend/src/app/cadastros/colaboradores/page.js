@@ -76,9 +76,15 @@ export default function ColaboradoresPage() {
 
   const criar = useMutation({
     mutationFn: criarColaborador,
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries(["colaboradores"]);
       setIsFormOpen(false);
+      const loginGerado = data?.loginGerado;
+      if (loginGerado) {
+        toast.success(`Colaborador criado com sucesso! Usuario: ${loginGerado}`);
+        return;
+      }
+
       toast.success("Colaborador criado com sucesso!");
     },
     onError: (error) => toast.error(error?.message ?? "Erro ao criar colaborador."),

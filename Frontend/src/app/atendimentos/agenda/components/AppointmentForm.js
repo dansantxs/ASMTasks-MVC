@@ -39,6 +39,7 @@ export default function AppointmentForm({
   clientes,
   colaboradores,
   appointment,
+  colaboradorLogadoNome,
   onSave,
   isSaving,
 }) {
@@ -46,7 +47,6 @@ export default function AppointmentForm({
     titulo: '',
     descricao: '',
     clienteId: '',
-    cadastradoPorColaboradorId: '',
     dataHoraInicio: '',
     dataHoraFim: '',
     colaboradoresIds: [],
@@ -72,9 +72,6 @@ export default function AppointmentForm({
         titulo: appointment.titulo ?? '',
         descricao: appointment.descricao ?? '',
         clienteId: appointment.clienteId ? String(appointment.clienteId) : '',
-        cadastradoPorColaboradorId: appointment.cadastradoPorColaboradorId
-          ? String(appointment.cadastradoPorColaboradorId)
-          : '',
         dataHoraInicio: appointment.dataHoraInicio
           ? toDateTimeLocalValue(appointment.dataHoraInicio)
           : '',
@@ -96,7 +93,6 @@ export default function AppointmentForm({
       titulo: '',
       descricao: '',
       clienteId: '',
-      cadastradoPorColaboradorId: '',
       dataHoraInicio: toDateTimeLocalValue(base),
       dataHoraFim: toDateTimeLocalValue(fim),
       colaboradoresIds: [],
@@ -134,9 +130,6 @@ export default function AppointmentForm({
 
     if (!formData.titulo.trim()) nextErrors.titulo = 'Titulo e obrigatorio.';
     if (!formData.clienteId) nextErrors.clienteId = 'Selecione um cliente.';
-    if (!formData.cadastradoPorColaboradorId) {
-      nextErrors.cadastradoPorColaboradorId = 'Selecione quem esta cadastrando.';
-    }
     if (!formData.dataHoraInicio) nextErrors.dataHoraInicio = 'Data/hora de inicio e obrigatoria.';
     if (
       formData.dataHoraFim &&
@@ -161,7 +154,6 @@ export default function AppointmentForm({
       titulo: formData.titulo.trim(),
       descricao: formData.descricao.trim() || null,
       clienteId: Number(formData.clienteId),
-      cadastradoPorColaboradorId: Number(formData.cadastradoPorColaboradorId),
       dataHoraInicio: formData.dataHoraInicio,
       dataHoraFim: formData.dataHoraFim || null,
       colaboradoresIds: formData.colaboradoresIds.map(Number),
@@ -226,27 +218,8 @@ export default function AppointmentForm({
             </div>
 
             <div>
-              <Label>Colaborador que cadastra <span className="text-destructive">*</span></Label>
-              <Select
-                value={formData.cadastradoPorColaboradorId}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, cadastradoPorColaboradorId: value }))
-                }
-              >
-                <SelectTrigger className={errors.cadastradoPorColaboradorId ? 'border-destructive' : ''}>
-                  <SelectValue placeholder="Selecione o colaborador" />
-                </SelectTrigger>
-                <SelectContent>
-                  {colaboradoresAtivos.map((colaborador) => (
-                    <SelectItem key={colaborador.id} value={String(colaborador.id)}>
-                      {colaborador.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.cadastradoPorColaboradorId && (
-                <p className="text-sm text-destructive">{errors.cadastradoPorColaboradorId}</p>
-              )}
+              <Label>Cadastrado por</Label>
+              <Input value={colaboradorLogadoNome || '-'} disabled />
             </div>
 
             <div>

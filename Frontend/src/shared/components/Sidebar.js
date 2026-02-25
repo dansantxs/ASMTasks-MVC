@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { Home, ChevronDown, ChevronRight, Layers, Menu, X, BarChart3, CalendarDays } from 'lucide-react';
+import { Home, ChevronDown, ChevronRight, Layers, Menu, X, BarChart3, CalendarDays, Settings, LogOut, KeyRound } from 'lucide-react';
 import { cn } from '../../ui/form/utils';
 import { Button } from '../../ui/base/button';
 import { cadastroItems, relatorioItems } from "../config/menuItems";
 
-export function Sidebar({ currentPath, onNavigate, onToggleCollapse }) {
+export function Sidebar({ currentPath, onNavigate, onToggleCollapse, colaboradorNome, onLogout }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [cadastrosExpanded, setCadastrosExpanded] = useState(false);
   const [relatoriosExpanded, setRelatoriosExpanded] = useState(false);
+  const [configuracoesExpanded, setConfiguracoesExpanded] = useState(false);
 
   const setCollapsedState = (newState) => {
     setIsCollapsed(newState);
@@ -23,9 +24,11 @@ export function Sidebar({ currentPath, onNavigate, onToggleCollapse }) {
     if (newState) {
       setCadastrosExpanded(false);
       setRelatoriosExpanded(false);
+      setConfiguracoesExpanded(false);
     } else {
       setCadastrosExpanded(false);
       setRelatoriosExpanded(false);
+      setConfiguracoesExpanded(false);
     }
   };
 
@@ -35,6 +38,7 @@ export function Sidebar({ currentPath, onNavigate, onToggleCollapse }) {
   const isCadastros = currentSection === 'cadastros';
   const isRelatorios = currentSection === 'relatorios';
   const isAtendimentos = currentSection === 'atendimentos';
+  const isConfiguracoes = currentSection === 'configuracoes';
 
   return (
     <div
@@ -204,11 +208,73 @@ export function Sidebar({ currentPath, onNavigate, onToggleCollapse }) {
             </div>
           )}
         </div>
+
+        <div>
+          <button
+            onClick={() => {
+              if (isCollapsed) {
+                setCollapsedState(false);
+                setConfiguracoesExpanded(true);
+              } else {
+                setConfiguracoesExpanded(!configuracoesExpanded);
+              }
+            }}
+            className={cn(
+              "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors",
+              isConfiguracoes
+                ? "bg-gray-800 text-white"
+                : "text-gray-300 hover:bg-gray-800",
+              isCollapsed && "justify-center px-2"
+            )}
+            title={isCollapsed ? "Configuracoes" : undefined}
+          >
+            <Settings className="h-5 w-5 flex-shrink-0" />
+            {!isCollapsed && (
+              <>
+                <span className="flex-1 text-left">Configuracoes</span>
+                {configuracoesExpanded ? (
+                  <ChevronDown className="h-4 w-4 flex-shrink-0" />
+                ) : (
+                  <ChevronRight className="h-4 w-4 flex-shrink-0" />
+                )}
+              </>
+            )}
+          </button>
+
+          {configuracoesExpanded && !isCollapsed && (
+            <div className="ml-4 mt-1 space-y-1">
+              <button
+                onClick={() => onNavigate('/configuracoes/alterar-senha')}
+                className={cn(
+                  "w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors text-sm",
+                  currentPath === '/configuracoes/alterar-senha'
+                    ? "bg-teal-600 text-white"
+                    : "text-gray-400 hover:bg-gray-800 hover:text-gray-200"
+                )}
+              >
+                <KeyRound className="h-4 w-4" />
+                <span>Minha Conta</span>
+              </button>
+            </div>
+          )}
+        </div>
       </nav>
 
       {!isCollapsed && (
         <div className="p-4 border-t border-gray-800">
-          <p className="text-gray-500 text-xs text-center">v1.0.0</p>
+          <p className="text-gray-400 text-xs mb-3 truncate" title={colaboradorNome}>
+            {colaboradorNome ? `Logado: ${colaboradorNome}` : 'Usuario logado'}
+          </p>
+          <Button
+            type="button"
+            variant="ghost"
+            className="w-full justify-start text-gray-300 hover:text-white hover:bg-gray-800"
+            onClick={onLogout}
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            Sair
+          </Button>
+          <p className="text-gray-500 text-xs text-center mt-3">v1.0.0</p>
         </div>
       )}
     </div>
@@ -219,4 +285,6 @@ Sidebar.propTypes = {
   currentPath: PropTypes.string.isRequired,
   onNavigate: PropTypes.func.isRequired,
   onToggleCollapse: PropTypes.func,
+  colaboradorNome: PropTypes.string,
+  onLogout: PropTypes.func.isRequired,
 };

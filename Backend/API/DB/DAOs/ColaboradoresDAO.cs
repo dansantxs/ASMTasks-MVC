@@ -162,8 +162,12 @@ namespace API.DB.DAOs
         {
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = @"SELECT COUNT(1) FROM Colaborador WHERE CPF = @CPF AND (@Id IS NULL OR Id <> @Id)";
-            cmd.Parameters.AddWithValue("@CPF", cpf);
+            cmd.CommandText = @"
+                SELECT COUNT(1)
+                FROM Colaborador
+                WHERE REPLACE(REPLACE(CPF, '.', ''), '-', '') = @CPFSemFormatacao
+                  AND (@Id IS NULL OR Id <> @Id)";
+            cmd.Parameters.AddWithValue("@CPFSemFormatacao", System.Text.RegularExpressions.Regex.Replace(cpf ?? string.Empty, "[^0-9]", ""));
             cmd.Parameters.AddWithValue("@Id", (object?)id ?? DBNull.Value);
 
             var result = await cmd.ExecuteScalarAsync();

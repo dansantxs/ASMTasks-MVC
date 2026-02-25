@@ -59,7 +59,16 @@ namespace API.Controllers
                 };
 
                 var id = await colaborador.CriarAsync(_dbContext);
-                return CreatedAtAction(nameof(ObterPorId), new { id }, new { id, mensagem = "Colaborador criado com sucesso." });
+                var usuarioCriado = await Usuario.ObterPorColaboradorIdAsync(_dbContext, id);
+
+                var response = new ColaboradorCriarResponse
+                {
+                    Id = id,
+                    Mensagem = "Colaborador criado com sucesso.",
+                    LoginGerado = usuarioCriado?.Login
+                };
+
+                return CreatedAtAction(nameof(ObterPorId), new { id }, response);
             }
             catch (ValidationException ex)
             {
