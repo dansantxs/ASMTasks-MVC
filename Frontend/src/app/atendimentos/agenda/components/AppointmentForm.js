@@ -19,18 +19,37 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../../../ui/form/select';
-
-const notificationOptions = [
-  { label: '30 minutos antes', value: 30 },
-  { label: '1 hora antes', value: 60 },
-  { label: '3 horas antes', value: 180 },
-  { label: '1 dia antes', value: 1440 },
-];
+import { Plus, Trash2 } from 'lucide-react';
 
 function toDateTimeLocalValue(date) {
   const local = new Date(date);
   local.setMinutes(local.getMinutes() - local.getTimezoneOffset());
   return local.toISOString().slice(0, 16);
+}
+
+function minutesToNotificationConfig(minutes) {
+  if (!Number.isFinite(minutes) || minutes <= 0) {
+    return { valor: '', unidade: 'minutos' };
+  }
+
+  if (minutes % 1440 === 0) {
+    return { valor: String(minutes / 1440), unidade: 'dias' };
+  }
+
+  if (minutes % 60 === 0) {
+    return { valor: String(minutes / 60), unidade: 'horas' };
+  }
+
+  return { valor: String(minutes), unidade: 'minutos' };
+}
+
+function notificationConfigToMinutes(config) {
+  const valor = Number(config?.valor ?? 0);
+  if (!Number.isFinite(valor) || valor <= 0) return 0;
+
+  if (config.unidade === 'dias') return valor * 1440;
+  if (config.unidade === 'horas') return valor * 60;
+  return valor;
 }
 
 export default function AppointmentForm({
@@ -53,9 +72,13 @@ export default function AppointmentForm({
     notificacoesMinutosAntecedencia: [],
   });
   const [errors, setErrors] = useState({});
+  const [notificationConfigs, setNotificationConfigs] = useState([]);
 
   const colaboradoresAtivos = useMemo(
-    () => colaboradores.filter((c) => c.ativo),
+    () =>
+      colaboradores
+        .filter((c) => c.ativo)
+        .sort((a, b) => (a.nome ?? '').localeCompare(b.nome ?? '', 'pt-BR', { sensitivity: 'base' })),
     [colaboradores]
   );
 
@@ -79,6 +102,9 @@ export default function AppointmentForm({
         colaboradoresIds: appointment.colaboradoresIds ?? [],
         notificacoesMinutosAntecedencia: appointment.notificacoesMinutosAntecedencia ?? [],
       });
+      setNotificationConfigs(
+        (appointment.notificacoesMinutosAntecedencia ?? []).map(minutesToNotificationConfig)
+      );
       setErrors({});
       return;
     }
@@ -98,6 +124,7 @@ export default function AppointmentForm({
       colaboradoresIds: [],
       notificacoesMinutosAntecedencia: [],
     });
+    setNotificationConfigs([]);
     setErrors({});
   }, [open, appointment]);
 
@@ -113,16 +140,18 @@ export default function AppointmentForm({
     });
   };
 
-  const toggleNotificacao = (value) => {
-    setFormData((prev) => {
-      const already = prev.notificacoesMinutosAntecedencia.includes(value);
-      return {
-        ...prev,
-        notificacoesMinutosAntecedencia: already
-          ? prev.notificacoesMinutosAntecedencia.filter((item) => item !== value)
-          : [...prev.notificacoesMinutosAntecedencia, value],
-      };
-    });
+  const addNotificationConfig = () => {
+    setNotificationConfigs((prev) => [...prev, { valor: '', unidade: 'minutos' }]);
+  };
+
+  const updateNotificationConfig = (index, patch) => {
+    setNotificationConfigs((prev) =>
+      prev.map((item, i) => (i === index ? { ...item, ...patch } : item))
+    );
+  };
+
+  const removeNotificationConfig = (index) => {
+    setNotificationConfigs((prev) => prev.filter((_, i) => i !== index));
   };
 
   const validate = () => {
@@ -142,6 +171,17 @@ export default function AppointmentForm({
       nextErrors.colaboradoresIds = 'Selecione ao menos um colaborador para o atendimento.';
     }
 
+    const notificationsInMinutes = notificationConfigs.map(notificationConfigToMinutes);
+    const hasInvalidNotification = notificationsInMinutes.some((minutes) => minutes <= 0);
+    const hasDuplicateNotifications = new Set(notificationsInMinutes).size !== notificationsInMinutes.length;
+
+    if (hasInvalidNotification) {
+      nextErrors.notificacoesMinutosAntecedencia =
+        'Cada notificacao deve ter valor inteiro maior que zero.';
+    } else if (hasDuplicateNotifications) {
+      nextErrors.notificacoesMinutosAntecedencia = 'Nao repita notificacoes com o mesmo tempo.';
+    }
+
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   };
@@ -157,7 +197,7 @@ export default function AppointmentForm({
       dataHoraInicio: formData.dataHoraInicio,
       dataHoraFim: formData.dataHoraFim || null,
       colaboradoresIds: formData.colaboradoresIds.map(Number),
-      notificacoesMinutosAntecedencia: formData.notificacoesMinutosAntecedencia.map(Number),
+      notificacoesMinutosAntecedencia: notificationConfigs.map(notificationConfigToMinutes),
     });
   };
 
@@ -276,21 +316,59 @@ export default function AppointmentForm({
 
           <div>
             <Label>Notificacoes antes do atendimento</Label>
-            <div className="mt-2 rounded-md border p-3 grid grid-cols-1 md:grid-cols-2 gap-2">
-              {notificationOptions.map((option) => (
-                <label
-                  key={option.value}
-                  className="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-muted/40 cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={formData.notificacoesMinutosAntecedencia.includes(option.value)}
-                    onChange={() => toggleNotificacao(option.value)}
+            <div className="mt-2 rounded-md border p-3 space-y-3">
+              {notificationConfigs.length === 0 && (
+                <p className="text-sm text-muted-foreground">
+                  Nenhuma notificacao configurada.
+                </p>
+              )}
+
+              {notificationConfigs.map((config, index) => (
+                <div key={`notification-${index}`} className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-2">
+                  <Input
+                    type="number"
+                    min="1"
+                    step="1"
+                    value={config.valor}
+                    onChange={(e) => updateNotificationConfig(index, { valor: e.target.value })}
+                    placeholder="Valor"
                   />
-                  <span className="text-sm">{option.label}</span>
-                </label>
+
+                  <Select
+                    value={config.unidade}
+                    onValueChange={(value) => updateNotificationConfig(index, { unidade: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="minutos">Minutos antes</SelectItem>
+                      <SelectItem value="horas">Horas antes</SelectItem>
+                      <SelectItem value="dias">Dias antes</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => removeNotificationConfig(index)}
+                    className="w-full md:w-auto"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               ))}
+
+              <Button type="button" variant="outline" onClick={addNotificationConfig}>
+                <Plus className="h-4 w-4 mr-2" />
+                Adicionar notificacao
+              </Button>
             </div>
+            {errors.notificacoesMinutosAntecedencia && (
+              <p className="text-sm text-destructive mt-1">
+                {errors.notificacoesMinutosAntecedencia}
+              </p>
+            )}
           </div>
 
           <div className="flex justify-end gap-3 pt-2">
