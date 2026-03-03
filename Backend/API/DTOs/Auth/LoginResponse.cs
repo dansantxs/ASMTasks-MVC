@@ -8,5 +8,6 @@ namespace API.DTOs.Auth
         public int ColaboradorId { get; set; }
         public string ColaboradorNome { get; set; } = string.Empty;
         public string NivelAcesso { get; set; } = "PADRAO";
+        public List<string> Permissoes { get; set; } = new();
     }
 }

@@ -114,6 +114,7 @@ builder.Services.AddScoped<ColaboradoresDAO>();
 builder.Services.AddScoped<ClientesDAO>();
 builder.Services.AddScoped<AtendimentosDAO>();
 builder.Services.AddScoped<UsuariosDAO>();
+builder.Services.AddScoped<NiveisAcessoDAO>();
 
 var app = builder.Build();
 

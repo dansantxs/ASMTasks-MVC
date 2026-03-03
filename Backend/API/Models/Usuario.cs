@@ -1,5 +1,6 @@
 using API.DB;
 using API.DB.DAOs;
+using NivelAcessoModel = API.Models.NivelAcesso;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Cryptography;
 using System.Text;
@@ -19,11 +20,15 @@ namespace API.Models
         public string NivelAcesso { get; set; } = "PADRAO";
         public DateTime DataCadastro { get; set; }
         public string NomeColaborador { get; set; } = string.Empty;
+        public bool ColaboradorAtivo { get; set; } = true;
+        public List<string> Permissoes { get; set; } = new();
 
         public static async Task<Usuario?> AutenticarAsync(DBContext dbContext, string login, string senha)
         {
             if (string.IsNullOrWhiteSpace(login) || string.IsNullOrWhiteSpace(senha))
                 return null;
+
+            await NivelAcessoModel.SincronizarPadroesAsync(dbContext);
 
             var usuario = await _usuariosDAO.ObterParaLoginAsync(dbContext, login.Trim().ToLowerInvariant());
             if (usuario == null)
@@ -39,17 +44,26 @@ namespace API.Models
             if (!string.Equals(usuario.SenhaHash, senhaHash, StringComparison.OrdinalIgnoreCase))
                 return null;
 
+            usuario.Permissoes = await CarregarPermissoesAsync(dbContext, usuario);
             return usuario;
         }
 
         public static async Task<Usuario?> ObterPorIdAsync(DBContext dbContext, int id)
         {
-            return await _usuariosDAO.ObterPorIdAsync(dbContext, id);
+            await NivelAcessoModel.SincronizarPadroesAsync(dbContext);
+            var usuario = await _usuariosDAO.ObterPorIdAsync(dbContext, id);
+            if (usuario != null)
+                usuario.Permissoes = await CarregarPermissoesAsync(dbContext, usuario);
+            return usuario;
         }
 
         public static async Task<Usuario?> ObterPorColaboradorIdAsync(DBContext dbContext, int colaboradorId)
         {
-            return await _usuariosDAO.ObterPorColaboradorIdAsync(dbContext, colaboradorId);
+            await NivelAcessoModel.SincronizarPadroesAsync(dbContext);
+            var usuario = await _usuariosDAO.ObterPorColaboradorIdAsync(dbContext, colaboradorId);
+            if (usuario != null)
+                usuario.Permissoes = await CarregarPermissoesAsync(dbContext, usuario);
+            return usuario;
         }
 
         public static async Task CriarAutomaticamenteParaColaboradorAsync(DBContext dbContext, Colaborador colaborador)
@@ -129,6 +143,43 @@ namespace API.Models
                 throw new ValidationException("Nao foi possivel alterar o login.");
         }
 
+        public static async Task AtualizarDadosAdministrativosAsync(DBContext dbContext, int usuarioId, string novoLogin, string? novaSenha)
+        {
+            if (string.IsNullOrWhiteSpace(novoLogin))
+                throw new ValidationException("O login e obrigatorio.");
+
+            var loginNormalizado = novoLogin.Trim().ToLowerInvariant();
+            if (loginNormalizado.Length < 4)
+                throw new ValidationException("O login deve ter pelo menos 4 caracteres.");
+
+            if (loginNormalizado.Contains(' '))
+                throw new ValidationException("O login nao pode conter espacos.");
+
+            if (!Regex.IsMatch(loginNormalizado, "^[a-z0-9._-]+$"))
+                throw new ValidationException("Use apenas letras, numeros, ponto, underscore e hifen.");
+
+            var usuario = await _usuariosDAO.ObterPorIdAsync(dbContext, usuarioId);
+            if (usuario == null)
+                throw new ValidationException("Usuario nao encontrado.");
+
+            if (await _usuariosDAO.ExisteLoginAsync(dbContext, loginNormalizado, usuarioId))
+                throw new ValidationException("Esse login ja esta em uso.");
+
+            var loginAtualizado = await _usuariosDAO.AtualizarLoginAsync(dbContext, usuarioId, loginNormalizado);
+            if (!loginAtualizado)
+                throw new ValidationException("Nao foi possivel alterar o login.");
+
+            if (!string.IsNullOrWhiteSpace(novaSenha))
+            {
+                if (novaSenha.Length < 6)
+                    throw new ValidationException("A nova senha deve ter ao menos 6 caracteres.");
+
+                var atualizado = await _usuariosDAO.AtualizarSenhaAsync(dbContext, usuarioId, GerarHashSenha(novaSenha));
+                if (!atualizado)
+                    throw new ValidationException("Nao foi possivel alterar a senha.");
+            }
+        }
+
         public static async Task InativarPorColaboradorIdAsync(DBContext dbContext, int colaboradorId)
         {
             await _usuariosDAO.AtualizarStatusPorColaboradorIdAsync(dbContext, colaboradorId, false);
@@ -137,6 +188,61 @@ namespace API.Models
         public static async Task ReativarPorColaboradorIdAsync(DBContext dbContext, int colaboradorId)
         {
             await _usuariosDAO.AtualizarStatusPorColaboradorIdAsync(dbContext, colaboradorId, true);
+        }
+
+        public static async Task<IEnumerable<Usuario>> ObterTodosParaAdministracaoAsync(DBContext dbContext)
+        {
+            await NivelAcessoModel.SincronizarPadroesAsync(dbContext);
+            return await _usuariosDAO.ObterTodosParaAdministracaoAsync(dbContext);
+        }
+
+        public static async Task AtualizarNivelAcessoAsync(DBContext dbContext, int usuarioId, string nivelAcesso)
+        {
+            if (string.IsNullOrWhiteSpace(nivelAcesso))
+                throw new ValidationException("O nivel de acesso e obrigatorio.");
+
+            await NivelAcessoModel.SincronizarPadroesAsync(dbContext);
+
+            var usuario = await _usuariosDAO.ObterPorIdAsync(dbContext, usuarioId);
+            if (usuario == null)
+                throw new ValidationException("Usuario nao encontrado.");
+
+            var nivel = await NivelAcessoModel.ObterPorNomeAsync(dbContext, nivelAcesso);
+            if (nivel == null || !nivel.Ativo)
+                throw new ValidationException("Nivel de acesso invalido.");
+
+            var atualizado = await _usuariosDAO.AtualizarNivelAcessoAsync(dbContext, usuarioId, nivel.Nome);
+            if (!atualizado)
+                throw new ValidationException("Nao foi possivel atualizar o nivel de acesso.");
+        }
+
+        public static async Task InativarAsync(DBContext dbContext, int usuarioId)
+        {
+            var usuario = await _usuariosDAO.ObterPorIdAsync(dbContext, usuarioId);
+            if (usuario == null)
+                throw new ValidationException("Usuario nao encontrado.");
+
+            var inativado = await _usuariosDAO.InativarPorIdAsync(dbContext, usuarioId);
+            if (!inativado)
+                throw new ValidationException("Nao foi possivel inativar o usuario.");
+        }
+
+        public static async Task ReativarAsync(DBContext dbContext, int usuarioId)
+        {
+            var usuario = await _usuariosDAO.ObterPorIdAsync(dbContext, usuarioId);
+            if (usuario == null)
+                throw new ValidationException("Usuario nao encontrado.");
+
+            if (!usuario.ColaboradorAtivo)
+                throw new ValidationException("Nao e possivel reativar o usuario de um colaborador inativo.");
+
+            var nivel = await NivelAcessoModel.ObterPorNomeAsync(dbContext, usuario.NivelAcesso);
+            if (nivel == null || !nivel.Ativo)
+                throw new ValidationException("Nao e possivel reativar o usuario com um nivel de acesso inativo.");
+
+            var reativado = await _usuariosDAO.ReativarPorIdAsync(dbContext, usuarioId);
+            if (!reativado)
+                throw new ValidationException("Nao foi possivel reativar o usuario.");
         }
 
         public static string GerarHashSenha(string senha)
@@ -176,6 +282,22 @@ namespace API.Models
                 sufixo++;
             }
             return login;
+        }
+
+        private static async Task<List<string>> CarregarPermissoesAsync(DBContext dbContext, Usuario usuario)
+        {
+            var permissoes = await NivelAcessoModel.ObterPermissoesPorNomeAsync(dbContext, usuario.NivelAcesso);
+
+            if (!await _usuariosDAO.ExisteUsuarioAdministradorAsync(dbContext) &&
+                !permissoes.Contains(API.Security.TelaPermissoes.ConfiguracoesAcessos))
+            {
+                permissoes.Add(API.Security.TelaPermissoes.ConfiguracoesAcessos);
+            }
+
+            return permissoes
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(p => p, StringComparer.OrdinalIgnoreCase)
+                .ToList();
         }
     }
 }

@@ -108,6 +108,11 @@ export default function EmployeeForm({
   const [buscandoCep, setBuscandoCep] = useState(false);
 
   useEffect(() => {
+    if (!open) {
+      setBuscandoCep(false);
+      return;
+    }
+
     if (employee) {
       setFormData({
         name: employee.name || '',
@@ -149,6 +154,8 @@ export default function EmployeeForm({
   }, [employee, open]);
 
   useEffect(() => {
+    if (!open) return;
+
     const carregarEndereco = async () => {
       const cepLimpo = formData.cep.replace(/\D/g, '');
       if (cepLimpo.length === 8) {

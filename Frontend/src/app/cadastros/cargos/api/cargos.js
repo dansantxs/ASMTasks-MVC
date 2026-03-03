@@ -1,4 +1,6 @@
-const API_URL = "https://localhost:7199/api/cargos";
+'use client';
+
+import { apiFetch } from '../../../../shared/api/http';
 
 async function handleResponse(res) {
     const text = await res.text();
@@ -33,17 +35,17 @@ async function handleResponse(res) {
 }
 
 export async function getCargos() {
-    const res = await fetch(API_URL, { cache: "no-store" });
+    const res = await apiFetch('/cargos', { cache: "no-store" });
     return handleResponse(res);
 }
 
 export async function getCargoById(id) {
-    const res = await fetch(`${API_URL}/${id}`, { cache: "no-store" });
+    const res = await apiFetch(`/cargos/${id}`, { cache: "no-store" });
     return handleResponse(res);
 }
 
 export async function criarCargo(data) {
-    const res = await fetch(API_URL, {
+    const res = await apiFetch('/cargos', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -52,7 +54,7 @@ export async function criarCargo(data) {
 }
 
 export async function atualizarCargo(id, data) {
-    const res = await fetch(`${API_URL}/${id}`, {
+    const res = await apiFetch(`/cargos/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -61,11 +63,11 @@ export async function atualizarCargo(id, data) {
 }
 
 export async function inativarCargo(id) {
-    const res = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+    const res = await apiFetch(`/cargos/${id}`, { method: "DELETE" });
     return handleResponse(res);
 }
 
 export async function reativarCargo(id) {
-    const res = await fetch(`${API_URL}/${id}/reativar`, { method: "PUT" });
+    const res = await apiFetch(`/cargos/${id}/reativar`, { method: "PUT" });
     return handleResponse(res);
 }

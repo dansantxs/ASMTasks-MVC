@@ -41,7 +41,8 @@ namespace API.DB.DAOs
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
             cmd.CommandText = @"
-                SELECT u.Id, u.ColaboradorId, u.Login, u.SenhaHash, u.Ativo, u.NivelAcesso, u.DataCadastro, c.Nome AS NomeColaborador
+                SELECT u.Id, u.ColaboradorId, u.Login, u.SenhaHash, u.Ativo, u.NivelAcesso, u.DataCadastro,
+                       c.Nome AS NomeColaborador, c.Ativo AS ColaboradorAtivo
                 FROM Usuario u
                 INNER JOIN Colaborador c ON c.Id = u.ColaboradorId
                 WHERE u.Login = @Login
@@ -63,7 +64,8 @@ namespace API.DB.DAOs
                 Ativo = Convert.ToBoolean(dr["Ativo"]),
                 NivelAcesso = dr["NivelAcesso"].ToString() ?? "PADRAO",
                 DataCadastro = Convert.ToDateTime(dr["DataCadastro"]),
-                NomeColaborador = dr["NomeColaborador"].ToString() ?? string.Empty
+                NomeColaborador = dr["NomeColaborador"].ToString() ?? string.Empty,
+                ColaboradorAtivo = Convert.ToBoolean(dr["ColaboradorAtivo"])
             };
         }
 
@@ -72,7 +74,8 @@ namespace API.DB.DAOs
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
             cmd.CommandText = @"
-                SELECT u.Id, u.ColaboradorId, u.Login, u.SenhaHash, u.Ativo, u.NivelAcesso, u.DataCadastro, c.Nome AS NomeColaborador
+                SELECT u.Id, u.ColaboradorId, u.Login, u.SenhaHash, u.Ativo, u.NivelAcesso, u.DataCadastro,
+                       c.Nome AS NomeColaborador, c.Ativo AS ColaboradorAtivo
                 FROM Usuario u
                 INNER JOIN Colaborador c ON c.Id = u.ColaboradorId
                 WHERE u.Id = @Id;
@@ -92,7 +95,8 @@ namespace API.DB.DAOs
                 Ativo = Convert.ToBoolean(dr["Ativo"]),
                 NivelAcesso = dr["NivelAcesso"].ToString() ?? "PADRAO",
                 DataCadastro = Convert.ToDateTime(dr["DataCadastro"]),
-                NomeColaborador = dr["NomeColaborador"].ToString() ?? string.Empty
+                NomeColaborador = dr["NomeColaborador"].ToString() ?? string.Empty,
+                ColaboradorAtivo = Convert.ToBoolean(dr["ColaboradorAtivo"])
             };
         }
 
@@ -101,7 +105,8 @@ namespace API.DB.DAOs
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
             cmd.CommandText = @"
-                SELECT u.Id, u.ColaboradorId, u.Login, u.SenhaHash, u.Ativo, u.NivelAcesso, u.DataCadastro, c.Nome AS NomeColaborador
+                SELECT u.Id, u.ColaboradorId, u.Login, u.SenhaHash, u.Ativo, u.NivelAcesso, u.DataCadastro,
+                       c.Nome AS NomeColaborador, c.Ativo AS ColaboradorAtivo
                 FROM Usuario u
                 INNER JOIN Colaborador c ON c.Id = u.ColaboradorId
                 WHERE u.ColaboradorId = @ColaboradorId;
@@ -121,7 +126,8 @@ namespace API.DB.DAOs
                 Ativo = Convert.ToBoolean(dr["Ativo"]),
                 NivelAcesso = dr["NivelAcesso"].ToString() ?? "PADRAO",
                 DataCadastro = Convert.ToDateTime(dr["DataCadastro"]),
-                NomeColaborador = dr["NomeColaborador"].ToString() ?? string.Empty
+                NomeColaborador = dr["NomeColaborador"].ToString() ?? string.Empty,
+                ColaboradorAtivo = Convert.ToBoolean(dr["ColaboradorAtivo"])
             };
         }
 
@@ -153,6 +159,93 @@ namespace API.DB.DAOs
             cmd.Parameters.AddWithValue("@Ativo", ativo);
             cmd.Parameters.AddWithValue("@ColaboradorId", colaboradorId);
             await cmd.ExecuteNonQueryAsync();
+        }
+
+        public async Task<IEnumerable<Usuario>> ObterTodosParaAdministracaoAsync(DBContext dbContext)
+        {
+            var lista = new List<Usuario>();
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = @"
+                SELECT u.Id, u.ColaboradorId, u.Login, u.SenhaHash, u.Ativo, u.NivelAcesso, u.DataCadastro,
+                       c.Nome AS NomeColaborador, c.Ativo AS ColaboradorAtivo
+                FROM Usuario u
+                INNER JOIN Colaborador c ON c.Id = u.ColaboradorId
+                ORDER BY c.Nome";
+
+            await using var dr = await cmd.ExecuteReaderAsync();
+            while (await dr.ReadAsync())
+            {
+                lista.Add(new Usuario
+                {
+                    Id = Convert.ToInt32(dr["Id"]),
+                    ColaboradorId = Convert.ToInt32(dr["ColaboradorId"]),
+                    Login = dr["Login"].ToString() ?? string.Empty,
+                    SenhaHash = dr["SenhaHash"].ToString() ?? string.Empty,
+                    Ativo = Convert.ToBoolean(dr["Ativo"]),
+                    NivelAcesso = dr["NivelAcesso"].ToString() ?? "PADRAO",
+                    DataCadastro = Convert.ToDateTime(dr["DataCadastro"]),
+                    NomeColaborador = dr["NomeColaborador"].ToString() ?? string.Empty,
+                    ColaboradorAtivo = Convert.ToBoolean(dr["ColaboradorAtivo"])
+                });
+            }
+
+            return lista;
+        }
+
+        public async Task<bool> AtualizarNivelAcessoAsync(DBContext dbContext, int usuarioId, string nivelAcesso)
+        {
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = "UPDATE Usuario SET NivelAcesso = @NivelAcesso WHERE Id = @Id";
+            cmd.Parameters.AddWithValue("@Id", usuarioId);
+            cmd.Parameters.AddWithValue("@NivelAcesso", nivelAcesso);
+            return await cmd.ExecuteNonQueryAsync() > 0;
+        }
+
+        public async Task AtualizarNivelAcessoPorNomeAsync(DBContext dbContext, string nomeAnterior, string novoNome)
+        {
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = "UPDATE Usuario SET NivelAcesso = @NovoNome WHERE UPPER(NivelAcesso) = @NomeAnterior";
+            cmd.Parameters.AddWithValue("@NovoNome", novoNome);
+            cmd.Parameters.AddWithValue("@NomeAnterior", nomeAnterior.Trim().ToUpperInvariant());
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        public async Task<bool> ExisteUsuarioComNivelAcessoAsync(DBContext dbContext, string nivelAcesso)
+        {
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = "SELECT COUNT(1) FROM Usuario WHERE UPPER(NivelAcesso) = @NivelAcesso";
+            cmd.Parameters.AddWithValue("@NivelAcesso", nivelAcesso.Trim().ToUpperInvariant());
+            return Convert.ToInt32(await cmd.ExecuteScalarAsync()) > 0;
+        }
+
+        public async Task<bool> InativarPorIdAsync(DBContext dbContext, int usuarioId)
+        {
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = "UPDATE Usuario SET Ativo = 0 WHERE Id = @Id";
+            cmd.Parameters.AddWithValue("@Id", usuarioId);
+            return await cmd.ExecuteNonQueryAsync() > 0;
+        }
+
+        public async Task<bool> ReativarPorIdAsync(DBContext dbContext, int usuarioId)
+        {
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = "UPDATE Usuario SET Ativo = 1 WHERE Id = @Id";
+            cmd.Parameters.AddWithValue("@Id", usuarioId);
+            return await cmd.ExecuteNonQueryAsync() > 0;
+        }
+
+        public async Task<bool> ExisteUsuarioAdministradorAsync(DBContext dbContext)
+        {
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = "SELECT COUNT(1) FROM Usuario WHERE Ativo = 1 AND UPPER(NivelAcesso) = 'ADMINISTRADOR'";
+            return Convert.ToInt32(await cmd.ExecuteScalarAsync()) > 0;
         }
     }
 }

@@ -50,7 +50,8 @@ namespace API.Controllers
                 UsuarioId = usuario.Id,
                 ColaboradorId = usuario.ColaboradorId,
                 ColaboradorNome = usuario.NomeColaborador,
-                NivelAcesso = usuario.NivelAcesso
+                NivelAcesso = usuario.NivelAcesso,
+                Permissoes = usuario.Permissoes
             });
         }
 
@@ -74,7 +75,8 @@ namespace API.Controllers
                 colaboradorId = usuario.ColaboradorId,
                 colaboradorNome = usuario.NomeColaborador,
                 login = usuario.Login,
-                nivelAcesso = usuario.NivelAcesso
+                nivelAcesso = usuario.NivelAcesso,
+                permissoes = usuario.Permissoes
             });
         }
 

@@ -38,6 +38,7 @@ export function saveSession(loginResponse) {
     colaboradorId: Number(loginResponse.colaboradorId ?? payload.colaboradorId),
     colaboradorNome: loginResponse.colaboradorNome ?? payload.colaboradorNome ?? '',
     nivelAcesso: loginResponse.nivelAcesso ?? payload.nivelAcesso ?? 'PADRAO',
+    permissoes: loginResponse.permissoes ?? [],
     ultimoAcessoEm: Date.now(),
   };
 
