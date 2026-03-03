@@ -10,6 +10,7 @@ import {
   isSessionValid,
   touchSessionActivity,
 } from "../shared/auth/session";
+import { getDefaultRouteForSession, getPermissionForPath, hasPermission } from "../shared/auth/permissions";
 
 export default function ClientLayout({ children }) {
   const pathname = usePathname();
@@ -32,7 +33,7 @@ export default function ClientLayout({ children }) {
   useEffect(() => {
     if (isLoginPage) {
       if (isSessionValid()) {
-        router.replace('/atendimentos/agenda');
+        router.replace(getDefaultRouteForSession(getStoredSession()));
         return;
       }
       setIsAuthChecked(true);
@@ -42,6 +43,13 @@ export default function ClientLayout({ children }) {
     if (!isSessionValid()) {
       clearSession();
       router.replace("/login");
+      return;
+    }
+
+    const currentSession = getStoredSession();
+    const requiredPermission = getPermissionForPath(pathname);
+    if (requiredPermission && !hasPermission(currentSession, requiredPermission)) {
+      router.replace(getDefaultRouteForSession(currentSession));
       return;
     }
 
@@ -82,6 +90,7 @@ export default function ClientLayout({ children }) {
         onNavigate={handleNavigate}
         onToggleCollapse={setIsSidebarCollapsed}
         colaboradorNome={session?.colaboradorNome ?? ""}
+        permissoes={session?.permissoes ?? []}
         onLogout={handleLogout}
       />
 

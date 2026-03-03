@@ -1,5 +1,178 @@
 [
   {
+    "ContainingType": "API.Controllers.AcessosController",
+    "Method": "ObterNiveis",
+    "RelativePath": "api/Acessos/niveis",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API.Controllers.AcessosController",
+    "Method": "CriarNivel",
+    "RelativePath": "api/Acessos/niveis",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "API.DTOs.NiveisAcesso.NivelAcessoCriarRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API.Controllers.AcessosController",
+    "Method": "AtualizarNivel",
+    "RelativePath": "api/Acessos/niveis/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "API.DTOs.NiveisAcesso.NivelAcessoAtualizarRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API.Controllers.AcessosController",
+    "Method": "InativarNivel",
+    "RelativePath": "api/Acessos/niveis/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API.Controllers.AcessosController",
+    "Method": "ReativarNivel",
+    "RelativePath": "api/Acessos/niveis/{id}/reativar",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API.Controllers.AcessosController",
+    "Method": "ObterPermissoesDisponiveis",
+    "RelativePath": "api/Acessos/permissoes-disponiveis",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API.Controllers.AcessosController",
+    "Method": "ObterUsuarios",
+    "RelativePath": "api/Acessos/usuarios",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API.Controllers.AcessosController",
+    "Method": "AtualizarDadosDoUsuario",
+    "RelativePath": "api/Acessos/usuarios/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "API.DTOs.Usuarios.UsuarioAtualizarDadosAdminRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API.Controllers.AcessosController",
+    "Method": "InativarUsuario",
+    "RelativePath": "api/Acessos/usuarios/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API.Controllers.AcessosController",
+    "Method": "AtualizarNivelDoUsuario",
+    "RelativePath": "api/Acessos/usuarios/{id}/nivel",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "API.DTOs.Usuarios.UsuarioAtualizarNivelRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API.Controllers.AcessosController",
+    "Method": "ReativarUsuario",
+    "RelativePath": "api/Acessos/usuarios/{id}/reativar",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "API.Controllers.AtendimentosController",
     "Method": "Criar",
     "RelativePath": "api/Atendimentos",
