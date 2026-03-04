@@ -14,6 +14,7 @@ export const screenPermissions = {
   relatoriosSetores: 'relatorios.setores',
   configuracoesMinhaConta: 'configuracoes.minha-conta',
   configuracoesAcessos: 'configuracoes.acessos',
+  configuracoesSistema: 'configuracoes.sistema',
 };
 
 const routePermissionMatchers = [
@@ -32,6 +33,7 @@ const routePermissionMatchers = [
   { prefix: '/relatorios/setores', permission: screenPermissions.relatoriosSetores },
   { prefix: '/configuracoes/alterar-senha', permission: screenPermissions.configuracoesMinhaConta },
   { prefix: '/configuracoes/acessos', permission: screenPermissions.configuracoesAcessos },
+  { prefix: '/configuracoes/sistema', permission: screenPermissions.configuracoesSistema },
 ];
 
 const orderedDefaultRoutes = [
@@ -45,6 +47,7 @@ const orderedDefaultRoutes = [
   { path: '/relatorios/clientes', permission: screenPermissions.relatoriosClientes },
   { path: '/configuracoes/alterar-senha', permission: screenPermissions.configuracoesMinhaConta },
   { path: '/configuracoes/acessos', permission: screenPermissions.configuracoesAcessos },
+  { path: '/configuracoes/sistema', permission: screenPermissions.configuracoesSistema },
 ];
 
 export function hasPermission(session, permission) {

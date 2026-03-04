@@ -334,4 +334,12 @@ C:\Users\Daniel dos Santos\Documents\GitHub\ASMTasks-MVC\Backend\API\obj\Debug\n
 C:\Users\Daniel dos Santos\Documents\GitHub\ASMTasks-MVC\Backend\API\obj\Debug\net9.0\swae.build.ex.cache
 C:\Users\Daniel dos Santos\Documents\GitHub\ASMTasks-MVC\Backend\API\bin\Debug\net9.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
 C:\Users\Daniel dos Santos\Documents\GitHub\ASMTasks-MVC\Backend\API\bin\Debug\net9.0\API.exe
+c:\Users\Daniel dos Santos\Documents\GitHub\ASMTasks-MVC\Backend\build-check\appsettings.Development.json
+c:\Users\Daniel dos Santos\Documents\GitHub\ASMTasks-MVC\Backend\build-check\appsettings.json
+c:\Users\Daniel dos Santos\Documents\GitHub\ASMTasks-MVC\Backend\build-check\API.staticwebassets.endpoints.json
+c:\Users\Daniel dos Santos\Documents\GitHub\ASMTasks-MVC\Backend\build-check\API.exe
+c:\Users\Daniel dos Santos\Documents\GitHub\ASMTasks-MVC\Backend\build-check\API.deps.json
+c:\Users\Daniel dos Santos\Documents\GitHub\ASMTasks-MVC\Backend\build-check\API.runtimeconfig.json
+c:\Users\Daniel dos Santos\Documents\GitHub\ASMTasks-MVC\Backend\build-check\API.dll
+c:\Users\Daniel dos Santos\Documents\GitHub\ASMTasks-MVC\Backend\build-check\API.pdb
 C:\Users\Daniel dos Santos\Documents\GitHub\ASMTasks-MVC\Backend\API\obj\Debug\net9.0\staticwebassets.upToDateCheck.txt

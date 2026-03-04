@@ -47,7 +47,7 @@ export async function getAtendimentos(dataInicio, dataFim) {
     { cache: "no-store" }
   );
   const data = await handleResponse(res);
-  return data ?? [];
+  return Array.isArray(data) ? data : [];
 }
 
 export async function criarAtendimento(payload) {
@@ -97,11 +97,11 @@ export async function inativarAtendimento(id) {
 export async function getClientes() {
   const res = await apiFetch(CLIENTES_API_URL, { cache: "no-store" });
   const data = await handleResponse(res);
-  return data ?? [];
+  return Array.isArray(data) ? data : [];
 }
 
 export async function getColaboradores() {
   const res = await apiFetch(COLABORADORES_API_URL, { cache: "no-store" });
   const data = await handleResponse(res);
-  return data ?? [];
+  return Array.isArray(data) ? data : [];
 }

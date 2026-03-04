@@ -36,7 +36,8 @@ async function handleResponse(res) {
 
 export async function getSetores() {
     const res = await apiFetch('/setores', { cache: "no-store" });
-    return handleResponse(res);
+    const data = await handleResponse(res);
+    return Array.isArray(data) ? data : [];
 }
 
 export async function getSetorById(id) {

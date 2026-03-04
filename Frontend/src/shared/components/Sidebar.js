@@ -13,6 +13,7 @@ import {
   LogOut,
   KeyRound,
   ShieldCheck,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { cn } from '../../ui/form/utils';
 import { Button } from '../../ui/base/button';
@@ -31,7 +32,7 @@ export function Sidebar({ currentPath, onNavigate, onToggleCollapse, colaborador
   const podeVerAtendimento = hasPermission(session, screenPermissions.atendimentosAgenda);
   const podeVerMinhaConta = hasPermission(session, screenPermissions.configuracoesMinhaConta);
   const podeVerAcessos = hasPermission(session, screenPermissions.configuracoesAcessos);
-
+  const podeVerSistema = hasPermission(session, screenPermissions.configuracoesSistema);
   const setCollapsedState = (newState) => {
     setIsCollapsed(newState);
     onToggleCollapse?.(newState);
@@ -62,9 +63,11 @@ export function Sidebar({ currentPath, onNavigate, onToggleCollapse, colaborador
     >
       <div className="p-4 border-b border-gray-800 flex items-center justify-between">
         {!isCollapsed && (
-          <div>
-            <h2 className="text-white">ASM Tasks</h2>
-            <p className="text-gray-400 text-sm mt-1">Gerenciamento de Tarefas</p>
+          <div className="flex items-center gap-3">
+            <div>
+              <h2 className="text-white">ASM Tasks</h2>
+              <p className="text-gray-400 text-sm mt-1">Gerenciamento de Tarefas</p>
+            </div>
           </div>
         )}
         <Button
@@ -216,7 +219,7 @@ export function Sidebar({ currentPath, onNavigate, onToggleCollapse, colaborador
           </div>
         )}
 
-        {(podeVerMinhaConta || podeVerAcessos) && (
+        {(podeVerMinhaConta || podeVerAcessos || podeVerSistema) && (
           <div>
             <button
               onClick={() => {
@@ -275,6 +278,20 @@ export function Sidebar({ currentPath, onNavigate, onToggleCollapse, colaborador
                   >
                     <ShieldCheck className="h-4 w-4" />
                     <span>Niveis e Usuarios</span>
+                  </button>
+                )}
+                {podeVerSistema && (
+                  <button
+                    onClick={() => onNavigate('/configuracoes/sistema')}
+                    className={cn(
+                      'w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors text-sm',
+                      currentPath === '/configuracoes/sistema'
+                        ? 'bg-teal-600 text-white'
+                        : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200'
+                    )}
+                  >
+                    <SlidersHorizontal className="h-4 w-4" />
+                    <span>Parametrizacao</span>
                   </button>
                 )}
               </div>
