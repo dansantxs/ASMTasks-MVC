@@ -1168,6 +1168,32 @@
     ]
   },
   {
+    "ContainingType": "API.Controllers.ConfiguracoesSistemaController",
+    "Method": "Obter",
+    "RelativePath": "api/ConfiguracoesSistema",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "API.Controllers.ConfiguracoesSistemaController",
+    "Method": "Salvar",
+    "RelativePath": "api/ConfiguracoesSistema",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "API.DTOs.ConfiguracoesSistema.ConfiguracaoSistemaRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "API.Controllers.EtapasController",
     "Method": "Criar",
     "RelativePath": "api/Etapas",

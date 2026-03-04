@@ -17,6 +17,7 @@ namespace API.Security
         public const string RelatoriosSetores = "relatorios.setores";
         public const string ConfiguracoesMinhaConta = "configuracoes.minha-conta";
         public const string ConfiguracoesAcessos = "configuracoes.acessos";
+        public const string ConfiguracoesSistema = "configuracoes.sistema";
 
         public static readonly string[] Todas =
         {
@@ -34,7 +35,8 @@ namespace API.Security
             RelatoriosPrioridades,
             RelatoriosSetores,
             ConfiguracoesMinhaConta,
-            ConfiguracoesAcessos
+            ConfiguracoesAcessos,
+            ConfiguracoesSistema
         };
 
         public static readonly string[] Padrao =
@@ -52,7 +54,8 @@ namespace API.Security
             RelatoriosEtapas,
             RelatoriosPrioridades,
             RelatoriosSetores,
-            ConfiguracoesMinhaConta
+            ConfiguracoesMinhaConta,
+            ConfiguracoesSistema
         };
     }
 }

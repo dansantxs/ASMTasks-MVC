@@ -16,6 +16,8 @@ import * as XLSX from 'xlsx';
 import { getColaboradores } from '../../cadastros/colaboradores/api/colaboradores';
 import { getSetores } from '../../cadastros/setores/api/setores';
 import { getCargos } from '../../cadastros/cargos/api/cargos';
+import { defaultSystemSettings, useSystemSettingsQuery } from '../../../shared/system-settings/api';
+import { getReportFooterLines, getReportLogoDataUrl } from '../../../shared/system-settings/reportBranding';
 
 const columns = [
   { id: 'name', label: 'Nome' },
@@ -35,29 +37,6 @@ const formatDate = (value) => (value ? new Date(value).toLocaleDateString('pt-BR
 const companyLegalName = 'Razão Social: Alvaro Shioji Matsuda';
 const companyFantasyName = 'Nome Fantasia: Always System Manager';
 const reportTitle = 'Relatório de Colaboradores';
-const logoPath = '/logo-asm.png';
-let cachedLogoDataUrl = null;
-
-const getLogoDataUrl = async () => {
-  if (cachedLogoDataUrl) return cachedLogoDataUrl;
-
-  try {
-    const response = await fetch(logoPath);
-    if (!response.ok) return null;
-    const blob = await response.blob();
-    const reader = new FileReader();
-    return await new Promise((resolve) => {
-      reader.onloadend = () => {
-        cachedLogoDataUrl = reader.result;
-        resolve(reader.result);
-      };
-      reader.readAsDataURL(blob);
-    });
-  } catch (error) {
-    console.error('Erro ao carregar o logotipo para o PDF/Excel', error);
-    return null;
-  }
-};
 
 export default function ColaboradoresReportPage() {
   const [search, setSearch] = useState('');
@@ -66,6 +45,7 @@ export default function ColaboradoresReportPage() {
   const [cargoFilter, setCargoFilter] = useState('todos');
   const [sortConfig, setSortConfig] = useState({ column: null, direction: 'asc' });
   const [selectedColumns, setSelectedColumns] = useState(columns.map((c) => c.id));
+  const { data: systemSettings = defaultSystemSettings } = useSystemSettingsQuery();
 
   const { data: colaboradoresApi = [], isLoading: loadingColaboradores } = useQuery({
     queryKey: ['relatorio-colaboradores'],
@@ -216,16 +196,20 @@ export default function ColaboradoresReportPage() {
     const { filtersSummary, columnsSummary } = buildFiltersSummary(activeColumns);
     const body = sortedData.map((row) => activeColumns.map((col) => row[col.id] ?? ''));
     const emissionDate = new Date().toLocaleString('pt-BR');
-    const logoDataUrl = await getLogoDataUrl();
+    const logoDataUrl = await getReportLogoDataUrl(systemSettings);
+    const footerLines = getReportFooterLines(systemSettings);
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
+    const filtersLines = doc.splitTextToSize(`Filtros: ${filtersSummary}`, pageWidth - 70);
+    const columnsLines = doc.splitTextToSize(columnsSummary, pageWidth - 70);
+    const headerEndY = 30 + (filtersLines.length * 6) + (columnsLines.length * 6);
 
     autoTable(doc, {
       head: [activeColumns.map((c) => c.label)],
       body,
       styles: { fontSize: 8 },
       headStyles: { overflow: 'ellipsize' },
-      margin: { top: 52, bottom: 22, left: 14, right: 14 },
+      margin: { top: headerEndY + 8, bottom: 28, left: 14, right: 14 },
       didDrawPage: () => {
         doc.setFontSize(12);
         doc.text(reportTitle, 14, 16);
@@ -237,19 +221,20 @@ export default function ColaboradoresReportPage() {
         doc.setFontSize(9);
         doc.text(`Data de emissão: ${emissionDate}`, 14, 24);
 
-        const filtersLines = doc.splitTextToSize(`Filtros: ${filtersSummary}`, pageWidth - 70);
         const filtersStartY = 30;
         doc.text(filtersLines, 14, filtersStartY);
 
-        const columnsLines = doc.splitTextToSize(columnsSummary, pageWidth - 70);
         const columnsStartY = filtersStartY + filtersLines.length * 6;
         doc.text(columnsLines, 14, columnsStartY);
         doc.setDrawColor(200);
         doc.line(14, pageHeight - 18, pageWidth - 14, pageHeight - 18);
 
         doc.setFontSize(8);
-        doc.text(companyLegalName, 14, pageHeight - 14);
-        doc.text(companyFantasyName, 14, pageHeight - 8);
+        const visibleFooterLines = footerLines.slice(0, 4);
+        const footerStartY = pageHeight - 8 - ((visibleFooterLines.length - 1) * 4);
+        visibleFooterLines.forEach((line, index) => {
+          doc.text(line, 14, footerStartY + (index * 4));
+        });
         doc.text(
           `Página ${doc.internal.getNumberOfPages()}`,
           pageWidth - 14,
@@ -266,6 +251,7 @@ export default function ColaboradoresReportPage() {
     const activeColumns = columns.filter((c) => selectedColumns.includes(c.id));
     const { filtersSummary, columnsSummary } = buildFiltersSummary(activeColumns);
     const emissionDate = new Date().toLocaleString('pt-BR');
+    const footerLines = getReportFooterLines(systemSettings);
 
     const headerRows = [
       [reportTitle],
@@ -277,7 +263,7 @@ export default function ColaboradoresReportPage() {
     ];
 
     const dataRows = sortedData.map((row) => activeColumns.map((col) => row[col.id] ?? ''));
-    const footerRows = [[], [companyLegalName], [companyFantasyName]];
+    const footerRows = [[], ...footerLines.map((line) => [line])];
 
     const worksheet = XLSX.utils.aoa_to_sheet([...headerRows, ...dataRows, ...footerRows]);
 

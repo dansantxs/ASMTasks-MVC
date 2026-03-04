@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from '../../../../ui/form/select';
 import { Plus, Trash2 } from 'lucide-react';
+import { parseTimeToMinutes } from '../../../../shared/system-settings/utils';
 
 function toDateTimeLocalValue(date) {
   const local = new Date(date);
@@ -59,6 +60,8 @@ export default function AppointmentForm({
   colaboradores,
   appointment,
   colaboradorLogadoNome,
+  agendaStartTime,
+  agendaEndTime,
   onSave,
   isSaving,
 }) {
@@ -110,8 +113,19 @@ export default function AppointmentForm({
     }
 
     const base = new Date();
-    base.setMinutes(0, 0, 0);
-    base.setHours(base.getHours() + 1);
+    const startMinutes = parseTimeToMinutes(agendaStartTime, 480);
+    const endMinutes = parseTimeToMinutes(agendaEndTime, 1080);
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const latestStartMinutes = Math.max(startMinutes, endMinutes - 60);
+
+    if (currentMinutes > latestStartMinutes) {
+      base.setDate(base.getDate() + 1);
+      base.setHours(Math.floor(startMinutes / 60), startMinutes % 60, 0, 0);
+    } else {
+      const nextSlotMinutes = Math.max(startMinutes, Math.ceil(currentMinutes / 60) * 60);
+      base.setHours(Math.floor(nextSlotMinutes / 60), nextSlotMinutes % 60, 0, 0);
+    }
     const fim = new Date(base);
     fim.setHours(fim.getHours() + 1);
 
@@ -126,7 +140,16 @@ export default function AppointmentForm({
     });
     setNotificationConfigs([]);
     setErrors({});
-  }, [open, appointment]);
+  }, [open, appointment, agendaEndTime, agendaStartTime]);
+
+  const isWithinAgenda = (dateValue) => {
+    if (!dateValue) return true;
+    const date = new Date(dateValue);
+    const minutes = date.getHours() * 60 + date.getMinutes();
+    const startMinutes = parseTimeToMinutes(agendaStartTime, 480);
+    const endMinutes = parseTimeToMinutes(agendaEndTime, 1080);
+    return minutes >= startMinutes && minutes <= endMinutes;
+  };
 
   const toggleColaborador = (id) => {
     setFormData((prev) => {
@@ -166,6 +189,12 @@ export default function AppointmentForm({
       new Date(formData.dataHoraFim) <= new Date(formData.dataHoraInicio)
     ) {
       nextErrors.dataHoraFim = 'Data/hora final deve ser maior que a inicial.';
+    }
+    if (formData.dataHoraInicio && !isWithinAgenda(formData.dataHoraInicio)) {
+      nextErrors.dataHoraInicio = `O inicio deve estar entre ${agendaStartTime} e ${agendaEndTime}.`;
+    }
+    if (formData.dataHoraFim && !isWithinAgenda(formData.dataHoraFim)) {
+      nextErrors.dataHoraFim = `O fim deve estar entre ${agendaStartTime} e ${agendaEndTime}.`;
     }
     if (formData.colaboradoresIds.length === 0) {
       nextErrors.colaboradoresIds = 'Selecione ao menos um colaborador para o atendimento.';
@@ -271,6 +300,9 @@ export default function AppointmentForm({
                 onChange={(e) => setFormData((prev) => ({ ...prev, dataHoraInicio: e.target.value }))}
                 className={errors.dataHoraInicio ? 'border-destructive' : ''}
               />
+              <p className="text-xs text-muted-foreground mt-1">
+                Horario permitido: {agendaStartTime} ate {agendaEndTime}
+              </p>
               {errors.dataHoraInicio && (
                 <p className="text-sm text-destructive">{errors.dataHoraInicio}</p>
               )}

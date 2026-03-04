@@ -2,9 +2,8 @@
 
 import { Badge } from '../../../../ui/base/badge';
 import { CalendarDays, Clock3 } from 'lucide-react';
+import { parseTimeToMinutes } from '../../../../shared/system-settings/utils';
 
-const GRID_START_HOUR = 0;
-const GRID_END_HOUR = 24;
 const PIXELS_PER_MINUTE = 1.2;
 const MIN_APPOINTMENT_MINUTES = 60;
 const SLOT_MINUTES = 60;
@@ -21,15 +20,15 @@ function formatHour(date) {
   return new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(date);
 }
 
-function getGridStart(day) {
+function getGridStart(day, startMinutes) {
   const start = new Date(day);
-  start.setHours(GRID_START_HOUR, 0, 0, 0);
+  start.setHours(Math.floor(startMinutes / 60), startMinutes % 60, 0, 0);
   return start;
 }
 
-function getGridEnd(day) {
+function getGridEnd(day, endMinutes) {
   const end = new Date(day);
-  end.setHours(GRID_END_HOUR, 0, 0, 0);
+  end.setHours(Math.floor(endMinutes / 60), endMinutes % 60, 0, 0);
   return end;
 }
 
@@ -39,9 +38,10 @@ function getDisplayInterval(appointment) {
   return { start, end };
 }
 
-function buildDayEntries(day, appointments) {
-  const gridStart = getGridStart(day);
-  const gridEnd = getGridEnd(day);
+function buildDayEntries(day, appointments, startMinutes, endMinutes) {
+  const gridStart = getGridStart(day, startMinutes);
+  const gridEnd = getGridEnd(day, endMinutes);
+  const totalMinutes = endMinutes - startMinutes;
 
   const clipped = appointments
     .map((item) => {
@@ -54,7 +54,7 @@ function buildDayEntries(day, appointments) {
       const startMin = (visibleStart.getTime() - gridStart.getTime()) / 60000;
       const endMin = (visibleEnd.getTime() - gridStart.getTime()) / 60000;
       const duration = Math.max(MIN_APPOINTMENT_MINUTES, endMin - startMin);
-      const boundedEnd = Math.min((GRID_END_HOUR - GRID_START_HOUR) * 60, startMin + duration);
+      const boundedEnd = Math.min(totalMinutes, startMin + duration);
 
       return {
         item,
@@ -89,10 +89,20 @@ function buildDayEntries(day, appointments) {
   }));
 }
 
-export default function AppointmentCalendar({ days, appointments, onSelectAppointment }) {
+export default function AppointmentCalendar({
+  days,
+  appointments,
+  agendaStartTime,
+  agendaEndTime,
+  onSelectAppointment,
+}) {
   const totalAgendados = appointments.filter((a) => a.status === 'A' && a.ativo).length;
   const totalRealizados = appointments.filter((a) => a.status === 'R' && a.ativo).length;
-  const gridHeight = (GRID_END_HOUR - GRID_START_HOUR) * 60 * PIXELS_PER_MINUTE;
+  const startMinutes = parseTimeToMinutes(agendaStartTime, 480);
+  const endMinutes = parseTimeToMinutes(agendaEndTime, 1080);
+  const safeEndMinutes = endMinutes > startMinutes ? endMinutes : startMinutes + 60;
+  const totalMinutes = safeEndMinutes - startMinutes;
+  const gridHeight = totalMinutes * PIXELS_PER_MINUTE;
 
   const byDay = days.map((day) => {
     const dayStart = new Date(day);
@@ -105,7 +115,7 @@ export default function AppointmentCalendar({ days, appointments, onSelectAppoin
       return start <= dayEnd && end >= dayStart;
     });
 
-    return buildDayEntries(day, dayAppointments);
+    return buildDayEntries(day, dayAppointments, startMinutes, safeEndMinutes);
   });
 
   return (
@@ -131,8 +141,8 @@ export default function AppointmentCalendar({ days, appointments, onSelectAppoin
 
           <div className="grid" style={{ gridTemplateColumns: '72px repeat(7, minmax(140px, 1fr))' }}>
             <div className="relative border-r bg-muted/20" style={{ height: `${gridHeight}px` }}>
-              {Array.from({ length: ((GRID_END_HOUR - GRID_START_HOUR) * 60) / SLOT_MINUTES + 1 }, (_, i) => {
-                const minuteOfDay = GRID_START_HOUR * 60 + i * SLOT_MINUTES;
+              {Array.from({ length: Math.floor(totalMinutes / SLOT_MINUTES) + 1 }, (_, i) => {
+                const minuteOfDay = startMinutes + i * SLOT_MINUTES;
                 const hour = Math.floor(minuteOfDay / 60);
                 const minute = minuteOfDay % 60;
                 const label = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
@@ -149,7 +159,7 @@ export default function AppointmentCalendar({ days, appointments, onSelectAppoin
 
             {days.map((day, index) => (
               <div key={`col-${day.toISOString()}`} className="relative border-r last:border-r-0" style={{ height: `${gridHeight}px` }}>
-                {Array.from({ length: ((GRID_END_HOUR - GRID_START_HOUR) * 60) / SLOT_MINUTES + 1 }, (_, i) => {
+                {Array.from({ length: Math.floor(totalMinutes / SLOT_MINUTES) + 1 }, (_, i) => {
                   const top = i * SLOT_MINUTES * PIXELS_PER_MINUTE;
                   return (
                     <div

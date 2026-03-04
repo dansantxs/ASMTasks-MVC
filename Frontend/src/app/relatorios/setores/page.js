@@ -13,6 +13,8 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { getSetores } from '../../cadastros/setores/api/setores';
+import { defaultSystemSettings, useSystemSettingsQuery } from '../../../shared/system-settings/api';
+import { getReportFooterLines, getReportLogoDataUrl } from '../../../shared/system-settings/reportBranding';
 
 const columns = [
   { id: 'id', label: 'ID' },
@@ -21,38 +23,14 @@ const columns = [
   { id: 'status', label: 'Status' },
 ];
 
-const companyLegalName = 'Razao Social: Alvaro Shioji Matsuda';
-const companyFantasyName = 'Nome Fantasia: Always System Manager';
 const reportTitle = 'Relatorio de Setores';
-const logoPath = '/logo-asm.png';
-let cachedLogoDataUrl = null;
-
-const getLogoDataUrl = async () => {
-  if (cachedLogoDataUrl) return cachedLogoDataUrl;
-
-  try {
-    const response = await fetch(logoPath);
-    if (!response.ok) return null;
-    const blob = await response.blob();
-    const reader = new FileReader();
-    return await new Promise((resolve) => {
-      reader.onloadend = () => {
-        cachedLogoDataUrl = reader.result;
-        resolve(reader.result);
-      };
-      reader.readAsDataURL(blob);
-    });
-  } catch (error) {
-    console.error('Erro ao carregar o logotipo para o PDF/Excel', error);
-    return null;
-  }
-};
 
 export default function SetoresReportPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
   const [sortConfig, setSortConfig] = useState({ column: null, direction: 'asc' });
   const [selectedColumns, setSelectedColumns] = useState(columns.map((c) => c.id));
+  const { data: systemSettings = defaultSystemSettings } = useSystemSettingsQuery();
 
   const { data: setoresApi = [], isLoading: loadingSetores } = useQuery({
     queryKey: ['relatorio-setores'],
@@ -151,16 +129,20 @@ export default function SetoresReportPage() {
     const { filtersSummary, columnsSummary } = buildFiltersSummary(activeColumns);
     const body = sortedData.map((row) => activeColumns.map((col) => row[col.id] ?? ''));
     const emissionDate = new Date().toLocaleString('pt-BR');
-    const logoDataUrl = await getLogoDataUrl();
+    const logoDataUrl = await getReportLogoDataUrl(systemSettings);
+    const footerLines = getReportFooterLines(systemSettings);
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
+    const filtersLines = doc.splitTextToSize(`Filtros: ${filtersSummary}`, pageWidth - 70);
+    const columnsLines = doc.splitTextToSize(columnsSummary, pageWidth - 70);
+    const headerEndY = 30 + (filtersLines.length * 6) + (columnsLines.length * 6);
 
     autoTable(doc, {
       head: [activeColumns.map((c) => c.label)],
       body,
       styles: { fontSize: 8 },
       headStyles: { overflow: 'ellipsize' },
-      margin: { top: 52, bottom: 22, left: 14, right: 14 },
+      margin: { top: headerEndY + 8, bottom: 28, left: 14, right: 14 },
       didDrawPage: () => {
         doc.setFontSize(12);
         doc.text(reportTitle, 14, 16);
@@ -172,19 +154,20 @@ export default function SetoresReportPage() {
         doc.setFontSize(9);
         doc.text(`Data de emissao: ${emissionDate}`, 14, 24);
 
-        const filtersLines = doc.splitTextToSize(`Filtros: ${filtersSummary}`, pageWidth - 70);
         const filtersStartY = 30;
         doc.text(filtersLines, 14, filtersStartY);
 
-        const columnsLines = doc.splitTextToSize(columnsSummary, pageWidth - 70);
         const columnsStartY = filtersStartY + filtersLines.length * 6;
         doc.text(columnsLines, 14, columnsStartY);
         doc.setDrawColor(200);
         doc.line(14, pageHeight - 18, pageWidth - 14, pageHeight - 18);
 
         doc.setFontSize(8);
-        doc.text(companyLegalName, 14, pageHeight - 14);
-        doc.text(companyFantasyName, 14, pageHeight - 8);
+        const visibleFooterLines = footerLines.slice(0, 4);
+        const footerStartY = pageHeight - 8 - ((visibleFooterLines.length - 1) * 4);
+        visibleFooterLines.forEach((line, index) => {
+          doc.text(line, 14, footerStartY + (index * 4));
+        });
         doc.text(
           `Pagina ${doc.internal.getNumberOfPages()}`,
           pageWidth - 14,
@@ -201,6 +184,7 @@ export default function SetoresReportPage() {
     const activeColumns = columns.filter((c) => selectedColumns.includes(c.id));
     const { filtersSummary, columnsSummary } = buildFiltersSummary(activeColumns);
     const emissionDate = new Date().toLocaleString('pt-BR');
+    const footerLines = getReportFooterLines(systemSettings);
 
     const headerRows = [
       [reportTitle],
@@ -212,7 +196,7 @@ export default function SetoresReportPage() {
     ];
 
     const dataRows = sortedData.map((row) => activeColumns.map((col) => row[col.id] ?? ''));
-    const footerRows = [[], [companyLegalName], [companyFantasyName]];
+    const footerRows = [[], ...footerLines.map((line) => [line])];
 
     const worksheet = XLSX.utils.aoa_to_sheet([...headerRows, ...dataRows, ...footerRows]);
 

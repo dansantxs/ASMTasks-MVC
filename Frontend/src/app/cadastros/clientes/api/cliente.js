@@ -34,7 +34,8 @@ async function handleResponse(res) {
 
 export async function getClientes() {
   const res = await fetch(API_URL, { cache: "no-store" });
-  return handleResponse(res);
+  const data = await handleResponse(res);
+  return Array.isArray(data) ? data : [];
 }
 
 export async function getClienteById(id) {

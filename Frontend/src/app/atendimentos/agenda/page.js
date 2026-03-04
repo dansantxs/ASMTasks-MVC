@@ -19,6 +19,7 @@ import {
   marcarAtendimentoComoRealizado,
 } from './api/atendimentos';
 import { getStoredSession } from '../../../shared/auth/session';
+import { defaultSystemSettings, useSystemSettingsQuery } from '../../../shared/system-settings/api';
 
 function startOfWeek(date) {
   const d = new Date(date);
@@ -56,6 +57,7 @@ export default function AgendaAtendimentosPage() {
   const session = getStoredSession();
   const colaboradorLogadoId = Number(session?.colaboradorId ?? 0);
   const colaboradorLogadoNome = session?.colaboradorNome ?? '';
+  const { data: systemSettings = defaultSystemSettings } = useSystemSettingsQuery();
 
   const weekEnd = useMemo(() => endOfWeek(weekStart), [weekStart]);
   const weekDays = useMemo(() => {
@@ -232,7 +234,9 @@ export default function AgendaAtendimentosPage() {
             </div>
             <div>
               <h1>Agenda de Atendimentos</h1>
-              <p className="text-muted-foreground">Visualize e agende atendimentos por data e hora</p>
+              <p className="text-muted-foreground">
+                Visualize e agende atendimentos por data e hora
+              </p>
             </div>
           </div>
 
@@ -317,6 +321,8 @@ export default function AgendaAtendimentosPage() {
             <AppointmentCalendar
               days={weekDays}
               appointments={atendimentosFiltrados}
+              agendaStartTime={systemSettings.horaInicioAgenda}
+              agendaEndTime={systemSettings.horaFimAgenda}
               onSelectAppointment={handleOpenView}
             />
           </div>
@@ -329,6 +335,8 @@ export default function AgendaAtendimentosPage() {
           colaboradores={colaboradores}
           appointment={selectedAppointment}
           colaboradorLogadoNome={colaboradorLogadoNome}
+          agendaStartTime={systemSettings.horaInicioAgenda}
+          agendaEndTime={systemSettings.horaFimAgenda}
           onSave={handleSave}
           isSaving={criar.isPending || atualizar.isPending}
         />

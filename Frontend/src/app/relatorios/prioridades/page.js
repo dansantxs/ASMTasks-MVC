@@ -13,6 +13,8 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { getPrioridades } from '../../cadastros/prioridades/api/prioridades';
+import { defaultSystemSettings, useSystemSettingsQuery } from '../../../shared/system-settings/api';
+import { getReportFooterLines, getReportLogoDataUrl } from '../../../shared/system-settings/reportBranding';
 
 const columns = [
   { id: 'id', label: 'ID' },
@@ -22,32 +24,7 @@ const columns = [
   { id: 'status', label: 'Status' },
 ];
 
-const companyLegalName = 'Razao Social: Alvaro Shioji Matsuda';
-const companyFantasyName = 'Nome Fantasia: Always System Manager';
 const reportTitle = 'Relatorio de Prioridades';
-const logoPath = '/logo-asm.png';
-let cachedLogoDataUrl = null;
-
-const getLogoDataUrl = async () => {
-  if (cachedLogoDataUrl) return cachedLogoDataUrl;
-
-  try {
-    const response = await fetch(logoPath);
-    if (!response.ok) return null;
-    const blob = await response.blob();
-    const reader = new FileReader();
-    return await new Promise((resolve) => {
-      reader.onloadend = () => {
-        cachedLogoDataUrl = reader.result;
-        resolve(reader.result);
-      };
-      reader.readAsDataURL(blob);
-    });
-  } catch (error) {
-    console.error('Erro ao carregar o logotipo para o PDF/Excel', error);
-    return null;
-  }
-};
 
 function hexToRgb(hex) {
   const match = /^#([0-9a-f]{6})$/i.exec(hex ?? '');
@@ -65,6 +42,7 @@ export default function PrioridadesReportPage() {
   const [statusFilter, setStatusFilter] = useState('todos');
   const [sortConfig, setSortConfig] = useState({ column: null, direction: 'asc' });
   const [selectedColumns, setSelectedColumns] = useState(columns.map((c) => c.id));
+  const { data: systemSettings = defaultSystemSettings } = useSystemSettingsQuery();
 
   const { data: prioridadesApi = [], isLoading } = useQuery({
     queryKey: ['relatorio-prioridades'],
@@ -168,16 +146,20 @@ export default function PrioridadesReportPage() {
     );
     const colorColumnIndex = activeColumns.findIndex((col) => col.id === 'color');
     const emissionDate = new Date().toLocaleString('pt-BR');
-    const logoDataUrl = await getLogoDataUrl();
+    const logoDataUrl = await getReportLogoDataUrl(systemSettings);
+    const footerLines = getReportFooterLines(systemSettings);
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
+    const filtersLines = doc.splitTextToSize(`Filtros: ${filtersSummary}`, pageWidth - 70);
+    const columnsLines = doc.splitTextToSize(columnsSummary, pageWidth - 70);
+    const headerEndY = 30 + (filtersLines.length * 6) + (columnsLines.length * 6);
 
     autoTable(doc, {
       head: [activeColumns.map((c) => c.label)],
       body,
       styles: { fontSize: 8 },
       headStyles: { overflow: 'ellipsize' },
-      margin: { top: 52, bottom: 22, left: 14, right: 14 },
+      margin: { top: headerEndY + 8, bottom: 28, left: 14, right: 14 },
       didDrawCell: (data) => {
         if (data.section !== 'body' || data.column.index !== colorColumnIndex) return;
         const rgb = hexToRgb(String(data.cell.raw ?? ''));
@@ -202,11 +184,9 @@ export default function PrioridadesReportPage() {
         doc.setFontSize(9);
         doc.text(`Data de emissao: ${emissionDate}`, 14, 24);
 
-        const filtersLines = doc.splitTextToSize(`Filtros: ${filtersSummary}`, pageWidth - 70);
         const filtersStartY = 30;
         doc.text(filtersLines, 14, filtersStartY);
 
-        const columnsLines = doc.splitTextToSize(columnsSummary, pageWidth - 70);
         const columnsStartY = filtersStartY + filtersLines.length * 6;
         doc.text(columnsLines, 14, columnsStartY);
 
@@ -214,8 +194,11 @@ export default function PrioridadesReportPage() {
         doc.line(14, pageHeight - 18, pageWidth - 14, pageHeight - 18);
 
         doc.setFontSize(8);
-        doc.text(companyLegalName, 14, pageHeight - 14);
-        doc.text(companyFantasyName, 14, pageHeight - 8);
+        const visibleFooterLines = footerLines.slice(0, 4);
+        const footerStartY = pageHeight - 8 - ((visibleFooterLines.length - 1) * 4);
+        visibleFooterLines.forEach((line, index) => {
+          doc.text(line, 14, footerStartY + (index * 4));
+        });
         doc.text(
           `Pagina ${doc.internal.getNumberOfPages()}`,
           pageWidth - 14,
@@ -232,6 +215,7 @@ export default function PrioridadesReportPage() {
     const activeColumns = columns.filter((c) => selectedColumns.includes(c.id));
     const { filtersSummary, columnsSummary } = buildFiltersSummary(activeColumns);
     const emissionDate = new Date().toLocaleString('pt-BR');
+    const footerLines = getReportFooterLines(systemSettings);
 
     const headerRows = [
       [reportTitle],
@@ -243,7 +227,7 @@ export default function PrioridadesReportPage() {
     ];
 
     const dataRows = sortedData.map((row) => activeColumns.map((col) => row[col.id] ?? ''));
-    const footerRows = [[], [companyLegalName], [companyFantasyName]];
+    const footerRows = [[], ...footerLines.map((line) => [line])];
 
     const worksheet = XLSX.utils.aoa_to_sheet([...headerRows, ...dataRows, ...footerRows]);
 
