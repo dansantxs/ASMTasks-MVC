@@ -8,6 +8,7 @@ import { Toaster, toast } from 'sonner';
 import AppointmentCalendar from './components/AppointmentCalendar';
 import AppointmentForm from './components/AppointmentForm';
 import AppointmentViewDialog from './components/AppointmentViewDialog';
+import AppointmentConcludeDialog from './components/AppointmentConcludeDialog';
 import {
   atualizarAtendimento,
   criarAtendimento,
@@ -49,6 +50,7 @@ function formatPeriod(start, end) {
 export default function AgendaAtendimentosPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
+  const [isConcludeDialogOpen, setIsConcludeDialogOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
   const [filteredColaboradoresIds, setFilteredColaboradoresIds] = useState([]);
@@ -110,6 +112,11 @@ export default function AgendaAtendimentosPage() {
         dataHoraInicio: new Date(item.dataHoraInicio),
         dataHoraFim: item.dataHoraFim ? new Date(item.dataHoraFim) : null,
         status: item.status,
+        observacaoConclusao: item.observacaoConclusao ?? null,
+        concluidoPorColaboradorId: item.concluidoPorColaboradorId ?? null,
+        concluidoPorNome: item.concluidoPorColaboradorId
+          ? colaboradoresById.get(item.concluidoPorColaboradorId) ?? null
+          : null,
         ativo: item.ativo,
         colaboradoresIds: item.colaboradoresIds ?? [],
         notificacoesMinutosAntecedencia: item.notificacoesMinutosAntecedencia ?? [],
@@ -163,9 +170,11 @@ export default function AgendaAtendimentosPage() {
   });
 
   const concluir = useMutation({
-    mutationFn: marcarAtendimentoComoRealizado,
+    mutationFn: ({ id, observacaoConclusao }) =>
+      marcarAtendimentoComoRealizado(id, observacaoConclusao),
     onSuccess: () => {
       queryClient.invalidateQueries(['atendimentos']);
+      setIsConcludeDialogOpen(false);
       setIsViewOpen(false);
       setSelectedAppointment(null);
       toast.success('Atendimento marcado como concluido.');
@@ -178,10 +187,27 @@ export default function AgendaAtendimentosPage() {
     onSuccess: (_, id) => {
       queryClient.setQueriesData({ queryKey: ['atendimentos'] }, (old) => {
         if (!Array.isArray(old)) return old;
-        return old.map((item) => (item.id === id ? { ...item, status: 'A' } : item));
+        return old.map((item) =>
+          item.id === id
+            ? {
+                ...item,
+                status: 'A',
+                observacaoConclusao: null,
+                concluidoPorColaboradorId: null,
+              }
+            : item
+        );
       });
       setSelectedAppointment((prev) =>
-        prev?.id === id ? { ...prev, status: 'A' } : prev
+        prev?.id === id
+          ? {
+              ...prev,
+              status: 'A',
+              observacaoConclusao: null,
+              concluidoPorColaboradorId: null,
+              concluidoPorNome: null,
+            }
+          : prev
       );
       toast.success('Atendimento retornou para agendado.');
     },
@@ -222,6 +248,27 @@ export default function AgendaAtendimentosPage() {
     if (selectedAppointment?.status === 'R') return;
     setIsViewOpen(false);
     setIsFormOpen(true);
+  };
+
+  const handleToggleConclude = () => {
+    if (!selectedAppointment?.id) return;
+
+    if (selectedAppointment.status === 'R') {
+      desmarcarConclusao.mutate(selectedAppointment.id);
+      return;
+    }
+
+    setIsViewOpen(false);
+    setIsConcludeDialogOpen(true);
+  };
+
+  const handleConfirmConclude = (observacaoConclusao) => {
+    if (!selectedAppointment?.id) return;
+
+    concluir.mutate({
+      id: selectedAppointment.id,
+      observacaoConclusao: observacaoConclusao?.trim() ? observacaoConclusao.trim() : null,
+    });
   };
 
   return (
@@ -346,12 +393,7 @@ export default function AgendaAtendimentosPage() {
           onOpenChange={setIsViewOpen}
           appointment={selectedAppointment}
           onEdit={handleEditFromView}
-          onToggleConclude={() =>
-            selectedAppointment?.id &&
-            (selectedAppointment.status === 'R'
-              ? desmarcarConclusao.mutate(selectedAppointment.id)
-              : concluir.mutate(selectedAppointment.id))
-          }
+          onToggleConclude={handleToggleConclude}
           onDelete={() =>
             selectedAppointment?.id &&
             selectedAppointment?.status !== 'R' &&
@@ -359,6 +401,14 @@ export default function AgendaAtendimentosPage() {
           }
           isTogglingConclude={concluir.isPending || desmarcarConclusao.isPending}
           isDeleting={excluir.isPending}
+        />
+
+        <AppointmentConcludeDialog
+          open={isConcludeDialogOpen}
+          onOpenChange={setIsConcludeDialogOpen}
+          appointment={selectedAppointment}
+          onConfirm={handleConfirmConclude}
+          isSaving={concluir.isPending}
         />
 
         <Toaster position="top-right" />

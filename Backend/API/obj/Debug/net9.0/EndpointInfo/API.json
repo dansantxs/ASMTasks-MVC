@@ -542,6 +542,25 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AtendimentoMarcarRealizadoRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AtendimentoMarcarRealizadoRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/AtendimentoMarcarRealizadoRequest"
+              }
+            }
+          }
+        },
         "responses": {
           "204": {
             "description": "No Content"
@@ -2250,6 +2269,16 @@
               "type": "integer",
               "format": "int32"
             },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "AtendimentoMarcarRealizadoRequest": {
+        "type": "object",
+        "properties": {
+          "observacaoConclusao": {
+            "type": "string",
             "nullable": true
           }
         },

@@ -393,6 +393,11 @@
         "Name": "id",
         "Type": "System.Int32",
         "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "API.DTOs.Atendimentos.AtendimentoMarcarRealizadoRequest",
+        "IsRequired": false
       }
     ],
     "ReturnTypes": [

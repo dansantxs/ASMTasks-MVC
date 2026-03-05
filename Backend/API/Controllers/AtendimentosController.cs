@@ -3,6 +3,7 @@ using API.DTOs.Atendimentos;
 using API.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System.Security.Claims;
 using System.ComponentModel.DataAnnotations;
 
@@ -142,7 +143,9 @@ namespace API.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> MarcarComoRealizado(int id)
+        public async Task<IActionResult> MarcarComoRealizado(
+            int id,
+            [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Allow)] AtendimentoMarcarRealizadoRequest? request)
         {
             try
             {
@@ -150,7 +153,10 @@ namespace API.Controllers
                 if (atendimento == null)
                     return NotFound(new { erro = "Atendimento nao encontrado." });
 
-                await atendimento.MarcarComoRealizadoAsync(_dbContext);
+                await atendimento.MarcarComoRealizadoAsync(
+                    _dbContext,
+                    ObterColaboradorIdLogado(),
+                    request?.ObservacaoConclusao);
                 return NoContent();
             }
             catch (ValidationException ex)
@@ -216,6 +222,8 @@ namespace API.Controllers
                 DataHoraInicio = a.DataHoraInicio,
                 DataHoraFim = a.DataHoraFim,
                 Status = a.Status,
+                ObservacaoConclusao = a.ObservacaoConclusao,
+                ConcluidoPorColaboradorId = a.ConcluidoPorColaboradorId,
                 Ativo = a.Ativo,
                 DataCadastro = a.DataCadastro,
                 ColaboradoresIds = a.ColaboradoresIds,
@@ -244,6 +252,8 @@ namespace API.Controllers
                 DataHoraInicio = a.DataHoraInicio,
                 DataHoraFim = a.DataHoraFim,
                 Status = a.Status,
+                ObservacaoConclusao = a.ObservacaoConclusao,
+                ConcluidoPorColaboradorId = a.ConcluidoPorColaboradorId,
                 Ativo = a.Ativo,
                 DataCadastro = a.DataCadastro,
                 ColaboradoresIds = a.ColaboradoresIds,

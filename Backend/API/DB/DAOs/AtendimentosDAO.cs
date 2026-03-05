@@ -120,13 +120,41 @@ namespace API.DB.DAOs
             return linhas > 0;
         }
 
-        public async Task<bool> AtualizarStatusAsync(DBContext dbContext, int id, char status)
+        public async Task<bool> AtualizarComoRealizadoAsync(
+            DBContext dbContext,
+            int id,
+            int concluidoPorColaboradorId,
+            string? observacaoConclusao)
         {
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = "UPDATE Atendimento SET Status = @Status WHERE Id = @Id";
+            cmd.CommandText = @"
+                UPDATE Atendimento
+                SET Status = 'R',
+                    ObservacaoConclusao = @ObservacaoConclusao,
+                    ConcluidoPorColaboradorId = @ConcluidoPorColaboradorId
+                WHERE Id = @Id
+            ";
             cmd.Parameters.AddWithValue("@Id", id);
-            cmd.Parameters.AddWithValue("@Status", status);
+            cmd.Parameters.AddWithValue("@ObservacaoConclusao", (object?)observacaoConclusao ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@ConcluidoPorColaboradorId", concluidoPorColaboradorId);
+
+            int linhas = await cmd.ExecuteNonQueryAsync();
+            return linhas > 0;
+        }
+
+        public async Task<bool> AtualizarComoAgendadoAsync(DBContext dbContext, int id)
+        {
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = @"
+                UPDATE Atendimento
+                SET Status = 'A',
+                    ObservacaoConclusao = NULL,
+                    ConcluidoPorColaboradorId = NULL
+                WHERE Id = @Id
+            ";
+            cmd.Parameters.AddWithValue("@Id", id);
 
             int linhas = await cmd.ExecuteNonQueryAsync();
             return linhas > 0;
@@ -142,7 +170,7 @@ namespace API.DB.DAOs
             {
                 await using var cmd = con.CreateCommand();
                 cmd.CommandText = @"
-                    SELECT Id, Titulo, Descricao, ClienteId, CadastradoPorColaboradorId, DataHoraInicio, DataHoraFim, Status, Ativo, DataCadastro
+                    SELECT Id, Titulo, Descricao, ClienteId, CadastradoPorColaboradorId, DataHoraInicio, DataHoraFim, Status, ObservacaoConclusao, ConcluidoPorColaboradorId, Ativo, DataCadastro
                     FROM Atendimento
                     WHERE (@DataInicio IS NULL OR COALESCE(DataHoraFim, DataHoraInicio) >= @DataInicio)
                       AND (@DataFim IS NULL OR DataHoraInicio <= @DataFim)
@@ -164,6 +192,8 @@ namespace API.DB.DAOs
                         DataHoraInicio = Convert.ToDateTime(dr["DataHoraInicio"]),
                         DataHoraFim = dr["DataHoraFim"] == DBNull.Value ? null : Convert.ToDateTime(dr["DataHoraFim"]),
                         Status = Convert.ToChar(dr["Status"]),
+                        ObservacaoConclusao = dr["ObservacaoConclusao"] == DBNull.Value ? null : dr["ObservacaoConclusao"].ToString(),
+                        ConcluidoPorColaboradorId = dr["ConcluidoPorColaboradorId"] == DBNull.Value ? null : Convert.ToInt32(dr["ConcluidoPorColaboradorId"]),
                         Ativo = Convert.ToBoolean(dr["Ativo"]),
                         DataCadastro = Convert.ToDateTime(dr["DataCadastro"])
                     };
@@ -191,7 +221,7 @@ namespace API.DB.DAOs
 
             await using var cmd = con.CreateCommand();
             cmd.CommandText = @"
-                SELECT Id, Titulo, Descricao, ClienteId, CadastradoPorColaboradorId, DataHoraInicio, DataHoraFim, Status, Ativo, DataCadastro
+                SELECT Id, Titulo, Descricao, ClienteId, CadastradoPorColaboradorId, DataHoraInicio, DataHoraFim, Status, ObservacaoConclusao, ConcluidoPorColaboradorId, Ativo, DataCadastro
                 FROM Atendimento
                 WHERE Id = @Id;
             ";
@@ -211,6 +241,8 @@ namespace API.DB.DAOs
                         DataHoraInicio = Convert.ToDateTime(dr["DataHoraInicio"]),
                         DataHoraFim = dr["DataHoraFim"] == DBNull.Value ? null : Convert.ToDateTime(dr["DataHoraFim"]),
                         Status = Convert.ToChar(dr["Status"]),
+                        ObservacaoConclusao = dr["ObservacaoConclusao"] == DBNull.Value ? null : dr["ObservacaoConclusao"].ToString(),
+                        ConcluidoPorColaboradorId = dr["ConcluidoPorColaboradorId"] == DBNull.Value ? null : Convert.ToInt32(dr["ConcluidoPorColaboradorId"]),
                         Ativo = Convert.ToBoolean(dr["Ativo"]),
                         DataCadastro = Convert.ToDateTime(dr["DataCadastro"])
                     };
