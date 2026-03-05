@@ -70,9 +70,11 @@ export async function atualizarAtendimento(id, payload) {
   return handleResponse(res);
 }
 
-export async function marcarAtendimentoComoRealizado(id) {
+export async function marcarAtendimentoComoRealizado(id, observacaoConclusao = null) {
   const res = await apiFetch(`${ATENDIMENTOS_API_URL}/${id}/realizar`, {
     method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ observacaoConclusao }),
   });
 
   return handleResponse(res);

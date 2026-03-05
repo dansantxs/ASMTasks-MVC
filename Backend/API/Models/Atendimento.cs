@@ -16,6 +16,8 @@ namespace API.Models
         public DateTime DataHoraInicio { get; set; }
         public DateTime? DataHoraFim { get; set; }
         public char Status { get; set; } = 'A';
+        public string? ObservacaoConclusao { get; set; }
+        public int? ConcluidoPorColaboradorId { get; set; }
         public bool Ativo { get; set; } = true;
         public DateTime DataCadastro { get; set; }
         public List<int> ColaboradoresIds { get; set; } = new List<int>();
@@ -136,16 +138,32 @@ namespace API.Models
                 throw new ValidationException("Atendimento nao encontrado.");
         }
 
-        public async Task MarcarComoRealizadoAsync(DBContext dbContext)
+        public async Task MarcarComoRealizadoAsync(DBContext dbContext, int concluidoPorColaboradorId, string? observacaoConclusao)
         {
-            var atualizado = await _atendimentosDAO.AtualizarStatusAsync(dbContext, Id, 'R');
+            if (concluidoPorColaboradorId <= 0)
+                throw new ValidationException("O colaborador que finalizou e obrigatorio.");
+
+            var colaboradorFinalizacao = await Colaborador.ObterPorIdAsync(dbContext, concluidoPorColaboradorId);
+            if (colaboradorFinalizacao == null || !colaboradorFinalizacao.Ativo)
+                throw new ValidationException("O colaborador que finalizou nao existe ou esta inativo.");
+
+            var observacaoSanitizada = string.IsNullOrWhiteSpace(observacaoConclusao)
+                ? null
+                : observacaoConclusao.Trim();
+
+            var atualizado = await _atendimentosDAO.AtualizarComoRealizadoAsync(
+                dbContext,
+                Id,
+                concluidoPorColaboradorId,
+                observacaoSanitizada);
+
             if (!atualizado)
                 throw new ValidationException("Atendimento nao encontrado.");
         }
 
         public async Task MarcarComoAgendadoAsync(DBContext dbContext)
         {
-            var atualizado = await _atendimentosDAO.AtualizarStatusAsync(dbContext, Id, 'A');
+            var atualizado = await _atendimentosDAO.AtualizarComoAgendadoAsync(dbContext, Id);
             if (!atualizado)
                 throw new ValidationException("Atendimento nao encontrado.");
         }

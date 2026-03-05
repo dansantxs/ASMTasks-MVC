@@ -10,6 +10,8 @@ namespace API.DTOs.Atendimentos
         public DateTime DataHoraInicio { get; set; }
         public DateTime? DataHoraFim { get; set; }
         public char Status { get; set; }
+        public string? ObservacaoConclusao { get; set; }
+        public int? ConcluidoPorColaboradorId { get; set; }
         public bool Ativo { get; set; }
         public DateTime DataCadastro { get; set; }
         public List<int> ColaboradoresIds { get; set; } = new List<int>();

@@ -74,6 +74,8 @@ export default function AppointmentViewDialog({
             {reminders.length > 0 ? reminders.map(formatNotification).join(', ') : '-'}
           </p>
           <p><span className="font-medium">Descricao:</span> {appointment.descricao || '-'}</p>
+          <p><span className="font-medium">Concluido por:</span> {appointment.concluidoPorNome ?? '-'}</p>
+          <p><span className="font-medium">Resumo da reuniao:</span> {appointment.observacaoConclusao || '-'}</p>
         </div>
 
         <div className="flex justify-end gap-2 pt-2">
