@@ -18,6 +18,7 @@ namespace API.Models
         public char Status { get; set; } = 'A';
         public string? ObservacaoConclusao { get; set; }
         public int? ConcluidoPorColaboradorId { get; set; }
+        public DateTime? DataHoraConclusao { get; set; }
         public bool Ativo { get; set; } = true;
         public DateTime DataCadastro { get; set; }
         public List<int> ColaboradoresIds { get; set; } = new List<int>();

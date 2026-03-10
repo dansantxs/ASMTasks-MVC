@@ -75,6 +75,7 @@ export default function AppointmentViewDialog({
           </p>
           <p><span className="font-medium">Descricao:</span> {appointment.descricao || '-'}</p>
           <p><span className="font-medium">Concluido por:</span> {appointment.concluidoPorNome ?? '-'}</p>
+          <p><span className="font-medium">Data/hora da conclusao:</span> {formatDateTime(appointment.dataHoraConclusao)}</p>
           <p><span className="font-medium">Resumo da reuniao:</span> {appointment.observacaoConclusao || '-'}</p>
         </div>
 

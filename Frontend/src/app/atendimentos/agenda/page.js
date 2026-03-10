@@ -114,6 +114,7 @@ export default function AgendaAtendimentosPage() {
         status: item.status,
         observacaoConclusao: item.observacaoConclusao ?? null,
         concluidoPorColaboradorId: item.concluidoPorColaboradorId ?? null,
+        dataHoraConclusao: item.dataHoraConclusao ? new Date(item.dataHoraConclusao) : null,
         concluidoPorNome: item.concluidoPorColaboradorId
           ? colaboradoresById.get(item.concluidoPorColaboradorId) ?? null
           : null,
@@ -194,6 +195,7 @@ export default function AgendaAtendimentosPage() {
                 status: 'A',
                 observacaoConclusao: null,
                 concluidoPorColaboradorId: null,
+                dataHoraConclusao: null,
               }
             : item
         );
@@ -205,6 +207,7 @@ export default function AgendaAtendimentosPage() {
               status: 'A',
               observacaoConclusao: null,
               concluidoPorColaboradorId: null,
+              dataHoraConclusao: null,
               concluidoPorNome: null,
             }
           : prev
