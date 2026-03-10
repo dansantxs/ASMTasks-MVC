@@ -17,5 +17,6 @@ namespace API.DTOs.Atendimentos
         public DateTime DataCadastro { get; set; }
         public List<int> ColaboradoresIds { get; set; } = new List<int>();
         public List<int> NotificacoesMinutosAntecedencia { get; set; } = new List<int>();
+        public List<AtendimentoHistoricoStatusResponse> HistoricoStatus { get; set; } = new List<AtendimentoHistoricoStatusResponse>();
     }
 }
