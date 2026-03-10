@@ -62,6 +62,18 @@ namespace API.Models
             if (await _niveisAcessoDAO.ExisteNomeAsync(dbContext, Nome, Id))
                 throw new ValidationException("Ja existe outro nivel de acesso com esse nome.");
 
+            var nivelAtual = await _niveisAcessoDAO.ObterPorIdAsync(dbContext, Id);
+            if (nivelAtual == null)
+                throw new ValidationException("Nivel de acesso nao encontrado.");
+
+            if (nivelAtual.EhAdministrador && !EhAdministrador)
+            {
+                var totalAdministradoresAtivos = await _usuariosDAO.ContarUsuariosAdministradoresAtivosAsync(dbContext);
+                var administradoresAtivosDoNivel = await _usuariosDAO.ContarUsuariosAdministradoresAtivosPorNivelAsync(dbContext, nivelAtual.Nome);
+                if (totalAdministradoresAtivos - administradoresAtivosDoNivel <= 0)
+                    throw new ValidationException("Nao e possivel remover o ultimo administrador ativo do sistema.");
+            }
+
             var atualizado = await _niveisAcessoDAO.AtualizarAsync(dbContext, this, nomeAnterior);
             if (!atualizado)
                 throw new ValidationException("Nivel de acesso nao encontrado.");

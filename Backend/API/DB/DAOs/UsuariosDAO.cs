@@ -242,9 +242,52 @@ namespace API.DB.DAOs
 
         public async Task<bool> ExisteUsuarioAdministradorAsync(DBContext dbContext)
         {
+            return await ContarUsuariosAdministradoresAtivosAsync(dbContext) > 0;
+        }
+
+        public async Task<int> ContarUsuariosAdministradoresAtivosAsync(DBContext dbContext)
+        {
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = "SELECT COUNT(1) FROM Usuario WHERE Ativo = 1 AND UPPER(NivelAcesso) = 'ADMINISTRADOR'";
+            cmd.CommandText = @"
+                SELECT COUNT(1)
+                FROM Usuario u
+                INNER JOIN NivelAcesso na ON UPPER(na.Nome) = UPPER(u.NivelAcesso)
+                WHERE u.Ativo = 1
+                  AND na.Ativo = 1
+                  AND na.EhAdministrador = 1";
+            return Convert.ToInt32(await cmd.ExecuteScalarAsync());
+        }
+
+        public async Task<int> ContarUsuariosAdministradoresAtivosPorNivelAsync(DBContext dbContext, string nivelAcesso)
+        {
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = @"
+                SELECT COUNT(1)
+                FROM Usuario u
+                INNER JOIN NivelAcesso na ON UPPER(na.Nome) = UPPER(u.NivelAcesso)
+                WHERE u.Ativo = 1
+                  AND na.Ativo = 1
+                  AND na.EhAdministrador = 1
+                  AND UPPER(u.NivelAcesso) = @NivelAcesso";
+            cmd.Parameters.AddWithValue("@NivelAcesso", nivelAcesso.Trim().ToUpperInvariant());
+            return Convert.ToInt32(await cmd.ExecuteScalarAsync());
+        }
+
+        public async Task<bool> UsuarioEhAdministradorAtivoAsync(DBContext dbContext, int usuarioId)
+        {
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = @"
+                SELECT COUNT(1)
+                FROM Usuario u
+                INNER JOIN NivelAcesso na ON UPPER(na.Nome) = UPPER(u.NivelAcesso)
+                WHERE u.Id = @UsuarioId
+                  AND u.Ativo = 1
+                  AND na.Ativo = 1
+                  AND na.EhAdministrador = 1";
+            cmd.Parameters.AddWithValue("@UsuarioId", usuarioId);
             return Convert.ToInt32(await cmd.ExecuteScalarAsync()) > 0;
         }
     }
