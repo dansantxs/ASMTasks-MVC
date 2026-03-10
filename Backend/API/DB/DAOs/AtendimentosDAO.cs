@@ -132,12 +132,14 @@ namespace API.DB.DAOs
                 UPDATE Atendimento
                 SET Status = 'R',
                     ObservacaoConclusao = @ObservacaoConclusao,
-                    ConcluidoPorColaboradorId = @ConcluidoPorColaboradorId
+                    ConcluidoPorColaboradorId = @ConcluidoPorColaboradorId,
+                    DataHoraConclusao = @DataHoraConclusao
                 WHERE Id = @Id
             ";
             cmd.Parameters.AddWithValue("@Id", id);
             cmd.Parameters.AddWithValue("@ObservacaoConclusao", (object?)observacaoConclusao ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@ConcluidoPorColaboradorId", concluidoPorColaboradorId);
+            cmd.Parameters.AddWithValue("@DataHoraConclusao", DateTime.Now);
 
             int linhas = await cmd.ExecuteNonQueryAsync();
             return linhas > 0;
@@ -151,7 +153,8 @@ namespace API.DB.DAOs
                 UPDATE Atendimento
                 SET Status = 'A',
                     ObservacaoConclusao = NULL,
-                    ConcluidoPorColaboradorId = NULL
+                    ConcluidoPorColaboradorId = NULL,
+                    DataHoraConclusao = NULL
                 WHERE Id = @Id
             ";
             cmd.Parameters.AddWithValue("@Id", id);
@@ -170,7 +173,7 @@ namespace API.DB.DAOs
             {
                 await using var cmd = con.CreateCommand();
                 cmd.CommandText = @"
-                    SELECT Id, Titulo, Descricao, ClienteId, CadastradoPorColaboradorId, DataHoraInicio, DataHoraFim, Status, ObservacaoConclusao, ConcluidoPorColaboradorId, Ativo, DataCadastro
+                    SELECT Id, Titulo, Descricao, ClienteId, CadastradoPorColaboradorId, DataHoraInicio, DataHoraFim, Status, ObservacaoConclusao, ConcluidoPorColaboradorId, DataHoraConclusao, Ativo, DataCadastro
                     FROM Atendimento
                     WHERE (@DataInicio IS NULL OR COALESCE(DataHoraFim, DataHoraInicio) >= @DataInicio)
                       AND (@DataFim IS NULL OR DataHoraInicio <= @DataFim)
@@ -194,6 +197,7 @@ namespace API.DB.DAOs
                         Status = Convert.ToChar(dr["Status"]),
                         ObservacaoConclusao = dr["ObservacaoConclusao"] == DBNull.Value ? null : dr["ObservacaoConclusao"].ToString(),
                         ConcluidoPorColaboradorId = dr["ConcluidoPorColaboradorId"] == DBNull.Value ? null : Convert.ToInt32(dr["ConcluidoPorColaboradorId"]),
+                        DataHoraConclusao = dr["DataHoraConclusao"] == DBNull.Value ? null : Convert.ToDateTime(dr["DataHoraConclusao"]),
                         Ativo = Convert.ToBoolean(dr["Ativo"]),
                         DataCadastro = Convert.ToDateTime(dr["DataCadastro"])
                     };
@@ -221,7 +225,7 @@ namespace API.DB.DAOs
 
             await using var cmd = con.CreateCommand();
             cmd.CommandText = @"
-                SELECT Id, Titulo, Descricao, ClienteId, CadastradoPorColaboradorId, DataHoraInicio, DataHoraFim, Status, ObservacaoConclusao, ConcluidoPorColaboradorId, Ativo, DataCadastro
+                SELECT Id, Titulo, Descricao, ClienteId, CadastradoPorColaboradorId, DataHoraInicio, DataHoraFim, Status, ObservacaoConclusao, ConcluidoPorColaboradorId, DataHoraConclusao, Ativo, DataCadastro
                 FROM Atendimento
                 WHERE Id = @Id;
             ";
@@ -243,6 +247,7 @@ namespace API.DB.DAOs
                         Status = Convert.ToChar(dr["Status"]),
                         ObservacaoConclusao = dr["ObservacaoConclusao"] == DBNull.Value ? null : dr["ObservacaoConclusao"].ToString(),
                         ConcluidoPorColaboradorId = dr["ConcluidoPorColaboradorId"] == DBNull.Value ? null : Convert.ToInt32(dr["ConcluidoPorColaboradorId"]),
+                        DataHoraConclusao = dr["DataHoraConclusao"] == DBNull.Value ? null : Convert.ToDateTime(dr["DataHoraConclusao"]),
                         Ativo = Convert.ToBoolean(dr["Ativo"]),
                         DataCadastro = Convert.ToDateTime(dr["DataCadastro"])
                     };

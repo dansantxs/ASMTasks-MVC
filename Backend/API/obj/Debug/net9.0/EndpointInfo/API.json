@@ -2,7 +2,7 @@
   "openapi": "3.0.4",
   "info": {
     "title": "API de Gerenciamento - ASMTasks",
-    "description": "\nEsta API gerencia entidades internas do sistema.\n\n### Recursos disponiveis:\n- **Cargos:** definicao de funcoes/posicoes dentro da organizacao.\n- **Colaboradores:** gerenciamento de usuarios/funcionarios.\n- **Etapas:** controle de fases de desenvolvimento.\n- **Prioridades:** definicao de niveis de prioridade.\n- **Setores:** organizacao de departamentos e responsaveis.\n- **Clientes:** gerenciamento de clientes.\n- **Atendimentos:** agenda de atendimentos com validacao de conflito de horario.\n\n### Funcionalidades gerais:\n- Criacao (`POST`)\n- Atualizacao (`PUT`)\n- Inativacao (`DELETE`)\n- Reativacao (`PUT /reativar`)\n- Consulta (`GET`)\n        ",
+    "description": "\r\nEsta API gerencia entidades internas do sistema.\r\n\r\n### Recursos disponiveis:\r\n- **Cargos:** definicao de funcoes/posicoes dentro da organizacao.\r\n- **Colaboradores:** gerenciamento de usuarios/funcionarios.\r\n- **Etapas:** controle de fases de desenvolvimento.\r\n- **Prioridades:** definicao de niveis de prioridade.\r\n- **Setores:** organizacao de departamentos e responsaveis.\r\n- **Clientes:** gerenciamento de clientes.\r\n- **Atendimentos:** agenda de atendimentos com validacao de conflito de horario.\r\n\r\n### Funcionalidades gerais:\r\n- Criacao (`POST`)\r\n- Atualizacao (`PUT`)\r\n- Inativacao (`DELETE`)\r\n- Reativacao (`PUT /reativar`)\r\n- Consulta (`GET`)\r\n        ",
     "version": "v1"
   },
   "paths": {
