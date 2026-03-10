@@ -42,6 +42,7 @@ namespace API.Controllers
                 new { chave = TelaPermissoes.RelatoriosEtapas, label = "Relatorios - Etapas" },
                 new { chave = TelaPermissoes.RelatoriosPrioridades, label = "Relatorios - Prioridades" },
                 new { chave = TelaPermissoes.RelatoriosSetores, label = "Relatorios - Setores" },
+                new { chave = TelaPermissoes.RelatoriosAtendimentosHistorico, label = "Relatorios - Historico de Atendimentos" },
                 new { chave = TelaPermissoes.AtendimentosAgenda, label = "Atendimento - Agenda" },
                 new { chave = TelaPermissoes.ConfiguracoesMinhaConta, label = "Configuracoes - Minha Conta" },
                 new { chave = TelaPermissoes.ConfiguracoesAcessos, label = "Configuracoes - Niveis e Usuarios" },

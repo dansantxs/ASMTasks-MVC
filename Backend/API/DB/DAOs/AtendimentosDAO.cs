@@ -127,40 +127,101 @@ namespace API.DB.DAOs
             string? observacaoConclusao)
         {
             await using var con = await dbContext.GetConnectionAsync();
-            await using var cmd = con.CreateCommand();
-            cmd.CommandText = @"
-                UPDATE Atendimento
-                SET Status = 'R',
-                    ObservacaoConclusao = @ObservacaoConclusao,
-                    ConcluidoPorColaboradorId = @ConcluidoPorColaboradorId,
-                    DataHoraConclusao = @DataHoraConclusao
-                WHERE Id = @Id
-            ";
-            cmd.Parameters.AddWithValue("@Id", id);
-            cmd.Parameters.AddWithValue("@ObservacaoConclusao", (object?)observacaoConclusao ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@ConcluidoPorColaboradorId", concluidoPorColaboradorId);
-            cmd.Parameters.AddWithValue("@DataHoraConclusao", DateTime.Now);
+            await using var transaction = (SqlTransaction)await con.BeginTransactionAsync();
 
-            int linhas = await cmd.ExecuteNonQueryAsync();
-            return linhas > 0;
+            try
+            {
+                var dataHoraAcao = DateTime.Now;
+
+                await using var cmd = con.CreateCommand();
+                cmd.Transaction = transaction;
+                cmd.CommandText = @"
+                    UPDATE Atendimento
+                    SET Status = 'R',
+                        ObservacaoConclusao = @ObservacaoConclusao,
+                        ConcluidoPorColaboradorId = @ConcluidoPorColaboradorId,
+                        DataHoraConclusao = @DataHoraConclusao
+                    WHERE Id = @Id
+                ";
+                cmd.Parameters.AddWithValue("@Id", id);
+                cmd.Parameters.AddWithValue("@ObservacaoConclusao", (object?)observacaoConclusao ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@ConcluidoPorColaboradorId", concluidoPorColaboradorId);
+                cmd.Parameters.AddWithValue("@DataHoraConclusao", dataHoraAcao);
+
+                int linhas = await cmd.ExecuteNonQueryAsync();
+                if (linhas == 0)
+                {
+                    await transaction.RollbackAsync();
+                    return false;
+                }
+
+                await InserirHistoricoStatusAsync(
+                    con,
+                    transaction,
+                    id,
+                    'C',
+                    concluidoPorColaboradorId,
+                    observacaoConclusao,
+                    dataHoraAcao);
+
+                await transaction.CommitAsync();
+                return true;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
-        public async Task<bool> AtualizarComoAgendadoAsync(DBContext dbContext, int id)
+        public async Task<bool> AtualizarComoAgendadoAsync(
+            DBContext dbContext,
+            int id,
+            int reabertoPorColaboradorId)
         {
             await using var con = await dbContext.GetConnectionAsync();
-            await using var cmd = con.CreateCommand();
-            cmd.CommandText = @"
-                UPDATE Atendimento
-                SET Status = 'A',
-                    ObservacaoConclusao = NULL,
-                    ConcluidoPorColaboradorId = NULL,
-                    DataHoraConclusao = NULL
-                WHERE Id = @Id
-            ";
-            cmd.Parameters.AddWithValue("@Id", id);
+            await using var transaction = (SqlTransaction)await con.BeginTransactionAsync();
 
-            int linhas = await cmd.ExecuteNonQueryAsync();
-            return linhas > 0;
+            try
+            {
+                var dataHoraAcao = DateTime.Now;
+
+                await using var cmd = con.CreateCommand();
+                cmd.Transaction = transaction;
+                cmd.CommandText = @"
+                    UPDATE Atendimento
+                    SET Status = 'A',
+                        ObservacaoConclusao = NULL,
+                        ConcluidoPorColaboradorId = NULL,
+                        DataHoraConclusao = NULL
+                    WHERE Id = @Id
+                ";
+                cmd.Parameters.AddWithValue("@Id", id);
+
+                int linhas = await cmd.ExecuteNonQueryAsync();
+                if (linhas == 0)
+                {
+                    await transaction.RollbackAsync();
+                    return false;
+                }
+
+                await InserirHistoricoStatusAsync(
+                    con,
+                    transaction,
+                    id,
+                    'R',
+                    reabertoPorColaboradorId,
+                    null,
+                    dataHoraAcao);
+
+                await transaction.CommitAsync();
+                return true;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         public async Task<IEnumerable<Atendimento>> ObterTodosAsync(DBContext dbContext, DateTime? dataInicio = null, DateTime? dataFim = null)
@@ -210,6 +271,7 @@ namespace API.DB.DAOs
             {
                 atendimento.ColaboradoresIds = (await ObterColaboradoresIdsAsync(con, atendimento.Id)).ToList();
                 atendimento.NotificacoesMinutosAntecedencia = (await ObterNotificacoesAsync(con, atendimento.Id)).ToList();
+                atendimento.HistoricoStatus = (await ObterHistoricoStatusAsync(con, atendimento.Id)).ToList();
             }
 
             return lista;
@@ -258,6 +320,7 @@ namespace API.DB.DAOs
             {
                 atendimento.ColaboradoresIds = (await ObterColaboradoresIdsAsync(con, atendimento.Id)).ToList();
                 atendimento.NotificacoesMinutosAntecedencia = (await ObterNotificacoesAsync(con, atendimento.Id)).ToList();
+                atendimento.HistoricoStatus = (await ObterHistoricoStatusAsync(con, atendimento.Id)).ToList();
             }
 
             return atendimento;
@@ -294,6 +357,74 @@ namespace API.DB.DAOs
             return count > 0;
         }
 
+        public async Task<IEnumerable<AtendimentoHistoricoRelatorioItem>> ObterHistoricoStatusRelatorioAsync(
+            DBContext dbContext,
+            DateTime? dataInicio = null,
+            DateTime? dataFim = null,
+            char? tipo = null,
+            int? colaboradorId = null,
+            int? clienteId = null,
+            int? atendimentoId = null)
+        {
+            var lista = new List<AtendimentoHistoricoRelatorioItem>();
+
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = @"
+                SELECT
+                    hs.Id,
+                    hs.AtendimentoId,
+                    a.Titulo AS AtendimentoTitulo,
+                    a.ClienteId,
+                    cl.Nome AS ClienteNome,
+                    hs.Tipo,
+                    hs.ColaboradorId,
+                    c.Nome AS ColaboradorNome,
+                    hs.DataHoraAcao,
+                    hs.Observacao,
+                    a.Status AS AtendimentoStatusAtual
+                FROM AtendimentoHistoricoStatus hs
+                INNER JOIN Atendimento a ON a.Id = hs.AtendimentoId
+                INNER JOIN Cliente cl ON cl.Id = a.ClienteId
+                INNER JOIN Colaborador c ON c.Id = hs.ColaboradorId
+                WHERE (@DataInicio IS NULL OR hs.DataHoraAcao >= @DataInicio)
+                  AND (@DataFim IS NULL OR hs.DataHoraAcao <= @DataFim)
+                  AND (@Tipo IS NULL OR hs.Tipo = @Tipo)
+                  AND (@ColaboradorId IS NULL OR hs.ColaboradorId = @ColaboradorId)
+                  AND (@ClienteId IS NULL OR a.ClienteId = @ClienteId)
+                  AND (@AtendimentoId IS NULL OR hs.AtendimentoId = @AtendimentoId)
+                ORDER BY hs.DataHoraAcao DESC, hs.Id DESC;
+            ";
+
+            cmd.Parameters.AddWithValue("@DataInicio", (object?)dataInicio ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@DataFim", (object?)dataFim ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@Tipo", (object?)tipo ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@ColaboradorId", (object?)colaboradorId ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@ClienteId", (object?)clienteId ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@AtendimentoId", (object?)atendimentoId ?? DBNull.Value);
+
+            await using var dr = await cmd.ExecuteReaderAsync();
+            while (await dr.ReadAsync())
+            {
+                lista.Add(new AtendimentoHistoricoRelatorioItem
+                {
+                    Id = Convert.ToInt32(dr["Id"]),
+                    AtendimentoId = Convert.ToInt32(dr["AtendimentoId"]),
+                    AtendimentoTitulo = dr["AtendimentoTitulo"]?.ToString() ?? string.Empty,
+                    ClienteId = Convert.ToInt32(dr["ClienteId"]),
+                    ClienteNome = dr["ClienteNome"]?.ToString() ?? string.Empty,
+                    Tipo = Convert.ToChar(dr["Tipo"]),
+                    ColaboradorId = Convert.ToInt32(dr["ColaboradorId"]),
+                    ColaboradorNome = dr["ColaboradorNome"]?.ToString() ?? string.Empty,
+                    DataHoraAcao = Convert.ToDateTime(dr["DataHoraAcao"]),
+                    Observacao = dr["Observacao"] == DBNull.Value ? null : dr["Observacao"].ToString(),
+                    AtendimentoStatusAtual = Convert.ToChar(dr["AtendimentoStatusAtual"])
+                });
+            }
+
+            return lista;
+        }
+
         private static async Task AtualizarAtendimentosVencidosAsync(SqlConnection connection)
         {
             await using var cmd = connection.CreateCommand();
@@ -303,10 +434,72 @@ namespace API.DB.DAOs
                 WHERE Ativo = 1
                   AND Status = 'A'
                   AND DataHoraFim IS NOT NULL
-                  AND DataHoraFim <= @Agora;
+                  AND DataHoraFim <= @Agora
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM AtendimentoHistoricoStatus hs
+                      WHERE hs.AtendimentoId = Atendimento.Id
+                  );
             ";
             cmd.Parameters.AddWithValue("@Agora", DateTime.Now);
             await cmd.ExecuteNonQueryAsync();
+        }
+
+        private static async Task InserirHistoricoStatusAsync(
+            SqlConnection connection,
+            SqlTransaction transaction,
+            int atendimentoId,
+            char tipo,
+            int colaboradorId,
+            string? observacao,
+            DateTime dataHoraAcao)
+        {
+            await using var cmd = connection.CreateCommand();
+            cmd.Transaction = transaction;
+            cmd.CommandText = @"
+                INSERT INTO AtendimentoHistoricoStatus
+                (AtendimentoId, Tipo, ColaboradorId, DataHoraAcao, Observacao)
+                VALUES
+                (@AtendimentoId, @Tipo, @ColaboradorId, @DataHoraAcao, @Observacao);
+            ";
+            cmd.Parameters.AddWithValue("@AtendimentoId", atendimentoId);
+            cmd.Parameters.AddWithValue("@Tipo", tipo);
+            cmd.Parameters.AddWithValue("@ColaboradorId", colaboradorId);
+            cmd.Parameters.AddWithValue("@DataHoraAcao", dataHoraAcao);
+            cmd.Parameters.AddWithValue("@Observacao", (object?)observacao ?? DBNull.Value);
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        private static async Task<IEnumerable<AtendimentoHistoricoStatus>> ObterHistoricoStatusAsync(SqlConnection connection, int atendimentoId)
+        {
+            var historico = new List<AtendimentoHistoricoStatus>();
+
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"
+                SELECT hs.Id, hs.AtendimentoId, hs.Tipo, hs.ColaboradorId, c.Nome AS ColaboradorNome, hs.DataHoraAcao, hs.Observacao
+                FROM AtendimentoHistoricoStatus hs
+                INNER JOIN Colaborador c ON c.Id = hs.ColaboradorId
+                WHERE hs.AtendimentoId = @AtendimentoId
+                ORDER BY hs.DataHoraAcao DESC, hs.Id DESC;
+            ";
+            cmd.Parameters.AddWithValue("@AtendimentoId", atendimentoId);
+
+            await using var dr = await cmd.ExecuteReaderAsync();
+            while (await dr.ReadAsync())
+            {
+                historico.Add(new AtendimentoHistoricoStatus
+                {
+                    Id = Convert.ToInt32(dr["Id"]),
+                    AtendimentoId = Convert.ToInt32(dr["AtendimentoId"]),
+                    Tipo = Convert.ToChar(dr["Tipo"]),
+                    ColaboradorId = Convert.ToInt32(dr["ColaboradorId"]),
+                    ColaboradorNome = dr["ColaboradorNome"] == DBNull.Value ? null : dr["ColaboradorNome"].ToString(),
+                    DataHoraAcao = Convert.ToDateTime(dr["DataHoraAcao"]),
+                    Observacao = dr["Observacao"] == DBNull.Value ? null : dr["Observacao"].ToString()
+                });
+            }
+
+            return historico;
         }
 
         private static async Task InserirColaboradoresAsync(

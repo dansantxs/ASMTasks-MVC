@@ -185,33 +185,10 @@ export default function AgendaAtendimentosPage() {
 
   const desmarcarConclusao = useMutation({
     mutationFn: marcarAtendimentoComoAgendado,
-    onSuccess: (_, id) => {
-      queryClient.setQueriesData({ queryKey: ['atendimentos'] }, (old) => {
-        if (!Array.isArray(old)) return old;
-        return old.map((item) =>
-          item.id === id
-            ? {
-                ...item,
-                status: 'A',
-                observacaoConclusao: null,
-                concluidoPorColaboradorId: null,
-                dataHoraConclusao: null,
-              }
-            : item
-        );
-      });
-      setSelectedAppointment((prev) =>
-        prev?.id === id
-          ? {
-              ...prev,
-              status: 'A',
-              observacaoConclusao: null,
-              concluidoPorColaboradorId: null,
-              dataHoraConclusao: null,
-              concluidoPorNome: null,
-            }
-          : prev
-      );
+    onSuccess: () => {
+      queryClient.invalidateQueries(['atendimentos']);
+      setIsViewOpen(false);
+      setSelectedAppointment(null);
       toast.success('Atendimento retornou para agendado.');
     },
     onError: (error) => toast.error(error?.message ?? 'Erro ao desmarcar atendimento concluido.'),

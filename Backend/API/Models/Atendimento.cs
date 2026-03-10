@@ -23,6 +23,7 @@ namespace API.Models
         public DateTime DataCadastro { get; set; }
         public List<int> ColaboradoresIds { get; set; } = new List<int>();
         public List<int> NotificacoesMinutosAntecedencia { get; set; } = new List<int>();
+        public List<AtendimentoHistoricoStatus> HistoricoStatus { get; set; } = new List<AtendimentoHistoricoStatus>();
 
         private void ValidarDados()
         {
@@ -162,9 +163,16 @@ namespace API.Models
                 throw new ValidationException("Atendimento nao encontrado.");
         }
 
-        public async Task MarcarComoAgendadoAsync(DBContext dbContext)
+        public async Task MarcarComoAgendadoAsync(DBContext dbContext, int reabertoPorColaboradorId)
         {
-            var atualizado = await _atendimentosDAO.AtualizarComoAgendadoAsync(dbContext, Id);
+            if (reabertoPorColaboradorId <= 0)
+                throw new ValidationException("O colaborador que reabriu e obrigatorio.");
+
+            var colaboradorReabertura = await Colaborador.ObterPorIdAsync(dbContext, reabertoPorColaboradorId);
+            if (colaboradorReabertura == null || !colaboradorReabertura.Ativo)
+                throw new ValidationException("O colaborador que reabriu nao existe ou esta inativo.");
+
+            var atualizado = await _atendimentosDAO.AtualizarComoAgendadoAsync(dbContext, Id, reabertoPorColaboradorId);
             if (!atualizado)
                 throw new ValidationException("Atendimento nao encontrado.");
         }
@@ -177,6 +185,25 @@ namespace API.Models
         public static async Task<Atendimento?> ObterPorIdAsync(DBContext dbContext, int id, bool aplicarAutoFinalizacao = true)
         {
             return await _atendimentosDAO.ObterPorIdAsync(dbContext, id, aplicarAutoFinalizacao);
+        }
+
+        public static async Task<IEnumerable<AtendimentoHistoricoRelatorioItem>> ObterHistoricoStatusRelatorioAsync(
+            DBContext dbContext,
+            DateTime? dataInicio = null,
+            DateTime? dataFim = null,
+            char? tipo = null,
+            int? colaboradorId = null,
+            int? clienteId = null,
+            int? atendimentoId = null)
+        {
+            return await _atendimentosDAO.ObterHistoricoStatusRelatorioAsync(
+                dbContext,
+                dataInicio,
+                dataFim,
+                tipo,
+                colaboradorId,
+                clienteId,
+                atendimentoId);
         }
     }
 }

@@ -1,4 +1,4 @@
-import { Briefcase, Building2, Flag, Handshake, Users, Workflow } from "lucide-react";
+import { Briefcase, Building2, Flag, Handshake, History, Users, Workflow } from "lucide-react";
 import { screenPermissions } from "../auth/permissions";
 
 export const cadastroItems = [
@@ -17,4 +17,5 @@ export const relatorioItems = [
   { key: "etapas", label: "Etapas", icon: Workflow, permission: screenPermissions.relatoriosEtapas },
   { key: "prioridades", label: "Prioridades", icon: Flag, permission: screenPermissions.relatoriosPrioridades },
   { key: "setores", label: "Setores", icon: Building2, permission: screenPermissions.relatoriosSetores },
+  { key: "atendimentos-historico", label: "Histórico Atend.", icon: History, permission: screenPermissions.relatoriosAtendimentosHistorico },
 ];

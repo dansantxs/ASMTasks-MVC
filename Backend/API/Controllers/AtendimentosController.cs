@@ -190,7 +190,9 @@ namespace API.Controllers
                 if (atendimento == null)
                     return NotFound(new { erro = "Atendimento nao encontrado." });
 
-                await atendimento.MarcarComoAgendadoAsync(_dbContext);
+                await atendimento.MarcarComoAgendadoAsync(
+                    _dbContext,
+                    ObterColaboradorIdLogado());
                 return NoContent();
             }
             catch (ValidationException ex)
@@ -228,7 +230,60 @@ namespace API.Controllers
                 Ativo = a.Ativo,
                 DataCadastro = a.DataCadastro,
                 ColaboradoresIds = a.ColaboradoresIds,
-                NotificacoesMinutosAntecedencia = a.NotificacoesMinutosAntecedencia
+                NotificacoesMinutosAntecedencia = a.NotificacoesMinutosAntecedencia,
+                HistoricoStatus = MapearHistoricoStatus(a)
+            });
+
+            return Ok(response);
+        }
+
+        [HttpGet("historico-acoes")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> ObterHistoricoAcoes(
+            [FromQuery] DateTime? dataInicio = null,
+            [FromQuery] DateTime? dataFim = null,
+            [FromQuery] string? tipo = null,
+            [FromQuery] int? colaboradorId = null,
+            [FromQuery] int? clienteId = null,
+            [FromQuery] int? atendimentoId = null)
+        {
+            char? tipoChar = null;
+            if (!string.IsNullOrWhiteSpace(tipo))
+            {
+                var tipoNormalizado = tipo.Trim().ToUpperInvariant();
+                if (tipoNormalizado != "C" && tipoNormalizado != "R")
+                    return BadRequest(new { erro = "O parametro 'tipo' deve ser 'C' (conclusao) ou 'R' (reabertura)." });
+
+                tipoChar = tipoNormalizado[0];
+            }
+
+            var historico = await Atendimento.ObterHistoricoStatusRelatorioAsync(
+                _dbContext,
+                dataInicio,
+                dataFim,
+                tipoChar,
+                colaboradorId,
+                clienteId,
+                atendimentoId);
+
+            if (historico == null || !historico.Any())
+                return NoContent();
+
+            var response = historico.Select(item => new AtendimentoHistoricoRelatorioResponse
+            {
+                Id = item.Id,
+                AtendimentoId = item.AtendimentoId,
+                AtendimentoTitulo = item.AtendimentoTitulo,
+                ClienteId = item.ClienteId,
+                ClienteNome = item.ClienteNome,
+                Tipo = item.Tipo,
+                ColaboradorId = item.ColaboradorId,
+                ColaboradorNome = item.ColaboradorNome,
+                DataHoraAcao = item.DataHoraAcao,
+                Observacao = item.Observacao,
+                AtendimentoStatusAtual = item.AtendimentoStatusAtual
             });
 
             return Ok(response);
@@ -259,10 +314,26 @@ namespace API.Controllers
                 Ativo = a.Ativo,
                 DataCadastro = a.DataCadastro,
                 ColaboradoresIds = a.ColaboradoresIds,
-                NotificacoesMinutosAntecedencia = a.NotificacoesMinutosAntecedencia
+                NotificacoesMinutosAntecedencia = a.NotificacoesMinutosAntecedencia,
+                HistoricoStatus = MapearHistoricoStatus(a)
             };
 
             return Ok(response);
+        }
+
+        private static List<AtendimentoHistoricoStatusResponse> MapearHistoricoStatus(Atendimento atendimento)
+        {
+            return atendimento.HistoricoStatus
+                .Select(item => new AtendimentoHistoricoStatusResponse
+                {
+                    Id = item.Id,
+                    Tipo = item.Tipo,
+                    ColaboradorId = item.ColaboradorId,
+                    ColaboradorNome = item.ColaboradorNome,
+                    DataHoraAcao = item.DataHoraAcao,
+                    Observacao = item.Observacao
+                })
+                .ToList();
         }
     }
 }
