@@ -39,7 +39,7 @@ const emptyForm = {
   permissoes: [],
 };
 
-const ordemGrupos = ['Cadastros', 'Atendimento', 'Relatorios', 'Configuracoes'];
+const ordemGrupos = ['Cadastros', 'Atendimento', 'Projetos', 'Relatorios', 'Configuracoes'];
 
 function getGrupoPermissao(permissao) {
   if (permissao?.label?.includes(' - ')) {

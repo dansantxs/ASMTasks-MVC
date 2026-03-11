@@ -9,6 +9,7 @@ import {
   X,
   BarChart3,
   CalendarDays,
+  FolderKanban,
   Settings,
   LogOut,
   KeyRound,
@@ -30,6 +31,7 @@ export function Sidebar({ currentPath, onNavigate, onToggleCollapse, colaborador
   const cadastrosDisponiveis = cadastroItems.filter((item) => hasPermission(session, item.permission));
   const relatoriosDisponiveis = relatorioItems.filter((item) => hasPermission(session, item.permission));
   const podeVerAtendimento = hasPermission(session, screenPermissions.atendimentosAgenda);
+  const podeVerProjetos = hasPermission(session, screenPermissions.projetosCadastro);
   const podeVerMinhaConta = hasPermission(session, screenPermissions.configuracoesMinhaConta);
   const podeVerAcessos = hasPermission(session, screenPermissions.configuracoesAcessos);
   const podeVerSistema = hasPermission(session, screenPermissions.configuracoesSistema);
@@ -52,6 +54,7 @@ export function Sidebar({ currentPath, onNavigate, onToggleCollapse, colaborador
   const isCadastros = currentSection === 'cadastros';
   const isRelatorios = currentSection === 'relatorios';
   const isAtendimentos = currentSection === 'atendimentos';
+  const isProjetos = currentSection === 'projetos';
   const isConfiguracoes = currentSection === 'configuracoes';
 
   return (
@@ -161,6 +164,21 @@ export function Sidebar({ currentPath, onNavigate, onToggleCollapse, colaborador
           >
             <CalendarDays className="h-5 w-5 flex-shrink-0" />
             {!isCollapsed && <span>Atendimento</span>}
+          </button>
+        )}
+
+        {podeVerProjetos && (
+          <button
+            onClick={() => onNavigate('/projetos')}
+            className={cn(
+              'w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors',
+              isProjetos ? 'bg-gray-800 text-white' : 'text-gray-300 hover:bg-gray-800',
+              isCollapsed && 'justify-center px-2'
+            )}
+            title={isCollapsed ? 'Projetos' : undefined}
+          >
+            <FolderKanban className="h-5 w-5 flex-shrink-0" />
+            {!isCollapsed && <span>Projetos</span>}
           </button>
         )}
 

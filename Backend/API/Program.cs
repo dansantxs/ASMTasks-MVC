@@ -36,6 +36,7 @@ Esta API gerencia entidades internas do sistema.
 - **Setores:** organizacao de departamentos e responsaveis.
 - **Clientes:** gerenciamento de clientes.
 - **Atendimentos:** agenda de atendimentos com validacao de conflito de horario.
+- **Projetos:** cadastro de projetos com tarefas e dados de atribuicao futura.
 
 ### Funcionalidades gerais:
 - Criacao (`POST`)
@@ -113,6 +114,7 @@ builder.Services.AddScoped<CargosDAO>();
 builder.Services.AddScoped<ColaboradoresDAO>();
 builder.Services.AddScoped<ClientesDAO>();
 builder.Services.AddScoped<AtendimentosDAO>();
+builder.Services.AddScoped<ProjetosDAO>();
 builder.Services.AddScoped<UsuariosDAO>();
 builder.Services.AddScoped<NiveisAcessoDAO>();
 

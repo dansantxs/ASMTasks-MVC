@@ -2,7 +2,7 @@
   "openapi": "3.0.4",
   "info": {
     "title": "API de Gerenciamento - ASMTasks",
-    "description": "\r\nEsta API gerencia entidades internas do sistema.\r\n\r\n### Recursos disponiveis:\r\n- **Cargos:** definicao de funcoes/posicoes dentro da organizacao.\r\n- **Colaboradores:** gerenciamento de usuarios/funcionarios.\r\n- **Etapas:** controle de fases de desenvolvimento.\r\n- **Prioridades:** definicao de niveis de prioridade.\r\n- **Setores:** organizacao de departamentos e responsaveis.\r\n- **Clientes:** gerenciamento de clientes.\r\n- **Atendimentos:** agenda de atendimentos com validacao de conflito de horario.\r\n\r\n### Funcionalidades gerais:\r\n- Criacao (`POST`)\r\n- Atualizacao (`PUT`)\r\n- Inativacao (`DELETE`)\r\n- Reativacao (`PUT /reativar`)\r\n- Consulta (`GET`)\r\n        ",
+    "description": "\r\nEsta API gerencia entidades internas do sistema.\r\n\r\n### Recursos disponiveis:\r\n- **Cargos:** definicao de funcoes/posicoes dentro da organizacao.\r\n- **Colaboradores:** gerenciamento de usuarios/funcionarios.\r\n- **Etapas:** controle de fases de desenvolvimento.\r\n- **Prioridades:** definicao de niveis de prioridade.\r\n- **Setores:** organizacao de departamentos e responsaveis.\n- **Clientes:** gerenciamento de clientes.\n- **Atendimentos:** agenda de atendimentos com validacao de conflito de horario.\n- **Projetos:** cadastro de projetos com tarefas e dados de atribuicao futura.\n\r\n### Funcionalidades gerais:\r\n- Criacao (`POST`)\r\n- Atualizacao (`PUT`)\r\n- Inativacao (`DELETE`)\r\n- Reativacao (`PUT /reativar`)\r\n- Consulta (`GET`)\r\n        ",
     "version": "v1"
   },
   "paths": {
@@ -2012,6 +2012,229 @@
         }
       }
     },
+    "/api/Projetos": {
+      "post": {
+        "tags": [
+          "Projetos"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjetoCriarRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjetoCriarRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjetoCriarRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Projetos"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/api/Projetos/{id}": {
+      "delete": {
+        "tags": [
+          "Projetos"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Projetos"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjetoAtualizarRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjetoAtualizarRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjetoAtualizarRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Projetos"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Projetos/{id}/reativar": {
+      "put": {
+        "tags": [
+          "Projetos"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
     "/api/Setores": {
       "post": {
         "tags": [
@@ -2864,6 +3087,97 @@
           }
         },
         "additionalProperties": { }
+      },
+      "ProjetoAtualizarRequest": {
+        "type": "object",
+        "properties": {
+          "titulo": {
+            "type": "string",
+            "nullable": true
+          },
+          "descricao": {
+            "type": "string",
+            "nullable": true
+          },
+          "clienteId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "setorId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tarefas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjetoTarefaCriarRequest"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProjetoCriarRequest": {
+        "type": "object",
+        "properties": {
+          "titulo": {
+            "type": "string",
+            "nullable": true
+          },
+          "descricao": {
+            "type": "string",
+            "nullable": true
+          },
+          "clienteId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "setorId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tarefas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjetoTarefaCriarRequest"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProjetoTarefaCriarRequest": {
+        "type": "object",
+        "properties": {
+          "titulo": {
+            "type": "string",
+            "nullable": true
+          },
+          "descricao": {
+            "type": "string",
+            "nullable": true
+          },
+          "prioridadeId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "colaboradorResponsavelId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "dataHoraAtribuicao": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "etapaId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
       },
       "SetorAtualizarRequest": {
         "type": "object",

@@ -6,6 +6,7 @@ export const screenPermissions = {
   cadastrosPrioridades: 'cadastros.prioridades',
   cadastrosSetores: 'cadastros.setores',
   atendimentosAgenda: 'atendimentos.agenda',
+  projetosCadastro: 'projetos.cadastro',
   relatoriosCargos: 'relatorios.cargos',
   relatoriosClientes: 'relatorios.clientes',
   relatoriosColaboradores: 'relatorios.colaboradores',
@@ -26,6 +27,7 @@ const routePermissionMatchers = [
   { prefix: '/cadastros/prioridades', permission: screenPermissions.cadastrosPrioridades },
   { prefix: '/cadastros/setores', permission: screenPermissions.cadastrosSetores },
   { prefix: '/atendimentos/agenda', permission: screenPermissions.atendimentosAgenda },
+  { prefix: '/projetos', permission: screenPermissions.projetosCadastro },
   { prefix: '/relatorios/cargos', permission: screenPermissions.relatoriosCargos },
   { prefix: '/relatorios/clientes', permission: screenPermissions.relatoriosClientes },
   { prefix: '/relatorios/colaboradores', permission: screenPermissions.relatoriosColaboradores },
@@ -40,6 +42,7 @@ const routePermissionMatchers = [
 
 const orderedDefaultRoutes = [
   { path: '/atendimentos/agenda', permission: screenPermissions.atendimentosAgenda },
+  { path: '/projetos', permission: screenPermissions.projetosCadastro },
   { path: '/cadastros/clientes', permission: screenPermissions.cadastrosClientes },
   { path: '/cadastros/colaboradores', permission: screenPermissions.cadastrosColaboradores },
   { path: '/cadastros/cargos', permission: screenPermissions.cadastrosCargos },
