@@ -9,6 +9,7 @@ namespace API.Security
         public const string CadastrosPrioridades = "cadastros.prioridades";
         public const string CadastrosSetores = "cadastros.setores";
         public const string AtendimentosAgenda = "atendimentos.agenda";
+        public const string ProjetosCadastro = "projetos.cadastro";
         public const string RelatoriosCargos = "relatorios.cargos";
         public const string RelatoriosClientes = "relatorios.clientes";
         public const string RelatoriosColaboradores = "relatorios.colaboradores";
@@ -29,6 +30,7 @@ namespace API.Security
             CadastrosPrioridades,
             CadastrosSetores,
             AtendimentosAgenda,
+            ProjetosCadastro,
             RelatoriosCargos,
             RelatoriosClientes,
             RelatoriosColaboradores,
@@ -50,6 +52,7 @@ namespace API.Security
             CadastrosPrioridades,
             CadastrosSetores,
             AtendimentosAgenda,
+            ProjetosCadastro,
             RelatoriosCargos,
             RelatoriosClientes,
             RelatoriosColaboradores,
