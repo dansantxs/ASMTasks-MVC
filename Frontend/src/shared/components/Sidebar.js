@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Home,
   ChevronDown,
@@ -15,17 +16,93 @@ import {
   KeyRound,
   ShieldCheck,
   SlidersHorizontal,
+  Bell,
+  Check,
 } from 'lucide-react';
 import { cn } from '../../ui/form/utils';
 import { Button } from '../../ui/base/button';
 import { cadastroItems, relatorioItems } from '../config/menuItems';
 import { hasPermission, screenPermissions } from '../auth/permissions';
+import { defaultNotificationListResponse, getNotifications, markNotificationAsRead } from '../notifications/api';
+import { toast } from 'sonner';
+
+function formatDateTime(value) {
+  if (!value) return '-';
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '-';
+
+  return date.toLocaleString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
 
 export function Sidebar({ currentPath, onNavigate, onToggleCollapse, colaboradorNome, permissoes, onLogout }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [cadastrosExpanded, setCadastrosExpanded] = useState(false);
   const [relatoriosExpanded, setRelatoriosExpanded] = useState(false);
   const [configuracoesExpanded, setConfiguracoesExpanded] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [markingNotificationId, setMarkingNotificationId] = useState(null);
+  const notifiedUnreadIdsRef = useRef(new Set());
+  const hasInitializedUnreadTrackerRef = useRef(false);
+
+  const queryClient = useQueryClient();
+
+  const { data: notificationsData = defaultNotificationListResponse, isLoading: isLoadingNotifications } = useQuery({
+    queryKey: ['sidebar-notifications'],
+    queryFn: () => getNotifications(50),
+    refetchInterval: 30000,
+    staleTime: 10000,
+  });
+
+  const markNotificationAsReadMutation = useMutation({
+    mutationFn: markNotificationAsRead,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sidebar-notifications'] });
+    },
+    onSettled: () => {
+      setMarkingNotificationId(null);
+    },
+  });
+
+  const unreadNotificationsCount = notificationsData.quantidadeNaoLidas ?? 0;
+  const notifications = notificationsData.itens ?? [];
+
+  useEffect(() => {
+    const unreadNotifications = notifications.filter((item) => !item.lida);
+    const alreadyTracked = notifiedUnreadIdsRef.current;
+
+    // Primeira carga: apenas memoriza as pendentes para nao disparar toast retroativo.
+    if (!hasInitializedUnreadTrackerRef.current) {
+      unreadNotifications.forEach((item) => alreadyTracked.add(item.id));
+      hasInitializedUnreadTrackerRef.current = true;
+      return;
+    }
+
+    unreadNotifications.forEach((item) => {
+      if (alreadyTracked.has(item.id)) return;
+
+      alreadyTracked.add(item.id);
+      toast(item.titulo || 'Lembrete de atendimento', {
+        description: item.mensagem || 'Voce recebeu uma nova notificacao.',
+      });
+    });
+
+    const allIds = new Set(notifications.map((item) => item.id));
+    for (const trackedId of Array.from(alreadyTracked)) {
+      if (!allIds.has(trackedId)) alreadyTracked.delete(trackedId);
+    }
+  }, [notifications]);
+
+  const handleMarkNotificationAsRead = (id) => {
+    setMarkingNotificationId(id);
+    markNotificationAsReadMutation.mutate(id);
+  };
 
   const session = { permissoes };
   const cadastrosDisponiveis = cadastroItems.filter((item) => hasPermission(session, item.permission));
@@ -35,6 +112,7 @@ export function Sidebar({ currentPath, onNavigate, onToggleCollapse, colaborador
   const podeVerMinhaConta = hasPermission(session, screenPermissions.configuracoesMinhaConta);
   const podeVerAcessos = hasPermission(session, screenPermissions.configuracoesAcessos);
   const podeVerSistema = hasPermission(session, screenPermissions.configuracoesSistema);
+
   const setCollapsedState = (newState) => {
     setIsCollapsed(newState);
     onToggleCollapse?.(newState);
@@ -46,6 +124,7 @@ export function Sidebar({ currentPath, onNavigate, onToggleCollapse, colaborador
     setCadastrosExpanded(false);
     setRelatoriosExpanded(false);
     setConfiguracoesExpanded(false);
+    setNotificationsOpen(false);
   };
 
   const pathParts = currentPath.split('/');
@@ -317,6 +396,101 @@ export function Sidebar({ currentPath, onNavigate, onToggleCollapse, colaborador
           </div>
         )}
       </nav>
+
+      <div className="relative p-4 border-t border-gray-800">
+        <button
+          type="button"
+          onClick={() => setNotificationsOpen((prev) => !prev)}
+          className={cn(
+            'w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-gray-300 hover:bg-gray-800 hover:text-white relative',
+            isCollapsed && 'justify-center px-2'
+          )}
+          title={isCollapsed ? 'Notificacoes' : undefined}
+        >
+          <Bell className="h-5 w-5 flex-shrink-0" />
+          {!isCollapsed && <span className="flex-1 text-left">Notificacoes</span>}
+          {unreadNotificationsCount > 0 && (
+            <span
+              className={cn(
+                'inline-flex min-w-5 h-5 items-center justify-center rounded-full bg-red-600 text-white text-xs px-1.5',
+                isCollapsed ? 'absolute top-1.5 right-1.5' : ''
+              )}
+            >
+              {unreadNotificationsCount > 99 ? '99+' : unreadNotificationsCount}
+            </span>
+          )}
+        </button>
+
+        {notificationsOpen && (
+          <div
+            className="absolute left-full bottom-0 ml-3 z-50 w-[430px] max-w-[calc(100vw-6rem)] rounded-xl border border-gray-200 bg-white text-slate-900 shadow-2xl overflow-hidden isolate"
+            style={{
+              background: 'rgb(255, 255, 255)',
+              opacity: 1,
+              backdropFilter: 'none',
+              WebkitBackdropFilter: 'none',
+              filter: 'none',
+              mixBlendMode: 'normal',
+            }}
+          >
+            <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
+              <h3 className="font-medium">Notificacoes</h3>
+              <span className="text-xs text-gray-500">{unreadNotificationsCount} nao lida(s)</span>
+            </div>
+
+            <div className="max-h-[65vh] overflow-y-auto">
+              {isLoadingNotifications && (
+                <div className="px-4 py-6 text-sm text-gray-500">Carregando notificacoes...</div>
+              )}
+
+              {!isLoadingNotifications && notifications.length === 0 && (
+                <div className="px-4 py-6 text-sm text-gray-500">Nenhuma notificacao recebida ate o momento.</div>
+              )}
+
+              {!isLoadingNotifications &&
+                notifications.map((notification) => (
+                  <div
+                    key={notification.id}
+                    className={cn(
+                      'px-4 py-3 border-b border-gray-100',
+                      !notification.lida && 'bg-slate-50'
+                    )}
+                  >
+                    <p className="text-sm font-medium text-slate-900">{notification.titulo}</p>
+                    <p className="text-sm text-gray-600 mt-1">{notification.mensagem}</p>
+
+                    <div className="mt-3 flex items-center justify-between gap-2">
+                      <span className="text-xs text-gray-500">
+                        {formatDateTime(notification.dataNotificacao)}
+                      </span>
+
+                      {notification.lida ? (
+                        <span className="text-xs font-medium text-emerald-600">Lida</span>
+                      ) : (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          disabled={
+                            markNotificationAsReadMutation.isPending &&
+                            markingNotificationId === notification.id
+                          }
+                          onClick={() => handleMarkNotificationAsRead(notification.id)}
+                        >
+                          <Check className="h-3.5 w-3.5" />
+                          {markNotificationAsReadMutation.isPending &&
+                          markingNotificationId === notification.id
+                            ? 'Marcando...'
+                            : 'Marcar como lida'}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
+        )}
+      </div>
 
       {!isCollapsed && (
         <div className="p-4 border-t border-gray-800">

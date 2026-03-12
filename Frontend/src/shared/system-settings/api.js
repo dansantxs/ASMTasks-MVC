@@ -19,6 +19,11 @@ export const defaultSystemSettings = {
   bairro: '',
   cidade: '',
   uf: '',
+  smtpServidor: '',
+  smtpPorta: '',
+  smtpUsuario: '',
+  smtpSenha: '',
+  smtpUsarSslTls: true,
 };
 
 async function handleResponse(res) {
@@ -62,6 +67,14 @@ function normalizeSettings(data) {
     bairro: merged.bairro || '',
     cidade: merged.cidade || '',
     uf: merged.uf || '',
+    smtpServidor: merged.smtpServidor || '',
+    smtpPorta:
+      merged.smtpPorta === null || merged.smtpPorta === undefined || merged.smtpPorta === ''
+        ? ''
+        : String(merged.smtpPorta),
+    smtpUsuario: merged.smtpUsuario || '',
+    smtpSenha: merged.smtpSenha || '',
+    smtpUsarSslTls: merged.smtpUsarSslTls ?? true,
   };
 }
 
@@ -71,10 +84,21 @@ export async function getSystemSettings() {
 }
 
 export async function updateSystemSettings(payload) {
+  const smtpPortaNormalizada =
+    payload?.smtpPorta === '' || payload?.smtpPorta === null || payload?.smtpPorta === undefined
+      ? null
+      : Number(payload.smtpPorta);
+
+  const requestPayload = {
+    ...payload,
+    smtpPorta: Number.isFinite(smtpPortaNormalizada) ? smtpPortaNormalizada : null,
+    smtpUsarSslTls: Boolean(payload?.smtpUsarSslTls),
+  };
+
   const data = await handleResponse(await apiFetch('/ConfiguracoesSistema', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(requestPayload),
   }));
   return normalizeSettings(data);
 }

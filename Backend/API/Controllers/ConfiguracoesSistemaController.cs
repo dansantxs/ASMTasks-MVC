@@ -53,7 +53,12 @@ namespace API.Controllers
                     Numero = request.Numero,
                     Bairro = request.Bairro,
                     Cidade = request.Cidade,
-                    Uf = request.Uf
+                    Uf = request.Uf,
+                    SmtpServidor = request.SmtpServidor,
+                    SmtpPorta = request.SmtpPorta,
+                    SmtpUsuario = request.SmtpUsuario,
+                    SmtpSenha = request.SmtpSenha,
+                    SmtpUsarSslTls = request.SmtpUsarSslTls
                 };
 
                 await configuracao.SalvarAsync(_dbContext);
@@ -94,7 +99,12 @@ namespace API.Controllers
                 Numero = configuracao.Numero,
                 Bairro = configuracao.Bairro,
                 Cidade = configuracao.Cidade,
-                Uf = configuracao.Uf
+                Uf = configuracao.Uf,
+                SmtpServidor = configuracao.SmtpServidor,
+                SmtpPorta = configuracao.SmtpPorta,
+                SmtpUsuario = configuracao.SmtpUsuario,
+                SmtpSenha = configuracao.SmtpSenha,
+                SmtpUsarSslTls = configuracao.SmtpUsarSslTls
             };
         }
     }

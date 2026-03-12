@@ -13,7 +13,8 @@ namespace API.DB.DAOs
             cmd.CommandText = @"
                 SELECT TOP 1 Id, HoraInicioAgenda, HoraFimAgenda, LogoBase64,
                        Email, Telefone, RazaoSocial, NomeFantasia, Cnpj, InscricaoEstadual,
-                       Cep, Logradouro, Numero, Bairro, Cidade, Uf
+                       Cep, Logradouro, Numero, Bairro, Cidade, Uf,
+                       SmtpServidor, SmtpPorta, SmtpUsuario, SmtpSenha, SmtpUsarSslTls
                 FROM ConfiguracaoSistema
                 WHERE Id = 1;";
 
@@ -37,7 +38,12 @@ namespace API.DB.DAOs
                     Numero = dr["Numero"] == DBNull.Value ? null : dr["Numero"].ToString(),
                     Bairro = dr["Bairro"] == DBNull.Value ? null : dr["Bairro"].ToString(),
                     Cidade = dr["Cidade"] == DBNull.Value ? null : dr["Cidade"].ToString(),
-                    Uf = dr["Uf"] == DBNull.Value ? null : dr["Uf"].ToString()
+                    Uf = dr["Uf"] == DBNull.Value ? null : dr["Uf"].ToString(),
+                    SmtpServidor = dr["SmtpServidor"] == DBNull.Value ? null : dr["SmtpServidor"].ToString(),
+                    SmtpPorta = dr["SmtpPorta"] == DBNull.Value ? null : Convert.ToInt32(dr["SmtpPorta"]),
+                    SmtpUsuario = dr["SmtpUsuario"] == DBNull.Value ? null : dr["SmtpUsuario"].ToString(),
+                    SmtpSenha = dr["SmtpSenha"] == DBNull.Value ? null : dr["SmtpSenha"].ToString(),
+                    SmtpUsarSslTls = dr["SmtpUsarSslTls"] != DBNull.Value && Convert.ToBoolean(dr["SmtpUsarSslTls"])
                 };
             }
 
@@ -68,10 +74,15 @@ namespace API.DB.DAOs
                                Numero = @Numero,
                                Bairro = @Bairro,
                                Cidade = @Cidade,
-                               Uf = @Uf
+                               Uf = @Uf,
+                               SmtpServidor = @SmtpServidor,
+                               SmtpPorta = @SmtpPorta,
+                               SmtpUsuario = @SmtpUsuario,
+                               SmtpSenha = @SmtpSenha,
+                               SmtpUsarSslTls = @SmtpUsarSslTls
                 WHEN NOT MATCHED THEN
-                    INSERT (Id, HoraInicioAgenda, HoraFimAgenda, LogoBase64, Email, Telefone, RazaoSocial, NomeFantasia, Cnpj, InscricaoEstadual, Cep, Logradouro, Numero, Bairro, Cidade, Uf)
-                    VALUES (1, @HoraInicioAgenda, @HoraFimAgenda, @LogoBase64, @Email, @Telefone, @RazaoSocial, @NomeFantasia, @Cnpj, @InscricaoEstadual, @Cep, @Logradouro, @Numero, @Bairro, @Cidade, @Uf);";
+                    INSERT (Id, HoraInicioAgenda, HoraFimAgenda, LogoBase64, Email, Telefone, RazaoSocial, NomeFantasia, Cnpj, InscricaoEstadual, Cep, Logradouro, Numero, Bairro, Cidade, Uf, SmtpServidor, SmtpPorta, SmtpUsuario, SmtpSenha, SmtpUsarSslTls)
+                    VALUES (1, @HoraInicioAgenda, @HoraFimAgenda, @LogoBase64, @Email, @Telefone, @RazaoSocial, @NomeFantasia, @Cnpj, @InscricaoEstadual, @Cep, @Logradouro, @Numero, @Bairro, @Cidade, @Uf, @SmtpServidor, @SmtpPorta, @SmtpUsuario, @SmtpSenha, @SmtpUsarSslTls);";
 
             cmd.Parameters.AddWithValue("@HoraInicioAgenda", configuracao.HoraInicioAgenda);
             cmd.Parameters.AddWithValue("@HoraFimAgenda", configuracao.HoraFimAgenda);
@@ -88,6 +99,11 @@ namespace API.DB.DAOs
             cmd.Parameters.AddWithValue("@Bairro", (object?)configuracao.Bairro ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Cidade", (object?)configuracao.Cidade ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Uf", (object?)configuracao.Uf ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@SmtpServidor", (object?)configuracao.SmtpServidor ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@SmtpPorta", (object?)configuracao.SmtpPorta ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@SmtpUsuario", (object?)configuracao.SmtpUsuario ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@SmtpSenha", (object?)configuracao.SmtpSenha ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@SmtpUsarSslTls", configuracao.SmtpUsarSslTls);
 
             await cmd.ExecuteNonQueryAsync();
         }

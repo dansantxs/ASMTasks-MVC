@@ -1,5 +1,6 @@
 ﻿using API.DB;
 using API.DB.DAOs;
+using API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -117,6 +118,9 @@ builder.Services.AddScoped<AtendimentosDAO>();
 builder.Services.AddScoped<ProjetosDAO>();
 builder.Services.AddScoped<UsuariosDAO>();
 builder.Services.AddScoped<NiveisAcessoDAO>();
+builder.Services.AddScoped<NotificacoesDAO>();
+builder.Services.AddScoped<AtendimentoNotificacaoProcessor>();
+builder.Services.AddHostedService<AtendimentoNotificacaoBackgroundService>();
 
 var app = builder.Build();
 

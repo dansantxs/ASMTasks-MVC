@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Building2, ImagePlus, Save, Clock3, Mail, Phone } from 'lucide-react';
+import { Building2, ImagePlus, Save, Clock3, Mail, Phone, Server } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/layout/card';
 import { Input } from '../../../ui/form/input';
 import { Label } from '../../../ui/form/label';
+import { Switch } from '../../../ui/form/switch';
 import { Button } from '../../../ui/base/button';
 import { defaultSystemSettings, updateSystemSettings, useSystemSettingsQuery } from '../../../shared/system-settings/api';
 import { buscarEnderecoPorCep } from '../../../shared/api/viacep';
@@ -89,6 +90,26 @@ export default function ConfiguracoesSistemaPage() {
       form.horaInicioAgenda >= form.horaFimAgenda
     ) {
       nextErrors.horaFimAgenda = 'A hora final deve ser maior que a inicial.';
+    }
+
+    const smtpConfiguradoParcialmente =
+      form.smtpServidor.trim() ||
+      form.smtpPorta.trim() ||
+      form.smtpUsuario.trim() ||
+      form.smtpSenha.trim();
+
+    if (smtpConfiguradoParcialmente) {
+      if (!form.smtpServidor.trim()) nextErrors.smtpServidor = 'Informe o servidor SMTP.';
+      if (!form.smtpPorta.trim()) {
+        nextErrors.smtpPorta = 'Informe a porta SMTP.';
+      } else {
+        const porta = Number(form.smtpPorta);
+        if (!Number.isInteger(porta) || porta <= 0 || porta > 65535) {
+          nextErrors.smtpPorta = 'Informe uma porta valida (1 a 65535).';
+        }
+      }
+      if (!form.smtpUsuario.trim()) nextErrors.smtpUsuario = 'Informe o usuario SMTP.';
+      if (!form.smtpSenha.trim()) nextErrors.smtpSenha = 'Informe a senha SMTP.';
     }
 
     setErrors(nextErrors);
@@ -339,6 +360,77 @@ export default function ConfiguracoesSistemaPage() {
               </CardContent>
             </Card>
           </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Server className="h-5 w-5" />
+                Configuracao de envio de e-mail
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="smtpServidor">Servidor SMTP</Label>
+                  <Input
+                    id="smtpServidor"
+                    value={form.smtpServidor}
+                    onChange={(e) => setForm((prev) => ({ ...prev, smtpServidor: e.target.value }))}
+                    placeholder="smtp.exemplo.com"
+                    className={errors.smtpServidor ? 'border-destructive' : ''}
+                  />
+                  {errors.smtpServidor && <p className="text-sm text-destructive mt-1">{errors.smtpServidor}</p>}
+                </div>
+
+                <div>
+                  <Label htmlFor="smtpPorta">Porta SMTP</Label>
+                  <Input
+                    id="smtpPorta"
+                    type="number"
+                    min="1"
+                    max="65535"
+                    value={form.smtpPorta}
+                    onChange={(e) => setForm((prev) => ({ ...prev, smtpPorta: e.target.value }))}
+                    placeholder="587"
+                    className={errors.smtpPorta ? 'border-destructive' : ''}
+                  />
+                  {errors.smtpPorta && <p className="text-sm text-destructive mt-1">{errors.smtpPorta}</p>}
+                </div>
+
+                <div>
+                  <Label htmlFor="smtpUsuario">Usuario SMTP</Label>
+                  <Input
+                    id="smtpUsuario"
+                    value={form.smtpUsuario}
+                    onChange={(e) => setForm((prev) => ({ ...prev, smtpUsuario: e.target.value }))}
+                    placeholder="usuario@dominio.com"
+                    className={errors.smtpUsuario ? 'border-destructive' : ''}
+                  />
+                  {errors.smtpUsuario && <p className="text-sm text-destructive mt-1">{errors.smtpUsuario}</p>}
+                </div>
+
+                <div>
+                  <Label htmlFor="smtpSenha">Senha SMTP</Label>
+                  <Input
+                    id="smtpSenha"
+                    type="password"
+                    value={form.smtpSenha}
+                    onChange={(e) => setForm((prev) => ({ ...prev, smtpSenha: e.target.value }))}
+                    className={errors.smtpSenha ? 'border-destructive' : ''}
+                  />
+                  {errors.smtpSenha && <p className="text-sm text-destructive mt-1">{errors.smtpSenha}</p>}
+                </div>
+              </div>
+
+              <label className="flex items-center gap-3 cursor-pointer w-fit">
+                <Switch
+                  checked={Boolean(form.smtpUsarSslTls)}
+                  onCheckedChange={(checked) => setForm((prev) => ({ ...prev, smtpUsarSslTls: checked }))}
+                />
+                <span>Usar SSL/TLS no envio de e-mail</span>
+              </label>
+            </CardContent>
+          </Card>
 
           <div className="flex justify-end">
             <Button type="submit" className="bg-brand-blue hover:bg-brand-blue-dark" disabled={salvar.isPending}>
