@@ -26,6 +26,11 @@ namespace API.Models
         public string? Bairro { get; set; }
         public string? Cidade { get; set; }
         public string? Uf { get; set; }
+        public string? SmtpServidor { get; set; }
+        public int? SmtpPorta { get; set; }
+        public string? SmtpUsuario { get; set; }
+        public string? SmtpSenha { get; set; }
+        public bool SmtpUsarSslTls { get; set; } = true;
 
         public async Task SalvarAsync(DBContext dbContext)
         {
@@ -54,6 +59,9 @@ namespace API.Models
             Cidade = NormalizarTexto(Cidade);
             Uf = NormalizarTexto(Uf)?.ToUpperInvariant();
             LogoBase64 = NormalizarTexto(LogoBase64);
+            SmtpServidor = NormalizarTexto(SmtpServidor);
+            SmtpUsuario = NormalizarTexto(SmtpUsuario);
+            SmtpSenha = NormalizarTexto(SmtpSenha);
         }
 
         private void Validar()
@@ -64,7 +72,45 @@ namespace API.Models
             if (!string.IsNullOrWhiteSpace(Email) && !new EmailAddressAttribute().IsValid(Email))
                 throw new ValidationException("Informe um e-mail valido.");
 
+            ValidarConfiguracaoSmtp();
             ValidarLogo(LogoBase64);
+        }
+
+        public bool PossuiConfiguracaoEmailCompleta()
+        {
+            return !string.IsNullOrWhiteSpace(SmtpServidor)
+                && SmtpPorta.HasValue
+                && SmtpPorta.Value > 0
+                && SmtpPorta.Value <= 65535
+                && !string.IsNullOrWhiteSpace(SmtpUsuario)
+                && !string.IsNullOrWhiteSpace(SmtpSenha);
+        }
+
+        private void ValidarConfiguracaoSmtp()
+        {
+            var existeCampoSmtpPreenchido =
+                !string.IsNullOrWhiteSpace(SmtpServidor) ||
+                SmtpPorta.HasValue ||
+                !string.IsNullOrWhiteSpace(SmtpUsuario) ||
+                !string.IsNullOrWhiteSpace(SmtpSenha);
+
+            if (!existeCampoSmtpPreenchido)
+            {
+                SmtpPorta = null;
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(SmtpServidor))
+                throw new ValidationException("Informe o servidor SMTP.");
+
+            if (!SmtpPorta.HasValue || SmtpPorta.Value <= 0 || SmtpPorta.Value > 65535)
+                throw new ValidationException("Informe uma porta SMTP valida (1 a 65535).");
+
+            if (string.IsNullOrWhiteSpace(SmtpUsuario))
+                throw new ValidationException("Informe o usuario SMTP.");
+
+            if (string.IsNullOrWhiteSpace(SmtpSenha))
+                throw new ValidationException("Informe a senha SMTP.");
         }
 
         private static void ValidarLogo(string? logoBase64)

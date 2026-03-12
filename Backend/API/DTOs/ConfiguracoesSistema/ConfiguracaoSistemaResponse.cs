@@ -17,5 +17,10 @@ namespace API.DTOs.ConfiguracoesSistema
         public string? Bairro { get; set; }
         public string? Cidade { get; set; }
         public string? Uf { get; set; }
+        public string? SmtpServidor { get; set; }
+        public int? SmtpPorta { get; set; }
+        public string? SmtpUsuario { get; set; }
+        public string? SmtpSenha { get; set; }
+        public bool SmtpUsarSslTls { get; set; } = true;
     }
 }

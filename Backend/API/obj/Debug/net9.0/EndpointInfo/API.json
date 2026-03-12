@@ -1789,6 +1789,82 @@
         }
       }
     },
+    "/api/Notificacoes": {
+      "get": {
+        "tags": [
+          "Notificacoes"
+        ],
+        "parameters": [
+          {
+            "name": "limite",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Notificacoes/{id}/lida": {
+      "put": {
+        "tags": [
+          "Notificacoes"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Prioridades": {
       "post": {
         "tags": [
@@ -2931,6 +3007,26 @@
           "uf": {
             "type": "string",
             "nullable": true
+          },
+          "smtpServidor": {
+            "type": "string",
+            "nullable": true
+          },
+          "smtpPorta": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "smtpUsuario": {
+            "type": "string",
+            "nullable": true
+          },
+          "smtpSenha": {
+            "type": "string",
+            "nullable": true
+          },
+          "smtpUsarSslTls": {
+            "type": "boolean"
           }
         },
         "additionalProperties": false
