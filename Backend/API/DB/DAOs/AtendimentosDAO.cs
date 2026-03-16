@@ -393,6 +393,7 @@ namespace API.DB.DAOs
                   AND (@ColaboradorId IS NULL OR hs.ColaboradorId = @ColaboradorId)
                   AND (@ClienteId IS NULL OR a.ClienteId = @ClienteId)
                   AND (@AtendimentoId IS NULL OR hs.AtendimentoId = @AtendimentoId)
+                  AND a.Ativo = 1
                 ORDER BY hs.DataHoraAcao DESC, hs.Id DESC;
             ";
 
@@ -427,22 +428,53 @@ namespace API.DB.DAOs
 
         private static async Task AtualizarAtendimentosVencidosAsync(SqlConnection connection)
         {
-            await using var cmd = connection.CreateCommand();
-            cmd.CommandText = @"
-                UPDATE Atendimento
-                SET Status = 'R'
-                WHERE Ativo = 1
-                  AND Status = 'A'
-                  AND DataHoraFim IS NOT NULL
-                  AND DataHoraFim <= @Agora
-                  AND NOT EXISTS (
-                      SELECT 1
-                      FROM AtendimentoHistoricoStatus hs
-                      WHERE hs.AtendimentoId = Atendimento.Id
-                  );
-            ";
-            cmd.Parameters.AddWithValue("@Agora", DateTime.Now);
-            await cmd.ExecuteNonQueryAsync();
+            await using var transaction = (SqlTransaction)await connection.BeginTransactionAsync();
+            try
+            {
+                await using var cmd = connection.CreateCommand();
+                cmd.Transaction = transaction;
+                cmd.CommandText = @"
+                    DECLARE @AtendimentosFechados TABLE
+                    (
+                        AtendimentoId int NOT NULL,
+                        ColaboradorId int NOT NULL
+                    );
+
+                    UPDATE a
+                    SET a.Status = 'R'
+                    OUTPUT inserted.Id, inserted.CadastradoPorColaboradorId
+                    INTO @AtendimentosFechados (AtendimentoId, ColaboradorId)
+                    FROM Atendimento a
+                    WHERE a.Ativo = 1
+                      AND a.Status = 'A'
+                      AND a.DataHoraFim IS NOT NULL
+                      AND a.DataHoraFim <= @Agora
+                      AND NOT EXISTS (
+                          SELECT 1
+                          FROM AtendimentoHistoricoStatus hs
+                          WHERE hs.AtendimentoId = a.Id
+                      );
+
+                    INSERT INTO AtendimentoHistoricoStatus
+                    (AtendimentoId, Tipo, ColaboradorId, DataHoraAcao, Observacao)
+                    SELECT
+                        af.AtendimentoId,
+                        'C',
+                        af.ColaboradorId,
+                        @Agora,
+                        @ObservacaoSistema
+                    FROM @AtendimentosFechados af;
+                ";
+                cmd.Parameters.AddWithValue("@Agora", DateTime.Now);
+                cmd.Parameters.AddWithValue("@ObservacaoSistema", "Fechado automaticamente pelo sistema por horario.");
+                await cmd.ExecuteNonQueryAsync();
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         private static async Task InserirHistoricoStatusAsync(
