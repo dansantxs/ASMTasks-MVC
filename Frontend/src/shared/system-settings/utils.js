@@ -23,7 +23,7 @@ export function getCompanySubtitle(settings) {
 
 export function getCompanyFooterLines(settings) {
   const lines = [
-    settings?.razaoSocial ? `Razao Social: ${settings.razaoSocial}` : null,
+    settings?.razaoSocial ? `Razão Social: ${settings.razaoSocial}` : null,
     settings?.nomeFantasia ? `Nome Fantasia: ${settings.nomeFantasia}` : null,
   ].filter(Boolean);
 

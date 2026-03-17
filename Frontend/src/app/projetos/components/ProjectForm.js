@@ -130,7 +130,7 @@ export default function ProjectForm({
       const tarefaError = {};
 
       if (!tarefa.titulo.trim()) {
-        tarefaError.titulo = `Titulo da tarefa ${index + 1} e obrigatorio.`;
+        tarefaError.titulo = `Título da tarefa ${index + 1} é obrigatório.`;
       }
 
       if (!tarefa.prioridadeId) {
@@ -191,14 +191,14 @@ export default function ProjectForm({
                 id="titulo"
                 value={formData.titulo}
                 onChange={(event) => setFormData((prev) => ({ ...prev, titulo: event.target.value }))}
-                placeholder="Ex.: Implantacao do modulo comercial"
+                placeholder="Ex.: Implantação do módulo comercial"
                 className={errors.titulo ? 'border-destructive' : ''}
               />
               {errors.titulo && <p className="text-sm text-destructive">{errors.titulo}</p>}
             </div>
 
             <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="descricao">Descricao do projeto</Label>
+              <Label htmlFor="descricao">Descrição do projeto</Label>
               <Textarea
                 id="descricao"
                 value={formData.descricao}
@@ -267,7 +267,7 @@ export default function ProjectForm({
               <div>
                 <h3>Tarefas do projeto</h3>
                 <p className="text-sm text-muted-foreground">
-                  Cada tarefa precisa de titulo e prioridade. Campos de atribuicao serao preenchidos em outra tela.
+                  Cada tarefa precisa de título e prioridade. Campos de atribuição serão preenchidos em outra tela.
                 </p>
               </div>
               <Button type="button" variant="outline" onClick={adicionarTarefa}>
@@ -301,7 +301,7 @@ export default function ProjectForm({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div className="space-y-2 md:col-span-2">
                         <Label>
-                          Titulo da tarefa <span className="text-destructive">*</span>
+                          Título da tarefa <span className="text-destructive">*</span>
                         </Label>
                         <Input
                           value={tarefa.titulo}
@@ -315,11 +315,11 @@ export default function ProjectForm({
                       </div>
 
                       <div className="space-y-2 md:col-span-2">
-                        <Label>Descricao da tarefa</Label>
+                        <Label>Descrição da tarefa</Label>
                         <Textarea
                           value={tarefa.descricao}
                           onChange={(event) => atualizarTarefa(index, 'descricao', event.target.value)}
-                          placeholder="Detalhes tecnicos da tarefa"
+                          placeholder="Detalhes técnicos da tarefa"
                           rows={2}
                         />
                       </div>
@@ -359,7 +359,7 @@ export default function ProjectForm({
               Cancelar
             </Button>
             <Button type="submit" className="bg-brand-blue hover:bg-brand-blue-dark" disabled={isSaving}>
-              {isSaving ? 'Salvando...' : isEditMode ? 'Salvar alteracoes' : 'Criar projeto'}
+              {isSaving ? 'Salvando...' : isEditMode ? 'Salvar alterações' : 'Criar projeto'}
             </Button>
           </div>
         </form>

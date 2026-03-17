@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Building2, ImagePlus, Save, Clock3, Mail, Phone, Server } from 'lucide-react';
+import { Building2, ImagePlus, Save, Clock3, Mail, Phone, Server, Eye, EyeOff } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/layout/card';
 import { Input } from '../../../ui/form/input';
@@ -35,6 +35,7 @@ export default function ConfiguracoesSistemaPage() {
   const [form, setForm] = useState(defaultSystemSettings);
   const [errors, setErrors] = useState(emptyErrors);
   const [buscandoCep, setBuscandoCep] = useState(false);
+  const [mostrarSenhaSmtp, setMostrarSenhaSmtp] = useState(false);
 
   useEffect(() => {
     setForm(settings);
@@ -74,15 +75,15 @@ export default function ConfiguracoesSistemaPage() {
     mutationFn: updateSystemSettings,
     onSuccess: (data) => {
       queryClient.setQueryData(['system-settings'], data);
-      toast.success('Parametrizacao salva com sucesso.');
+      toast.success('Parametrização salva com sucesso.');
     },
-    onError: (error) => toast.error(error?.message ?? 'Erro ao salvar parametrizacao.'),
+    onError: (error) => toast.error(error?.message ?? 'Erro ao salvar parametrização.'),
   });
 
   const validate = () => {
     const nextErrors = {};
 
-    if (!form.horaInicioAgenda) nextErrors.horaInicioAgenda = 'Informe a hora de inicio.';
+    if (!form.horaInicioAgenda) nextErrors.horaInicioAgenda = 'Informe a hora de início.';
     if (!form.horaFimAgenda) nextErrors.horaFimAgenda = 'Informe a hora de fim.';
     if (
       form.horaInicioAgenda &&
@@ -105,10 +106,10 @@ export default function ConfiguracoesSistemaPage() {
       } else {
         const porta = Number(form.smtpPorta);
         if (!Number.isInteger(porta) || porta <= 0 || porta > 65535) {
-          nextErrors.smtpPorta = 'Informe uma porta valida (1 a 65535).';
+          nextErrors.smtpPorta = 'Informe uma porta válida (1 a 65535).';
         }
       }
-      if (!form.smtpUsuario.trim()) nextErrors.smtpUsuario = 'Informe o usuario SMTP.';
+      if (!form.smtpUsuario.trim()) nextErrors.smtpUsuario = 'Informe o usuário SMTP.';
       if (!form.smtpSenha.trim()) nextErrors.smtpSenha = 'Informe a senha SMTP.';
     }
 
@@ -133,7 +134,7 @@ export default function ConfiguracoesSistemaPage() {
         logoBase64: dataUrl,
       }));
     } catch {
-      toast.error('Nao foi possivel carregar a imagem selecionada.');
+      toast.error('Não foi possível carregar a imagem selecionada.');
     }
   };
 
@@ -145,7 +146,7 @@ export default function ConfiguracoesSistemaPage() {
   };
 
   if (isLoading) {
-    return <div className="p-6">Carregando parametrizacao do sistema...</div>;
+    return <div className="p-6">Carregando parametrização do sistema...</div>;
   }
 
   return (
@@ -156,9 +157,9 @@ export default function ConfiguracoesSistemaPage() {
             <Building2 className="h-6 w-6 text-brand-blue" />
           </div>
           <div>
-            <h1>Parametrizacao do Sistema</h1>
+            <h1>Parametrização do Sistema</h1>
             <p className="text-muted-foreground">
-              Defina os dados institucionais usados na agenda, relatorios e demais areas do sistema
+              Defina os dados institucionais usados na agenda, relatórios e demais áreas do sistema
             </p>
           </div>
         </div>
@@ -169,13 +170,13 @@ export default function ConfiguracoesSistemaPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Clock3 className="h-5 w-5" />
-                  Agenda e identificacao
+                  Agenda e identificação
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-5">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="horaInicioAgenda">Hora de inicio da agenda</Label>
+                    <Label htmlFor="horaInicioAgenda">Hora de início da agenda</Label>
                     <Input
                       id="horaInicioAgenda"
                       type="time"
@@ -201,7 +202,7 @@ export default function ConfiguracoesSistemaPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="razaoSocial">Razao social</Label>
+                    <Label htmlFor="razaoSocial">Razão social</Label>
                     <Input
                       id="razaoSocial"
                       value={form.razaoSocial}
@@ -265,7 +266,7 @@ export default function ConfiguracoesSistemaPage() {
                 </div>
 
                 <div className="space-y-4">
-                  <Label>Endereco da empresa</Label>
+                  <Label>Endereço da empresa</Label>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <Label htmlFor="cep">CEP {buscandoCep ? '(buscando...)' : ''}</Label>
@@ -365,7 +366,7 @@ export default function ConfiguracoesSistemaPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Server className="h-5 w-5" />
-                Configuracao de envio de e-mail
+                Configuração de envio de e-mail
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-5">
@@ -398,7 +399,7 @@ export default function ConfiguracoesSistemaPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="smtpUsuario">Usuario SMTP</Label>
+                  <Label htmlFor="smtpUsuario">Usuário SMTP</Label>
                   <Input
                     id="smtpUsuario"
                     value={form.smtpUsuario}
@@ -411,13 +412,23 @@ export default function ConfiguracoesSistemaPage() {
 
                 <div>
                   <Label htmlFor="smtpSenha">Senha SMTP</Label>
-                  <Input
-                    id="smtpSenha"
-                    type="password"
-                    value={form.smtpSenha}
-                    onChange={(e) => setForm((prev) => ({ ...prev, smtpSenha: e.target.value }))}
-                    className={errors.smtpSenha ? 'border-destructive' : ''}
-                  />
+                  <div className="relative">
+                    <Input
+                      id="smtpSenha"
+                      type={mostrarSenhaSmtp ? 'text' : 'password'}
+                      value={form.smtpSenha}
+                      onChange={(e) => setForm((prev) => ({ ...prev, smtpSenha: e.target.value }))}
+                      className={errors.smtpSenha ? 'border-destructive pr-10' : 'pr-10'}
+                    />
+                    <button
+                      type="button"
+                      className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-muted-foreground"
+                      onClick={() => setMostrarSenhaSmtp((prev) => !prev)}
+                      aria-label={mostrarSenhaSmtp ? 'Ocultar senha SMTP' : 'Mostrar senha SMTP'}
+                    >
+                      {mostrarSenhaSmtp ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                   {errors.smtpSenha && <p className="text-sm text-destructive mt-1">{errors.smtpSenha}</p>}
                 </div>
               </div>
@@ -435,7 +446,7 @@ export default function ConfiguracoesSistemaPage() {
           <div className="flex justify-end">
             <Button type="submit" className="bg-brand-blue hover:bg-brand-blue-dark" disabled={salvar.isPending}>
               <Save className="h-4 w-4 mr-2" />
-              {salvar.isPending ? 'Salvando...' : 'Salvar parametrizacao'}
+              {salvar.isPending ? 'Salvando...' : 'Salvar parametrização'}
             </Button>
           </div>
         </form>

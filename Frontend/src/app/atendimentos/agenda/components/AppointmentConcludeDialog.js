@@ -39,7 +39,7 @@ export default function AppointmentConcludeDialog({
         </DialogHeader>
 
         <div className="space-y-2">
-          <Label htmlFor="observacaoConclusao">Observacao de conclusao</Label>
+          <Label htmlFor="observacaoConclusao">Observação de conclusão</Label>
           <Textarea
             id="observacaoConclusao"
             value={observacao}

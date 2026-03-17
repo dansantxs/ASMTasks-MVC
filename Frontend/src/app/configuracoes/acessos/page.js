@@ -39,7 +39,7 @@ const emptyForm = {
   permissoes: [],
 };
 
-const ordemGrupos = ['Cadastros', 'Atendimento', 'Projetos', 'Relatorios', 'Configuracoes'];
+const ordemGrupos = ['Cadastros', 'Atendimento', 'Projetos', 'Relatórios', 'Configurações'];
 
 function getGrupoPermissao(permissao) {
   if (permissao?.label?.includes(' - ')) {
@@ -138,9 +138,9 @@ export default function ConfiguracoesAcessosPage() {
       queryClient.invalidateQueries({ queryKey: ['acessos-niveis'] });
       queryClient.invalidateQueries({ queryKey: ['acessos-usuarios'] });
       setForm(emptyForm);
-      toast.success('Nivel de acesso salvo com sucesso.');
+      toast.success('Nível de acesso salvo com sucesso.');
     },
-    onError: (error) => toast.error(error?.message ?? 'Erro ao salvar nivel de acesso.'),
+    onError: (error) => toast.error(error?.message ?? 'Erro ao salvar nível de acesso.'),
   });
 
   const excluirNivel = useMutation({
@@ -148,54 +148,54 @@ export default function ConfiguracoesAcessosPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['acessos-niveis'] });
       setForm(emptyForm);
-      toast.success('Nivel de acesso inativado com sucesso.');
+      toast.success('Nível de acesso inativado com sucesso.');
     },
-    onError: (error) => toast.error(error?.message ?? 'Erro ao inativar nivel de acesso.'),
+    onError: (error) => toast.error(error?.message ?? 'Erro ao inativar nível de acesso.'),
   });
 
   const reativarNivel = useMutation({
     mutationFn: reativarNivelAcesso,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['acessos-niveis'] });
-      toast.success('Nivel de acesso reativado com sucesso.');
+      toast.success('Nível de acesso reativado com sucesso.');
     },
-    onError: (error) => toast.error(error?.message ?? 'Erro ao reativar nivel de acesso.'),
+    onError: (error) => toast.error(error?.message ?? 'Erro ao reativar nível de acesso.'),
   });
 
   const atualizarUsuario = useMutation({
     mutationFn: ({ id, nivelAcesso }) => atualizarNivelUsuario(id, { nivelAcesso }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['acessos-usuarios'] });
-      toast.success('Nivel do usuario atualizado com sucesso.');
+      toast.success('Nível do usuário atualizado com sucesso.');
     },
-    onError: (error) => toast.error(error?.message ?? 'Erro ao atualizar nivel do usuario.'),
+    onError: (error) => toast.error(error?.message ?? 'Erro ao atualizar nível do usuário.'),
   });
 
   const salvarUsuario = useMutation({
     mutationFn: ({ id, data }) => atualizarUsuarioAcesso(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['acessos-usuarios'] });
-      toast.success('Usuario atualizado com sucesso.');
+      toast.success('Usuário atualizado com sucesso.');
     },
-    onError: (error) => toast.error(error?.message ?? 'Erro ao atualizar usuario.'),
+    onError: (error) => toast.error(error?.message ?? 'Erro ao atualizar usuário.'),
   });
 
   const excluirUsuario = useMutation({
     mutationFn: inativarUsuario,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['acessos-usuarios'] });
-      toast.success('Usuario inativado com sucesso.');
+      toast.success('Usuário inativado com sucesso.');
     },
-    onError: (error) => toast.error(error?.message ?? 'Erro ao inativar usuario.'),
+    onError: (error) => toast.error(error?.message ?? 'Erro ao inativar usuário.'),
   });
 
   const restaurarUsuario = useMutation({
     mutationFn: reativarUsuario,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['acessos-usuarios'] });
-      toast.success('Usuario reativado com sucesso.');
+      toast.success('Usuário reativado com sucesso.');
     },
-    onError: (error) => toast.error(error?.message ?? 'Erro ao reativar usuario.'),
+    onError: (error) => toast.error(error?.message ?? 'Erro ao reativar usuário.'),
   });
 
   const togglePermissao = (chave) => {
@@ -281,9 +281,9 @@ export default function ConfiguracoesAcessosPage() {
             <ShieldCheck className="h-6 w-6 text-brand-blue" />
           </div>
           <div>
-            <h1>Niveis de Acesso e Usuarios</h1>
+            <h1>Níveis de Acesso e Usuários</h1>
             <p className="text-muted-foreground">
-              Defina o que cada nivel pode acessar e gerencie os usuarios vinculados aos colaboradores
+              Defina o que cada nível pode acessar e gerencie os usuários vinculados aos colaboradores
             </p>
           </div>
         </div>
@@ -291,7 +291,7 @@ export default function ConfiguracoesAcessosPage() {
         <div className="grid grid-cols-1 2xl:grid-cols-[minmax(320px,380px)_minmax(0,1fr)] gap-4 items-start">
           <Card className="min-w-0">
             <CardHeader>
-              <CardTitle>{form.id ? 'Editar nivel de acesso' : 'Novo nivel de acesso'}</CardTitle>
+              <CardTitle>{form.id ? 'Editar nível de acesso' : 'Novo nível de acesso'}</CardTitle>
             </CardHeader>
             <CardContent>
               <form className="space-y-4" onSubmit={handleSubmit}>
@@ -306,12 +306,12 @@ export default function ConfiguracoesAcessosPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="descricao">Descricao</Label>
+                  <Label htmlFor="descricao">Descrição</Label>
                   <Textarea
                     id="descricao"
                     value={form.descricao}
                     onChange={(e) => setForm((prev) => ({ ...prev, descricao: e.target.value }))}
-                    placeholder="Descreva o objetivo deste nivel"
+                    placeholder="Descreva o objetivo deste nível"
                   />
                 </div>
 
@@ -321,13 +321,13 @@ export default function ConfiguracoesAcessosPage() {
                     checked={form.ehAdministrador}
                     onChange={(e) => setForm((prev) => ({ ...prev, ehAdministrador: e.target.checked }))}
                   />
-                  <span>Nivel administrador</span>
+                  <span>Nível administrador</span>
                 </label>
 
                 <div>
-                  <Label>Permissoes</Label>
+                  <Label>Permissões</Label>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Voce pode liberar uma tela especifica ou uma area inteira de uma vez.
+                    Você pode liberar uma tela específica ou uma área inteira de uma vez.
                   </p>
                   <div className="mt-2 max-h-72 overflow-y-auto rounded-md border p-3 space-y-2">
                     {permissoesAgrupadas.map(({ grupo, itens }) => {
@@ -340,7 +340,7 @@ export default function ConfiguracoesAcessosPage() {
                             <div>
                               <p className="text-sm font-medium">{grupo}</p>
                               <p className="text-xs text-muted-foreground">
-                                {form.ehAdministrador ? 'Todas liberadas pelo nivel administrador' : `${selecionadas} de ${itens.length} liberadas`}
+                                {form.ehAdministrador ? 'Todas liberadas pelo nível administrador' : `${selecionadas} de ${itens.length} liberadas`}
                               </p>
                             </div>
                             <Button
@@ -379,11 +379,11 @@ export default function ConfiguracoesAcessosPage() {
                 <div className="flex gap-2">
                   <Button type="submit" className="bg-brand-blue hover:bg-brand-blue-dark" disabled={salvarNivel.isPending}>
                     {form.id ? <Save className="h-4 w-4 mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
-                    {salvarNivel.isPending ? 'Salvando...' : form.id ? 'Salvar nivel' : 'Criar nivel'}
+                    {salvarNivel.isPending ? 'Salvando...' : form.id ? 'Salvar nível' : 'Criar nível'}
                   </Button>
                   {form.id && (
                     <Button type="button" variant="outline" onClick={() => setForm(emptyForm)}>
-                      Cancelar edicao
+                      Cancelar edição
                     </Button>
                   )}
                 </div>
@@ -393,17 +393,17 @@ export default function ConfiguracoesAcessosPage() {
 
           <Card className="min-w-0">
             <CardHeader>
-              <CardTitle>Niveis de acesso cadastrados</CardTitle>
+              <CardTitle>Níveis de acesso cadastrados</CardTitle>
             </CardHeader>
             <CardContent>
                 <Table className="min-w-[720px]">
                   <TableHeader>
                     <TableRow className="bg-brand-blue/5">
                       <TableHead>Nome</TableHead>
-                      <TableHead>Descricao</TableHead>
+                      <TableHead>Descrição</TableHead>
                       <TableHead>Tipo</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Acoes</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -411,7 +411,7 @@ export default function ConfiguracoesAcessosPage() {
                       <TableRow key={nivel.id}>
                         <TableCell className="font-medium">{nivel.nome}</TableCell>
                         <TableCell className="whitespace-normal">{nivel.descricao || '-'}</TableCell>
-                        <TableCell>{nivel.ehAdministrador ? 'Administrador' : 'Padrao'}</TableCell>
+                        <TableCell>{nivel.ehAdministrador ? 'Administrador' : 'Padrão'}</TableCell>
                         <TableCell>{nivel.ativo ? 'Ativo' : 'Inativo'}</TableCell>
                         <TableCell className="text-right whitespace-normal">
                           <div className="flex justify-end gap-2">
@@ -455,7 +455,7 @@ export default function ConfiguracoesAcessosPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5" />
-              Usuarios com acesso
+              Usuários com acesso
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -465,9 +465,9 @@ export default function ConfiguracoesAcessosPage() {
                     <TableHead>Colaborador vinculado</TableHead>
                     <TableHead>Login</TableHead>
                     <TableHead>Senha</TableHead>
-                    <TableHead>Nivel de acesso</TableHead>
-                    <TableHead>Status do usuario</TableHead>
-                    <TableHead className="text-right">Acoes</TableHead>
+                    <TableHead>Nível de acesso</TableHead>
+                    <TableHead>Status do usuário</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -479,7 +479,7 @@ export default function ConfiguracoesAcessosPage() {
                           type="text"
                           value={userEdits[usuario.id]?.login ?? usuario.login}
                           onChange={(e) => handleUserEditChange(usuario.id, 'login', e.target.value)}
-                          placeholder="Login do usuario"
+                          placeholder="Login do usuário"
                           disabled={!usuario.ativo || salvarUsuario.isPending}
                         />
                       </TableCell>
@@ -550,7 +550,7 @@ export default function ConfiguracoesAcessosPage() {
                               disabled={excluirUsuario.isPending}
                             >
                               <Trash2 className="h-4 w-4 mr-1" />
-                              Inativar usuario
+                              Inativar usuário
                             </Button>
                           ) : (
                             <Button
@@ -561,7 +561,7 @@ export default function ConfiguracoesAcessosPage() {
                               disabled={restaurarUsuario.isPending || !usuario.colaboradorAtivo}
                             >
                               <RefreshCw className="h-4 w-4 mr-1" />
-                              Reativar usuario
+                              Reativar usuário
                             </Button>
                           )}
                         </div>

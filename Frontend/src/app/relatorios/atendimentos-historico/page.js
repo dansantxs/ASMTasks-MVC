@@ -19,16 +19,16 @@ import { getClientes, getColaboradores } from '../../atendimentos/agenda/api/ate
 
 const columns = [
   { id: 'dataHoraAcao', label: 'Data/Hora' },
-  { id: 'tipoLabel', label: 'Acao' },
+  { id: 'tipoLabel', label: 'Ação' },
   { id: 'atendimentoId', label: 'ID' },
-  { id: 'atendimentoTitulo', label: 'Titulo do Atendimento' },
+  { id: 'atendimentoTitulo', label: 'Título do Atendimento' },
   { id: 'clienteNome', label: 'Cliente' },
-  { id: 'colaboradorNome', label: 'Usuario' },
+  { id: 'colaboradorNome', label: 'Usuário' },
   { id: 'statusAtualLabel', label: 'Status Atual' },
-  { id: 'observacao', label: 'Observacao' },
+  { id: 'observacao', label: 'Observação' },
 ];
 
-const reportTitle = 'Relatorio de Historico de Atendimentos';
+const reportTitle = 'Relatório de Histórico de Atendimentos';
 
 const formatDateTime = (value) =>
   value
@@ -41,8 +41,8 @@ const formatDateTime = (value) =>
       }).format(new Date(value))
     : ' ';
 
-const getTipoLabel = (tipo) => (tipo === 'C' ? 'Conclusao' : tipo === 'R' ? 'Reabertura' : ' ');
-const getStatusLabel = (status) => (status === 'R' ? 'Concluido' : status === 'A' ? 'Agendado' : status ?? ' ');
+const getTipoLabel = (tipo) => (tipo === 'C' ? 'Conclusão' : tipo === 'R' ? 'Reabertura' : ' ');
+const getStatusLabel = (status) => (status === 'R' ? 'Concluído' : status === 'A' ? 'Agendado' : status ?? ' ');
 
 function toIsoStartOfDay(dateValue) {
   if (!dateValue) return null;
@@ -177,10 +177,10 @@ export default function HistoricoAtendimentosReportPage() {
 
     const filters = [
       search ? `Busca: ${search}` : null,
-      tipoFilter !== 'todos' ? `Acao: ${getTipoLabel(tipoFilter)}` : null,
+      tipoFilter !== 'todos' ? `Ação: ${getTipoLabel(tipoFilter)}` : null,
       clienteNome ? `Cliente: ${clienteNome}` : null,
-      colaboradorNome ? `Usuario: ${colaboradorNome}` : null,
-      dataInicioFilter ? `Data inicio: ${new Date(`${dataInicioFilter}T00:00:00`).toLocaleDateString('pt-BR')}` : null,
+      colaboradorNome ? `Usuário: ${colaboradorNome}` : null,
+      dataInicioFilter ? `Data início: ${new Date(`${dataInicioFilter}T00:00:00`).toLocaleDateString('pt-BR')}` : null,
       dataFimFilter ? `Data fim: ${new Date(`${dataFimFilter}T00:00:00`).toLocaleDateString('pt-BR')}` : null,
     ].filter(Boolean);
 
@@ -222,7 +222,7 @@ export default function HistoricoAtendimentosReportPage() {
         }
 
         doc.setFontSize(9);
-        doc.text(`Data de emissao: ${emissionDate}`, 14, 24);
+        doc.text(`Data de emissão: ${emissionDate}`, 14, 24);
         doc.text(filtersLines, 14, 30);
         doc.text(columnsLines, 14, 30 + filtersLines.length * 6);
 
@@ -250,7 +250,7 @@ export default function HistoricoAtendimentosReportPage() {
 
     const headerRows = [
       [reportTitle],
-      [`Data de emissao: ${emissionDate}`],
+      [`Data de emissão: ${emissionDate}`],
       [`Filtros: ${filtersSummary}`],
       [columnsSummary],
       [],
@@ -272,12 +272,12 @@ export default function HistoricoAtendimentosReportPage() {
     }
 
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Historico');
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Histórico');
     XLSX.writeFile(workbook, 'relatorio-historico-atendimentos.xlsx');
   };
 
   if (isLoading) {
-    return <div className="p-6">Carregando relatorio de historico de atendimentos...</div>;
+    return <div className="p-6">Carregando relatório de histórico de atendimentos...</div>;
   }
 
   const activeColumns = columns.filter((c) => selectedColumns.includes(c.id));
@@ -291,8 +291,8 @@ export default function HistoricoAtendimentosReportPage() {
               <History className="h-6 w-6 text-brand-blue" />
             </div>
             <div>
-              <h1>Relatorio de Historico de Atendimentos</h1>
-              <p className="text-muted-foreground">Visualize, filtre e exporte conclusoes e reaberturas</p>
+              <h1>Relatório de Histórico de Atendimentos</h1>
+              <p className="text-muted-foreground">Visualize, filtre e exporte conclusões e reaberturas</p>
             </div>
           </div>
           <div className="flex gap-3">
@@ -314,17 +314,17 @@ export default function HistoricoAtendimentosReportPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="md:col-span-2">
                   <Label>Busca</Label>
-                  <Input placeholder="Titulo ou observacao" value={search} onChange={(e) => setSearch(e.target.value)} />
+                  <Input placeholder="Título ou observação" value={search} onChange={(e) => setSearch(e.target.value)} />
                 </div>
                 <div>
-                  <Label>Acao</Label>
+                  <Label>Ação</Label>
                   <Select value={tipoFilter} onValueChange={setTipoFilter}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Acao" />
+                      <SelectValue placeholder="Ação" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="todos">Todos</SelectItem>
-                      <SelectItem value="C">Conclusao</SelectItem>
+                      <SelectItem value="C">Conclusão</SelectItem>
                       <SelectItem value="R">Reabertura</SelectItem>
                     </SelectContent>
                   </Select>
@@ -347,10 +347,10 @@ export default function HistoricoAtendimentosReportPage() {
                   </Select>
                 </div>
                 <div>
-                  <Label>Usuario</Label>
+                  <Label>Usuário</Label>
                   <Select value={colaboradorFilter} onValueChange={setColaboradorFilter}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Usuario" />
+                      <SelectValue placeholder="Usuário" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="todos">Todos</SelectItem>
@@ -361,7 +361,7 @@ export default function HistoricoAtendimentosReportPage() {
                   </Select>
                 </div>
                 <div>
-                  <Label>Data inicio</Label>
+                  <Label>Data início</Label>
                   <Input type="date" value={dataInicioFilter} onChange={(e) => setDataInicioFilter(e.target.value)} />
                 </div>
                 <div>

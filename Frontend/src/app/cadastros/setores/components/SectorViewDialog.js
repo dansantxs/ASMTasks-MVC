@@ -18,7 +18,7 @@ export default function SectorViewDialog({ open, onOpenChange, sector, onReactiv
             Detalhes do Setor
           </DialogTitle>
           <DialogDescription>
-            Visualize todas as informacoes detalhadas do setor
+            Visualize todas as informações detalhadas do setor
           </DialogDescription>
         </DialogHeader>
 
@@ -35,7 +35,7 @@ export default function SectorViewDialog({ open, onOpenChange, sector, onReactiv
             <CardContent className="space-y-4">
               {sector.description && (
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">Descricao</p>
+                  <p className="text-sm text-muted-foreground mb-1">Descrição</p>
                   <p className="text-sm leading-relaxed">{sector.description}</p>
                 </div>
               )}
@@ -44,7 +44,7 @@ export default function SectorViewDialog({ open, onOpenChange, sector, onReactiv
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Informacoes do Sistema</CardTitle>
+              <CardTitle className="text-lg">Informações do Sistema</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="grid grid-cols-2 gap-4 text-sm">
@@ -66,7 +66,7 @@ export default function SectorViewDialog({ open, onOpenChange, sector, onReactiv
                     <div className="flex-1">
                       <p className="text-sm text-amber-800">
                         <strong>Setor Inativo:</strong> Este setor foi excluido logicamente do sistema.
-                        Todas as tarefas associadas foram preservadas para manter o historico.
+                        Todas as tarefas associadas foram preservadas para manter o histórico.
                       </p>
                     </div>
                     {onReactivate && (

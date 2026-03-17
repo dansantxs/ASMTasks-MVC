@@ -77,7 +77,7 @@ export function Sidebar({ currentPath, onNavigate, onToggleCollapse, colaborador
     const unreadNotifications = notifications.filter((item) => !item.lida);
     const alreadyTracked = notifiedUnreadIdsRef.current;
 
-    // Primeira carga: apenas memoriza as pendentes para nao disparar toast retroativo.
+    // Primeira carga: apenas memoriza as pendentes para não disparar toast retroativo.
     if (!hasInitializedUnreadTrackerRef.current) {
       unreadNotifications.forEach((item) => alreadyTracked.add(item.id));
       hasInitializedUnreadTrackerRef.current = true;
@@ -89,7 +89,7 @@ export function Sidebar({ currentPath, onNavigate, onToggleCollapse, colaborador
 
       alreadyTracked.add(item.id);
       toast(item.titulo || 'Lembrete de atendimento', {
-        description: item.mensagem || 'Voce recebeu uma nova notificacao.',
+        description: item.mensagem || 'Você recebeu uma nova notificação.',
       });
     });
 
@@ -170,10 +170,10 @@ export function Sidebar({ currentPath, onNavigate, onToggleCollapse, colaborador
             currentSection === 'inicio' ? 'bg-[#1e3a8a] text-white' : 'text-gray-300 hover:bg-gray-800',
             isCollapsed && 'justify-center px-2'
           )}
-          title={isCollapsed ? 'Inicio' : undefined}
+          title={isCollapsed ? 'Início' : undefined}
         >
           <Home className="h-5 w-5 flex-shrink-0" />
-          {!isCollapsed && <span>Inicio</span>}
+          {!isCollapsed && <span>Início</span>}
         </button>
 
         {cadastrosDisponiveis.length > 0 && (
@@ -277,12 +277,12 @@ export function Sidebar({ currentPath, onNavigate, onToggleCollapse, colaborador
                 isRelatorios ? 'bg-gray-800 text-white' : 'text-gray-300 hover:bg-gray-800',
                 isCollapsed && 'justify-center px-2'
               )}
-              title={isCollapsed ? 'Relatorios' : undefined}
+              title={isCollapsed ? 'Relatórios' : undefined}
             >
               <BarChart3 className="h-5 w-5 flex-shrink-0" />
               {!isCollapsed && (
                 <>
-                  <span className="flex-1 text-left">Relatorios</span>
+                  <span className="flex-1 text-left">Relatórios</span>
                   {relatoriosExpanded ? (
                     <ChevronDown className="h-4 w-4 flex-shrink-0" />
                   ) : (
@@ -332,12 +332,12 @@ export function Sidebar({ currentPath, onNavigate, onToggleCollapse, colaborador
                 isConfiguracoes ? 'bg-gray-800 text-white' : 'text-gray-300 hover:bg-gray-800',
                 isCollapsed && 'justify-center px-2'
               )}
-              title={isCollapsed ? 'Configuracoes' : undefined}
+              title={isCollapsed ? 'Configurações' : undefined}
             >
               <Settings className="h-5 w-5 flex-shrink-0" />
               {!isCollapsed && (
                 <>
-                  <span className="flex-1 text-left">Configuracoes</span>
+                  <span className="flex-1 text-left">Configurações</span>
                   {configuracoesExpanded ? (
                     <ChevronDown className="h-4 w-4 flex-shrink-0" />
                   ) : (
@@ -374,7 +374,7 @@ export function Sidebar({ currentPath, onNavigate, onToggleCollapse, colaborador
                     )}
                   >
                     <ShieldCheck className="h-4 w-4" />
-                    <span>Niveis e Usuarios</span>
+                    <span>Níveis e Usuários</span>
                   </button>
                 )}
                 {podeVerSistema && (
@@ -388,7 +388,7 @@ export function Sidebar({ currentPath, onNavigate, onToggleCollapse, colaborador
                     )}
                   >
                     <SlidersHorizontal className="h-4 w-4" />
-                    <span>Parametrizacao</span>
+                    <span>Parametrização</span>
                   </button>
                 )}
               </div>
@@ -405,10 +405,10 @@ export function Sidebar({ currentPath, onNavigate, onToggleCollapse, colaborador
             'w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-gray-300 hover:bg-gray-800 hover:text-white relative',
             isCollapsed && 'justify-center px-2'
           )}
-          title={isCollapsed ? 'Notificacoes' : undefined}
+          title={isCollapsed ? 'Notificações' : undefined}
         >
           <Bell className="h-5 w-5 flex-shrink-0" />
-          {!isCollapsed && <span className="flex-1 text-left">Notificacoes</span>}
+          {!isCollapsed && <span className="flex-1 text-left">Notificações</span>}
           {unreadNotificationsCount > 0 && (
             <span
               className={cn(
@@ -434,17 +434,17 @@ export function Sidebar({ currentPath, onNavigate, onToggleCollapse, colaborador
             }}
           >
             <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
-              <h3 className="font-medium">Notificacoes</h3>
-              <span className="text-xs text-gray-500">{unreadNotificationsCount} nao lida(s)</span>
+              <h3 className="font-medium">Notificações</h3>
+              <span className="text-xs text-gray-500">{unreadNotificationsCount} não lida(s)</span>
             </div>
 
             <div className="max-h-[65vh] overflow-y-auto">
               {isLoadingNotifications && (
-                <div className="px-4 py-6 text-sm text-gray-500">Carregando notificacoes...</div>
+                <div className="px-4 py-6 text-sm text-gray-500">Carregando notificações...</div>
               )}
 
               {!isLoadingNotifications && notifications.length === 0 && (
-                <div className="px-4 py-6 text-sm text-gray-500">Nenhuma notificacao recebida ate o momento.</div>
+                <div className="px-4 py-6 text-sm text-gray-500">Nenhuma notificação recebida até o momento.</div>
               )}
 
               {!isLoadingNotifications &&
@@ -495,7 +495,7 @@ export function Sidebar({ currentPath, onNavigate, onToggleCollapse, colaborador
       {!isCollapsed && (
         <div className="p-4 border-t border-gray-800">
           <p className="text-gray-400 text-xs mb-3 truncate" title={colaboradorNome}>
-            {colaboradorNome ? `Logado: ${colaboradorNome}` : 'Usuario logado'}
+            {colaboradorNome ? `Logado: ${colaboradorNome}` : 'Usuário logado'}
           </p>
           <Button
             type="button"

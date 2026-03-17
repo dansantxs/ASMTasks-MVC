@@ -207,9 +207,9 @@ export default function SectorList({
                   <TableHeader>
                     <TableRow className="bg-brand-blue/5">
                       <TableHead className="font-medium text-brand-blue">Nome do Setor</TableHead>
-                      <TableHead className="font-medium text-brand-blue">Descricao</TableHead>
+                      <TableHead className="font-medium text-brand-blue">Descrição</TableHead>
                       <TableHead className="font-medium text-brand-blue">Status</TableHead>
-                      <TableHead className="text-right font-medium text-brand-blue">Acoes</TableHead>
+                      <TableHead className="text-right font-medium text-brand-blue">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -233,9 +233,9 @@ export default function SectorList({
                   <TableHeader>
                     <TableRow className="bg-muted/30">
                       <TableHead>Nome do Setor</TableHead>
-                      <TableHead>Descricao</TableHead>
+                      <TableHead>Descrição</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Acoes</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -259,8 +259,8 @@ export default function SectorList({
             <h3>Nenhum setor encontrado</h3>
             <p className="text-muted-foreground max-w-md mx-auto">
               {searchTerm
-                ? `Nao encontramos setores que correspondam a busca "${searchTerm}".`
-                : 'Ainda nao ha setores cadastrados no sistema.'
+                ? `Não encontramos setores que correspondam à busca "${searchTerm}".`
+                : 'Ainda não há setores cadastrados no sistema.'
               }
             </p>
           </div>

@@ -196,7 +196,7 @@ export default function ProjectList({
                   <TableHead>Tarefas</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Cadastro</TableHead>
-                  <TableHead className="text-right">Acoes</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -233,8 +233,8 @@ export default function ProjectList({
           <h3 className="mt-4">Nenhum projeto encontrado</h3>
           <p className="text-muted-foreground mt-2">
             {searchTerm
-              ? `Nao encontramos projetos para "${searchTerm}".`
-              : 'Ainda nao ha projetos cadastrados.'}
+              ? `Não encontramos projetos para "${searchTerm}".`
+              : 'Ainda não há projetos cadastrados.'}
           </p>
         </div>
       )}
