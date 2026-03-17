@@ -43,7 +43,7 @@ export default function LoginPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="login">Usuario</Label>
+              <Label htmlFor="login">Usuário</Label>
               <Input
                 id="login"
                 value={formData.login}

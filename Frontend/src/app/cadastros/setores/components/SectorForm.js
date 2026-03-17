@@ -72,7 +72,7 @@ export default function SectorForm({
           </DialogTitle>
           <DialogDescription>
             {sector
-              ? 'Edite as informacoes do setor selecionado'
+              ? 'Edite as informações do setor selecionado'
               : 'Preencha os dados para criar um novo setor'
             }
           </DialogDescription>
@@ -93,12 +93,12 @@ export default function SectorForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Descricao</Label>
+            <Label htmlFor="description">Descrição</Label>
             <Textarea
               id="description"
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Digite uma descricao para o setor (opcional)"
+              placeholder="Digite uma descrição para o setor (opcional)"
               rows={3}
             />
           </div>
@@ -115,7 +115,7 @@ export default function SectorForm({
               type="submit"
               className="bg-brand-blue hover:bg-brand-blue-dark"
             >
-              {sector ? 'Salvar Alteracoes' : 'Cadastrar Setor'}
+              {sector ? 'Salvar Alterações' : 'Cadastrar Setor'}
             </Button>
           </div>
         </form>

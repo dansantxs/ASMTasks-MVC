@@ -19,7 +19,7 @@ import { getReportFooterLines, getReportLogoDataUrl } from '../../../shared/syst
 const columns = [
   { id: 'id', label: 'ID' },
   { id: 'name', label: 'Nome do Setor' },
-  { id: 'description', label: 'Descricao' },
+  { id: 'description', label: 'Descrição' },
   { id: 'status', label: 'Status' },
 ];
 
@@ -152,7 +152,7 @@ export default function SetoresReportPage() {
         }
 
         doc.setFontSize(9);
-        doc.text(`Data de emissao: ${emissionDate}`, 14, 24);
+        doc.text(`Data de emiss?o: ${emissionDate}`, 14, 24);
 
         const filtersStartY = 30;
         doc.text(filtersLines, 14, filtersStartY);
@@ -188,7 +188,7 @@ export default function SetoresReportPage() {
 
     const headerRows = [
       [reportTitle],
-      [`Data de emissao: ${emissionDate}`],
+      [`Data de emiss?o: ${emissionDate}`],
       [`Filtros: ${filtersSummary}`],
       [columnsSummary],
       [],

@@ -109,7 +109,7 @@ export default function ProjectViewDialog({
             <CardContent className="space-y-3">
               {project.descricao && (
                 <div>
-                  <p className="text-sm text-muted-foreground">Descricao</p>
+                  <p className="text-sm text-muted-foreground">Descrição</p>
                   <p className="text-sm">{project.descricao}</p>
                 </div>
               )}

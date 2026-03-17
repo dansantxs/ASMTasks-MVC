@@ -61,22 +61,22 @@ export default function AppointmentViewDialog({
         <div className="space-y-3 text-sm">
           <div className="flex items-center gap-2">
             <Badge className={isConcluded ? 'bg-slate-600 hover:bg-slate-700' : 'bg-emerald-600 hover:bg-emerald-700'}>
-              {isConcluded ? 'Concluido' : 'Agendado'}
+              {isConcluded ? 'Conclu?do' : 'Agendado'}
             </Badge>
           </div>
           <p><span className="font-medium">Cliente:</span> {appointment.clienteNome ?? `#${appointment.clienteId}`}</p>
           <p><span className="font-medium">Cadastrado por:</span> {appointment.cadastradoPorNome ?? `#${appointment.cadastradoPorColaboradorId}`}</p>
-          <p><span className="font-medium">Inicio:</span> {formatDateTime(appointment.dataHoraInicio)}</p>
+          <p><span className="font-medium">Início:</span> {formatDateTime(appointment.dataHoraInicio)}</p>
           <p><span className="font-medium">Fim:</span> {formatDateTime(appointment.dataHoraFim)}</p>
           <p><span className="font-medium">Colaboradores:</span> {appointment.colaboradoresNomes.join(', ') || '-'}</p>
           <p>
-            <span className="font-medium">Notificacoes:</span>{' '}
+            <span className="font-medium">Notificações:</span>{' '}
             {reminders.length > 0 ? reminders.map(formatNotification).join(', ') : '-'}
           </p>
-          <p><span className="font-medium">Descricao:</span> {appointment.descricao || '-'}</p>
-          <p><span className="font-medium">Concluido por:</span> {appointment.concluidoPorNome ?? '-'}</p>
-          <p><span className="font-medium">Data/hora da conclusao:</span> {formatDateTime(appointment.dataHoraConclusao)}</p>
-          <p><span className="font-medium">Resumo da reuniao:</span> {appointment.observacaoConclusao || '-'}</p>
+          <p><span className="font-medium">Descrição:</span> {appointment.descricao || '-'}</p>
+          <p><span className="font-medium">Concluído por:</span> {appointment.concluidoPorNome ?? '-'}</p>
+          <p><span className="font-medium">Data/hora da conclusão:</span> {formatDateTime(appointment.dataHoraConclusao)}</p>
+          <p><span className="font-medium">Resumo da reunião:</span> {appointment.observacaoConclusao || '-'}</p>
         </div>
 
         <div className="flex justify-end gap-2 pt-2">

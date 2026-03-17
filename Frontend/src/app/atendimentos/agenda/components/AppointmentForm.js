@@ -180,9 +180,9 @@ export default function AppointmentForm({
   const validate = () => {
     const nextErrors = {};
 
-    if (!formData.titulo.trim()) nextErrors.titulo = 'Titulo e obrigatorio.';
+    if (!formData.titulo.trim()) nextErrors.titulo = 'Título é obrigatório.';
     if (!formData.clienteId) nextErrors.clienteId = 'Selecione um cliente.';
-    if (!formData.dataHoraInicio) nextErrors.dataHoraInicio = 'Data/hora de inicio e obrigatoria.';
+    if (!formData.dataHoraInicio) nextErrors.dataHoraInicio = 'Data/hora de início é obrigatória.';
     if (
       formData.dataHoraFim &&
       formData.dataHoraInicio &&
@@ -191,7 +191,7 @@ export default function AppointmentForm({
       nextErrors.dataHoraFim = 'Data/hora final deve ser maior que a inicial.';
     }
     if (formData.dataHoraInicio && !isWithinAgenda(formData.dataHoraInicio)) {
-      nextErrors.dataHoraInicio = `O inicio deve estar entre ${agendaStartTime} e ${agendaEndTime}.`;
+      nextErrors.dataHoraInicio = `O início deve estar entre ${agendaStartTime} e ${agendaEndTime}.`;
     }
     if (formData.dataHoraFim && !isWithinAgenda(formData.dataHoraFim)) {
       nextErrors.dataHoraFim = `O fim deve estar entre ${agendaStartTime} e ${agendaEndTime}.`;
@@ -206,9 +206,9 @@ export default function AppointmentForm({
 
     if (hasInvalidNotification) {
       nextErrors.notificacoesMinutosAntecedencia =
-        'Cada notificacao deve ter valor inteiro maior que zero.';
+        'Cada notificação deve ter valor inteiro maior que zero.';
     } else if (hasDuplicateNotifications) {
-      nextErrors.notificacoesMinutosAntecedencia = 'Nao repita notificacoes com o mesmo tempo.';
+      nextErrors.notificacoesMinutosAntecedencia = 'Não repita notificações com o mesmo tempo.';
     }
 
     setErrors(nextErrors);
@@ -238,14 +238,14 @@ export default function AppointmentForm({
           <DialogDescription>
             {appointment
               ? 'Ajuste os dados do atendimento selecionado.'
-              : 'Preencha os dados para agendar o atendimento no calendario.'}
+              : 'Preencha os dados para agendar o atendimento no calend?rio.'}
           </DialogDescription>
         </DialogHeader>
 
         <form className="space-y-5" onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="md:col-span-2">
-              <Label htmlFor="titulo">Titulo <span className="text-destructive">*</span></Label>
+              <Label htmlFor="titulo">Título <span className="text-destructive">*</span></Label>
               <Input
                 id="titulo"
                 value={formData.titulo}
@@ -262,7 +262,7 @@ export default function AppointmentForm({
                 id="descricao"
                 value={formData.descricao}
                 onChange={(e) => setFormData((prev) => ({ ...prev, descricao: e.target.value }))}
-                placeholder="Observacoes do atendimento"
+                placeholder="Observações do atendimento"
               />
             </div>
 
@@ -292,7 +292,7 @@ export default function AppointmentForm({
             </div>
 
             <div>
-              <Label htmlFor="dataHoraInicio">Data/hora inicio <span className="text-destructive">*</span></Label>
+              <Label htmlFor="dataHoraInicio">Data/hora início <span className="text-destructive">*</span></Label>
               <Input
                 id="dataHoraInicio"
                 type="datetime-local"
@@ -301,7 +301,7 @@ export default function AppointmentForm({
                 className={errors.dataHoraInicio ? 'border-destructive' : ''}
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Horario permitido: {agendaStartTime} ate {agendaEndTime}
+                Horário permitido: {agendaStartTime} até {agendaEndTime}
               </p>
               {errors.dataHoraInicio && (
                 <p className="text-sm text-destructive">{errors.dataHoraInicio}</p>
@@ -338,7 +338,7 @@ export default function AppointmentForm({
                 </label>
               ))}
               {colaboradoresAtivos.length === 0 && (
-                <p className="text-sm text-muted-foreground">Nenhum colaborador ativo disponivel.</p>
+                <p className="text-sm text-muted-foreground">Nenhum colaborador ativo disponível.</p>
               )}
             </div>
             {errors.colaboradoresIds && (
@@ -347,11 +347,11 @@ export default function AppointmentForm({
           </div>
 
           <div>
-            <Label>Notificacoes antes do atendimento</Label>
+            <Label>Notificações antes do atendimento</Label>
             <div className="mt-2 rounded-md border p-3 space-y-3">
               {notificationConfigs.length === 0 && (
                 <p className="text-sm text-muted-foreground">
-                  Nenhuma notificacao configurada.
+                  Nenhuma notificação configurada.
                 </p>
               )}
 
@@ -393,7 +393,7 @@ export default function AppointmentForm({
 
               <Button type="button" variant="outline" onClick={addNotificationConfig}>
                 <Plus className="h-4 w-4 mr-2" />
-                Adicionar notificacao
+                Adicionar notificação
               </Button>
             </div>
             {errors.notificacoesMinutosAntecedencia && (
@@ -408,7 +408,7 @@ export default function AppointmentForm({
               Cancelar
             </Button>
             <Button type="submit" className="bg-brand-blue hover:bg-brand-blue-dark" disabled={isSaving}>
-              {isSaving ? 'Salvando...' : appointment ? 'Salvar alteracoes' : 'Agendar Atendimento'}
+              {isSaving ? 'Salvando...' : appointment ? 'Salvar alterações' : 'Agendar Atendimento'}
             </Button>
           </div>
         </form>

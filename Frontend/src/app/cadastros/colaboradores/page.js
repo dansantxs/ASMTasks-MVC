@@ -81,7 +81,7 @@ export default function ColaboradoresPage() {
       setIsFormOpen(false);
       const loginGerado = data?.loginGerado;
       if (loginGerado) {
-        toast.success(`Colaborador criado com sucesso! Usuario: ${loginGerado}`);
+        toast.success(`Colaborador criado com sucesso! Usuário: ${loginGerado}`);
         return;
       }
 

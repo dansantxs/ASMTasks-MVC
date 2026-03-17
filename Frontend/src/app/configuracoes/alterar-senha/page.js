@@ -30,7 +30,7 @@ export default function AlterarSenhaPage() {
     }
 
     if (formData.novaSenha !== formData.confirmarNovaSenha) {
-      toast.error('A confirmacao da senha nao confere.');
+      toast.error('A confirmação da senha não confere.');
       return;
     }
 
@@ -40,7 +40,7 @@ export default function AlterarSenhaPage() {
       setFormData({ senhaAtual: '', novaSenha: '', confirmarNovaSenha: '' });
       toast.success('Senha alterada com sucesso.');
     } catch (err) {
-      toast.error(err?.message ?? 'Nao foi possivel alterar a senha.');
+      toast.error(err?.message ?? 'Não foi possível alterar a senha.');
     } finally {
       setIsSaving(false);
     }
@@ -52,12 +52,12 @@ export default function AlterarSenhaPage() {
     try {
       await alterarLogin({ novoLogin });
       clearSession();
-      toast.success('Login alterado com sucesso. Faca login novamente.');
+      toast.success('Login alterado com sucesso. Faça login novamente.');
       setTimeout(() => {
         router.replace('/login');
       }, 600);
     } catch (err) {
-      toast.error(err?.message ?? 'Nao foi possivel alterar o login.');
+      toast.error(err?.message ?? 'Não foi possível alterar o login.');
     } finally {
       setIsSavingLogin(false);
     }
@@ -71,7 +71,7 @@ export default function AlterarSenhaPage() {
             <Settings className="h-6 w-6 text-brand-blue" />
           </div>
           <div>
-            <h1>Configuracoes da Conta</h1>
+            <h1>Configurações da Conta</h1>
             <p className="text-muted-foreground">
               Atualize seu login e senha de acesso ao sistema
             </p>
@@ -91,7 +91,7 @@ export default function AlterarSenhaPage() {
                     id="novoLogin"
                     value={novoLogin}
                     onChange={(e) => setNovoLogin(e.target.value)}
-                    placeholder="Minimo 4 caracteres, sem espacos"
+                    placeholder="Mínimo 4 caracteres, sem espaços"
                   />
                 </div>
                 <Button type="submit" className="bg-brand-blue hover:bg-brand-blue-dark" disabled={isSavingLogin}>
