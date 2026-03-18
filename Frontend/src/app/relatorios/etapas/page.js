@@ -13,8 +13,8 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { getEtapas } from '../../cadastros/etapas/api/etapas';
-import { defaultSystemSettings, useSystemSettingsQuery } from '../../../shared/system-settings/api';
-import { getReportFooterLines, getReportLogoDataUrl } from '../../../shared/system-settings/reportBranding';
+import { configuracoesPadrao, useConfiguracoesSistema } from '../../../shared/configuracoes-sistema/api';
+import { obterRodapeRelatorio, obterLogotipo } from '../../../shared/configuracoes-sistema/reportBranding';
 
 const columns = [
   { id: 'id', label: 'ID' },
@@ -30,7 +30,7 @@ export default function EtapasReportPage() {
   const [statusFilter, setStatusFilter] = useState('todos');
   const [sortConfig, setSortConfig] = useState({ column: null, direction: 'asc' });
   const [selectedColumns, setSelectedColumns] = useState(columns.map((c) => c.id));
-  const { data: systemSettings = defaultSystemSettings } = useSystemSettingsQuery();
+  const { data: systemSettings = configuracoesPadrao } = useConfiguracoesSistema();
 
   const { data: etapasApi = [], isLoading } = useQuery({
     queryKey: ['relatorio-etapas'],
@@ -126,8 +126,8 @@ export default function EtapasReportPage() {
     const { filtersSummary, columnsSummary } = buildFiltersSummary(activeColumns);
     const body = sortedData.map((row) => activeColumns.map((col) => row[col.id] ?? ''));
     const emissionDate = new Date().toLocaleString('pt-BR');
-    const logoDataUrl = await getReportLogoDataUrl(systemSettings);
-    const footerLines = getReportFooterLines(systemSettings);
+    const logoDataUrl = await obterLogotipo(systemSettings);
+    const footerLines = obterRodapeRelatorio(systemSettings);
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
     const filtersLines = doc.splitTextToSize(`Filtros: ${filtersSummary}`, pageWidth - 70);
@@ -181,7 +181,7 @@ export default function EtapasReportPage() {
     const activeColumns = columns.filter((c) => selectedColumns.includes(c.id));
     const { filtersSummary, columnsSummary } = buildFiltersSummary(activeColumns);
     const emissionDate = new Date().toLocaleString('pt-BR');
-    const footerLines = getReportFooterLines(systemSettings);
+    const footerLines = obterRodapeRelatorio(systemSettings);
 
     const headerRows = [
       [reportTitle],
@@ -343,4 +343,3 @@ export default function EtapasReportPage() {
     </div>
   );
 }
-

@@ -2,13 +2,13 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { isSessionValid } from '../shared/auth/session';
+import { isSessaoValida } from '../shared/auth/session';
 
 export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    if (isSessionValid()) {
+    if (isSessaoValida()) {
       router.replace('/atendimentos/agenda');
       return;
     }

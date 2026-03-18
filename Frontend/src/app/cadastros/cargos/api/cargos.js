@@ -1,6 +1,6 @@
 'use client';
 
-import { apiFetch } from '../../../../shared/api/http';
+import { requisicaoApi } from '../../../../shared/api/http';
 
 async function handleResponse(res) {
     const text = await res.text();
@@ -35,18 +35,18 @@ async function handleResponse(res) {
 }
 
 export async function getCargos() {
-    const res = await apiFetch('/cargos', { cache: "no-store" });
+    const res = await requisicaoApi('/cargos', { cache: "no-store" });
     const data = await handleResponse(res);
     return Array.isArray(data) ? data : [];
 }
 
 export async function getCargoById(id) {
-    const res = await apiFetch(`/cargos/${id}`, { cache: "no-store" });
+    const res = await requisicaoApi(`/cargos/${id}`, { cache: "no-store" });
     return handleResponse(res);
 }
 
 export async function criarCargo(data) {
-    const res = await apiFetch('/cargos', {
+    const res = await requisicaoApi('/cargos', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -55,7 +55,7 @@ export async function criarCargo(data) {
 }
 
 export async function atualizarCargo(id, data) {
-    const res = await apiFetch(`/cargos/${id}`, {
+    const res = await requisicaoApi(`/cargos/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -64,11 +64,11 @@ export async function atualizarCargo(id, data) {
 }
 
 export async function inativarCargo(id) {
-    const res = await apiFetch(`/cargos/${id}`, { method: "DELETE" });
+    const res = await requisicaoApi(`/cargos/${id}`, { method: "DELETE" });
     return handleResponse(res);
 }
 
 export async function reativarCargo(id) {
-    const res = await apiFetch(`/cargos/${id}/reativar`, { method: "PUT" });
+    const res = await requisicaoApi(`/cargos/${id}/reativar`, { method: "PUT" });
     return handleResponse(res);
 }

@@ -1,72 +1,72 @@
-const API_URL = "https://localhost:7199/api/etapas";
+import { requisicaoApi } from '../../../../shared/api/http';
 
-async function handleResponse(res) {
-    const text = await res.text();
-    let data = null;
-    try {
-        data = text ? JSON.parse(text) : null;
-    } catch {}
+async function tratarResposta(res) {
+  const texto = await res.text();
+  let dados = null;
+  try {
+    dados = texto ? JSON.parse(texto) : null;
+  } catch {}
 
-    if (!res.ok) {
-        let msg = "Erro inesperado.";
-        if (data) {
-            if (data.erro) msg = data.erro;
-            else if (data.message) msg = data.message;
-            else if (data.errors) {
-                const flat = Object.values(data.errors).flat();
-                if (flat.length) msg = flat.join("\n");
-            }
-            if (data.detalhe && data.detalhe !== msg) {
-                msg += `\nDetalhe: ${data.detalhe}`;
-            }
-        } else {
-            msg = `${res.status} ${res.statusText}`;
-        }
-        const error = new Error(msg);
-        error.status = res.status;
-        error.data = data;
-        throw error;
+  if (!res.ok) {
+    let msg = "Erro inesperado.";
+    if (dados) {
+      if (dados.erro) msg = dados.erro;
+      else if (dados.message) msg = dados.message;
+      else if (dados.errors) {
+        const linhas = Object.values(dados.errors).flat();
+        if (linhas.length) msg = linhas.join("\n");
+      }
+      if (dados.detalhe && dados.detalhe !== msg) {
+        msg += `\nDetalhe: ${dados.detalhe}`;
+      }
+    } else {
+      msg = `${res.status} ${res.statusText}`;
     }
+    const erro = new Error(msg);
+    erro.status = res.status;
+    erro.data = dados;
+    throw erro;
+  }
 
-    if (res.status === 204) return null;
-    return data;
+  if (res.status === 204) return null;
+  return dados;
 }
 
 export async function getEtapas() {
-    const res = await fetch(API_URL, { cache: "no-store" });
-    const data = await handleResponse(res);
-    return Array.isArray(data) ? data : [];
+  const res = await requisicaoApi('/etapas', { cache: "no-store" });
+  const dados = await tratarResposta(res);
+  return Array.isArray(dados) ? dados : [];
 }
 
 export async function getEtapaById(id) {
-    const res = await fetch(`${API_URL}/${id}`, { cache: "no-store" });
-    return handleResponse(res);
+  const res = await requisicaoApi(`/etapas/${id}`, { cache: "no-store" });
+  return tratarResposta(res);
 }
 
-export async function criarEtapa(data) {
-    const res = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-    });
-    return handleResponse(res);
+export async function criarEtapa(dados) {
+  const res = await requisicaoApi('/etapas', {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(dados),
+  });
+  return tratarResposta(res);
 }
 
-export async function atualizarEtapa(id, data) {
-    const res = await fetch(`${API_URL}/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-    });
-    return handleResponse(res);
+export async function atualizarEtapa(id, dados) {
+  const res = await requisicaoApi(`/etapas/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(dados),
+  });
+  return tratarResposta(res);
 }
 
 export async function inativarEtapa(id) {
-    const res = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
-    return handleResponse(res);
+  const res = await requisicaoApi(`/etapas/${id}`, { method: "DELETE" });
+  return tratarResposta(res);
 }
 
 export async function reativarEtapa(id) {
-    const res = await fetch(`${API_URL}/${id}/reativar`, { method: "PUT" });
-    return handleResponse(res);
+  const res = await requisicaoApi(`/etapas/${id}/reativar`, { method: "PUT" });
+  return tratarResposta(res);
 }

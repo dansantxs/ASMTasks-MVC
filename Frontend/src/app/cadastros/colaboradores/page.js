@@ -4,11 +4,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from '../../../ui/base/button';
 import { Plus, Users } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
-import EmployeeForm from './components/EmployeeForm';
-import EmployeeList from './components/EmployeeList';
-import EmployeeViewDialog from './components/EmployeeViewDialog';
-import { DeleteConfirmDialog } from './components/DeleteConfirmDialog';
-import ViewToggle from '../../../shared/components/ViewToggle';
+import FormularioColaborador from './components/FormularioColaborador';
+import ListaColaboradores from './components/ListaColaboradores';
+import DialogoVisualizarColaborador from './components/DialogoVisualizarColaborador';
+import { DialogoConfirmarExclusao } from './components/DialogoConfirmarExclusao';
+import AlternarVisualizacao from '../../../shared/components/AlternarVisualizacao';
 import { getColaboradores, criarColaborador, atualizarColaborador, inativarColaborador, reativarColaborador } from './api/colaboradores';
 import { getSetores } from '../setores/api/setores';
 import { getCargos } from '../cargos/api/cargos';
@@ -17,8 +17,8 @@ export default function ColaboradoresPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-  const [selectedEmployee, setSelectedEmployee] = useState(null);
-  const [viewMode, setViewMode] = useState('cards');
+  const [colaboradorSelecionado, setColaboradorSelecionado] = useState(null);
+  const [modoVisualizacao, setModoVisualizacao] = useState('cards');
 
   const queryClient = useQueryClient();
 
@@ -37,7 +37,7 @@ export default function ColaboradoresPage() {
     queryFn: getCargos,
   });
 
-  const employees = colaboradoresApi.map(c => {
+  const colaboradores = colaboradoresApi.map(c => {
     const setor = setoresApi.find(s => s.id === c.setorId);
     const cargo = cargosApi.find(ca => ca.id === c.cargoId);
 
@@ -119,7 +119,7 @@ export default function ColaboradoresPage() {
     onError: (error) => toast.error(error?.message ?? "Erro ao reativar colaborador."),
   });
 
-  const handleSaveEmployee = (employeeData) => {
+  const handleSalvarColaborador = (employeeData) => {
     const dataAPI = {
       nome: employeeData.name,
       cpf: employeeData.cpf,
@@ -137,15 +137,15 @@ export default function ColaboradoresPage() {
       cargoId: parseInt(employeeData.cargoId) || null,
     };
 
-    if (selectedEmployee) atualizar.mutate({ id: selectedEmployee.id, data: dataAPI });
+    if (colaboradorSelecionado) atualizar.mutate({ id: colaboradorSelecionado.id, data: dataAPI });
     else criar.mutate(dataAPI);
   };
 
-  const handleConfirmDelete = () => {
-    if (selectedEmployee) excluir.mutate(selectedEmployee.id);
+  const handleConfirmarExclusao = () => {
+    if (colaboradorSelecionado) excluir.mutate(colaboradorSelecionado.id);
   };
 
-  const handleReactivateEmployee = (employee) => reativar.mutate(employee.id);
+  const handleReativarColaborador = (colaborador) => reativar.mutate(colaborador.id);
 
   if (loadingColaboradores || loadingSetores || loadingCargos) {
     return <div className="p-6">Carregando colaboradores...</div>;
@@ -167,10 +167,10 @@ export default function ColaboradoresPage() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
+            <AlternarVisualizacao modoVisualizacao={modoVisualizacao} aoAlterarModoVisualizacao={setModoVisualizacao} />
             <Button
               onClick={() => {
-                setSelectedEmployee(null);
+                setColaboradorSelecionado(null);
                 setIsFormOpen(true);
               }}
               className="flex items-center gap-2 bg-brand-blue hover:bg-brand-blue-dark"
@@ -181,46 +181,46 @@ export default function ColaboradoresPage() {
           </div>
         </div>
 
-        <EmployeeList
-          employees={employees}
-          onEdit={(e) => {
-            setSelectedEmployee(e);
+        <ListaColaboradores
+          colaboradores={colaboradores}
+          aoEditar={(e) => {
+            setColaboradorSelecionado(e);
             setIsFormOpen(true);
           }}
-          onDelete={(e) => {
-            setSelectedEmployee(e);
+          aoExcluir={(e) => {
+            setColaboradorSelecionado(e);
             setIsDeleteDialogOpen(true);
           }}
-          onView={(e) => {
-            setSelectedEmployee(e);
+          aoVisualizar={(e) => {
+            setColaboradorSelecionado(e);
             setIsViewDialogOpen(true);
           }}
-          onReactivate={handleReactivateEmployee}
-          viewMode={viewMode}
+          aoReativar={handleReativarColaborador}
+          modoVisualizacao={modoVisualizacao}
         />
 
-        <EmployeeForm
+        <FormularioColaborador
           open={isFormOpen}
           onOpenChange={setIsFormOpen}
-          employee={selectedEmployee}
-          onSave={handleSaveEmployee}
+          colaborador={colaboradorSelecionado}
+          aoSalvar={handleSalvarColaborador}
           setores={setores}
           cargos={cargos}
         />
 
-        <DeleteConfirmDialog
+        <DialogoConfirmarExclusao
           open={isDeleteDialogOpen}
           onOpenChange={setIsDeleteDialogOpen}
-          employee={selectedEmployee}
-          onConfirm={handleConfirmDelete}
-          hasActiveTasks={selectedEmployee?.hasActiveTasks}
+          colaborador={colaboradorSelecionado}
+          aoConfirmar={handleConfirmarExclusao}
+          possuiTarefasAtivas={colaboradorSelecionado?.hasActiveTasks}
         />
 
-        <EmployeeViewDialog
+        <DialogoVisualizarColaborador
           open={isViewDialogOpen}
           onOpenChange={setIsViewDialogOpen}
-          employee={selectedEmployee}
-          onReactivate={handleReactivateEmployee}
+          colaborador={colaboradorSelecionado}
+          aoReativar={handleReativarColaborador}
         />
 
         <Toaster position="top-right" />

@@ -1,72 +1,72 @@
-const API_URL = "https://localhost:7199/api/clientes";
+import { requisicaoApi } from '../../../../shared/api/http';
 
-async function handleResponse(res) {
-  const text = await res.text();
-  let data = null;
-  try { 
-    data = text ? JSON.parse(text) : null; 
+async function tratarResposta(res) {
+  const texto = await res.text();
+  let dados = null;
+  try {
+    dados = texto ? JSON.parse(texto) : null;
   } catch {}
 
   if (!res.ok) {
     let msg = "Erro inesperado.";
-    if (data) {
-      if (data.erro) msg = data.erro;
-      else if (data.message) msg = data.message;
-      else if (data.errors) {
-        const flat = Object.values(data.errors).flat();
-        if (flat.length) msg = flat.join("\n");
+    if (dados) {
+      if (dados.erro) msg = dados.erro;
+      else if (dados.message) msg = dados.message;
+      else if (dados.errors) {
+        const linhas = Object.values(dados.errors).flat();
+        if (linhas.length) msg = linhas.join("\n");
       }
-      if (data.detalhe && data.detalhe !== msg) {
-        msg += `\nDetalhe: ${data.detalhe}`;
+      if (dados.detalhe && dados.detalhe !== msg) {
+        msg += `\nDetalhe: ${dados.detalhe}`;
       }
     } else {
       msg = `${res.status} ${res.statusText}`;
     }
-    const error = new Error(msg);
-    error.status = res.status;
-    error.data = data;
-    throw error;
+    const erro = new Error(msg);
+    erro.status = res.status;
+    erro.data = dados;
+    throw erro;
   }
 
   if (res.status === 204) return null;
-  return data;
+  return dados;
 }
 
 export async function getClientes() {
-  const res = await fetch(API_URL, { cache: "no-store" });
-  const data = await handleResponse(res);
-  return Array.isArray(data) ? data : [];
+  const res = await requisicaoApi('/clientes', { cache: "no-store" });
+  const dados = await tratarResposta(res);
+  return Array.isArray(dados) ? dados : [];
 }
 
 export async function getClienteById(id) {
-  const res = await fetch(`${API_URL}/${id}`, { cache: "no-store" });
-  return handleResponse(res);
+  const res = await requisicaoApi(`/clientes/${id}`, { cache: "no-store" });
+  return tratarResposta(res);
 }
 
-export async function criarCliente(data) {
-  const res = await fetch(API_URL, {
+export async function criarCliente(dados) {
+  const res = await requisicaoApi('/clientes', {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
+    body: JSON.stringify(dados),
   });
-  return handleResponse(res);
+  return tratarResposta(res);
 }
 
-export async function atualizarCliente(id, data) {
-  const res = await fetch(`${API_URL}/${id}`, {
+export async function atualizarCliente(id, dados) {
+  const res = await requisicaoApi(`/clientes/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
+    body: JSON.stringify(dados),
   });
-  return handleResponse(res);
+  return tratarResposta(res);
 }
 
 export async function inativarCliente(id) {
-  const res = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
-  return handleResponse(res);
+  const res = await requisicaoApi(`/clientes/${id}`, { method: "DELETE" });
+  return tratarResposta(res);
 }
 
 export async function reativarCliente(id) {
-  const res = await fetch(`${API_URL}/${id}/reativar`, { method: "PUT" });
-  return handleResponse(res);
+  const res = await requisicaoApi(`/clientes/${id}/reativar`, { method: "PUT" });
+  return tratarResposta(res);
 }

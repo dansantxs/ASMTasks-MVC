@@ -1,72 +1,72 @@
-const API_URL = "https://localhost:7199/api/prioridades";
+import { requisicaoApi } from '../../../../shared/api/http';
 
-async function handleResponse(res) {
-    const text = await res.text();
-    let data = null;
-    try {
-        data = text ? JSON.parse(text) : null;
-    } catch {}
+async function tratarResposta(res) {
+  const texto = await res.text();
+  let dados = null;
+  try {
+    dados = texto ? JSON.parse(texto) : null;
+  } catch {}
 
-    if (!res.ok) {
-        let msg = "Erro inesperado.";
-        if (data) {
-            if (data.erro) msg = data.erro;
-            else if (data.message) msg = data.message;
-            else if (data.errors) {
-                const flat = Object.values(data.errors).flat();
-                if (flat.length) msg = flat.join("\n");
-            }
-            if (data.detalhe && data.detalhe !== msg) {
-                msg += `\nDetalhe: ${data.detalhe}`;
-            }
-        } else {
-            msg = `${res.status} ${res.statusText}`;
-        }
-        const error = new Error(msg);
-        error.status = res.status;
-        error.data = data;
-        throw error;
+  if (!res.ok) {
+    let msg = "Erro inesperado.";
+    if (dados) {
+      if (dados.erro) msg = dados.erro;
+      else if (dados.message) msg = dados.message;
+      else if (dados.errors) {
+        const linhas = Object.values(dados.errors).flat();
+        if (linhas.length) msg = linhas.join("\n");
+      }
+      if (dados.detalhe && dados.detalhe !== msg) {
+        msg += `\nDetalhe: ${dados.detalhe}`;
+      }
+    } else {
+      msg = `${res.status} ${res.statusText}`;
     }
+    const erro = new Error(msg);
+    erro.status = res.status;
+    erro.data = dados;
+    throw erro;
+  }
 
-    if (res.status === 204) return null;
-    return data;
+  if (res.status === 204) return null;
+  return dados;
 }
 
 export async function getPrioridades() {
-    const res = await fetch(API_URL, { cache: "no-store" });
-    const data = await handleResponse(res);
-    return Array.isArray(data) ? data : [];
+  const res = await requisicaoApi('/prioridades', { cache: "no-store" });
+  const dados = await tratarResposta(res);
+  return Array.isArray(dados) ? dados : [];
 }
 
 export async function getPrioridadeById(id) {
-    const res = await fetch(`${API_URL}/${id}`, { cache: "no-store" });
-    return handleResponse(res);
+  const res = await requisicaoApi(`/prioridades/${id}`, { cache: "no-store" });
+  return tratarResposta(res);
 }
 
-export async function criarPrioridade(data) {
-    const res = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-    });
-    return handleResponse(res);
+export async function criarPrioridade(dados) {
+  const res = await requisicaoApi('/prioridades', {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(dados),
+  });
+  return tratarResposta(res);
 }
 
-export async function atualizarPrioridade(id, data) {
-    const res = await fetch(`${API_URL}/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-    });
-    return handleResponse(res);
+export async function atualizarPrioridade(id, dados) {
+  const res = await requisicaoApi(`/prioridades/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(dados),
+  });
+  return tratarResposta(res);
 }
 
 export async function inativarPrioridade(id) {
-    const res = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
-    return handleResponse(res);
+  const res = await requisicaoApi(`/prioridades/${id}`, { method: "DELETE" });
+  return tratarResposta(res);
 }
 
 export async function reativarPrioridade(id) {
-    const res = await fetch(`${API_URL}/${id}/reativar`, { method: "PUT" });
-    return handleResponse(res);
+  const res = await requisicaoApi(`/prioridades/${id}/reativar`, { method: "PUT" });
+  return tratarResposta(res);
 }

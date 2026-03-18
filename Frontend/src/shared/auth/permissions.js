@@ -1,4 +1,4 @@
-export const screenPermissions = {
+export const permissoesTelas = {
   cadastrosCargos: 'cadastros.cargos',
   cadastrosClientes: 'cadastros.clientes',
   cadastrosColaboradores: 'cadastros.colaboradores',
@@ -19,53 +19,53 @@ export const screenPermissions = {
   configuracoesSistema: 'configuracoes.sistema',
 };
 
-const routePermissionMatchers = [
-  { prefix: '/cadastros/cargos', permission: screenPermissions.cadastrosCargos },
-  { prefix: '/cadastros/clientes', permission: screenPermissions.cadastrosClientes },
-  { prefix: '/cadastros/colaboradores', permission: screenPermissions.cadastrosColaboradores },
-  { prefix: '/cadastros/etapas', permission: screenPermissions.cadastrosEtapas },
-  { prefix: '/cadastros/prioridades', permission: screenPermissions.cadastrosPrioridades },
-  { prefix: '/cadastros/setores', permission: screenPermissions.cadastrosSetores },
-  { prefix: '/atendimentos/agenda', permission: screenPermissions.atendimentosAgenda },
-  { prefix: '/projetos', permission: screenPermissions.projetosCadastro },
-  { prefix: '/relatorios/cargos', permission: screenPermissions.relatoriosCargos },
-  { prefix: '/relatorios/clientes', permission: screenPermissions.relatoriosClientes },
-  { prefix: '/relatorios/colaboradores', permission: screenPermissions.relatoriosColaboradores },
-  { prefix: '/relatorios/etapas', permission: screenPermissions.relatoriosEtapas },
-  { prefix: '/relatorios/prioridades', permission: screenPermissions.relatoriosPrioridades },
-  { prefix: '/relatorios/setores', permission: screenPermissions.relatoriosSetores },
-  { prefix: '/relatorios/atendimentos-historico', permission: screenPermissions.relatoriosAtendimentosHistorico },
-  { prefix: '/configuracoes/alterar-senha', permission: screenPermissions.configuracoesMinhaConta },
-  { prefix: '/configuracoes/acessos', permission: screenPermissions.configuracoesAcessos },
-  { prefix: '/configuracoes/sistema', permission: screenPermissions.configuracoesSistema },
+const mapeamentoPermissoes = [
+  { prefix: '/cadastros/cargos', permission: permissoesTelas.cadastrosCargos },
+  { prefix: '/cadastros/clientes', permission: permissoesTelas.cadastrosClientes },
+  { prefix: '/cadastros/colaboradores', permission: permissoesTelas.cadastrosColaboradores },
+  { prefix: '/cadastros/etapas', permission: permissoesTelas.cadastrosEtapas },
+  { prefix: '/cadastros/prioridades', permission: permissoesTelas.cadastrosPrioridades },
+  { prefix: '/cadastros/setores', permission: permissoesTelas.cadastrosSetores },
+  { prefix: '/atendimentos/agenda', permission: permissoesTelas.atendimentosAgenda },
+  { prefix: '/projetos', permission: permissoesTelas.projetosCadastro },
+  { prefix: '/relatorios/cargos', permission: permissoesTelas.relatoriosCargos },
+  { prefix: '/relatorios/clientes', permission: permissoesTelas.relatoriosClientes },
+  { prefix: '/relatorios/colaboradores', permission: permissoesTelas.relatoriosColaboradores },
+  { prefix: '/relatorios/etapas', permission: permissoesTelas.relatoriosEtapas },
+  { prefix: '/relatorios/prioridades', permission: permissoesTelas.relatoriosPrioridades },
+  { prefix: '/relatorios/setores', permission: permissoesTelas.relatoriosSetores },
+  { prefix: '/relatorios/atendimentos-historico', permission: permissoesTelas.relatoriosAtendimentosHistorico },
+  { prefix: '/configuracoes/alterar-senha', permission: permissoesTelas.configuracoesMinhaConta },
+  { prefix: '/configuracoes/acessos', permission: permissoesTelas.configuracoesAcessos },
+  { prefix: '/configuracoes/sistema', permission: permissoesTelas.configuracoesSistema },
 ];
 
-const orderedDefaultRoutes = [
-  { path: '/atendimentos/agenda', permission: screenPermissions.atendimentosAgenda },
-  { path: '/projetos', permission: screenPermissions.projetosCadastro },
-  { path: '/cadastros/clientes', permission: screenPermissions.cadastrosClientes },
-  { path: '/cadastros/colaboradores', permission: screenPermissions.cadastrosColaboradores },
-  { path: '/cadastros/cargos', permission: screenPermissions.cadastrosCargos },
-  { path: '/cadastros/setores', permission: screenPermissions.cadastrosSetores },
-  { path: '/cadastros/etapas', permission: screenPermissions.cadastrosEtapas },
-  { path: '/cadastros/prioridades', permission: screenPermissions.cadastrosPrioridades },
-  { path: '/relatorios/clientes', permission: screenPermissions.relatoriosClientes },
-  { path: '/relatorios/atendimentos-historico', permission: screenPermissions.relatoriosAtendimentosHistorico },
-  { path: '/configuracoes/alterar-senha', permission: screenPermissions.configuracoesMinhaConta },
-  { path: '/configuracoes/acessos', permission: screenPermissions.configuracoesAcessos },
-  { path: '/configuracoes/sistema', permission: screenPermissions.configuracoesSistema },
+const rotasPadrao = [
+  { path: '/atendimentos/agenda', permission: permissoesTelas.atendimentosAgenda },
+  { path: '/projetos', permission: permissoesTelas.projetosCadastro },
+  { path: '/cadastros/clientes', permission: permissoesTelas.cadastrosClientes },
+  { path: '/cadastros/colaboradores', permission: permissoesTelas.cadastrosColaboradores },
+  { path: '/cadastros/cargos', permission: permissoesTelas.cadastrosCargos },
+  { path: '/cadastros/setores', permission: permissoesTelas.cadastrosSetores },
+  { path: '/cadastros/etapas', permission: permissoesTelas.cadastrosEtapas },
+  { path: '/cadastros/prioridades', permission: permissoesTelas.cadastrosPrioridades },
+  { path: '/relatorios/clientes', permission: permissoesTelas.relatoriosClientes },
+  { path: '/relatorios/atendimentos-historico', permission: permissoesTelas.relatoriosAtendimentosHistorico },
+  { path: '/configuracoes/alterar-senha', permission: permissoesTelas.configuracoesMinhaConta },
+  { path: '/configuracoes/acessos', permission: permissoesTelas.configuracoesAcessos },
+  { path: '/configuracoes/sistema', permission: permissoesTelas.configuracoesSistema },
 ];
 
-export function hasPermission(session, permission) {
-  if (!permission) return true;
-  const permissions = session?.permissoes ?? [];
-  return permissions.includes(permission);
+export function temPermissao(sessao, permissao) {
+  if (!permissao) return true;
+  const permissoes = sessao?.permissoes ?? [];
+  return permissoes.includes(permissao);
 }
 
-export function getPermissionForPath(pathname) {
-  return routePermissionMatchers.find((item) => pathname.startsWith(item.prefix))?.permission ?? null;
+export function obterPermissaoPorRota(caminho) {
+  return mapeamentoPermissoes.find((item) => caminho.startsWith(item.prefix))?.permission ?? null;
 }
 
-export function getDefaultRouteForSession(session) {
-  return orderedDefaultRoutes.find((item) => hasPermission(session, item.permission))?.path ?? '/login';
+export function obterRotaPadrao(sessao) {
+  return rotasPadrao.find((item) => temPermissao(sessao, item.permission))?.path ?? '/login';
 }

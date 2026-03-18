@@ -5,10 +5,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '../../../ui/base/button';
 import { ChevronLeft, ChevronRight, Plus, CalendarDays } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
-import AppointmentCalendar from './components/AppointmentCalendar';
-import AppointmentForm from './components/AppointmentForm';
-import AppointmentViewDialog from './components/AppointmentViewDialog';
-import AppointmentConcludeDialog from './components/AppointmentConcludeDialog';
+import CalendarioAtendimentos from './components/CalendarioAtendimentos';
+import FormularioAtendimento from './components/FormularioAtendimento';
+import DialogoVisualizarAtendimento from './components/DialogoVisualizarAtendimento';
+import DialogoConcluirAtendimento from './components/DialogoConcluirAtendimento';
 import {
   atualizarAtendimento,
   criarAtendimento,
@@ -19,56 +19,56 @@ import {
   marcarAtendimentoComoAgendado,
   marcarAtendimentoComoRealizado,
 } from './api/atendimentos';
-import { getStoredSession } from '../../../shared/auth/session';
-import { defaultSystemSettings, useSystemSettingsQuery } from '../../../shared/system-settings/api';
+import { obterSessaoArmazenada } from '../../../shared/auth/session';
+import { configuracoesPadrao, useConfiguracoesSistema } from '../../../shared/configuracoes-sistema/api';
 
-function startOfWeek(date) {
-  const d = new Date(date);
-  const day = d.getDay();
-  const diff = day === 0 ? -6 : 1 - day;
+function inicioDaSemana(data) {
+  const d = new Date(data);
+  const dia = d.getDay();
+  const diff = dia === 0 ? -6 : 1 - dia;
   d.setDate(d.getDate() + diff);
   d.setHours(0, 0, 0, 0);
   return d;
 }
 
-function endOfWeek(weekStart) {
-  const d = new Date(weekStart);
+function fimDaSemana(inicioSemana) {
+  const d = new Date(inicioSemana);
   d.setDate(d.getDate() + 6);
   d.setHours(23, 59, 59, 999);
   return d;
 }
 
-function toIso(date) {
-  return date.toISOString();
+function paraIso(data) {
+  return data.toISOString();
 }
 
-function formatPeriod(start, end) {
+function formatarPeriodo(inicio, fim) {
   const formatter = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit' });
-  return `${formatter.format(start)} - ${formatter.format(end)}`;
+  return `${formatter.format(inicio)} - ${formatter.format(fim)}`;
 }
 
 export default function AgendaAtendimentosPage() {
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isViewOpen, setIsViewOpen] = useState(false);
-  const [isConcludeDialogOpen, setIsConcludeDialogOpen] = useState(false);
-  const [selectedAppointment, setSelectedAppointment] = useState(null);
-  const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
-  const [filteredColaboradoresIds, setFilteredColaboradoresIds] = useState([]);
-  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
+  const [formularioAberto, setFormularioAberto] = useState(false);
+  const [visualizacaoAberta, setVisualizacaoAberta] = useState(false);
+  const [dialogoConclusaoAberto, setDialogoConclusaoAberto] = useState(false);
+  const [atendimentoSelecionado, setAtendimentoSelecionado] = useState(null);
+  const [inicioSemana, setInicioSemana] = useState(() => inicioDaSemana(new Date()));
+  const [idsColaboradoresFiltrados, setIdsColaboradoresFiltrados] = useState([]);
+  const [painelFiltroAberto, setPainelFiltroAberto] = useState(false);
   const queryClient = useQueryClient();
-  const session = getStoredSession();
-  const colaboradorLogadoId = Number(session?.colaboradorId ?? 0);
-  const colaboradorLogadoNome = session?.colaboradorNome ?? '';
-  const { data: systemSettings = defaultSystemSettings } = useSystemSettingsQuery();
+  const sessao = obterSessaoArmazenada();
+  const colaboradorLogadoId = Number(sessao?.colaboradorId ?? 0);
+  const colaboradorLogadoNome = sessao?.colaboradorNome ?? '';
+  const { data: configuracoes = configuracoesPadrao } = useConfiguracoesSistema();
 
-  const weekEnd = useMemo(() => endOfWeek(weekStart), [weekStart]);
-  const weekDays = useMemo(() => {
+  const fimSemana = useMemo(() => fimDaSemana(inicioSemana), [inicioSemana]);
+  const diasSemana = useMemo(() => {
     return Array.from({ length: 7 }, (_, i) => {
-      const d = new Date(weekStart);
+      const d = new Date(inicioSemana);
       d.setDate(d.getDate() + i);
       return d;
     });
-  }, [weekStart]);
+  }, [inicioSemana]);
 
   const { data: clientes = [] } = useQuery({
     queryKey: ['clientes-atendimento'],
@@ -80,22 +80,22 @@ export default function AgendaAtendimentosPage() {
     queryFn: getColaboradores,
   });
 
-  const { data: atendimentosApi = [], isLoading: isLoadingAtendimentos } = useQuery({
-    queryKey: ['atendimentos', toIso(weekStart), toIso(weekEnd)],
-    queryFn: () => getAtendimentos(toIso(weekStart), toIso(weekEnd)),
+  const { data: atendimentosApi = [], isLoading: carregandoAtendimentos } = useQuery({
+    queryKey: ['atendimentos', paraIso(inicioSemana), paraIso(fimSemana)],
+    queryFn: () => getAtendimentos(paraIso(inicioSemana), paraIso(fimSemana)),
     refetchOnWindowFocus: false,
   });
 
-  const clientesById = useMemo(() => {
-    const map = new Map();
-    clientes.forEach((c) => map.set(c.id, c.nome));
-    return map;
+  const clientesPorId = useMemo(() => {
+    const mapa = new Map();
+    clientes.forEach((c) => mapa.set(c.id, c.nome));
+    return mapa;
   }, [clientes]);
 
-  const colaboradoresById = useMemo(() => {
-    const map = new Map();
-    colaboradores.forEach((c) => map.set(c.id, c.nome));
-    return map;
+  const colaboradoresPorId = useMemo(() => {
+    const mapa = new Map();
+    colaboradores.forEach((c) => mapa.set(c.id, c.nome));
+    return mapa;
   }, [colaboradores]);
 
   const atendimentos = useMemo(() => {
@@ -107,8 +107,8 @@ export default function AgendaAtendimentosPage() {
         descricao: item.descricao,
         clienteId: item.clienteId,
         cadastradoPorColaboradorId: item.cadastradoPorColaboradorId,
-        cadastradoPorNome: colaboradoresById.get(item.cadastradoPorColaboradorId) ?? null,
-        clienteNome: clientesById.get(item.clienteId) ?? null,
+        cadastradoPorNome: colaboradoresPorId.get(item.cadastradoPorColaboradorId) ?? null,
+        clienteNome: clientesPorId.get(item.clienteId) ?? null,
         dataHoraInicio: new Date(item.dataHoraInicio),
         dataHoraFim: item.dataHoraFim ? new Date(item.dataHoraFim) : null,
         status: item.status,
@@ -116,27 +116,27 @@ export default function AgendaAtendimentosPage() {
         concluidoPorColaboradorId: item.concluidoPorColaboradorId ?? null,
         dataHoraConclusao: item.dataHoraConclusao ? new Date(item.dataHoraConclusao) : null,
         concluidoPorNome: item.concluidoPorColaboradorId
-          ? colaboradoresById.get(item.concluidoPorColaboradorId) ?? null
+          ? colaboradoresPorId.get(item.concluidoPorColaboradorId) ?? null
           : null,
         ativo: item.ativo,
         colaboradoresIds: item.colaboradoresIds ?? [],
         notificacoesMinutosAntecedencia: item.notificacoesMinutosAntecedencia ?? [],
         colaboradoresNomes: (item.colaboradoresIds ?? [])
-          .map((id) => colaboradoresById.get(id))
+          .map((id) => colaboradoresPorId.get(id))
           .filter(Boolean),
       }));
-  }, [atendimentosApi, clientesById, colaboradoresById]);
+  }, [atendimentosApi, clientesPorId, colaboradoresPorId]);
 
   const atendimentosFiltrados = useMemo(() => {
-    if (filteredColaboradoresIds.length === 0) return atendimentos;
+    if (idsColaboradoresFiltrados.length === 0) return atendimentos;
 
     return atendimentos.filter((atendimento) =>
-      atendimento.colaboradoresIds?.some((id) => filteredColaboradoresIds.includes(id))
+      atendimento.colaboradoresIds?.some((id) => idsColaboradoresFiltrados.includes(id))
     );
-  }, [atendimentos, filteredColaboradoresIds]);
+  }, [atendimentos, idsColaboradoresFiltrados]);
 
   const toggleFiltroColaborador = (colaboradorId) => {
-    setFilteredColaboradoresIds((prev) =>
+    setIdsColaboradoresFiltrados((prev) =>
       prev.includes(colaboradorId)
         ? prev.filter((id) => id !== colaboradorId)
         : [...prev, colaboradorId]
@@ -144,16 +144,16 @@ export default function AgendaAtendimentosPage() {
   };
 
   useEffect(() => {
-    if (colaboradorLogadoId > 0 && filteredColaboradoresIds.length === 0) {
-      setFilteredColaboradoresIds([colaboradorLogadoId]);
+    if (colaboradorLogadoId > 0 && idsColaboradoresFiltrados.length === 0) {
+      setIdsColaboradoresFiltrados([colaboradorLogadoId]);
     }
-  }, [colaboradorLogadoId, filteredColaboradoresIds.length]);
+  }, [colaboradorLogadoId, idsColaboradoresFiltrados.length]);
 
   const criar = useMutation({
     mutationFn: criarAtendimento,
     onSuccess: () => {
       queryClient.invalidateQueries(['atendimentos']);
-      setIsFormOpen(false);
+      setFormularioAberto(false);
       toast.success('Atendimento agendado com sucesso.');
     },
     onError: (error) => toast.error(error?.message ?? 'Erro ao agendar atendimento.'),
@@ -163,8 +163,8 @@ export default function AgendaAtendimentosPage() {
     mutationFn: ({ id, payload }) => atualizarAtendimento(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries(['atendimentos']);
-      setIsFormOpen(false);
-      setSelectedAppointment(null);
+      setFormularioAberto(false);
+      setAtendimentoSelecionado(null);
       toast.success('Atendimento alterado com sucesso.');
     },
     onError: (error) => toast.error(error?.message ?? 'Erro ao alterar atendimento.'),
@@ -175,10 +175,10 @@ export default function AgendaAtendimentosPage() {
       marcarAtendimentoComoRealizado(id, observacaoConclusao),
     onSuccess: () => {
       queryClient.invalidateQueries(['atendimentos']);
-      setIsConcludeDialogOpen(false);
-      setIsViewOpen(false);
-      setSelectedAppointment(null);
-      toast.success('Atendimento marcado como concluido.');
+      setDialogoConclusaoAberto(false);
+      setVisualizacaoAberta(false);
+      setAtendimentoSelecionado(null);
+      toast.success('Atendimento marcado como concluído.');
     },
     onError: (error) => toast.error(error?.message ?? 'Erro ao concluir atendimento.'),
   });
@@ -187,66 +187,66 @@ export default function AgendaAtendimentosPage() {
     mutationFn: marcarAtendimentoComoAgendado,
     onSuccess: () => {
       queryClient.invalidateQueries(['atendimentos']);
-      setIsViewOpen(false);
-      setSelectedAppointment(null);
+      setVisualizacaoAberta(false);
+      setAtendimentoSelecionado(null);
       toast.success('Atendimento retornou para agendado.');
     },
-    onError: (error) => toast.error(error?.message ?? 'Erro ao desmarcar atendimento concluido.'),
+    onError: (error) => toast.error(error?.message ?? 'Erro ao desmarcar atendimento concluído.'),
   });
 
   const excluir = useMutation({
     mutationFn: inativarAtendimento,
     onSuccess: () => {
       queryClient.invalidateQueries(['atendimentos']);
-      setIsViewOpen(false);
-      setSelectedAppointment(null);
-      toast.success('Atendimento excluido com sucesso.');
+      setVisualizacaoAberta(false);
+      setAtendimentoSelecionado(null);
+      toast.success('Atendimento excluído com sucesso.');
     },
     onError: (error) => toast.error(error?.message ?? 'Erro ao excluir atendimento.'),
   });
 
-  const handleSave = (payload) => {
-    if (selectedAppointment?.id) {
-      atualizar.mutate({ id: selectedAppointment.id, payload });
+  const handleSalvar = (payload) => {
+    if (atendimentoSelecionado?.id) {
+      atualizar.mutate({ id: atendimentoSelecionado.id, payload });
       return;
     }
 
     criar.mutate(payload);
   };
 
-  const handleOpenNew = () => {
-    setSelectedAppointment(null);
-    setIsFormOpen(true);
+  const handleAbrirNovo = () => {
+    setAtendimentoSelecionado(null);
+    setFormularioAberto(true);
   };
 
-  const handleOpenView = (appointment) => {
-    setSelectedAppointment(appointment);
-    setIsViewOpen(true);
+  const handleAbrirVisualizacao = (atendimento) => {
+    setAtendimentoSelecionado(atendimento);
+    setVisualizacaoAberta(true);
   };
 
-  const handleEditFromView = () => {
-    if (selectedAppointment?.status === 'R') return;
-    setIsViewOpen(false);
-    setIsFormOpen(true);
+  const handleEditarDaVisualizacao = () => {
+    if (atendimentoSelecionado?.status === 'R') return;
+    setVisualizacaoAberta(false);
+    setFormularioAberto(true);
   };
 
-  const handleToggleConclude = () => {
-    if (!selectedAppointment?.id) return;
+  const handleAlternarConclusao = () => {
+    if (!atendimentoSelecionado?.id) return;
 
-    if (selectedAppointment.status === 'R') {
-      desmarcarConclusao.mutate(selectedAppointment.id);
+    if (atendimentoSelecionado.status === 'R') {
+      desmarcarConclusao.mutate(atendimentoSelecionado.id);
       return;
     }
 
-    setIsViewOpen(false);
-    setIsConcludeDialogOpen(true);
+    setVisualizacaoAberta(false);
+    setDialogoConclusaoAberto(true);
   };
 
-  const handleConfirmConclude = (observacaoConclusao) => {
-    if (!selectedAppointment?.id) return;
+  const handleConfirmarConclusao = (observacaoConclusao) => {
+    if (!atendimentoSelecionado?.id) return;
 
     concluir.mutate({
-      id: selectedAppointment.id,
+      id: atendimentoSelecionado.id,
       observacaoConclusao: observacaoConclusao?.trim() ? observacaoConclusao.trim() : null,
     });
   };
@@ -269,27 +269,27 @@ export default function AgendaAtendimentosPage() {
 
           <div className="flex items-center gap-2">
             <Button variant="outline" onClick={() => {
-              const prev = new Date(weekStart);
-              prev.setDate(prev.getDate() - 7);
-              setWeekStart(startOfWeek(prev));
+              const anterior = new Date(inicioSemana);
+              anterior.setDate(anterior.getDate() - 7);
+              setInicioSemana(inicioDaSemana(anterior));
             }}>
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <span className="text-sm font-medium min-w-[120px] text-center">
-              {formatPeriod(weekStart, weekEnd)}
+              {formatarPeriodo(inicioSemana, fimSemana)}
             </span>
             <Button variant="outline" onClick={() => {
-              const next = new Date(weekStart);
-              next.setDate(next.getDate() + 7);
-              setWeekStart(startOfWeek(next));
+              const proximo = new Date(inicioSemana);
+              proximo.setDate(proximo.getDate() + 7);
+              setInicioSemana(inicioDaSemana(proximo));
             }}>
               <ChevronRight className="h-4 w-4" />
             </Button>
-            <Button onClick={() => setWeekStart(startOfWeek(new Date()))} variant="outline">
+            <Button onClick={() => setInicioSemana(inicioDaSemana(new Date()))} variant="outline">
               Hoje
             </Button>
             <Button
-              onClick={handleOpenNew}
+              onClick={handleAbrirNovo}
               className="flex items-center gap-2 bg-brand-blue hover:bg-brand-blue-dark"
             >
               <Plus className="h-4 w-4" />
@@ -298,7 +298,7 @@ export default function AgendaAtendimentosPage() {
           </div>
         </div>
 
-        {isLoadingAtendimentos ? (
+        {carregandoAtendimentos ? (
           <div className="p-6">Carregando agenda...</div>
         ) : (
           <div className="space-y-4">
@@ -308,23 +308,23 @@ export default function AgendaAtendimentosPage() {
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => setIsFilterPanelOpen((prev) => !prev)}
+                  onClick={() => setPainelFiltroAberto((prev) => !prev)}
                 >
-                  {isFilterPanelOpen ? 'Ocultar filtro de colaboradores' : 'Mostrar filtro de colaboradores'}
+                  {painelFiltroAberto ? 'Ocultar filtro de colaboradores' : 'Mostrar filtro de colaboradores'}
                 </Button>
-                {filteredColaboradoresIds.length > 0 && (
+                {idsColaboradoresFiltrados.length > 0 && (
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => setFilteredColaboradoresIds([])}
+                    onClick={() => setIdsColaboradoresFiltrados([])}
                   >
                     Limpar filtro
                   </Button>
                 )}
               </div>
 
-              {isFilterPanelOpen && (
+              {painelFiltroAberto && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
                   {colaboradores
                     .filter((colaborador) => colaborador.ativo)
@@ -335,7 +335,7 @@ export default function AgendaAtendimentosPage() {
                       >
                         <input
                           type="checkbox"
-                          checked={filteredColaboradoresIds.includes(colaborador.id)}
+                          checked={idsColaboradoresFiltrados.includes(colaborador.id)}
                           onChange={() => toggleFiltroColaborador(colaborador.id)}
                         />
                         <span>{colaborador.nome}</span>
@@ -345,50 +345,50 @@ export default function AgendaAtendimentosPage() {
               )}
             </div>
 
-            <AppointmentCalendar
-              days={weekDays}
-              appointments={atendimentosFiltrados}
-              agendaStartTime={systemSettings.horaInicioAgenda}
-              agendaEndTime={systemSettings.horaFimAgenda}
-              onSelectAppointment={handleOpenView}
+            <CalendarioAtendimentos
+              dias={diasSemana}
+              atendimentos={atendimentosFiltrados}
+              horaInicioAgenda={configuracoes.horaInicioAgenda}
+              horaFimAgenda={configuracoes.horaFimAgenda}
+              aoSelecionarAtendimento={handleAbrirVisualizacao}
             />
           </div>
         )}
 
-        <AppointmentForm
-          open={isFormOpen}
-          onOpenChange={setIsFormOpen}
+        <FormularioAtendimento
+          open={formularioAberto}
+          onOpenChange={setFormularioAberto}
           clientes={clientes}
           colaboradores={colaboradores}
-          appointment={selectedAppointment}
+          atendimento={atendimentoSelecionado}
           colaboradorLogadoNome={colaboradorLogadoNome}
-          agendaStartTime={systemSettings.horaInicioAgenda}
-          agendaEndTime={systemSettings.horaFimAgenda}
-          onSave={handleSave}
-          isSaving={criar.isPending || atualizar.isPending}
+          horaInicioAgenda={configuracoes.horaInicioAgenda}
+          horaFimAgenda={configuracoes.horaFimAgenda}
+          aoSalvar={handleSalvar}
+          salvando={criar.isPending || atualizar.isPending}
         />
 
-        <AppointmentViewDialog
-          open={isViewOpen}
-          onOpenChange={setIsViewOpen}
-          appointment={selectedAppointment}
-          onEdit={handleEditFromView}
-          onToggleConclude={handleToggleConclude}
-          onDelete={() =>
-            selectedAppointment?.id &&
-            selectedAppointment?.status !== 'R' &&
-            excluir.mutate(selectedAppointment.id)
+        <DialogoVisualizarAtendimento
+          open={visualizacaoAberta}
+          onOpenChange={setVisualizacaoAberta}
+          atendimento={atendimentoSelecionado}
+          aoEditar={handleEditarDaVisualizacao}
+          aoAlternarConclusao={handleAlternarConclusao}
+          aoExcluir={() =>
+            atendimentoSelecionado?.id &&
+            atendimentoSelecionado?.status !== 'R' &&
+            excluir.mutate(atendimentoSelecionado.id)
           }
-          isTogglingConclude={concluir.isPending || desmarcarConclusao.isPending}
-          isDeleting={excluir.isPending}
+          alternandoConclusao={concluir.isPending || desmarcarConclusao.isPending}
+          excluindo={excluir.isPending}
         />
 
-        <AppointmentConcludeDialog
-          open={isConcludeDialogOpen}
-          onOpenChange={setIsConcludeDialogOpen}
-          appointment={selectedAppointment}
-          onConfirm={handleConfirmConclude}
-          isSaving={concluir.isPending}
+        <DialogoConcluirAtendimento
+          open={dialogoConclusaoAberto}
+          onOpenChange={setDialogoConclusaoAberto}
+          atendimento={atendimentoSelecionado}
+          aoConfirmar={handleConfirmarConclusao}
+          salvando={concluir.isPending}
         />
 
         <Toaster position="top-right" />

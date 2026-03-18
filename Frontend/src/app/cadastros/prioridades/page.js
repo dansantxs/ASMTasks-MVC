@@ -4,11 +4,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from '../../../ui/base/button';
 import { Plus, Flag } from 'lucide-react';
 import { Toaster } from 'sonner';
-import PriorityForm from './components/PriorityForm';
-import PriorityList from './components/PriorityList';
-import ViewToggle from '../../../shared/components/ViewToggle';
-import { DeleteConfirmDialog } from './components/DeleteConfirmDialog';
-import PriorityViewDialog from './components/PriorityViewDialog';
+import FormularioPrioridade from './components/FormularioPrioridade';
+import ListaPrioridades from './components/ListaPrioridades';
+import AlternarVisualizacao from '../../../shared/components/AlternarVisualizacao';
+import { DialogoConfirmarExclusao } from './components/DialogoConfirmarExclusao';
+import DialogoVisualizarPrioridade from './components/DialogoVisualizarPrioridade';
 import { toast } from 'sonner';
 import { getPrioridades, criarPrioridade, atualizarPrioridade, inativarPrioridade, reativarPrioridade } from './api/prioridades';
 
@@ -16,8 +16,8 @@ export default function PrioridadesPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-  const [selectedPriority, setSelectedPriority] = useState(null);
-  const [viewMode, setViewMode] = useState('cards');
+  const [prioridadeSelecionada, setPrioridadeSelecionada] = useState(null);
+  const [modoVisualizacao, setModoVisualizacao] = useState('cards');
 
   const queryClient = useQueryClient();
 
@@ -26,7 +26,7 @@ export default function PrioridadesPage() {
     queryFn: getPrioridades,
   });
 
-  const priorities = prioridadesApi.map(p => {
+  const prioridades = prioridadesApi.map(p => {
     const color = p.cor ?? "#000000";
     return {
       id: p.id,
@@ -77,24 +77,24 @@ export default function PrioridadesPage() {
     onError: (error) => toast.error(error?.message || "Erro ao reativar prioridade."),
   });
 
-  const handleSavePriority = (priorityData) => {
+  const handleSalvarPrioridade = (priorityData) => {
     const dataAPI = {
       nome: priorityData.name,
       descricao: priorityData.description,
       cor: priorityData.color,
     };
 
-    if (selectedPriority)
-      atualizar.mutate({ id: selectedPriority.id, data: dataAPI });
+    if (prioridadeSelecionada)
+      atualizar.mutate({ id: prioridadeSelecionada.id, data: dataAPI });
     else
       criar.mutate(dataAPI);
   };
 
-  const handleConfirmDelete = () => {
-    if (selectedPriority) excluir.mutate(selectedPriority.id);
+  const handleConfirmarExclusao = () => {
+    if (prioridadeSelecionada) excluir.mutate(prioridadeSelecionada.id);
   };
 
-  const handleReactivatePriority = (priority) => reativar.mutate(priority.id);
+  const handleReativarPrioridade = (prioridade) => reativar.mutate(prioridade.id);
 
   if (isLoading) return <div className="p-6">Carregando prioridades...</div>;
 
@@ -114,9 +114,9 @@ export default function PrioridadesPage() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
+            <AlternarVisualizacao modoVisualizacao={modoVisualizacao} aoAlterarModoVisualizacao={setModoVisualizacao} />
             <Button
-              onClick={() => { setSelectedPriority(null); setIsFormOpen(true); }}
+              onClick={() => { setPrioridadeSelecionada(null); setIsFormOpen(true); }}
               className="flex items-center gap-2 bg-brand-blue hover:bg-brand-blue-dark"
             >
               <Plus className="h-4 w-4" />
@@ -125,36 +125,36 @@ export default function PrioridadesPage() {
           </div>
         </div>
 
-        <PriorityList
-          priorities={priorities}
-          onEdit={(p) => { setSelectedPriority(p); setIsFormOpen(true); }}
-          onDelete={(p) => { setSelectedPriority(p); setIsDeleteDialogOpen(true); }}
-          onView={(p) => { setSelectedPriority(p); setIsViewDialogOpen(true); }}
-          onReactivate={handleReactivatePriority}
-          viewMode={viewMode}
+        <ListaPrioridades
+          prioridades={prioridades}
+          aoEditar={(p) => { setPrioridadeSelecionada(p); setIsFormOpen(true); }}
+          aoExcluir={(p) => { setPrioridadeSelecionada(p); setIsDeleteDialogOpen(true); }}
+          aoVisualizar={(p) => { setPrioridadeSelecionada(p); setIsViewDialogOpen(true); }}
+          aoReativar={handleReativarPrioridade}
+          modoVisualizacao={modoVisualizacao}
         />
 
-        <PriorityForm
+        <FormularioPrioridade
           open={isFormOpen}
           onOpenChange={setIsFormOpen}
-          priority={selectedPriority}
-          onSave={handleSavePriority}
-          existingPriorities={priorities}
+          prioridade={prioridadeSelecionada}
+          aoSalvar={handleSalvarPrioridade}
+          prioridadesExistentes={prioridades}
         />
 
-        <DeleteConfirmDialog
+        <DialogoConfirmarExclusao
           open={isDeleteDialogOpen}
           onOpenChange={setIsDeleteDialogOpen}
-          priority={selectedPriority}
-          onConfirm={handleConfirmDelete}
-          hasActiveTasks={selectedPriority?.hasActiveTasks}
+          prioridade={prioridadeSelecionada}
+          aoConfirmar={handleConfirmarExclusao}
+          possuiTarefasAtivas={prioridadeSelecionada?.hasActiveTasks}
         />
 
-        <PriorityViewDialog
+        <DialogoVisualizarPrioridade
           open={isViewDialogOpen}
           onOpenChange={setIsViewDialogOpen}
-          priority={selectedPriority}
-          onReactivate={handleReactivatePriority}
+          prioridade={prioridadeSelecionada}
+          aoReativar={handleReativarPrioridade}
         />
 
         <Toaster position="top-right" />
