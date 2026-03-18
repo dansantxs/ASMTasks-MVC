@@ -1,12 +1,12 @@
 'use client';
 
-import { apiFetch } from '../../../../shared/api/http';
+import { requisicaoApi } from '../../../../shared/api/http';
 
 async function handleResponse(res) {
     const text = await res.text();
     let data = null;
-    try { 
-        data = text ? JSON.parse(text) : null; 
+    try {
+        data = text ? JSON.parse(text) : null;
     } catch {}
 
     if (!res.ok) {
@@ -35,18 +35,18 @@ async function handleResponse(res) {
 }
 
 export async function getColaboradores() {
-    const res = await apiFetch('/colaboradores', { cache: "no-store" });
+    const res = await requisicaoApi('/colaboradores', { cache: "no-store" });
     const data = await handleResponse(res);
     return Array.isArray(data) ? data : [];
 }
 
 export async function getColaboradorById(id) {
-    const res = await apiFetch(`/colaboradores/${id}`, { cache: "no-store" });
+    const res = await requisicaoApi(`/colaboradores/${id}`, { cache: "no-store" });
     return handleResponse(res);
 }
 
 export async function criarColaborador(data) {
-    const res = await apiFetch('/colaboradores', {
+    const res = await requisicaoApi('/colaboradores', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -55,7 +55,7 @@ export async function criarColaborador(data) {
 }
 
 export async function atualizarColaborador(id, data) {
-    const res = await apiFetch(`/colaboradores/${id}`, {
+    const res = await requisicaoApi(`/colaboradores/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -64,11 +64,11 @@ export async function atualizarColaborador(id, data) {
 }
 
 export async function inativarColaborador(id) {
-    const res = await apiFetch(`/colaboradores/${id}`, { method: "DELETE" });
+    const res = await requisicaoApi(`/colaboradores/${id}`, { method: "DELETE" });
     return handleResponse(res);
 }
 
 export async function reativarColaborador(id) {
-    const res = await apiFetch(`/colaboradores/${id}/reativar`, { method: "PUT" });
+    const res = await requisicaoApi(`/colaboradores/${id}/reativar`, { method: "PUT" });
     return handleResponse(res);
 }

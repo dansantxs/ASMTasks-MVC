@@ -1,4 +1,4 @@
-﻿using API.DB;
+using API.DB;
 using API.DB.DAOs;
 using API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -11,9 +11,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend", policy =>
+    options.AddPolicy("PermitirFrontend", politica =>
     {
-        policy.WithOrigins("http://localhost:3000")
+        politica.WithOrigins("http://localhost:3000")
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -29,21 +29,21 @@ builder.Services.AddSwaggerGen(c =>
         Description = @"
 Esta API gerencia entidades internas do sistema.
 
-### Recursos disponiveis:
-- **Cargos:** definicao de funcoes/posicoes dentro da organizacao.
-- **Colaboradores:** gerenciamento de usuarios/funcionarios.
+### Recursos disponíveis:
+- **Cargos:** definição de funções/posições dentro da organização.
+- **Colaboradores:** gerenciamento de usuários/funcionários.
 - **Etapas:** controle de fases de desenvolvimento.
-- **Prioridades:** definicao de niveis de prioridade.
-- **Setores:** organizacao de departamentos e responsaveis.
+- **Prioridades:** definição de níveis de prioridade.
+- **Setores:** organização de departamentos e responsáveis.
 - **Clientes:** gerenciamento de clientes.
-- **Atendimentos:** agenda de atendimentos com validacao de conflito de horario.
-- **Projetos:** cadastro de projetos com tarefas e dados de atribuicao futura.
+- **Atendimentos:** agenda de atendimentos com validação de conflito de horário.
+- **Projetos:** cadastro de projetos com tarefas e dados de atribuição futura.
 
 ### Funcionalidades gerais:
-- Criacao (`POST`)
-- Atualizacao (`PUT`)
-- Inativacao (`DELETE`)
-- Reativacao (`PUT /reativar`)
+- Criação (`POST`)
+- Atualização (`PUT`)
+- Inativação (`DELETE`)
+- Reativação (`PUT /reativar`)
 - Consulta (`GET`)
         "
     });
@@ -73,20 +73,20 @@ Esta API gerencia entidades internas do sistema.
         }
     });
 
-    var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFilename);
-    if (File.Exists(xmlPath))
-        c.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
+    var nomeArquivoXml = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var caminhoXml = Path.Combine(AppContext.BaseDirectory, nomeArquivoXml);
+    if (File.Exists(caminhoXml))
+        c.IncludeXmlComments(caminhoXml, includeControllerXmlComments: true);
 });
 
 builder.Services.AddControllers();
 
 Environment.SetEnvironmentVariable("STRING_CONEXAO", builder.Configuration["StringConexao"]);
 
-var jwtKey = builder.Configuration["Jwt:Key"] ?? "***REMOVED***";
-var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "ASMTasks";
-var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "ASMTasks.Frontend";
-var key = Encoding.UTF8.GetBytes(jwtKey);
+var chaveJwt = builder.Configuration["Jwt:Key"] ?? "***REMOVED***";
+var emissorJwt = builder.Configuration["Jwt:Issuer"] ?? "ASMTasks";
+var audienciaJwt = builder.Configuration["Jwt:Audience"] ?? "ASMTasks.Frontend";
+var chaveBytes = Encoding.UTF8.GetBytes(chaveJwt);
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -98,9 +98,9 @@ builder.Services
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = jwtIssuer,
-            ValidAudience = jwtAudience,
-            IssuerSigningKey = new SymmetricSecurityKey(key),
+            ValidIssuer = emissorJwt,
+            ValidAudience = audienciaJwt,
+            IssuerSigningKey = new SymmetricSecurityKey(chaveBytes),
             ClockSkew = TimeSpan.Zero
         };
     });
@@ -132,7 +132,7 @@ app.UseSwaggerUI(c =>
     c.DocumentTitle = "API de Gerenciamento ASMTasks - v1";
 });
 
-app.UseCors("AllowFrontend");
+app.UseCors("PermitirFrontend");
 
 app.UseHttpsRedirection();
 app.UseAuthentication();

@@ -1,12 +1,12 @@
 'use client';
 
-import { apiFetch } from '../../../../shared/api/http';
+import { requisicaoApi } from '../../../../shared/api/http';
 
 async function handleResponse(res) {
     const text = await res.text();
     let data = null;
-    try { 
-        data = text ? JSON.parse(text) : null; 
+    try {
+        data = text ? JSON.parse(text) : null;
     } catch {}
 
     if (!res.ok) {
@@ -35,18 +35,18 @@ async function handleResponse(res) {
 }
 
 export async function getSetores() {
-    const res = await apiFetch('/setores', { cache: "no-store" });
+    const res = await requisicaoApi('/setores', { cache: "no-store" });
     const data = await handleResponse(res);
     return Array.isArray(data) ? data : [];
 }
 
 export async function getSetorById(id) {
-    const res = await apiFetch(`/setores/${id}`, { cache: "no-store" });
+    const res = await requisicaoApi(`/setores/${id}`, { cache: "no-store" });
     return handleResponse(res);
 }
 
 export async function criarSetor(data) {
-    const res = await apiFetch('/setores', {
+    const res = await requisicaoApi('/setores', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -55,7 +55,7 @@ export async function criarSetor(data) {
 }
 
 export async function atualizarSetor(id, data) {
-    const res = await apiFetch(`/setores/${id}`, {
+    const res = await requisicaoApi(`/setores/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -64,11 +64,11 @@ export async function atualizarSetor(id, data) {
 }
 
 export async function inativarSetor(id) {
-    const res = await apiFetch(`/setores/${id}`, { method: "DELETE" });
+    const res = await requisicaoApi(`/setores/${id}`, { method: "DELETE" });
     return handleResponse(res);
 }
 
 export async function reativarSetor(id) {
-    const res = await apiFetch(`/setores/${id}/reativar`, { method: "PUT" });
+    const res = await requisicaoApi(`/setores/${id}/reativar`, { method: "PUT" });
     return handleResponse(res);
 }

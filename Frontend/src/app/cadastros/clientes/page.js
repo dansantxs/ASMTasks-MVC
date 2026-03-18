@@ -4,11 +4,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from '../../../ui/base/button';
 import { Plus, Handshake } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
-import ClientForm from './components/ClientForm';
-import ClientList from './components/ClientList';
-import ClientViewDialog from './components/ClientViewDialog';
-import { DeleteConfirmDialog } from './components/DeleteConfirmDialog';
-import ViewToggle from '../../../shared/components/ViewToggle';
+import FormularioCliente from './components/FormularioCliente';
+import ListaClientes from './components/ListaClientes';
+import DialogoVisualizarCliente from './components/DialogoVisualizarCliente';
+import { DialogoConfirmarExclusao } from './components/DialogoConfirmarExclusao';
+import AlternarVisualizacao from '../../../shared/components/AlternarVisualizacao';
 import {
   getClientes,
   criarCliente,
@@ -21,8 +21,8 @@ export default function ClientesPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-  const [selectedClient, setSelectedClient] = useState(null);
-  const [viewMode, setViewMode] = useState('cards');
+  const [clienteSelecionado, setClienteSelecionado] = useState(null);
+  const [modoVisualizacao, setModoVisualizacao] = useState('cards');
 
   const queryClient = useQueryClient();
 
@@ -31,11 +31,11 @@ export default function ClientesPage() {
     queryFn: getClientes,
   });
 
-  const clients = clientesApi.map(c => ({
+  const clientes = clientesApi.map(c => ({
     id: c.id.toString(),
     name: c.nome,
     documento: c.documento,
-    tipoPessoa: c.tipoPessoa, 
+    tipoPessoa: c.tipoPessoa,
     rg: c.rg,
     inscricaoEstadual: c.inscricaoEstadual,
     email: c.email,
@@ -91,7 +91,7 @@ export default function ClientesPage() {
     onError: (error) => toast.error(error?.message ?? "Erro ao reativar cliente."),
   });
 
-  const handleSaveClient = (clientData) => {
+  const handleSalvarCliente = (clientData) => {
     const dataAPI = {
       nome: clientData.nome,
       documento: clientData.documento,
@@ -110,15 +110,15 @@ export default function ClientesPage() {
       numero: clientData.numero
     };
 
-    if (selectedClient) atualizar.mutate({ id: selectedClient.id, data: dataAPI });
+    if (clienteSelecionado) atualizar.mutate({ id: clienteSelecionado.id, data: dataAPI });
     else criar.mutate(dataAPI);
   };
 
-  const handleConfirmDelete = () => {
-    if (selectedClient) excluir.mutate(selectedClient.id);
+  const handleConfirmarExclusao = () => {
+    if (clienteSelecionado) excluir.mutate(clienteSelecionado.id);
   };
 
-  const handleReactivateClient = (client) => reativar.mutate(client.id);
+  const handleReativarCliente = (cliente) => reativar.mutate(cliente.id);
 
   if (loadingClientes) {
     return <div className="p-6">Carregando clientes...</div>;
@@ -140,10 +140,10 @@ export default function ClientesPage() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
+            <AlternarVisualizacao modoVisualizacao={modoVisualizacao} aoAlterarModoVisualizacao={setModoVisualizacao} />
             <Button
               onClick={() => {
-                setSelectedClient(null);
+                setClienteSelecionado(null);
                 setIsFormOpen(true);
               }}
               className="flex items-center gap-2 bg-brand-blue hover:bg-brand-blue-dark"
@@ -154,43 +154,43 @@ export default function ClientesPage() {
           </div>
         </div>
 
-        <ClientList
-          clients={clients}
-          onEdit={(c) => {
-            setSelectedClient(c);
+        <ListaClientes
+          clientes={clientes}
+          aoEditar={(c) => {
+            setClienteSelecionado(c);
             setIsFormOpen(true);
           }}
-          onDelete={(c) => {
-            setSelectedClient(c);
+          aoExcluir={(c) => {
+            setClienteSelecionado(c);
             setIsDeleteDialogOpen(true);
           }}
-          onView={(c) => {
-            setSelectedClient(c);
+          aoVisualizar={(c) => {
+            setClienteSelecionado(c);
             setIsViewDialogOpen(true);
           }}
-          onReactivate={handleReactivateClient}
-          viewMode={viewMode}
+          aoReativar={handleReativarCliente}
+          modoVisualizacao={modoVisualizacao}
         />
 
-        <ClientForm
+        <FormularioCliente
           open={isFormOpen}
           onOpenChange={setIsFormOpen}
-          client={selectedClient}
-          onSave={handleSaveClient}
+          cliente={clienteSelecionado}
+          aoSalvar={handleSalvarCliente}
         />
 
-        <DeleteConfirmDialog
+        <DialogoConfirmarExclusao
           open={isDeleteDialogOpen}
           onOpenChange={setIsDeleteDialogOpen}
-          client={selectedClient}
-          onConfirm={handleConfirmDelete}
-          hasActiveTasks={selectedClient?.hasActiveTasks}
+          cliente={clienteSelecionado}
+          aoConfirmar={handleConfirmarExclusao}
+          possuiTarefasAtivas={clienteSelecionado?.hasActiveTasks}
         />
 
-        <ClientViewDialog
+        <DialogoVisualizarCliente
           open={isViewDialogOpen}
           onOpenChange={setIsViewDialogOpen}
-          client={selectedClient}
+          cliente={clienteSelecionado}
         />
 
         <Toaster position="top-right" />

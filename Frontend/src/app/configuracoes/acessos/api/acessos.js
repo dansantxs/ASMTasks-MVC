@@ -1,6 +1,6 @@
 'use client';
 
-import { apiFetch } from '../../../../shared/api/http';
+import { requisicaoApi } from '../../../../shared/api/http';
 
 async function handleResponse(res) {
   const text = await res.text();
@@ -22,15 +22,15 @@ async function handleResponse(res) {
 }
 
 export async function getPermissoesDisponiveis() {
-  return handleResponse(await apiFetch('/acessos/permissoes-disponiveis', { cache: 'no-store' }));
+  return handleResponse(await requisicaoApi('/acessos/permissoes-disponiveis', { cache: 'no-store' }));
 }
 
 export async function getNiveisAcesso() {
-  return handleResponse(await apiFetch('/acessos/niveis', { cache: 'no-store' }));
+  return handleResponse(await requisicaoApi('/acessos/niveis', { cache: 'no-store' }));
 }
 
 export async function criarNivelAcesso(payload) {
-  return handleResponse(await apiFetch('/acessos/niveis', {
+  return handleResponse(await requisicaoApi('/acessos/niveis', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -38,7 +38,7 @@ export async function criarNivelAcesso(payload) {
 }
 
 export async function atualizarNivelAcesso(id, payload) {
-  return handleResponse(await apiFetch(`/acessos/niveis/${id}`, {
+  return handleResponse(await requisicaoApi(`/acessos/niveis/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -46,19 +46,19 @@ export async function atualizarNivelAcesso(id, payload) {
 }
 
 export async function inativarNivelAcesso(id) {
-  return handleResponse(await apiFetch(`/acessos/niveis/${id}`, { method: 'DELETE' }));
+  return handleResponse(await requisicaoApi(`/acessos/niveis/${id}`, { method: 'DELETE' }));
 }
 
 export async function reativarNivelAcesso(id) {
-  return handleResponse(await apiFetch(`/acessos/niveis/${id}/reativar`, { method: 'PUT' }));
+  return handleResponse(await requisicaoApi(`/acessos/niveis/${id}/reativar`, { method: 'PUT' }));
 }
 
 export async function getUsuariosAcesso() {
-  return handleResponse(await apiFetch('/acessos/usuarios', { cache: 'no-store' }));
+  return handleResponse(await requisicaoApi('/acessos/usuarios', { cache: 'no-store' }));
 }
 
 export async function atualizarNivelUsuario(id, payload) {
-  return handleResponse(await apiFetch(`/acessos/usuarios/${id}/nivel`, {
+  return handleResponse(await requisicaoApi(`/acessos/usuarios/${id}/nivel`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -66,15 +66,15 @@ export async function atualizarNivelUsuario(id, payload) {
 }
 
 export async function inativarUsuario(id) {
-  return handleResponse(await apiFetch(`/acessos/usuarios/${id}`, { method: 'DELETE' }));
+  return handleResponse(await requisicaoApi(`/acessos/usuarios/${id}`, { method: 'DELETE' }));
 }
 
 export async function reativarUsuario(id) {
-  return handleResponse(await apiFetch(`/acessos/usuarios/${id}/reativar`, { method: 'PUT' }));
+  return handleResponse(await requisicaoApi(`/acessos/usuarios/${id}/reativar`, { method: 'PUT' }));
 }
 
 export async function atualizarUsuarioAcesso(id, payload) {
-  return handleResponse(await apiFetch(`/acessos/usuarios/${id}`, {
+  return handleResponse(await requisicaoApi(`/acessos/usuarios/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),

@@ -1,55 +1,55 @@
 'use client';
 
-import { apiFetch } from '../../../shared/api/http';
+import { requisicaoApi } from '../../../shared/api/http';
 
-async function handleResponse(res) {
-  const text = await res.text();
-  let data = null;
+async function tratarResposta(res) {
+  const texto = await res.text();
+  let dados = null;
   try {
-    data = text ? JSON.parse(text) : null;
+    dados = texto ? JSON.parse(texto) : null;
   } catch {}
 
   if (!res.ok) {
     let msg = 'Erro inesperado.';
-    if (data?.erro) msg = data.erro;
-    else if (data?.message) msg = data.message;
+    if (dados?.erro) msg = dados.erro;
+    else if (dados?.message) msg = dados.message;
     else msg = `${res.status} ${res.statusText}`;
-    const error = new Error(msg);
-    error.status = res.status;
-    throw error;
+    const erro = new Error(msg);
+    erro.status = res.status;
+    throw erro;
   }
 
-  return data;
+  return dados;
 }
 
 export async function login(payload) {
-  const res = await apiFetch('/auth/login', {
+  const res = await requisicaoApi('/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
-  return handleResponse(res);
+  return tratarResposta(res);
 }
 
 export async function alterarSenha(payload) {
-  const res = await apiFetch('/auth/alterar-senha', {
+  const res = await requisicaoApi('/auth/alterar-senha', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
-  await handleResponse(res);
+  await tratarResposta(res);
 }
 
 export async function alterarLogin(payload) {
-  const res = await apiFetch('/auth/alterar-login', {
+  const res = await requisicaoApi('/auth/alterar-login', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
-  await handleResponse(res);
+  await tratarResposta(res);
 }
 
 export async function obterUsuarioLogado() {
-  const res = await apiFetch('/auth/me', { cache: 'no-store' });
-  return handleResponse(res);
+  const res = await requisicaoApi('/auth/me', { cache: 'no-store' });
+  return tratarResposta(res);
 }

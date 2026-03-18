@@ -8,7 +8,7 @@ import { Label } from '../../../ui/form/label';
 import { Button } from '../../../ui/base/button';
 import { Settings } from 'lucide-react';
 import { alterarLogin, alterarSenha } from '../../login/api/auth';
-import { clearSession } from '../../../shared/auth/session';
+import { limparSessao } from '../../../shared/auth/session';
 import { toast, Toaster } from 'sonner';
 
 export default function AlterarSenhaPage() {
@@ -51,7 +51,7 @@ export default function AlterarSenhaPage() {
     setIsSavingLogin(true);
     try {
       await alterarLogin({ novoLogin });
-      clearSession();
+      limparSessao();
       toast.success('Login alterado com sucesso. Faça login novamente.');
       setTimeout(() => {
         router.replace('/login');

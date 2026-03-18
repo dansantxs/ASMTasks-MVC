@@ -16,8 +16,8 @@ import * as XLSX from 'xlsx';
 import { getColaboradores } from '../../cadastros/colaboradores/api/colaboradores';
 import { getSetores } from '../../cadastros/setores/api/setores';
 import { getCargos } from '../../cadastros/cargos/api/cargos';
-import { defaultSystemSettings, useSystemSettingsQuery } from '../../../shared/system-settings/api';
-import { getReportFooterLines, getReportLogoDataUrl } from '../../../shared/system-settings/reportBranding';
+import { configuracoesPadrao, useConfiguracoesSistema } from '../../../shared/configuracoes-sistema/api';
+import { obterRodapeRelatorio, obterLogotipo } from '../../../shared/configuracoes-sistema/reportBranding';
 
 const columns = [
   { id: 'name', label: 'Nome' },
@@ -34,8 +34,6 @@ const columns = [
 ];
 
 const formatDate = (value) => (value ? new Date(value).toLocaleDateString('pt-BR') : ' ');
-const companyLegalName = 'Razão Social: Alvaro Shioji Matsuda';
-const companyFantasyName = 'Nome Fantasia: Always System Manager';
 const reportTitle = 'Relatório de Colaboradores';
 
 export default function ColaboradoresReportPage() {
@@ -45,7 +43,7 @@ export default function ColaboradoresReportPage() {
   const [cargoFilter, setCargoFilter] = useState('todos');
   const [sortConfig, setSortConfig] = useState({ column: null, direction: 'asc' });
   const [selectedColumns, setSelectedColumns] = useState(columns.map((c) => c.id));
-  const { data: systemSettings = defaultSystemSettings } = useSystemSettingsQuery();
+  const { data: systemSettings = configuracoesPadrao } = useConfiguracoesSistema();
 
   const { data: colaboradoresApi = [], isLoading: loadingColaboradores } = useQuery({
     queryKey: ['relatorio-colaboradores'],
@@ -196,8 +194,8 @@ export default function ColaboradoresReportPage() {
     const { filtersSummary, columnsSummary } = buildFiltersSummary(activeColumns);
     const body = sortedData.map((row) => activeColumns.map((col) => row[col.id] ?? ''));
     const emissionDate = new Date().toLocaleString('pt-BR');
-    const logoDataUrl = await getReportLogoDataUrl(systemSettings);
-    const footerLines = getReportFooterLines(systemSettings);
+    const logoDataUrl = await obterLogotipo(systemSettings);
+    const footerLines = obterRodapeRelatorio(systemSettings);
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
     const filtersLines = doc.splitTextToSize(`Filtros: ${filtersSummary}`, pageWidth - 70);
@@ -251,7 +249,7 @@ export default function ColaboradoresReportPage() {
     const activeColumns = columns.filter((c) => selectedColumns.includes(c.id));
     const { filtersSummary, columnsSummary } = buildFiltersSummary(activeColumns);
     const emissionDate = new Date().toLocaleString('pt-BR');
-    const footerLines = getReportFooterLines(systemSettings);
+    const footerLines = obterRodapeRelatorio(systemSettings);
 
     const headerRows = [
       [reportTitle],
@@ -448,4 +446,3 @@ export default function ColaboradoresReportPage() {
     </div>
   );
 }
-

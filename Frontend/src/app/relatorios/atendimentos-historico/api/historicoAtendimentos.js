@@ -1,4 +1,4 @@
-import { apiFetch } from '../../../../shared/api/http';
+import { requisicaoApi } from '../../../../shared/api/http';
 
 const HISTORICO_API_URL = '/atendimentos/historico-acoes';
 
@@ -46,6 +46,6 @@ export async function getHistoricoAtendimentos(params = {}) {
 
   const suffix = query.toString();
   const url = suffix ? `${HISTORICO_API_URL}?${suffix}` : HISTORICO_API_URL;
-  const res = await apiFetch(url, { cache: 'no-store' });
+  const res = await requisicaoApi(url, { cache: 'no-store' });
   return handleResponse(res);
 }

@@ -4,19 +4,19 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from '../../../ui/base/button';
 import { Plus, Briefcase } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
-import { DeleteConfirmDialog } from './components/DeleteConfirmDialog';
-import PositionForm from './components/PositionForm';
-import PositionList from './components/PositionList';
-import PositionViewDialog from './components/PositionViewDialog';
-import ViewToggle from '../../../shared/components/ViewToggle';
+import { DialogoConfirmarExclusao } from './components/DialogoConfirmarExclusao';
+import FormularioCargo from './components/FormularioCargo';
+import ListaCargos from './components/ListaCargos';
+import DialogoVisualizarCargo from './components/DialogoVisualizarCargo';
+import AlternarVisualizacao from '../../../shared/components/AlternarVisualizacao';
 import { getCargos, criarCargo, atualizarCargo, inativarCargo, reativarCargo } from './api/cargos';
 
 export default function CargosPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-  const [selectedPosition, setSelectedPosition] = useState(null);
-  const [viewMode, setViewMode] = useState('cards');
+  const [cargoSelecionado, setCargoSelecionado] = useState(null);
+  const [modoVisualizacao, setModoVisualizacao] = useState('cards');
 
   const queryClient = useQueryClient();
 
@@ -25,7 +25,7 @@ export default function CargosPage() {
     queryFn: getCargos,
   });
 
-  const positions = cargosApi.map(e => {
+  const cargos = cargosApi.map(e => {
     return {
       id: e.id,
       name: e.nome,
@@ -74,23 +74,23 @@ export default function CargosPage() {
     onError: (error) => toast.error(error?.message || "Erro ao reativar cargo."),
   });
 
-  const handleSavePosition = (positionData) => {
+  const handleSalvarCargo = (positionData) => {
     const dataAPI = {
       nome: positionData.name,
       descricao: positionData.description,
     };
 
-    if (selectedPosition)
-      atualizar.mutate({ id: selectedPosition.id, data: dataAPI });
+    if (cargoSelecionado)
+      atualizar.mutate({ id: cargoSelecionado.id, data: dataAPI });
     else
       criar.mutate(dataAPI);
   };
 
-  const handleConfirmDelete = () => {
-    if (selectedPosition) excluir.mutate(selectedPosition.id);
+  const handleConfirmarExclusao = () => {
+    if (cargoSelecionado) excluir.mutate(cargoSelecionado.id);
   };
 
-  const handleReactivatePosition = (position) => reativar.mutate(position.id);
+  const handleReativarCargo = (cargo) => reativar.mutate(cargo.id);
 
   if (isLoading) return <div className="p-6">Carregando cargos...</div>;
 
@@ -110,9 +110,9 @@ export default function CargosPage() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
-            <Button 
-              onClick={() => { setSelectedPosition(null); setIsFormOpen(true); }}
+            <AlternarVisualizacao modoVisualizacao={modoVisualizacao} aoAlterarModoVisualizacao={setModoVisualizacao} />
+            <Button
+              onClick={() => { setCargoSelecionado(null); setIsFormOpen(true); }}
               className="flex items-center gap-2 bg-brand-blue hover:bg-brand-blue-dark"
             >
               <Plus className="h-4 w-4" />
@@ -121,36 +121,36 @@ export default function CargosPage() {
           </div>
         </div>
 
-        <PositionList
-          positions={positions}
-          onEdit={(p) => { setSelectedPosition(p); setIsFormOpen(true); }}
-          onDelete={(p) => { setSelectedPosition(p); setIsDeleteDialogOpen(true); }}
-          onView={(p) => { setSelectedPosition(p); setIsViewDialogOpen(true); }}
-          onReactivate={handleReactivatePosition}
-          viewMode={viewMode}
+        <ListaCargos
+          cargos={cargos}
+          aoEditar={(p) => { setCargoSelecionado(p); setIsFormOpen(true); }}
+          aoExcluir={(p) => { setCargoSelecionado(p); setIsDeleteDialogOpen(true); }}
+          aoVisualizar={(p) => { setCargoSelecionado(p); setIsViewDialogOpen(true); }}
+          aoReativar={handleReativarCargo}
+          modoVisualizacao={modoVisualizacao}
         />
 
-        <PositionForm
+        <FormularioCargo
           open={isFormOpen}
           onOpenChange={setIsFormOpen}
-          position={selectedPosition}
-          onSave={handleSavePosition}
-          existingPositions={positions}
+          cargo={cargoSelecionado}
+          aoSalvar={handleSalvarCargo}
+          cargosExistentes={cargos}
         />
 
-        <DeleteConfirmDialog
+        <DialogoConfirmarExclusao
           open={isDeleteDialogOpen}
           onOpenChange={setIsDeleteDialogOpen}
-          position={selectedPosition}
-          onConfirm={handleConfirmDelete}
-          hasActiveCollaborators={selectedPosition?.hasActiveCollaborators}
+          cargo={cargoSelecionado}
+          aoConfirmar={handleConfirmarExclusao}
+          possuiColaboradoresAtivos={cargoSelecionado?.hasActiveCollaborators}
         />
 
-        <PositionViewDialog
+        <DialogoVisualizarCargo
           open={isViewDialogOpen}
           onOpenChange={setIsViewDialogOpen}
-          position={selectedPosition}
-          onReactivate={handleReactivatePosition}
+          cargo={cargoSelecionado}
+          aoReativar={handleReativarCargo}
         />
 
         <Toaster position="top-right" />

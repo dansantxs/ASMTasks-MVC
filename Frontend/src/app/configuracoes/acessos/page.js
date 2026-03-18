@@ -31,7 +31,7 @@ import {
   reativarUsuario,
 } from './api/acessos';
 
-const emptyForm = {
+const formularioVazio = {
   id: null,
   nome: '',
   descricao: '',
@@ -41,7 +41,7 @@ const emptyForm = {
 
 const ordemGrupos = ['Cadastros', 'Atendimento', 'Projetos', 'Relatórios', 'Configurações'];
 
-function getGrupoPermissao(permissao) {
+function obterGrupoPermissao(permissao) {
   if (permissao?.label?.includes(' - ')) {
     return permissao.label.split(' - ')[0].trim();
   }
@@ -52,9 +52,9 @@ function getGrupoPermissao(permissao) {
 
 export default function ConfiguracoesAcessosPage() {
   const queryClient = useQueryClient();
-  const [form, setForm] = useState(emptyForm);
-  const [userEdits, setUserEdits] = useState({});
-  const [fieldVisibility, setFieldVisibility] = useState({});
+  const [form, setForm] = useState(formularioVazio);
+  const [edicaoUsuarios, setUserEdits] = useState({});
+  const [visibilidadeCampos, setFieldVisibility] = useState({});
 
   const { data: permissoesDisponiveis = [] } = useQuery({
     queryKey: ['acessos-permissoes'],
@@ -110,7 +110,7 @@ export default function ConfiguracoesAcessosPage() {
 
   const permissoesAgrupadas = useMemo(() => {
     const grupos = permissoesDisponiveis.reduce((acc, permissao) => {
-      const grupo = getGrupoPermissao(permissao);
+      const grupo = obterGrupoPermissao(permissao);
       if (!acc[grupo]) acc[grupo] = [];
       acc[grupo].push(permissao);
       return acc;
@@ -137,7 +137,7 @@ export default function ConfiguracoesAcessosPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['acessos-niveis'] });
       queryClient.invalidateQueries({ queryKey: ['acessos-usuarios'] });
-      setForm(emptyForm);
+      setForm(formularioVazio);
       toast.success('Nível de acesso salvo com sucesso.');
     },
     onError: (error) => toast.error(error?.message ?? 'Erro ao salvar nível de acesso.'),
@@ -147,7 +147,7 @@ export default function ConfiguracoesAcessosPage() {
     mutationFn: inativarNivelAcesso,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['acessos-niveis'] });
-      setForm(emptyForm);
+      setForm(formularioVazio);
       toast.success('Nível de acesso inativado com sucesso.');
     },
     onError: (error) => toast.error(error?.message ?? 'Erro ao inativar nível de acesso.'),
@@ -221,7 +221,7 @@ export default function ConfiguracoesAcessosPage() {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleEnviar = (e) => {
     e.preventDefault();
     salvarNivel.mutate({
       id: form.id,
@@ -242,7 +242,7 @@ export default function ConfiguracoesAcessosPage() {
     });
   };
 
-  const handleUserEditChange = (id, field, value) => {
+  const handleAlterarEdicaoUsuario = (id, field, value) => {
     setUserEdits((prev) => ({
       ...prev,
       [id]: {
@@ -253,7 +253,7 @@ export default function ConfiguracoesAcessosPage() {
   };
 
   const handleSalvarUsuario = (usuario) => {
-    const draft = userEdits[usuario.id] ?? { login: usuario.login, novaSenha: '' };
+    const draft = edicaoUsuarios[usuario.id] ?? { login: usuario.login, novaSenha: '' };
     salvarUsuario.mutate({
       id: usuario.id,
       data: {
@@ -263,7 +263,7 @@ export default function ConfiguracoesAcessosPage() {
     });
   };
 
-  const toggleFieldVisibility = (id, field) => {
+  const alternarVisibilidadeCampo = (id, field) => {
     setFieldVisibility((prev) => ({
       ...prev,
       [id]: {
@@ -294,7 +294,7 @@ export default function ConfiguracoesAcessosPage() {
               <CardTitle>{form.id ? 'Editar nível de acesso' : 'Novo nível de acesso'}</CardTitle>
             </CardHeader>
             <CardContent>
-              <form className="space-y-4" onSubmit={handleSubmit}>
+              <form className="space-y-4" onSubmit={handleEnviar}>
                 <div>
                   <Label htmlFor="nome">Nome</Label>
                   <Input
@@ -382,7 +382,7 @@ export default function ConfiguracoesAcessosPage() {
                     {salvarNivel.isPending ? 'Salvando...' : form.id ? 'Salvar nível' : 'Criar nível'}
                   </Button>
                   {form.id && (
-                    <Button type="button" variant="outline" onClick={() => setForm(emptyForm)}>
+                    <Button type="button" variant="outline" onClick={() => setForm(formularioVazio)}>
                       Cancelar edição
                     </Button>
                   )}
@@ -477,8 +477,8 @@ export default function ConfiguracoesAcessosPage() {
                       <TableCell className="min-w-[220px]">
                         <Input
                           type="text"
-                          value={userEdits[usuario.id]?.login ?? usuario.login}
-                          onChange={(e) => handleUserEditChange(usuario.id, 'login', e.target.value)}
+                          value={edicaoUsuarios[usuario.id]?.login ?? usuario.login}
+                          onChange={(e) => handleAlterarEdicaoUsuario(usuario.id, 'login', e.target.value)}
                           placeholder="Login do usuário"
                           disabled={!usuario.ativo || salvarUsuario.isPending}
                         />
@@ -486,9 +486,9 @@ export default function ConfiguracoesAcessosPage() {
                       <TableCell className="min-w-[220px]">
                         <div className="relative">
                           <Input
-                            type={fieldVisibility[usuario.id]?.senha ? 'text' : 'password'}
-                            value={userEdits[usuario.id]?.novaSenha ?? ''}
-                            onChange={(e) => handleUserEditChange(usuario.id, 'novaSenha', e.target.value)}
+                            type={visibilidadeCampos[usuario.id]?.senha ? 'text' : 'password'}
+                            value={edicaoUsuarios[usuario.id]?.novaSenha ?? ''}
+                            onChange={(e) => handleAlterarEdicaoUsuario(usuario.id, 'novaSenha', e.target.value)}
                             placeholder="Digite para trocar a senha"
                             className="pr-10"
                             disabled={!usuario.ativo || salvarUsuario.isPending}
@@ -496,11 +496,11 @@ export default function ConfiguracoesAcessosPage() {
                           <button
                             type="button"
                             className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-muted-foreground disabled:opacity-50"
-                            onClick={() => toggleFieldVisibility(usuario.id, 'senha')}
+                            onClick={() => alternarVisibilidadeCampo(usuario.id, 'senha')}
                             disabled={!usuario.ativo}
-                            aria-label={fieldVisibility[usuario.id]?.senha ? 'Ocultar senha' : 'Mostrar senha'}
+                            aria-label={visibilidadeCampos[usuario.id]?.senha ? 'Ocultar senha' : 'Mostrar senha'}
                           >
-                            {fieldVisibility[usuario.id]?.senha ? (
+                            {visibilidadeCampos[usuario.id]?.senha ? (
                               <EyeOff className="h-4 w-4" />
                             ) : (
                               <Eye className="h-4 w-4" />

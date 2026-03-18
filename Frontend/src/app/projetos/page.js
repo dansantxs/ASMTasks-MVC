@@ -5,11 +5,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { FolderKanban, Plus } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
 import { Button } from '../../ui/base/button';
-import ViewToggle from '../../shared/components/ViewToggle';
-import ProjectForm from './components/ProjectForm';
-import ProjectList from './components/ProjectList';
-import ProjectViewDialog from './components/ProjectViewDialog';
-import { getStoredSession } from '../../shared/auth/session';
+import AlternarVisualizacao from '../../shared/components/AlternarVisualizacao';
+import FormularioProjeto from './components/FormularioProjeto';
+import ListaProjetos from './components/ListaProjetos';
+import DialogoVisualizarProjeto from './components/DialogoVisualizarProjeto';
+import { obterSessaoArmazenada } from '../../shared/auth/session';
 import {
   atualizarProjeto,
   criarProjeto,
@@ -28,9 +28,9 @@ export default function ProjetosPage() {
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
   const [editingProject, setEditingProject] = useState(null);
-  const [viewMode, setViewMode] = useState('cards');
+  const [modoVisualizacao, setModoVisualizacao] = useState('cards');
   const queryClient = useQueryClient();
-  const session = getStoredSession();
+  const session = obterSessaoArmazenada();
   const colaboradorLogadoNome = session?.colaboradorNome ?? '';
 
   const { data: projetos = [], isLoading: isLoadingProjetos } = useQuery({
@@ -147,7 +147,7 @@ export default function ProjetosPage() {
     setIsFormOpen(true);
   };
 
-  const handleSaveProject = (payload) => {
+  const handleSalvarProjeto = (payload) => {
     if (editingProject?.id) {
       const body = { ...payload };
       delete body.id;
@@ -177,7 +177,7 @@ export default function ProjetosPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
+            <AlternarVisualizacao modoVisualizacao={modoVisualizacao} aoAlterarModoVisualizacao={setModoVisualizacao} />
             <Button
               className="flex items-center gap-2 bg-brand-blue hover:bg-brand-blue-dark"
               onClick={handleOpenCreate}
@@ -188,19 +188,19 @@ export default function ProjetosPage() {
           </div>
         </div>
 
-        <ProjectList
-          projects={projetos}
+        <ListaProjetos
+          projetos={projetos}
           clientesById={clientesById}
           setoresById={setoresById}
           etapasById={etapasById}
           onSelectProject={handleSelectProject}
-          viewMode={viewMode}
+          modoVisualizacao={modoVisualizacao}
         />
 
-        <ProjectViewDialog
+        <DialogoVisualizarProjeto
           open={isViewOpen}
           onOpenChange={setIsViewOpen}
-          project={selectedProject}
+          projeto={selectedProject}
           clientesById={clientesById}
           setoresById={setoresById}
           prioridadesById={prioridadesById}
@@ -213,13 +213,13 @@ export default function ProjetosPage() {
           isReativando={reativar.isPending}
         />
 
-        <ProjectForm
+        <FormularioProjeto
           open={isFormOpen}
           onOpenChange={(nextOpen) => {
             setIsFormOpen(nextOpen);
             if (!nextOpen) setEditingProject(null);
           }}
-          onSave={handleSaveProject}
+          aoSalvar={handleSalvarProjeto}
           isSaving={criar.isPending || atualizar.isPending}
           clientes={clientes}
           setores={setores}

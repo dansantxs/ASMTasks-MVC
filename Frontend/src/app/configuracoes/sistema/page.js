@@ -9,7 +9,7 @@ import { Input } from '../../../ui/form/input';
 import { Label } from '../../../ui/form/label';
 import { Switch } from '../../../ui/form/switch';
 import { Button } from '../../../ui/base/button';
-import { defaultSystemSettings, updateSystemSettings, useSystemSettingsQuery } from '../../../shared/system-settings/api';
+import { configuracoesPadrao, atualizarConfiguracoesSistema, useConfiguracoesSistema } from '../../../shared/configuracoes-sistema/api';
 import { buscarEnderecoPorCep } from '../../../shared/api/viacep';
 
 const emptyErrors = {};
@@ -31,8 +31,8 @@ function maskCEP(value) {
 
 export default function ConfiguracoesSistemaPage() {
   const queryClient = useQueryClient();
-  const { data: settings = defaultSystemSettings, isLoading } = useSystemSettingsQuery();
-  const [form, setForm] = useState(defaultSystemSettings);
+  const { data: settings = configuracoesPadrao, isLoading } = useConfiguracoesSistema();
+  const [form, setForm] = useState(configuracoesPadrao);
   const [errors, setErrors] = useState(emptyErrors);
   const [buscandoCep, setBuscandoCep] = useState(false);
   const [mostrarSenhaSmtp, setMostrarSenhaSmtp] = useState(false);
@@ -72,9 +72,9 @@ export default function ConfiguracoesSistemaPage() {
   }, [form.cep]);
 
   const salvar = useMutation({
-    mutationFn: updateSystemSettings,
+    mutationFn: atualizarConfiguracoesSistema,
     onSuccess: (data) => {
-      queryClient.setQueryData(['system-settings'], data);
+      queryClient.setQueryData(['configuracoes-sistema'], data);
       toast.success('Parametrização salva com sucesso.');
     },
     onError: (error) => toast.error(error?.message ?? 'Erro ao salvar parametrização.'),

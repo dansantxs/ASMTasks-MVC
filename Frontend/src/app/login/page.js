@@ -8,29 +8,29 @@ import { Input } from '../../ui/form/input';
 import { Label } from '../../ui/form/label';
 import { Button } from '../../ui/base/button';
 import { login } from './api/auth';
-import { saveSession } from '../../shared/auth/session';
-import { getDefaultRouteForSession } from '../../shared/auth/permissions';
+import { salvarSessao } from '../../shared/auth/session';
+import { obterRotaPadrao } from '../../shared/auth/permissions';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [formData, setFormData] = useState({ login: '', senha: '' });
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [dadosFormulario, setDadosFormulario] = useState({ login: '', senha: '' });
+  const [erro, setErro] = useState('');
+  const [carregando, setCarregando] = useState(false);
   const [mostrarSenha, setMostrarSenha] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const handleEnviar = async (e) => {
     e.preventDefault();
-    setError('');
-    setIsLoading(true);
+    setErro('');
+    setCarregando(true);
 
     try {
-      const response = await login(formData);
-      saveSession(response);
-      router.replace(getDefaultRouteForSession(response));
+      const resposta = await login(dadosFormulario);
+      salvarSessao(resposta);
+      router.replace(obterRotaPadrao(resposta));
     } catch (err) {
-      setError(err?.message ?? 'Falha ao realizar login.');
+      setErro(err?.message ?? 'Falha ao realizar login.');
     } finally {
-      setIsLoading(false);
+      setCarregando(false);
     }
   };
 
@@ -41,13 +41,13 @@ export default function LoginPage() {
           <CardTitle>Entrar no sistema</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleEnviar} className="space-y-4">
             <div>
               <Label htmlFor="login">Usuário</Label>
               <Input
                 id="login"
-                value={formData.login}
-                onChange={(e) => setFormData((prev) => ({ ...prev, login: e.target.value }))}
+                value={dadosFormulario.login}
+                onChange={(e) => setDadosFormulario((prev) => ({ ...prev, login: e.target.value }))}
               />
             </div>
 
@@ -57,8 +57,8 @@ export default function LoginPage() {
                 <Input
                   id="senha"
                   type={mostrarSenha ? 'text' : 'password'}
-                  value={formData.senha}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, senha: e.target.value }))}
+                  value={dadosFormulario.senha}
+                  onChange={(e) => setDadosFormulario((prev) => ({ ...prev, senha: e.target.value }))}
                   className="pr-10"
                 />
                 <button
@@ -72,10 +72,10 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {error && <p className="text-sm text-destructive">{error}</p>}
+            {erro && <p className="text-sm text-destructive">{erro}</p>}
 
-            <Button type="submit" className="w-full bg-brand-blue hover:bg-brand-blue-dark" disabled={isLoading}>
-              {isLoading ? 'Entrando...' : 'Entrar'}
+            <Button type="submit" className="w-full bg-brand-blue hover:bg-brand-blue-dark" disabled={carregando}>
+              {carregando ? 'Entrando...' : 'Entrar'}
             </Button>
           </form>
         </CardContent>

@@ -4,11 +4,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from '../../../ui/base/button';
 import { Plus, Workflow } from 'lucide-react';
 import { Toaster } from 'sonner';
-import { DeleteConfirmDialog } from './components/DeleteConfirmDialog';
-import StageForm from './components/StageForm';
-import StageList from './components/StageList';
-import StageViewDialog from './components/StageViewDialog';
-import ViewToggle from '../../../shared/components/ViewToggle';
+import { DialogoConfirmarExclusao } from './components/DialogoConfirmarExclusao';
+import FormularioEtapa from './components/FormularioEtapa';
+import ListaEtapas from './components/ListaEtapas';
+import DialogoVisualizarEtapa from './components/DialogoVisualizarEtapa';
+import AlternarVisualizacao from '../../../shared/components/AlternarVisualizacao';
 import { toast } from 'sonner';
 import { getEtapas, criarEtapa, atualizarEtapa, inativarEtapa, reativarEtapa } from './api/etapas';
 
@@ -16,8 +16,8 @@ export default function EtapasPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-  const [selectedStage, setSelectedStage] = useState(null);
-  const [viewMode, setViewMode] = useState('cards');
+  const [etapaSelecionada, setEtapaSelecionada] = useState(null);
+  const [modoVisualizacao, setModoVisualizacao] = useState('cards');
 
   const queryClient = useQueryClient();
 
@@ -26,7 +26,7 @@ export default function EtapasPage() {
     queryFn: getEtapas,
   });
 
-  const stages = etapasApi.map(e => {
+  const etapas = etapasApi.map(e => {
     return {
       id: e.id,
       name: e.nome,
@@ -75,21 +75,21 @@ export default function EtapasPage() {
     onError: (error) => toast.error(error?.message ?? "Erro ao reativar etapa."),
   });
 
-  const handleSaveStage = (stageData) => {
+  const handleSalvarEtapa = (stageData) => {
     const dataAPI = {
       nome: stageData.name,
       descricao: stageData.description,
     };
 
-    if (selectedStage) atualizar.mutate({ id: selectedStage.id, data: dataAPI });
+    if (etapaSelecionada) atualizar.mutate({ id: etapaSelecionada.id, data: dataAPI });
     else criar.mutate(dataAPI);
   };
 
-  const handleConfirmDelete = () => {
-    if (selectedStage) excluir.mutate(selectedStage.id);
+  const handleConfirmarExclusao = () => {
+    if (etapaSelecionada) excluir.mutate(etapaSelecionada.id);
   };
 
-  const handleReactivateStage = (stage) => reativar.mutate(stage.id);
+  const handleReativarEtapa = (etapa) => reativar.mutate(etapa.id);
 
   if (isLoading) return <div className="p-6">Carregando etapas...</div>;
 
@@ -107,10 +107,10 @@ export default function EtapasPage() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
+            <AlternarVisualizacao modoVisualizacao={modoVisualizacao} aoAlterarModoVisualizacao={setModoVisualizacao} />
             <Button
               onClick={() => {
-                setSelectedStage(null);
+                setEtapaSelecionada(null);
                 setIsFormOpen(true);
               }}
               className="flex items-center gap-2 bg-brand-blue hover:bg-brand-blue-dark"
@@ -121,45 +121,45 @@ export default function EtapasPage() {
           </div>
         </div>
 
-        <StageList
-          stages={stages}
-          onEdit={(e) => {
-            setSelectedStage(e);
+        <ListaEtapas
+          etapas={etapas}
+          aoEditar={(e) => {
+            setEtapaSelecionada(e);
             setIsFormOpen(true);
           }}
-          onDelete={(e) => {
-            setSelectedStage(e);
+          aoExcluir={(e) => {
+            setEtapaSelecionada(e);
             setIsDeleteDialogOpen(true);
           }}
-          onView={(e) => {
-            setSelectedStage(e);
+          aoVisualizar={(e) => {
+            setEtapaSelecionada(e);
             setIsViewDialogOpen(true);
           }}
-          onReactivate={handleReactivateStage}
-          viewMode={viewMode}
+          aoReativar={handleReativarEtapa}
+          modoVisualizacao={modoVisualizacao}
         />
 
-        <StageForm
+        <FormularioEtapa
           open={isFormOpen}
           onOpenChange={setIsFormOpen}
-          stage={selectedStage}
-          onSave={handleSaveStage}
-          existingStages={stages}
+          etapa={etapaSelecionada}
+          aoSalvar={handleSalvarEtapa}
+          etapasExistentes={etapas}
         />
 
-        <DeleteConfirmDialog
+        <DialogoConfirmarExclusao
           open={isDeleteDialogOpen}
           onOpenChange={setIsDeleteDialogOpen}
-          stage={selectedStage}
-          onConfirm={handleConfirmDelete}
-          hasActiveTasks={selectedStage?.hasActiveTasks}
+          etapa={etapaSelecionada}
+          aoConfirmar={handleConfirmarExclusao}
+          possuiTarefasAtivas={etapaSelecionada?.hasActiveTasks}
         />
 
-        <StageViewDialog
+        <DialogoVisualizarEtapa
           open={isViewDialogOpen}
           onOpenChange={setIsViewDialogOpen}
-          stage={selectedStage}
-          onReactivate={handleReactivateStage}
+          etapa={etapaSelecionada}
+          aoReativar={handleReativarEtapa}
         />
 
         <Toaster position="top-right" />

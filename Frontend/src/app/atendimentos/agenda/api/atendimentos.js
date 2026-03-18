@@ -1,4 +1,4 @@
-import { apiFetch } from '../../../../shared/api/http';
+import { requisicaoApi } from '../../../../shared/api/http';
 
 const ATENDIMENTOS_API_URL = `/atendimentos`;
 const CLIENTES_API_URL = `/clientes`;
@@ -42,7 +42,7 @@ export async function getAtendimentos(dataInicio, dataFim) {
   if (dataFim) params.set("dataFim", dataFim);
 
   const query = params.toString();
-  const res = await apiFetch(
+  const res = await requisicaoApi(
     query ? `${ATENDIMENTOS_API_URL}?${query}` : ATENDIMENTOS_API_URL,
     { cache: "no-store" }
   );
@@ -51,7 +51,7 @@ export async function getAtendimentos(dataInicio, dataFim) {
 }
 
 export async function criarAtendimento(payload) {
-  const res = await apiFetch(ATENDIMENTOS_API_URL, {
+  const res = await requisicaoApi(ATENDIMENTOS_API_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -61,7 +61,7 @@ export async function criarAtendimento(payload) {
 }
 
 export async function atualizarAtendimento(id, payload) {
-  const res = await apiFetch(`${ATENDIMENTOS_API_URL}/${id}`, {
+  const res = await requisicaoApi(`${ATENDIMENTOS_API_URL}/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -71,7 +71,7 @@ export async function atualizarAtendimento(id, payload) {
 }
 
 export async function marcarAtendimentoComoRealizado(id, observacaoConclusao = null) {
-  const res = await apiFetch(`${ATENDIMENTOS_API_URL}/${id}/realizar`, {
+  const res = await requisicaoApi(`${ATENDIMENTOS_API_URL}/${id}/realizar`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ observacaoConclusao }),
@@ -81,7 +81,7 @@ export async function marcarAtendimentoComoRealizado(id, observacaoConclusao = n
 }
 
 export async function marcarAtendimentoComoAgendado(id) {
-  const res = await apiFetch(`${ATENDIMENTOS_API_URL}/${id}/agendar`, {
+  const res = await requisicaoApi(`${ATENDIMENTOS_API_URL}/${id}/agendar`, {
     method: "PUT",
   });
 
@@ -89,7 +89,7 @@ export async function marcarAtendimentoComoAgendado(id) {
 }
 
 export async function inativarAtendimento(id) {
-  const res = await apiFetch(`${ATENDIMENTOS_API_URL}/${id}`, {
+  const res = await requisicaoApi(`${ATENDIMENTOS_API_URL}/${id}`, {
     method: "DELETE",
   });
 
@@ -97,13 +97,13 @@ export async function inativarAtendimento(id) {
 }
 
 export async function getClientes() {
-  const res = await apiFetch(CLIENTES_API_URL, { cache: "no-store" });
+  const res = await requisicaoApi(CLIENTES_API_URL, { cache: "no-store" });
   const data = await handleResponse(res);
   return Array.isArray(data) ? data : [];
 }
 
 export async function getColaboradores() {
-  const res = await apiFetch(COLABORADORES_API_URL, { cache: "no-store" });
+  const res = await requisicaoApi(COLABORADORES_API_URL, { cache: "no-store" });
   const data = await handleResponse(res);
   return Array.isArray(data) ? data : [];
 }

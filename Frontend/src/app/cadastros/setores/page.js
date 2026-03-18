@@ -5,19 +5,19 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from '../../../ui/base/button';
 import { Plus, Building2 } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
-import SectorForm from './components/SectorForm';
-import SectorList from './components/SectorList';
-import ViewToggle from '../../../shared/components/ViewToggle';
-import { DeleteConfirmDialog } from './components/DeleteConfirmDialog';
-import SectorViewDialog from './components/SectorViewDialog';
+import FormularioSetor from './components/FormularioSetor';
+import ListaSetores from './components/ListaSetores';
+import AlternarVisualizacao from '../../../shared/components/AlternarVisualizacao';
+import { DialogoConfirmarExclusao } from './components/DialogoConfirmarExclusao';
+import DialogoVisualizarSetor from './components/DialogoVisualizarSetor';
 import { getSetores, criarSetor, atualizarSetor, inativarSetor, reativarSetor } from './api/setores';
 
 export default function SetoresPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-  const [selectedSector, setSelectedSector] = useState(null);
-  const [viewMode, setViewMode] = useState('cards');
+  const [setorSelecionado, setSetorSelecionado] = useState(null);
+  const [modoVisualizacao, setModoVisualizacao] = useState('cards');
 
   const queryClient = useQueryClient();
 
@@ -26,7 +26,7 @@ export default function SetoresPage() {
     queryFn: getSetores,
   });
 
-  const sectors = setoresApi.map(s => ({
+  const setores = setoresApi.map(s => ({
     id: s.id,
     name: s.nome,
     description: s.descricao,
@@ -74,21 +74,21 @@ export default function SetoresPage() {
     onError: (error) => toast.error(error?.message ?? "Erro ao reativar setor."),
   });
 
-  const handleSaveSector = (sectorData) => {
+  const handleSalvarSetor = (sectorData) => {
     const dataAPI = {
       nome: sectorData.name,
       descricao: sectorData.description,
     };
 
-    if (selectedSector) atualizar.mutate({ id: selectedSector.id, data: dataAPI });
+    if (setorSelecionado) atualizar.mutate({ id: setorSelecionado.id, data: dataAPI });
     else criar.mutate(dataAPI);
   };
 
-  const handleConfirmDelete = () => {
-    if (selectedSector) excluir.mutate(selectedSector.id);
+  const handleConfirmarExclusao = () => {
+    if (setorSelecionado) excluir.mutate(setorSelecionado.id);
   };
 
-  const handleReactivateSector = (sector) => reativar.mutate(sector.id);
+  const handleReativarSetor = (setor) => reativar.mutate(setor.id);
 
   if (isLoading) return <div className="p-6">Carregando setores...</div>;
 
@@ -108,9 +108,9 @@ export default function SetoresPage() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
+            <AlternarVisualizacao modoVisualizacao={modoVisualizacao} aoAlterarModoVisualizacao={setModoVisualizacao} />
             <Button
-              onClick={() => { setSelectedSector(null); setIsFormOpen(true); }}
+              onClick={() => { setSetorSelecionado(null); setIsFormOpen(true); }}
               className="flex items-center gap-2 bg-brand-blue hover:bg-brand-blue-dark"
             >
               <Plus className="h-4 w-4" />
@@ -119,37 +119,37 @@ export default function SetoresPage() {
           </div>
         </div>
 
-        <SectorList
-          sectors={sectors}
-          onEdit={(s) => { setSelectedSector(s); setIsFormOpen(true); }}
-          onDelete={(s) => { setSelectedSector(s); setIsDeleteDialogOpen(true); }}
-          onView={(s) => { setSelectedSector(s); setIsViewDialogOpen(true); }}
-          onReactivate={handleReactivateSector}
-          viewMode={viewMode}
+        <ListaSetores
+          setores={setores}
+          aoEditar={(s) => { setSetorSelecionado(s); setIsFormOpen(true); }}
+          aoExcluir={(s) => { setSetorSelecionado(s); setIsDeleteDialogOpen(true); }}
+          aoVisualizar={(s) => { setSetorSelecionado(s); setIsViewDialogOpen(true); }}
+          aoReativar={handleReativarSetor}
+          modoVisualizacao={modoVisualizacao}
         />
 
-        <SectorForm
+        <FormularioSetor
           open={isFormOpen}
           onOpenChange={setIsFormOpen}
-          sector={selectedSector}
-          onSave={handleSaveSector}
-          existingSectors={sectors}
+          setor={setorSelecionado}
+          aoSalvar={handleSalvarSetor}
+          setoresExistentes={setores}
         />
 
-        <DeleteConfirmDialog
+        <DialogoConfirmarExclusao
           open={isDeleteDialogOpen}
           onOpenChange={setIsDeleteDialogOpen}
-          sector={selectedSector}
-          onConfirm={handleConfirmDelete}
-          hasActiveTasks={selectedSector?.hasActiveTasks}
-          hasActiveEmployees={selectedSector?.hasActiveEmployees}
+          setor={setorSelecionado}
+          aoConfirmar={handleConfirmarExclusao}
+          possuiTarefasAtivas={setorSelecionado?.hasActiveTasks}
+          possuiFuncionariosAtivos={setorSelecionado?.hasActiveEmployees}
         />
 
-        <SectorViewDialog
+        <DialogoVisualizarSetor
           open={isViewDialogOpen}
           onOpenChange={setIsViewDialogOpen}
-          sector={selectedSector}
-          onReactivate={handleReactivateSector}
+          setor={setorSelecionado}
+          aoReativar={handleReativarSetor}
         />
 
         <Toaster position="top-right" />

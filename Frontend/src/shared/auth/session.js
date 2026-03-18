@@ -1,9 +1,9 @@
 'use client';
 
-const STORAGE_KEY = 'asm_auth_session';
-const INACTIVITY_LIMIT_MS = 30 * 60 * 1000;
+const CHAVE_ARMAZENAMENTO = 'asm_auth_session';
+const LIMITE_INATIVIDADE_MS = 30 * 60 * 1000;
 
-function decodeJwtPayload(token) {
+function decodificarPayloadJwt(token) {
   try {
     const payload = token.split('.')[1];
     const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
@@ -14,74 +14,74 @@ function decodeJwtPayload(token) {
   }
 }
 
-export function getStoredSession() {
+export function obterSessaoArmazenada() {
   if (typeof window === 'undefined') return null;
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) return null;
+  const bruto = localStorage.getItem(CHAVE_ARMAZENAMENTO);
+  if (!bruto) return null;
 
   try {
-    return JSON.parse(raw);
+    return JSON.parse(bruto);
   } catch {
-    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(CHAVE_ARMAZENAMENTO);
     return null;
   }
 }
 
-export function saveSession(loginResponse) {
+export function salvarSessao(respostaLogin) {
   if (typeof window === 'undefined') return;
 
-  const payload = decodeJwtPayload(loginResponse.token) ?? {};
-  const session = {
-    token: loginResponse.token,
-    expiraEm: loginResponse.expiraEm,
-    usuarioId: loginResponse.usuarioId,
-    colaboradorId: Number(loginResponse.colaboradorId ?? payload.colaboradorId),
-    colaboradorNome: loginResponse.colaboradorNome ?? payload.colaboradorNome ?? '',
-    nivelAcesso: loginResponse.nivelAcesso ?? payload.nivelAcesso ?? 'PADRAO',
-    permissoes: loginResponse.permissoes ?? [],
+  const payload = decodificarPayloadJwt(respostaLogin.token) ?? {};
+  const sessao = {
+    token: respostaLogin.token,
+    expiraEm: respostaLogin.expiraEm,
+    usuarioId: respostaLogin.usuarioId,
+    colaboradorId: Number(respostaLogin.colaboradorId ?? payload.colaboradorId),
+    colaboradorNome: respostaLogin.colaboradorNome ?? payload.colaboradorNome ?? '',
+    nivelAcesso: respostaLogin.nivelAcesso ?? payload.nivelAcesso ?? 'PADRAO',
+    permissoes: respostaLogin.permissoes ?? [],
     ultimoAcessoEm: Date.now(),
   };
 
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+  localStorage.setItem(CHAVE_ARMAZENAMENTO, JSON.stringify(sessao));
 }
 
-export function clearSession() {
+export function limparSessao() {
   if (typeof window === 'undefined') return;
-  localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(CHAVE_ARMAZENAMENTO);
 }
 
-export function getToken() {
-  const session = getStoredSession();
-  if (!session?.token) return null;
-  return session.token;
+export function obterToken() {
+  const sessao = obterSessaoArmazenada();
+  if (!sessao?.token) return null;
+  return sessao.token;
 }
 
-export function isSessionValid() {
-  const session = getStoredSession();
-  if (!session?.token || !session?.expiraEm) return false;
+export function isSessaoValida() {
+  const sessao = obterSessaoArmazenada();
+  if (!sessao?.token || !sessao?.expiraEm) return false;
 
-  const expiresAt = new Date(session.expiraEm).getTime();
-  if (Number.isNaN(expiresAt) || expiresAt <= Date.now()) {
-    clearSession();
+  const expiraEm = new Date(sessao.expiraEm).getTime();
+  if (Number.isNaN(expiraEm) || expiraEm <= Date.now()) {
+    limparSessao();
     return false;
   }
 
-  if (Date.now() - (session.ultimoAcessoEm ?? 0) > INACTIVITY_LIMIT_MS) {
-    clearSession();
+  if (Date.now() - (sessao.ultimoAcessoEm ?? 0) > LIMITE_INATIVIDADE_MS) {
+    limparSessao();
     return false;
   }
 
   return true;
 }
 
-export function touchSessionActivity() {
-  const session = getStoredSession();
-  if (!session) return;
+export function registrarAtividadeSessao() {
+  const sessao = obterSessaoArmazenada();
+  if (!sessao) return;
 
-  session.ultimoAcessoEm = Date.now();
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+  sessao.ultimoAcessoEm = Date.now();
+  localStorage.setItem(CHAVE_ARMAZENAMENTO, JSON.stringify(sessao));
 }
 
-export function getInactivityLimitMs() {
-  return INACTIVITY_LIMIT_MS;
+export function obterLimiteInatividadeMs() {
+  return LIMITE_INATIVIDADE_MS;
 }
