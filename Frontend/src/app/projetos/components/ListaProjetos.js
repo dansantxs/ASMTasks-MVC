@@ -10,10 +10,8 @@ import { Eye, FolderKanban, Search } from 'lucide-react';
 
 function formatarDataHora(value) {
   if (!value) return '-';
-
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '-';
-
   return new Intl.DateTimeFormat('pt-BR', {
     day: '2-digit',
     month: '2-digit',
@@ -32,16 +30,19 @@ function normalizarTexto(value) {
 
 function projetoEstaConcluido(project, etapasById) {
   if (!project.ativo) return false;
-
   const tarefas = project.tarefas ?? [];
   if (!tarefas.length) return false;
-
   return tarefas.every((task) => {
     if (!task.etapaId) return false;
-    const etapaNome = etapasById.get(task.etapaId);
-    return normalizarTexto(etapaNome).includes('conclu');
+    return normalizarTexto(etapasById.get(task.etapaId)).includes('conclu');
   });
 }
+
+const ABAS = [
+  { id: 'ativos', label: 'Ativos', badgeClass: 'border-brand-blue text-brand-blue' },
+  { id: 'concluidos', label: 'Concluídos', badgeClass: 'border-green-600 text-green-700' },
+  { id: 'inativos', label: 'Inativos', badgeClass: '' },
+];
 
 export default function ListaProjetos({
   projetos,
@@ -49,41 +50,52 @@ export default function ListaProjetos({
   setoresById,
   etapasById,
   aoSelecionarProjeto,
-  viewMode,
+  modoVisualizacao,
 }) {
   const [searchTerm, setSearchTerm] = useState('');
+  const [abaAtiva, setAbaAtiva] = useState('ativos');
 
-  const filteredProjetos = useMemo(() => {
-    const term = searchTerm.trim().toLowerCase();
-    if (!term) return projetos;
+  const projetosAtivos = useMemo(
+    () => projetos.filter((p) => p.ativo && !projetoEstaConcluido(p, etapasById)),
+    [projetos, etapasById]
+  );
+  const projetosConcluidos = useMemo(
+    () => projetos.filter((p) => p.ativo && projetoEstaConcluido(p, etapasById)),
+    [projetos, etapasById]
+  );
+  const projetosInativos = useMemo(
+    () => projetos.filter((p) => !p.ativo),
+    [projetos]
+  );
 
-    return projetos.filter((project) => {
-      const clienteNome = clientesById.get(project.clienteId)?.toLowerCase() ?? '';
-      const setorNome = setoresById.get(project.setorId)?.toLowerCase() ?? '';
-      const titulo = project.titulo?.toLowerCase() ?? '';
-      const descricao = project.descricao?.toLowerCase() ?? '';
+  const contagemPorAba = {
+    ativos: projetosAtivos.length,
+    concluidos: projetosConcluidos.length,
+    inativos: projetosInativos.length,
+  };
 
-      return (
-        titulo.includes(term) ||
-        descricao.includes(term) ||
-        clienteNome.includes(term) ||
-        setorNome.includes(term)
-      );
+  const projetosDaAba = useMemo(() => {
+    const base =
+      abaAtiva === 'ativos' ? projetosAtivos :
+      abaAtiva === 'concluidos' ? projetosConcluidos :
+      projetosInativos;
+
+    const term = normalizarTexto(searchTerm.trim());
+    if (!term) return base;
+
+    return base.filter((project) => {
+      const clienteNome = normalizarTexto(clientesById.get(project.clienteId));
+      const setorNome = normalizarTexto(setoresById.get(project.setorId));
+      const titulo = normalizarTexto(project.titulo);
+      const descricao = normalizarTexto(project.descricao);
+      return titulo.includes(term) || descricao.includes(term) || clienteNome.includes(term) || setorNome.includes(term);
     });
-  }, [searchTerm, projetos, clientesById, setoresById]);
-
-  const projetosAtivos = filteredProjetos.filter((item) => item.ativo && !projetoEstaConcluido(item, etapasById));
-  const projetosConcluidos = filteredProjetos.filter((item) => item.ativo && projetoEstaConcluido(item, etapasById));
-  const projetosInativos = filteredProjetos.filter((item) => !item.ativo);
+  }, [abaAtiva, searchTerm, projetosAtivos, projetosConcluidos, projetosInativos, clientesById, setoresById]);
 
   const renderProjectCard = (project) => {
     const clienteNome = clientesById.get(project.clienteId) ?? `Cliente #${project.clienteId}`;
     const setorNome = setoresById.get(project.setorId) ?? `Setor #${project.setorId}`;
-    const status = !project.ativo
-      ? 'Inativo'
-      : projetoEstaConcluido(project, etapasById)
-        ? 'Concluido'
-        : 'Ativo';
+    const status = !project.ativo ? 'Inativo' : projetoEstaConcluido(project, etapasById) ? 'Concluido' : 'Ativo';
 
     return (
       <Card
@@ -115,12 +127,10 @@ export default function ListaProjetos({
             </Badge>
           </div>
         </CardHeader>
-
         <CardContent className="space-y-3">
           {project.descricao && (
             <p className="text-sm text-muted-foreground">{project.descricao}</p>
           )}
-
           <div className="text-sm text-muted-foreground">
             <strong>Data de cadastro:</strong> {formatarDataHora(project.dataCadastro)}
           </div>
@@ -135,11 +145,7 @@ export default function ListaProjetos({
   const renderProjectRow = (project) => {
     const clienteNome = clientesById.get(project.clienteId) ?? `Cliente #${project.clienteId}`;
     const setorNome = setoresById.get(project.setorId) ?? `Setor #${project.setorId}`;
-    const status = !project.ativo
-      ? 'Inativo'
-      : projetoEstaConcluido(project, etapasById)
-        ? 'Concluido'
-        : 'Ativo';
+    const status = !project.ativo ? 'Inativo' : projetoEstaConcluido(project, etapasById) ? 'Concluido' : 'Ativo';
 
     return (
       <TableRow key={project.id} className="hover:bg-muted/50">
@@ -170,62 +176,43 @@ export default function ListaProjetos({
     );
   };
 
-  const renderSection = (title, countBadgeClass, projectsByStatus) => {
-    if (projectsByStatus.length === 0) return null;
-
-    return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3>{title}</h3>
-          <Badge variant="outline" className={countBadgeClass}>
-            {projectsByStatus.length}
-          </Badge>
-        </div>
-        {viewMode === 'cards' ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {projectsByStatus.map(renderProjectCard)}
-          </div>
-        ) : (
-          <div className="border rounded-lg overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/30">
-                  <TableHead>Projeto</TableHead>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Setor</TableHead>
-                  <TableHead>Tarefas</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Cadastro</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {projectsByStatus.map(renderProjectRow)}
-              </TableBody>
-            </Table>
-          </div>
-        )}
-      </div>
-    );
-  };
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      {/* Abas de status */}
+      <div className="flex items-center gap-1 border-b">
+        {ABAS.map((aba) => (
+          <button
+            key={aba.id}
+            onClick={() => { setAbaAtiva(aba.id); setSearchTerm(''); }}
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
+              abaAtiva === aba.id
+                ? 'border-brand-blue text-brand-blue'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground'
+            }`}
+          >
+            {aba.label}
+            {contagemPorAba[aba.id] > 0 && (
+              <Badge variant="outline" className={`text-xs px-1.5 py-0 h-5 ${abaAtiva === aba.id ? aba.badgeClass : ''}`}>
+                {contagemPorAba[aba.id]}
+              </Badge>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* Busca */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           className="pl-10"
           value={searchTerm}
           onChange={(event) => setSearchTerm(event.target.value)}
-          placeholder="Buscar projeto por titulo, cliente ou setor..."
+          placeholder="Buscar por título, cliente ou setor..."
         />
       </div>
 
-      {renderSection('Projetos ativos', 'border-brand-blue text-brand-blue', projetosAtivos)}
-      {renderSection('Projetos concluidos', 'border-green-600 text-green-700', projetosConcluidos)}
-      {renderSection('Projetos inativos', '', projetosInativos)}
-
-      {filteredProjetos.length === 0 && (
+      {/* Lista */}
+      {projetosDaAba.length === 0 ? (
         <div className="text-center py-12">
           <div className="mx-auto h-16 w-16 rounded-full bg-muted flex items-center justify-center">
             <FolderKanban className="h-6 w-6 text-muted-foreground" />
@@ -234,8 +221,31 @@ export default function ListaProjetos({
           <p className="text-muted-foreground mt-2">
             {searchTerm
               ? `Não encontramos projetos para "${searchTerm}".`
-              : 'Ainda não há projetos cadastrados.'}
+              : `Não há projetos ${abaAtiva === 'ativos' ? 'ativos' : abaAtiva === 'concluidos' ? 'concluídos' : 'inativos'}.`}
           </p>
+        </div>
+      ) : modoVisualizacao === 'cards' ? (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {projetosDaAba.map(renderProjectCard)}
+        </div>
+      ) : (
+        <div className="border rounded-lg overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/30">
+                <TableHead>Projeto</TableHead>
+                <TableHead>Cliente</TableHead>
+                <TableHead>Setor</TableHead>
+                <TableHead>Tarefas</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Cadastro</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {projetosDaAba.map(renderProjectRow)}
+            </TableBody>
+          </Table>
         </div>
       )}
     </div>

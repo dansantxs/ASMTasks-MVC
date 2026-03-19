@@ -26,7 +26,7 @@ const mapeamentoPermissoes = [
   { prefix: '/cadastros/etapas', permission: permissoesTelas.cadastrosEtapas },
   { prefix: '/cadastros/prioridades', permission: permissoesTelas.cadastrosPrioridades },
   { prefix: '/cadastros/setores', permission: permissoesTelas.cadastrosSetores },
-  { prefix: '/atendimentos/agenda', permission: permissoesTelas.atendimentosAgenda },
+  { prefix: '/atendimentos', permission: permissoesTelas.atendimentosAgenda },
   { prefix: '/projetos', permission: permissoesTelas.projetosCadastro },
   { prefix: '/relatorios/cargos', permission: permissoesTelas.relatoriosCargos },
   { prefix: '/relatorios/clientes', permission: permissoesTelas.relatoriosClientes },
@@ -41,7 +41,7 @@ const mapeamentoPermissoes = [
 ];
 
 const rotasPadrao = [
-  { path: '/atendimentos/agenda', permission: permissoesTelas.atendimentosAgenda },
+  { path: '/atendimentos', permission: permissoesTelas.atendimentosAgenda },
   { path: '/projetos', permission: permissoesTelas.projetosCadastro },
   { path: '/cadastros/clientes', permission: permissoesTelas.cadastrosClientes },
   { path: '/cadastros/colaboradores', permission: permissoesTelas.cadastrosColaboradores },

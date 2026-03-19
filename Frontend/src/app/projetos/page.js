@@ -193,7 +193,7 @@ export default function ProjetosPage() {
           clientesById={clientesById}
           setoresById={setoresById}
           etapasById={etapasById}
-          onSelectProject={handleSelectProject}
+          aoSelecionarProjeto={handleSelectProject}
           modoVisualizacao={modoVisualizacao}
         />
 
@@ -206,7 +206,7 @@ export default function ProjetosPage() {
           prioridadesById={prioridadesById}
           colaboradoresById={colaboradoresById}
           etapasById={etapasById}
-          onEdit={handleEditProject}
+          aoEditar={handleEditProject}
           onInativar={(id) => inativar.mutate(id)}
           onReativar={(id) => reativar.mutate(id)}
           isInativando={inativar.isPending}
@@ -220,12 +220,12 @@ export default function ProjetosPage() {
             if (!nextOpen) setEditingProject(null);
           }}
           aoSalvar={handleSalvarProjeto}
-          isSaving={criar.isPending || atualizar.isPending}
+          salvando={criar.isPending || atualizar.isPending}
           clientes={clientes}
           setores={setores}
           prioridades={prioridades}
           colaboradorLogadoNome={colaboradorLogadoNome}
-          initialData={editingProject}
+          dadosIniciais={editingProject}
         />
 
         <Toaster position="top-right" />
