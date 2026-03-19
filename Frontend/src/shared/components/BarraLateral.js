@@ -232,7 +232,7 @@ export function BarraLateral({ caminhoAtual, aoNavegar, aoAlternarRecolhimento, 
 
         {podeVerAtendimento && (
           <button
-            onClick={() => aoNavegar('/atendimentos/agenda')}
+            onClick={() => aoNavegar('/atendimentos')}
             className={cn(
               'w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors',
               isAtendimentos ? 'bg-gray-800 text-white' : 'text-gray-300 hover:bg-gray-800',

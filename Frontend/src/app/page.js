@@ -9,7 +9,7 @@ export default function Home() {
 
   useEffect(() => {
     if (isSessaoValida()) {
-      router.replace('/atendimentos/agenda');
+      router.replace('/atendimentos');
       return;
     }
 

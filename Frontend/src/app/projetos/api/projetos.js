@@ -107,3 +107,30 @@ export async function getEtapas() {
   const data = await handleResponse(res);
   return Array.isArray(data) ? data : [];
 }
+
+export async function criarSetor(payload) {
+  const res = await requisicaoApi(SETORES_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  return handleResponse(res);
+}
+
+export async function criarCliente(payload) {
+  const res = await requisicaoApi(CLIENTES_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  return handleResponse(res);
+}
+
+export async function criarPrioridade(payload) {
+  const res = await requisicaoApi(PRIORIDADES_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  return handleResponse(res);
+}

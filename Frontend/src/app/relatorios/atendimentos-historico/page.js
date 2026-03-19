@@ -15,7 +15,7 @@ import * as XLSX from 'xlsx';
 import { configuracoesPadrao, useConfiguracoesSistema } from '../../../shared/configuracoes-sistema/api';
 import { obterRodapeRelatorio, obterLogotipo } from '../../../shared/configuracoes-sistema/reportBranding';
 import { getHistoricoAtendimentos } from './api/historicoAtendimentos';
-import { getClientes, getColaboradores } from '../../atendimentos/agenda/api/atendimentos';
+import { getClientes, getColaboradores } from '../../atendimentos/api/atendimentos';
 
 const columns = [
   { id: 'dataHoraAcao', label: 'Data/Hora' },
