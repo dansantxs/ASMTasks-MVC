@@ -16,7 +16,7 @@ export default function ListaClientes({
   aoExcluir,
   aoVisualizar,
   aoReativar,
-  viewMode,
+  modoVisualizacao,
 }) {
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -179,7 +179,7 @@ export default function ListaClientes({
         />
       </div>
 
-      {viewMode === 'cards' ? (
+      {modoVisualizacao === 'cards' ? (
         <>
           {ativos.length > 0 && (
             <div className="space-y-4">

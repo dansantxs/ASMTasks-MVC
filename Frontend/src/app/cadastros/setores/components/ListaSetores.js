@@ -20,7 +20,7 @@ export default function ListaSetores({
   aoExcluir,
   aoVisualizar,
   aoReativar,
-  viewMode,
+  modoVisualizacao,
 }) {
   const isClient = useClientOnly();
   const [searchTerm, setSearchTerm] = useState('');
@@ -164,7 +164,7 @@ export default function ListaSetores({
         />
       </div>
 
-      {viewMode === 'cards' ? (
+      {modoVisualizacao === 'cards' ? (
         <>
           {setoresAtivos.length > 0 && (
             <div className="space-y-4">

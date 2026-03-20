@@ -14,7 +14,7 @@ export default function ListaColaboradores({
   aoExcluir,
   aoVisualizar,
   aoReativar,
-  viewMode,
+  modoVisualizacao,
 }) {
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -162,7 +162,7 @@ export default function ListaColaboradores({
         />
       </div>
 
-      {viewMode === 'cards' ? (
+      {modoVisualizacao === 'cards' ? (
         <>
           {colaboradoresAtivos.length > 0 && (
             <div className="space-y-4">

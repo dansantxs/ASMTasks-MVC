@@ -12,6 +12,7 @@ namespace API.Models
         public string Nome { get; set; } = string.Empty;
         public string? Descricao { get; set; }
         public string Cor { get; set; }
+        public int Ordem { get; set; }
         public bool Ativo { get; set; } = true;
 
         public async Task<int> CriarAsync(DBContext dbContext)

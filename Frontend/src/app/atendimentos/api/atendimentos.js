@@ -1,4 +1,4 @@
-import { requisicaoApi } from '../../../../shared/api/http';
+import { requisicaoApi } from '../../../shared/api/http';
 
 const ATENDIMENTOS_API_URL = `/atendimentos`;
 const CLIENTES_API_URL = `/clientes`;
@@ -88,7 +88,7 @@ export async function marcarAtendimentoComoAgendado(id) {
   return handleResponse(res);
 }
 
-export async function inativarAtendimento(id) {
+export async function excluirAtendimento(id) {
   const res = await requisicaoApi(`${ATENDIMENTOS_API_URL}/${id}`, {
     method: "DELETE",
   });

@@ -7,6 +7,7 @@ export const permissoesTelas = {
   cadastrosSetores: 'cadastros.setores',
   atendimentosAgenda: 'atendimentos.agenda',
   projetosCadastro: 'projetos.cadastro',
+  projetosKanban: 'projetos.kanban',
   relatoriosCargos: 'relatorios.cargos',
   relatoriosClientes: 'relatorios.clientes',
   relatoriosColaboradores: 'relatorios.colaboradores',
@@ -27,6 +28,7 @@ const mapeamentoPermissoes = [
   { prefix: '/cadastros/prioridades', permission: permissoesTelas.cadastrosPrioridades },
   { prefix: '/cadastros/setores', permission: permissoesTelas.cadastrosSetores },
   { prefix: '/atendimentos', permission: permissoesTelas.atendimentosAgenda },
+  { prefix: '/projetos/kanban', permission: permissoesTelas.projetosKanban },
   { prefix: '/projetos', permission: permissoesTelas.projetosCadastro },
   { prefix: '/relatorios/cargos', permission: permissoesTelas.relatoriosCargos },
   { prefix: '/relatorios/clientes', permission: permissoesTelas.relatoriosClientes },
@@ -43,6 +45,7 @@ const mapeamentoPermissoes = [
 const rotasPadrao = [
   { path: '/atendimentos', permission: permissoesTelas.atendimentosAgenda },
   { path: '/projetos', permission: permissoesTelas.projetosCadastro },
+  { path: '/projetos/kanban', permission: permissoesTelas.projetosKanban },
   { path: '/cadastros/clientes', permission: permissoesTelas.cadastrosClientes },
   { path: '/cadastros/colaboradores', permission: permissoesTelas.cadastrosColaboradores },
   { path: '/cadastros/cargos', permission: permissoesTelas.cadastrosCargos },

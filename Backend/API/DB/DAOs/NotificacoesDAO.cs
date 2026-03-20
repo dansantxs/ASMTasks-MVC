@@ -37,8 +37,7 @@ namespace API.DB.DAOs
                     FROM Atendimento at
                 ) destinatario ON destinatario.AtendimentoId = a.Id
                 INNER JOIN Colaborador c ON c.Id = destinatario.ColaboradorId
-                WHERE a.Ativo = 1
-                  AND a.Status = 'A'
+                WHERE a.Status = 'A'
                   AND c.Ativo = 1
                   AND DATEADD(MINUTE, -an.MinutosAntecedencia, a.DataHoraInicio) >= @JanelaInicio
                   AND DATEADD(MINUTE, -an.MinutosAntecedencia, a.DataHoraInicio) < @JanelaFim

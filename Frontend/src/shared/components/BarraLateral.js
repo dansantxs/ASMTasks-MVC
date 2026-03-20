@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import PropTypes from 'prop-types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -11,6 +12,7 @@ import {
   BarChart3,
   CalendarDays,
   FolderKanban,
+  LayoutDashboard,
   Settings,
   LogOut,
   KeyRound,
@@ -18,6 +20,7 @@ import {
   SlidersHorizontal,
   Bell,
   Check,
+  Folder,
 } from 'lucide-react';
 import { cn } from '../../ui/form/utils';
 import { Button } from '../../ui/base/button';
@@ -46,10 +49,14 @@ export function BarraLateral({ caminhoAtual, aoNavegar, aoAlternarRecolhimento, 
   const [cadastrosExpandido, setCadastrosExpandido] = useState(false);
   const [relatoriosExpandido, setRelatoriosExpandido] = useState(false);
   const [configuracoesExpandido, setConfiguracoesExpandido] = useState(false);
+  const [projetosExpandido, setProjetosExpandido] = useState(false);
   const [notificacoesAbertas, setNotificacoesAbertas] = useState(false);
   const [idNotificacaoSendoMarcada, setIdNotificacaoSendoMarcada] = useState(null);
+  const [montado, setMontado] = useState(false);
   const idsNaoLidasNotificadasRef = useRef(new Set());
   const rastreadorInicializadoRef = useRef(false);
+
+  useEffect(() => { setMontado(true); }, []);
 
   const queryClient = useQueryClient();
 
@@ -108,6 +115,8 @@ export function BarraLateral({ caminhoAtual, aoNavegar, aoAlternarRecolhimento, 
   const relatoriosDisponiveis = relatorioItems.filter((item) => temPermissao(sessao, item.permission));
   const podeVerAtendimento = temPermissao(sessao, permissoesTelas.atendimentosAgenda);
   const podeVerProjetos = temPermissao(sessao, permissoesTelas.projetosCadastro);
+  const podeVerKanban = temPermissao(sessao, permissoesTelas.projetosKanban);
+  const podeVerMenuProjetos = podeVerProjetos || podeVerKanban;
   const podeVerMinhaConta = temPermissao(sessao, permissoesTelas.configuracoesMinhaConta);
   const podeVerAcessos = temPermissao(sessao, permissoesTelas.configuracoesAcessos);
   const podeVerSistema = temPermissao(sessao, permissoesTelas.configuracoesSistema);
@@ -123,6 +132,7 @@ export function BarraLateral({ caminhoAtual, aoNavegar, aoAlternarRecolhimento, 
     setCadastrosExpandido(false);
     setRelatoriosExpandido(false);
     setConfiguracoesExpandido(false);
+    setProjetosExpandido(false);
     setNotificacoesAbertas(false);
   };
 
@@ -245,19 +255,70 @@ export function BarraLateral({ caminhoAtual, aoNavegar, aoAlternarRecolhimento, 
           </button>
         )}
 
-        {podeVerProjetos && (
-          <button
-            onClick={() => aoNavegar('/projetos')}
-            className={cn(
-              'w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors',
-              isProjetos ? 'bg-gray-800 text-white' : 'text-gray-300 hover:bg-gray-800',
-              recolhido && 'justify-center px-2'
+        {podeVerMenuProjetos && (
+          <div>
+            <button
+              onClick={() => {
+                if (recolhido) {
+                  definirEstadoRecolhido(false);
+                  setProjetosExpandido(true);
+                } else {
+                  setProjetosExpandido(!projetosExpandido);
+                }
+              }}
+              className={cn(
+                'w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors',
+                isProjetos ? 'bg-gray-800 text-white' : 'text-gray-300 hover:bg-gray-800',
+                recolhido && 'justify-center px-2'
+              )}
+              title={recolhido ? 'Projetos' : undefined}
+            >
+              <FolderKanban className="h-5 w-5 flex-shrink-0" />
+              {!recolhido && (
+                <>
+                  <span className="flex-1 text-left">Projetos</span>
+                  {projetosExpandido ? (
+                    <ChevronDown className="h-4 w-4 flex-shrink-0" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4 flex-shrink-0" />
+                  )}
+                </>
+              )}
+            </button>
+
+            {projetosExpandido && !recolhido && (
+              <div className="ml-4 mt-1 space-y-1">
+                {podeVerProjetos && (
+                  <button
+                    onClick={() => aoNavegar('/projetos')}
+                    className={cn(
+                      'w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors text-sm',
+                      isProjetos && chaveAtual !== 'kanban'
+                        ? 'bg-teal-600 text-white'
+                        : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200'
+                    )}
+                  >
+                    <Folder className="h-4 w-4" />
+                    <span>Cadastro</span>
+                  </button>
+                )}
+                {podeVerKanban && (
+                  <button
+                    onClick={() => aoNavegar('/projetos/kanban')}
+                    className={cn(
+                      'w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors text-sm',
+                      isProjetos && chaveAtual === 'kanban'
+                        ? 'bg-teal-600 text-white'
+                        : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200'
+                    )}
+                  >
+                    <LayoutDashboard className="h-4 w-4" />
+                    <span>Quadro Kanban</span>
+                  </button>
+                )}
+              </div>
             )}
-            title={recolhido ? 'Projetos' : undefined}
-          >
-            <FolderKanban className="h-5 w-5 flex-shrink-0" />
-            {!recolhido && <span>Projetos</span>}
-          </button>
+          </div>
         )}
 
         {relatoriosDisponiveis.length > 0 && (
@@ -420,16 +481,14 @@ export function BarraLateral({ caminhoAtual, aoNavegar, aoAlternarRecolhimento, 
           )}
         </button>
 
-        {notificacoesAbertas && (
+        {notificacoesAbertas && montado && createPortal(
           <div
-            className="absolute left-full bottom-0 ml-3 z-50 w-[430px] max-w-[calc(100vw-6rem)] rounded-xl border border-gray-200 bg-white text-slate-900 shadow-2xl overflow-hidden isolate"
+            className="w-[430px] max-w-[calc(100vw-6rem)] rounded-xl border border-gray-200 bg-white text-slate-900 shadow-2xl overflow-hidden"
             style={{
-              background: 'rgb(255, 255, 255)',
-              opacity: 1,
-              backdropFilter: 'none',
-              WebkitBackdropFilter: 'none',
-              filter: 'none',
-              mixBlendMode: 'normal',
+              position: 'fixed',
+              left: recolhido ? 'calc(5rem + 0.75rem)' : 'calc(16rem + 0.75rem)',
+              bottom: '1rem',
+              zIndex: 9999,
             }}
           >
             <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
@@ -487,7 +546,8 @@ export function BarraLateral({ caminhoAtual, aoNavegar, aoAlternarRecolhimento, 
                   </div>
                 ))}
             </div>
-          </div>
+          </div>,
+          document.body
         )}
       </div>
 

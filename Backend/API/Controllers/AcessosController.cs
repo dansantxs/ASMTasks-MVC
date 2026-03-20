@@ -45,6 +45,7 @@ namespace API.Controllers
                 new { chave = TelaPermissoes.RelatoriosAtendimentosHistorico, label = "Relatorios - Historico de Atendimentos" },
                 new { chave = TelaPermissoes.AtendimentosAgenda, label = "Atendimento - Agenda" },
                 new { chave = TelaPermissoes.ProjetosCadastro, label = "Projetos - Cadastro" },
+                new { chave = TelaPermissoes.ProjetosKanban, label = "Projetos - Quadro Kanban" },
                 new { chave = TelaPermissoes.ConfiguracoesMinhaConta, label = "Configuracoes - Minha Conta" },
                 new { chave = TelaPermissoes.ConfiguracoesAcessos, label = "Configuracoes - Niveis e Usuarios" },
                 new { chave = TelaPermissoes.ConfiguracoesSistema, label = "Configuracoes - Parametrizacao do Sistema" }

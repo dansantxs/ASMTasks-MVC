@@ -77,7 +77,7 @@ export default function ProjetosPage() {
 
   const prioridadesById = useMemo(() => {
     const map = new Map();
-    prioridades.forEach((item) => map.set(item.id, item.nome));
+    prioridades.forEach((item) => map.set(item.id, { nome: item.nome, cor: item.cor, ordem: item.ordem ?? 9999 }));
     return map;
   }, [prioridades]);
 

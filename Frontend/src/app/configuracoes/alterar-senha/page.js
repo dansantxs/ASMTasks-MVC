@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/layout/car
 import { Input } from '../../../ui/form/input';
 import { Label } from '../../../ui/form/label';
 import { Button } from '../../../ui/base/button';
-import { Settings } from 'lucide-react';
+import { Settings, Eye, EyeOff } from 'lucide-react';
 import { alterarLogin, alterarSenha } from '../../login/api/auth';
 import { limparSessao } from '../../../shared/auth/session';
 import { toast, Toaster } from 'sonner';
@@ -21,6 +21,9 @@ export default function AlterarSenhaPage() {
   const [novoLogin, setNovoLogin] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [isSavingLogin, setIsSavingLogin] = useState(false);
+  const [mostrarSenhaAtual, setMostrarSenhaAtual] = useState(false);
+  const [mostrarNovaSenha, setMostrarNovaSenha] = useState(false);
+  const [mostrarConfirmarSenha, setMostrarConfirmarSenha] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -109,30 +112,63 @@ export default function AlterarSenhaPage() {
               <form className="space-y-4" onSubmit={handleSubmit}>
                 <div>
                   <Label htmlFor="senhaAtual">Senha atual</Label>
-                  <Input
-                    id="senhaAtual"
-                    type="password"
-                    value={formData.senhaAtual}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, senhaAtual: e.target.value }))}
-                  />
+                  <div className="relative">
+                    <Input
+                      id="senhaAtual"
+                      type={mostrarSenhaAtual ? 'text' : 'password'}
+                      value={formData.senhaAtual}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, senhaAtual: e.target.value }))}
+                      className="pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setMostrarSenhaAtual((v) => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      tabIndex={-1}
+                    >
+                      {mostrarSenhaAtual ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                 </div>
                 <div>
                   <Label htmlFor="novaSenha">Nova senha</Label>
-                  <Input
-                    id="novaSenha"
-                    type="password"
-                    value={formData.novaSenha}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, novaSenha: e.target.value }))}
-                  />
+                  <div className="relative">
+                    <Input
+                      id="novaSenha"
+                      type={mostrarNovaSenha ? 'text' : 'password'}
+                      value={formData.novaSenha}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, novaSenha: e.target.value }))}
+                      className="pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setMostrarNovaSenha((v) => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      tabIndex={-1}
+                    >
+                      {mostrarNovaSenha ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                 </div>
                 <div>
                   <Label htmlFor="confirmarNovaSenha">Confirmar nova senha</Label>
-                  <Input
-                    id="confirmarNovaSenha"
-                    type="password"
-                    value={formData.confirmarNovaSenha}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, confirmarNovaSenha: e.target.value }))}
-                  />
+                  <div className="relative">
+                    <Input
+                      id="confirmarNovaSenha"
+                      type={mostrarConfirmarSenha ? 'text' : 'password'}
+                      value={formData.confirmarNovaSenha}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, confirmarNovaSenha: e.target.value }))}
+                      className="pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setMostrarConfirmarSenha((v) => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      tabIndex={-1}
+                    >
+                      {mostrarConfirmarSenha ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                 </div>
 
                 <Button type="submit" className="bg-brand-blue hover:bg-brand-blue-dark" disabled={isSaving}>

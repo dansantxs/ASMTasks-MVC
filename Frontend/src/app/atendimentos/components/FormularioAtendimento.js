@@ -7,20 +7,20 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '../../../../ui/base/dialog';
-import { Button } from '../../../../ui/base/button';
-import { Input } from '../../../../ui/form/input';
-import { Label } from '../../../../ui/form/label';
-import { Textarea } from '../../../../ui/form/textarea';
+} from '../../../ui/base/dialog';
+import { Button } from '../../../ui/base/button';
+import { Input } from '../../../ui/form/input';
+import { Label } from '../../../ui/form/label';
+import { Textarea } from '../../../ui/form/textarea';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../../../../ui/form/select';
+} from '../../../ui/form/select';
 import { Plus, Trash2 } from 'lucide-react';
-import { converterHoraParaMinutos } from '../../../../shared/configuracoes-sistema/utils';
+import { converterHoraParaMinutos } from '../../../shared/configuracoes-sistema/utils';
 
 function paraValorDatetimeLocal(data) {
   const local = new Date(data);

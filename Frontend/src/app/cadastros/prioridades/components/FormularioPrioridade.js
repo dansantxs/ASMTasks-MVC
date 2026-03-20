@@ -25,6 +25,7 @@ export default function FormularioPrioridade({
     name: '',
     description: '',
     color: '#000000',
+    order: 0,
     active: true
   });
   const [errors, setErrors] = useState({});
@@ -35,6 +36,7 @@ export default function FormularioPrioridade({
         name: prioridade.name,
         description: prioridade.description || '',
         color: prioridade.color || '#000000',
+        order: prioridade.order ?? 0,
         active: prioridade.active
       });
     } else {
@@ -42,6 +44,7 @@ export default function FormularioPrioridade({
         name: '',
         description: '',
         color: '#000000',
+        order: 0,
         active: true
       });
     }
@@ -139,6 +142,21 @@ export default function FormularioPrioridade({
               style={{ padding: 0, border: errors.color ? '1px solid #dc2626' : undefined }}
             />
             {errors.color && <p className="text-sm text-destructive">{errors.color}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="order">
+              Ordem <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="order"
+              type="number"
+              min={1}
+              value={formData.order}
+              onChange={e => setFormData(prev => ({ ...prev, order: Number(e.target.value) }))}
+              placeholder="Ex.: 1 = mais urgente"
+            />
+            <p className="text-xs text-muted-foreground">Número menor = maior urgência</p>
           </div>
 
           <div className="flex justify-end gap-3 pt-4">

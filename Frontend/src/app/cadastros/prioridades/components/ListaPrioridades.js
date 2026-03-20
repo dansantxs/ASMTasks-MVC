@@ -20,7 +20,7 @@ export default function ListaPrioridades({
   aoExcluir,
   aoVisualizar,
   aoReativar,
-  viewMode,
+  modoVisualizacao,
 }) {
   const isClient = useClientOnly();
   const [searchTerm, setSearchTerm] = useState('');
@@ -193,7 +193,7 @@ export default function ListaPrioridades({
         />
       </div>
 
-      {viewMode === 'cards' ? (
+      {modoVisualizacao === 'cards' ? (
         <>
           {prioridadesAtivas.length > 0 && (
             <div className="space-y-4">

@@ -1,8 +1,8 @@
 'use client';
 
-import { Badge } from '../../../../ui/base/badge';
+import { Badge } from '../../../ui/base/badge';
 import { CalendarDays, Clock3 } from 'lucide-react';
-import { converterHoraParaMinutos } from '../../../../shared/configuracoes-sistema/utils';
+import { converterHoraParaMinutos } from '../../../shared/configuracoes-sistema/utils';
 
 const PIXELS_POR_MINUTO = 1.2;
 const MINUTOS_MIN_ATENDIMENTO = 60;
@@ -96,8 +96,8 @@ export default function CalendarioAtendimentos({
   horaFimAgenda,
   aoSelecionarAtendimento,
 }) {
-  const totalAgendados = atendimentos.filter((a) => a.status === 'A' && a.ativo).length;
-  const totalRealizados = atendimentos.filter((a) => a.status === 'R' && a.ativo).length;
+  const totalAgendados = atendimentos.filter((a) => a.status === 'A').length;
+  const totalRealizados = atendimentos.filter((a) => a.status === 'R').length;
   const minutosInicio = converterHoraParaMinutos(horaInicioAgenda, 480);
   const minutosFim = converterHoraParaMinutos(horaFimAgenda, 1080);
   const minutosFimSeguro = minutosFim > minutosInicio ? minutosFim : minutosInicio + 60;

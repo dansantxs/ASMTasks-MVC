@@ -93,7 +93,7 @@ namespace API.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> Inativar(int id)
+        public async Task<IActionResult> Excluir(int id)
         {
             try
             {
@@ -101,7 +101,7 @@ namespace API.Controllers
                 if (atendimento == null)
                     return NotFound(new { erro = "Atendimento nao encontrado." });
 
-                await atendimento.InativarAsync(_dbContext);
+                await atendimento.ExcluirAsync(_dbContext);
                 return NoContent();
             }
             catch (ValidationException ex)
@@ -110,32 +110,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao inativar o atendimento.", detalhe = ex.Message });
-            }
-        }
-
-        [HttpPut("{id}/reativar")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> Reativar(int id)
-        {
-            try
-            {
-                var atendimento = await Atendimento.ObterPorIdAsync(_dbContext, id);
-                if (atendimento == null)
-                    return NotFound(new { erro = "Atendimento nao encontrado." });
-
-                await atendimento.ReativarAsync(_dbContext);
-                return NoContent();
-            }
-            catch (ValidationException ex)
-            {
-                return BadRequest(new { erro = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { erro = "Erro ao reativar o atendimento.", detalhe = ex.Message });
+                return StatusCode(500, new { erro = "Erro ao excluir o atendimento.", detalhe = ex.Message });
             }
         }
 
@@ -227,7 +202,6 @@ namespace API.Controllers
                 ObservacaoConclusao = a.ObservacaoConclusao,
                 ConcluidoPorColaboradorId = a.ConcluidoPorColaboradorId,
                 DataHoraConclusao = a.DataHoraConclusao,
-                Ativo = a.Ativo,
                 DataCadastro = a.DataCadastro,
                 ColaboradoresIds = a.ColaboradoresIds,
                 NotificacoesMinutosAntecedencia = a.NotificacoesMinutosAntecedencia,
@@ -311,7 +285,6 @@ namespace API.Controllers
                 ObservacaoConclusao = a.ObservacaoConclusao,
                 ConcluidoPorColaboradorId = a.ConcluidoPorColaboradorId,
                 DataHoraConclusao = a.DataHoraConclusao,
-                Ativo = a.Ativo,
                 DataCadastro = a.DataCadastro,
                 ColaboradoresIds = a.ColaboradoresIds,
                 NotificacoesMinutosAntecedencia = a.NotificacoesMinutosAntecedencia,
