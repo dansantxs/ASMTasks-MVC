@@ -141,6 +141,19 @@ namespace API.DB.DAOs
             }
         }
 
-        // Implementar o método de verificação de tarefas em andamento
+        public async Task<bool> VerificarTarefasAtivasAsync(DBContext dbContext, int etapaId)
+        {
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = @"
+                SELECT COUNT(1)
+                FROM ProjetoTarefa pt
+                INNER JOIN Projeto p ON p.Id = pt.ProjetoId
+                WHERE pt.EtapaId = @EtapaId AND p.Ativo = 1";
+            cmd.Parameters.AddWithValue("@EtapaId", etapaId);
+
+            var result = await cmd.ExecuteScalarAsync();
+            return Convert.ToInt32(result) > 0;
+        }
     }
 }

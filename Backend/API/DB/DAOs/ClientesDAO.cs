@@ -186,5 +186,27 @@ namespace API.DB.DAOs
             var result = await cmd.ExecuteScalarAsync();
             return Convert.ToInt32(result) > 0;
         }
+
+        public async Task<bool> VerificarAtendimentosAtivosAsync(DBContext dbContext, int clienteId)
+        {
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = @"SELECT COUNT(1) FROM Atendimento WHERE ClienteId = @ClienteId AND Status <> 'C'";
+            cmd.Parameters.AddWithValue("@ClienteId", clienteId);
+
+            var result = await cmd.ExecuteScalarAsync();
+            return Convert.ToInt32(result) > 0;
+        }
+
+        public async Task<bool> VerificarProjetosAtivosAsync(DBContext dbContext, int clienteId)
+        {
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = @"SELECT COUNT(1) FROM Projeto WHERE ClienteId = @ClienteId AND Ativo = 1";
+            cmd.Parameters.AddWithValue("@ClienteId", clienteId);
+
+            var result = await cmd.ExecuteScalarAsync();
+            return Convert.ToInt32(result) > 0;
+        }
     }
 }

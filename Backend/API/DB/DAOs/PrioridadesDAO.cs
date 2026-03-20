@@ -131,6 +131,19 @@ namespace API.DB.DAOs
             return prioridade;
         }
 
-        // Implementar o método de verificação de tarefas em andamento
+        public async Task<bool> VerificarTarefasAtivasAsync(DBContext dbContext, int prioridadeId)
+        {
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = @"
+                SELECT COUNT(1)
+                FROM ProjetoTarefa pt
+                INNER JOIN Projeto p ON p.Id = pt.ProjetoId
+                WHERE pt.PrioridadeId = @PrioridadeId AND p.Ativo = 1";
+            cmd.Parameters.AddWithValue("@PrioridadeId", prioridadeId);
+
+            var result = await cmd.ExecuteScalarAsync();
+            return Convert.ToInt32(result) > 0;
+        }
     }
 }

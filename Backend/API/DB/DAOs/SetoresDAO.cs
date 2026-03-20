@@ -135,6 +135,15 @@ namespace API.DB.DAOs
             return count > 0;
         }
 
-        // Implementar o método de verificação de tarefas em andamento
+        public async Task<bool> VerificarProjetosAtivosAsync(DBContext dbContext, int setorId)
+        {
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = @"SELECT COUNT(1) FROM Projeto WHERE SetorId = @SetorId AND Ativo = 1";
+            cmd.Parameters.AddWithValue("@SetorId", setorId);
+
+            var result = await cmd.ExecuteScalarAsync();
+            return Convert.ToInt32(result) > 0;
+        }
     }
 }

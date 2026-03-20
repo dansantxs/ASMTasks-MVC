@@ -43,7 +43,8 @@ namespace API.Models
             if (await _setoresDAO.VerificarColaboradoresAtivosAsync(dbContext, Id))
                 throw new ValidationException("Não é possível inativar o setor pois existem colaboradores ativos vinculados a ele.");
 
-            // verificar se existem tarefas em andamento
+            if (await _setoresDAO.VerificarProjetosAtivosAsync(dbContext, Id))
+                throw new ValidationException("Não é possível inativar o setor pois existem projetos ativos vinculados a ele.");
 
             var inativado = await _setoresDAO.InativarAsync(dbContext, Id);
             if (!inativado)

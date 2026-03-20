@@ -176,6 +176,34 @@ namespace API.DB.DAOs
             return count > 0;
         }
 
-        // Implementar o método de verificação de tarefas em andamento
+        public async Task<bool> VerificarAtendimentosAtivosAsync(DBContext dbContext, int colaboradorId)
+        {
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = @"
+                SELECT COUNT(1)
+                FROM AtendimentoColaborador ac
+                INNER JOIN Atendimento a ON a.Id = ac.AtendimentoId
+                WHERE ac.ColaboradorId = @ColaboradorId AND a.Status <> 'C'";
+            cmd.Parameters.AddWithValue("@ColaboradorId", colaboradorId);
+
+            var result = await cmd.ExecuteScalarAsync();
+            return Convert.ToInt32(result) > 0;
+        }
+
+        public async Task<bool> VerificarTarefasAtivasAsync(DBContext dbContext, int colaboradorId)
+        {
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = @"
+                SELECT COUNT(1)
+                FROM ProjetoTarefa pt
+                INNER JOIN Projeto p ON p.Id = pt.ProjetoId
+                WHERE pt.ColaboradorResponsavelId = @ColaboradorId AND p.Ativo = 1";
+            cmd.Parameters.AddWithValue("@ColaboradorId", colaboradorId);
+
+            var result = await cmd.ExecuteScalarAsync();
+            return Convert.ToInt32(result) > 0;
+        }
     }
 }
