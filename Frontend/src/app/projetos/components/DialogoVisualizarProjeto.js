@@ -3,7 +3,6 @@
 import { Badge } from '../../../ui/base/badge';
 import { Button } from '../../../ui/base/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../../../ui/base/dialog';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../ui/layout/table';
 import { FolderKanban, Pencil, RefreshCw, Trash2 } from 'lucide-react';
 
 function formatarDataHora(value) {
@@ -59,7 +58,11 @@ export default function DialogoVisualizarProjeto({
     colaboradoresById.get(projeto.cadastradoPorColaboradorId) ??
     `Colaborador #${projeto.cadastradoPorColaboradorId}`;
   const status = !projeto.ativo ? 'Inativo' : projetoEstaConcluido(projeto, etapasById) ? 'Concluido' : 'Ativo';
-  const tarefas = projeto.tarefas ?? [];
+  const tarefas = [...(projeto.tarefas ?? [])].sort((a, b) => {
+    const ordemA = prioridadesById.get(a.prioridadeId)?.ordem ?? 9999;
+    const ordemB = prioridadesById.get(b.prioridadeId)?.ordem ?? 9999;
+    return ordemA - ordemB;
+  });
 
   const handleEdit = () => {
     onOpenChange(false);
@@ -136,36 +139,38 @@ export default function DialogoVisualizarProjeto({
             {tarefas.length === 0 ? (
               <p className="text-sm text-muted-foreground">Nenhuma tarefa cadastrada.</p>
             ) : (
-              <div className="border rounded-lg">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-muted/30">
-                      <TableHead className="w-10 text-center">#</TableHead>
-                      <TableHead>Tarefa</TableHead>
-                      <TableHead className="w-36">Prioridade</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {tarefas.map((task, index) => {
-                      const prioridadeNome = task.prioridadeId
-                        ? (prioridadesById.get(task.prioridadeId) ?? `#${task.prioridadeId}`)
-                        : '-';
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                {tarefas.map((task, index) => {
+                  const prioridade = task.prioridadeId ? prioridadesById.get(task.prioridadeId) : null;
+                  const prioridadeNome = prioridade?.nome ?? (task.prioridadeId ? `#${task.prioridadeId}` : null);
+                  const prioridadeCor = prioridade?.cor;
 
-                      return (
-                        <TableRow key={task.id || `${projeto.id}-${index}`}>
-                          <TableCell className="text-center text-xs text-muted-foreground">{index + 1}</TableCell>
-                          <TableCell>
-                            <p className="text-sm font-medium">{task.titulo}</p>
-                            {task.descricao && (
-                              <p className="text-xs text-muted-foreground mt-0.5">{task.descricao}</p>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-sm">{prioridadeNome}</TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
+                  return (
+                    <div
+                      key={task.id || `${projeto.id}-${index}`}
+                      className="rounded-md border-l-4 border border-l-[var(--p-cor)] bg-card p-3 flex flex-col gap-1.5"
+                      style={{ '--p-cor': prioridadeCor ?? 'transparent' }}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="text-sm font-medium leading-snug">{task.titulo}</p>
+                        <span className="text-xs font-medium bg-muted rounded px-1.5 py-0.5 text-muted-foreground shrink-0">
+                          {index + 1}
+                        </span>
+                      </div>
+                      {task.descricao && (
+                        <p className="text-xs text-muted-foreground leading-snug">{task.descricao}</p>
+                      )}
+                      {prioridadeNome && (
+                        <div className="mt-auto pt-1 flex items-center gap-1.5">
+                          {prioridadeCor && (
+                            <span className="inline-block w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: prioridadeCor }} />
+                          )}
+                          <span className="text-xs text-muted-foreground">{prioridadeNome}</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

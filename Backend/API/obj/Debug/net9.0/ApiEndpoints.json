@@ -286,7 +286,7 @@
   },
   {
     "ContainingType": "API.Controllers.AtendimentosController",
-    "Method": "Inativar",
+    "Method": "Excluir",
     "RelativePath": "api/Atendimentos/{id}",
     "HttpMethod": "DELETE",
     "IsController": true,
@@ -398,40 +398,6 @@
         "Name": "request",
         "Type": "API.DTOs.Atendimentos.AtendimentoMarcarRealizadoRequest",
         "IsRequired": false
-      }
-    ],
-    "ReturnTypes": [
-      {
-        "Type": "System.Void",
-        "MediaTypes": [],
-        "StatusCode": 204
-      },
-      {
-        "Type": "Microsoft.AspNetCore.Mvc.ProblemDetails",
-        "MediaTypes": [
-          "application/json"
-        ],
-        "StatusCode": 404
-      },
-      {
-        "Type": "System.Void",
-        "MediaTypes": [],
-        "StatusCode": 500
-      }
-    ]
-  },
-  {
-    "ContainingType": "API.Controllers.AtendimentosController",
-    "Method": "Reativar",
-    "RelativePath": "api/Atendimentos/{id}/reativar",
-    "HttpMethod": "PUT",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "id",
-        "Type": "System.Int32",
-        "IsRequired": true
       }
     ],
     "ReturnTypes": [
@@ -1456,6 +1422,33 @@
     ]
   },
   {
+    "ContainingType": "API.Controllers.EtapasController",
+    "Method": "Reordenar",
+    "RelativePath": "api/Etapas/reordenar",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "System.Collections.Generic.List\u00601[[API.DTOs.Etapas.EtapaOrdemItem, API, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 204
+      },
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 500
+      }
+    ]
+  },
+  {
     "ContainingType": "API.Controllers.NotificacoesController",
     "Method": "ObterMinhas",
     "RelativePath": "api/Notificacoes",
@@ -1893,6 +1886,77 @@
       {
         "Name": "id",
         "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 204
+      },
+      {
+        "Type": "Microsoft.AspNetCore.Mvc.ProblemDetails",
+        "MediaTypes": [
+          "application/json"
+        ],
+        "StatusCode": 404
+      },
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 500
+      }
+    ]
+  },
+  {
+    "ContainingType": "API.Controllers.ProjetosController",
+    "Method": "ObterKanban",
+    "RelativePath": "api/Projetos/kanban",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "colaboradorIds",
+        "Type": "System.Int32[]",
+        "IsRequired": false
+      },
+      {
+        "Name": "projetoIds",
+        "Type": "System.Int32[]",
+        "IsRequired": false
+      },
+      {
+        "Name": "clienteIds",
+        "Type": "System.Int32[]",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "API.Controllers.ProjetosController",
+    "Method": "MoverEtapa",
+    "RelativePath": "api/Projetos/tarefas/{id}/etapa",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "API.DTOs.Projetos.TarefaMoverEtapaRequest",
         "IsRequired": true
       }
     ],

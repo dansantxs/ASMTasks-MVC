@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Button } from '../../../ui/base/button';
+import { Button } from '../../ui/base/button';
 import { ChevronLeft, ChevronRight, Plus, CalendarDays } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
 import CalendarioAtendimentos from './components/CalendarioAtendimentos';
@@ -15,12 +15,12 @@ import {
   getAtendimentos,
   getClientes,
   getColaboradores,
-  inativarAtendimento,
+  excluirAtendimento,
   marcarAtendimentoComoAgendado,
   marcarAtendimentoComoRealizado,
 } from './api/atendimentos';
-import { obterSessaoArmazenada } from '../../../shared/auth/session';
-import { configuracoesPadrao, useConfiguracoesSistema } from '../../../shared/configuracoes-sistema/api';
+import { obterSessaoArmazenada } from '../../shared/auth/session';
+import { configuracoesPadrao, useConfiguracoesSistema } from '../../shared/configuracoes-sistema/api';
 
 function inicioDaSemana(data) {
   const d = new Date(data);
@@ -100,7 +100,6 @@ export default function AgendaAtendimentosPage() {
 
   const atendimentos = useMemo(() => {
     return atendimentosApi
-      .filter((item) => item.ativo)
       .map((item) => ({
         id: item.id,
         titulo: item.titulo,
@@ -118,7 +117,6 @@ export default function AgendaAtendimentosPage() {
         concluidoPorNome: item.concluidoPorColaboradorId
           ? colaboradoresPorId.get(item.concluidoPorColaboradorId) ?? null
           : null,
-        ativo: item.ativo,
         colaboradoresIds: item.colaboradoresIds ?? [],
         notificacoesMinutosAntecedencia: item.notificacoesMinutosAntecedencia ?? [],
         colaboradoresNomes: (item.colaboradoresIds ?? [])
@@ -195,7 +193,7 @@ export default function AgendaAtendimentosPage() {
   });
 
   const excluir = useMutation({
-    mutationFn: inativarAtendimento,
+    mutationFn: excluirAtendimento,
     onSuccess: () => {
       queryClient.invalidateQueries(['atendimentos']);
       setVisualizacaoAberta(false);

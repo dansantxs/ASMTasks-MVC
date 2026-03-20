@@ -8,10 +8,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '../../../../ui/base/dialog';
-import { Button } from '../../../../ui/base/button';
-import { Label } from '../../../../ui/form/label';
-import { Textarea } from '../../../../ui/form/textarea';
+} from '../../../ui/base/dialog';
+import { Button } from '../../../ui/base/button';
+import { Label } from '../../../ui/form/label';
+import { Textarea } from '../../../ui/form/textarea';
 
 export default function DialogoConcluirAtendimento({
   open,

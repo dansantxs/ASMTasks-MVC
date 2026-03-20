@@ -1,4 +1,5 @@
 ﻿using API.DB;
+using API.DB.DAOs;
 using API.DTOs.Cargos;
 using API.DTOs.Etapas;
 using API.Models;
@@ -16,6 +17,7 @@ namespace API.Controllers
     public class EtapasController : ControllerBase
     {
         private readonly DBContext _dbContext;
+        private static readonly EtapasDAO _etapasDAO = new EtapasDAO();
 
         public EtapasController(DBContext dbContext)
         {
@@ -44,7 +46,8 @@ namespace API.Controllers
                 var etapa = new Etapa
                 {
                     Nome = request.Nome,
-                    Descricao = request.Descricao
+                    Descricao = request.Descricao,
+                    Ordem = request.Ordem
                 };
 
                 var id = await etapa.CriarAsync(_dbContext);
@@ -69,7 +72,7 @@ namespace API.Controllers
         /// <response code="400">Erro de validação nos dados enviados.</response>
         /// <response code="404">Etapa não encontrada.</response>
         /// <response code="500">Erro interno ao atualizar a etapa.</response>
-        [HttpPut("{id}")]
+        [HttpPut("{id:int}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -87,6 +90,7 @@ namespace API.Controllers
 
                 etapa.Nome = request.Nome;
                 etapa.Descricao = request.Descricao;
+                etapa.Ordem = request.Ordem;
 
                 await etapa.AtualizarAsync(_dbContext);
                 return NoContent();
@@ -162,6 +166,26 @@ namespace API.Controllers
         }
 
         /// <summary>
+        /// Reordena as etapas conforme a nova sequência informada.
+        /// </summary>
+        [HttpPost("reordenar")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> Reordenar([FromBody] List<EtapaOrdemItem> request)
+        {
+            try
+            {
+                var itens = request.Select(r => (r.Id, r.Ordem));
+                await _etapasDAO.ReordenarAsync(_dbContext, itens);
+                return NoContent();
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { erro = "Ocorreu um erro ao reordenar as etapas." });
+            }
+        }
+
+        /// <summary>
         /// Retorna todas as etapas cadastradas.
         /// </summary>
         /// <returns>Lista de etapas cadastradas.</returns>
@@ -182,7 +206,8 @@ namespace API.Controllers
                 Nome = etapa.Nome,
                 Descricao = etapa.Descricao,
                 Ativo = etapa.Ativo,
-                PossuiTarefasAtivas = false
+                PossuiTarefasAtivas = false,
+                Ordem = etapa.Ordem
             });
 
             return Ok(response);
@@ -210,7 +235,8 @@ namespace API.Controllers
                 Nome = etapa.Nome,
                 Descricao = etapa.Descricao,
                 Ativo = etapa.Ativo,
-                PossuiTarefasAtivas = false
+                PossuiTarefasAtivas = false,
+                Ordem = etapa.Ordem
             };
 
             return Ok(response);

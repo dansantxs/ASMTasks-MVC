@@ -26,17 +26,15 @@ export default function PrioridadesPage() {
     queryFn: getPrioridades,
   });
 
-  const prioridades = prioridadesApi.map(p => {
-    const color = p.cor ?? "#000000";
-    return {
-      id: p.id,
-      name: p.nome,
-      description: p.descricao,
-      color: color,
-      active: p.ativo,
-      hasActiveTasks: p.possuiTarefasAtivas ?? false,
-    };
-  });
+  const prioridades = prioridadesApi.map(p => ({
+    id: p.id,
+    name: p.nome,
+    description: p.descricao,
+    color: p.cor ?? '#000000',
+    order: p.ordem ?? 0,
+    active: p.ativo,
+    hasActiveTasks: p.possuiTarefasAtivas ?? false,
+  }));
 
   const criar = useMutation({
     mutationFn: criarPrioridade,
@@ -82,6 +80,7 @@ export default function PrioridadesPage() {
       nome: priorityData.name,
       descricao: priorityData.description,
       cor: priorityData.color,
+      ordem: priorityData.order,
     };
 
     if (prioridadeSelecionada)

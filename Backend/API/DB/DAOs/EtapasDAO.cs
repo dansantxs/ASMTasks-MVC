@@ -9,14 +9,15 @@ namespace API.DB.DAOs
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
             cmd.CommandText = @"
-                INSERT INTO Etapa (Nome, Descricao, Ativo)
-                VALUES (@Nome, @Descricao, @Ativo);
+                INSERT INTO Etapa (Nome, Descricao, Ativo, Ordem)
+                VALUES (@Nome, @Descricao, @Ativo, @Ordem);
                 SELECT CAST(SCOPE_IDENTITY() AS int);
             ";
 
             cmd.Parameters.AddWithValue("@Nome", etapa.Nome);
             cmd.Parameters.AddWithValue("@Descricao", (object)etapa.Descricao ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Ativo", etapa.Ativo);
+            cmd.Parameters.AddWithValue("@Ordem", etapa.Ordem);
 
             var result = await cmd.ExecuteScalarAsync();
             etapa.Id = Convert.ToInt32(result);
@@ -28,12 +29,13 @@ namespace API.DB.DAOs
         {
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = @"UPDATE Etapa 
-                                SET Nome = @Nome, Descricao = @Descricao
+            cmd.CommandText = @"UPDATE Etapa
+                                SET Nome = @Nome, Descricao = @Descricao, Ordem = @Ordem
                                 WHERE Id = @Id";
             cmd.Parameters.AddWithValue("@Id", etapa.Id);
             cmd.Parameters.AddWithValue("@Nome", etapa.Nome);
             cmd.Parameters.AddWithValue("@Descricao", (object)etapa.Descricao ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@Ordem", etapa.Ordem);
 
             int linhas = await cmd.ExecuteNonQueryAsync();
             return linhas > 0;
@@ -82,7 +84,7 @@ namespace API.DB.DAOs
 
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = "SELECT Id, Nome, Descricao, Ativo FROM Etapa";
+            cmd.CommandText = "SELECT Id, Nome, Descricao, Ativo, Ordem FROM Etapa ORDER BY Ordem, Id";
 
             await using var dr = await cmd.ExecuteReaderAsync();
             while (await dr.ReadAsync())
@@ -92,7 +94,8 @@ namespace API.DB.DAOs
                     Id = Convert.ToInt32(dr["Id"]),
                     Nome = dr["Nome"].ToString(),
                     Descricao = dr["Descricao"]?.ToString(),
-                    Ativo = Convert.ToBoolean(dr["Ativo"])
+                    Ativo = Convert.ToBoolean(dr["Ativo"]),
+                    Ordem = Convert.ToInt32(dr["Ordem"])
                 };
                 etapaes.Add(etapa);
             }
@@ -106,7 +109,7 @@ namespace API.DB.DAOs
 
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = "SELECT Id, Nome, Descricao, Ativo FROM Etapa WHERE Id = @Id";
+            cmd.CommandText = "SELECT Id, Nome, Descricao, Ativo, Ordem FROM Etapa WHERE Id = @Id";
             cmd.Parameters.AddWithValue("@Id", id);
 
             await using var dr = await cmd.ExecuteReaderAsync();
@@ -117,11 +120,25 @@ namespace API.DB.DAOs
                     Id = Convert.ToInt32(dr["Id"]),
                     Nome = dr["Nome"].ToString(),
                     Descricao = dr["Descricao"]?.ToString(),
-                    Ativo = Convert.ToBoolean(dr["Ativo"])
+                    Ativo = Convert.ToBoolean(dr["Ativo"]),
+                    Ordem = Convert.ToInt32(dr["Ordem"])
                 };
             }
 
             return etapa;
+        }
+
+        public async Task ReordenarAsync(DBContext dbContext, IEnumerable<(int Id, int Ordem)> itens)
+        {
+            await using var con = await dbContext.GetConnectionAsync();
+            foreach (var (id, ordem) in itens)
+            {
+                await using var cmd = con.CreateCommand();
+                cmd.CommandText = "UPDATE Etapa SET Ordem = @Ordem WHERE Id = @Id";
+                cmd.Parameters.AddWithValue("@Id", id);
+                cmd.Parameters.AddWithValue("@Ordem", ordem);
+                await cmd.ExecuteNonQueryAsync();
+            }
         }
 
         // Implementar o método de verificação de tarefas em andamento

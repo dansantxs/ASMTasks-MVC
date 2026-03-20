@@ -44,7 +44,8 @@ namespace API.Controllers
                 {
                     Nome = request.Nome,
                     Descricao = request.Descricao,
-                    Cor = request.Cor
+                    Cor = request.Cor,
+                    Ordem = request.Ordem
                 };
 
                 var id = await prioridade.CriarAsync(_dbContext);
@@ -88,6 +89,7 @@ namespace API.Controllers
                 prioridade.Nome = request.Nome;
                 prioridade.Descricao = request.Descricao;
                 prioridade.Cor = request.Cor;
+                prioridade.Ordem = request.Ordem;
 
                 await prioridade.AtualizarAsync(_dbContext);
                 return NoContent();
@@ -183,6 +185,7 @@ namespace API.Controllers
                 Nome = prioridade.Nome,
                 Descricao = prioridade.Descricao,
                 Cor = prioridade.Cor,
+                Ordem = prioridade.Ordem,
                 Ativo = prioridade.Ativo,
                 PossuiTarefasAtivas = false
             });
@@ -212,6 +215,7 @@ namespace API.Controllers
                 Nome = prioridade.Nome,
                 Descricao = prioridade.Descricao,
                 Cor = prioridade.Cor,
+                Ordem = prioridade.Ordem,
                 Ativo = prioridade.Ativo,
                 PossuiTarefasAtivas = false
             };

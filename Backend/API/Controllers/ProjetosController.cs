@@ -1,4 +1,5 @@
 using API.DB;
+using API.DB.DAOs;
 using API.DTOs.Projetos;
 using API.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -15,6 +16,7 @@ namespace API.Controllers
     public class ProjetosController : ControllerBase
     {
         private readonly DBContext _dbContext;
+        private static readonly ProjetosDAO _projetosDAO = new ProjetosDAO();
 
         public ProjetosController(DBContext dbContext)
         {
@@ -172,6 +174,55 @@ namespace API.Controllers
                 return NotFound(new { erro = "Projeto nao encontrado." });
 
             return Ok(MapearProjetoResponse(projeto));
+        }
+
+        [HttpGet("kanban")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> ObterKanban(
+            [FromQuery] int[] colaboradorIds,
+            [FromQuery] int[] projetoIds,
+            [FromQuery] int[] clienteIds)
+        {
+            try
+            {
+                var tarefas = await _projetosDAO.ObterTarefasKanbanAsync(
+                    _dbContext,
+                    colaboradorIds: colaboradorIds ?? [],
+                    projetoIds: projetoIds ?? [],
+                    clienteIds: clienteIds ?? []);
+
+                return Ok(tarefas);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { erro = "Erro ao obter tarefas do kanban.", detalhe = ex.Message });
+            }
+        }
+
+        [HttpPut("tarefas/{id}/etapa")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> MoverEtapa(int id, [FromBody] TarefaMoverEtapaRequest request)
+        {
+            try
+            {
+                DateTime? dataAtribuicao = null;
+                if (request.ColaboradorResponsavelId.HasValue)
+                    dataAtribuicao = DateTime.Now;
+
+                var atualizado = await _projetosDAO.AtualizarEtapaTarefaAsync(
+                    _dbContext, id, request.EtapaId, request.ColaboradorResponsavelId, dataAtribuicao);
+
+                if (!atualizado)
+                    return NotFound(new { erro = "Tarefa não encontrada." });
+
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { erro = "Erro ao mover tarefa de etapa.", detalhe = ex.Message });
+            }
         }
 
         private int ObterColaboradorIdLogado()

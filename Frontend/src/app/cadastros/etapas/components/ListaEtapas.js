@@ -19,7 +19,7 @@ export default function ListaEtapas({
   aoExcluir,
   aoVisualizar,
   aoReativar,
-  viewMode,
+  modoVisualizacao,
 }) {
   const isClient = useClientOnly();
   const [searchTerm, setSearchTerm] = useState('');
@@ -156,7 +156,7 @@ export default function ListaEtapas({
         />
       </div>
 
-      {viewMode === 'cards' ? (
+      {modoVisualizacao === 'cards' ? (
         <>
           {etapasAtivas.length > 0 && (
             <div className="space-y-4">

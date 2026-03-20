@@ -9,13 +9,14 @@ namespace API.DB.DAOs
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
             cmd.CommandText = @"
-                INSERT INTO Prioridade (Nome, Descricao, Cor, Ativo)
-                VALUES (@Nome, @Descricao, @Cor, @Ativo);
+                INSERT INTO Prioridade (Nome, Descricao, Cor, Ordem, Ativo)
+                VALUES (@Nome, @Descricao, @Cor, @Ordem, @Ativo);
                 SELECT CAST(SCOPE_IDENTITY() AS int);
             ";
             cmd.Parameters.AddWithValue("@Nome", prioridade.Nome);
             cmd.Parameters.AddWithValue("@Descricao", (object)prioridade.Descricao ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Cor", prioridade.Cor);
+            cmd.Parameters.AddWithValue("@Ordem", prioridade.Ordem);
             cmd.Parameters.AddWithValue("@Ativo", prioridade.Ativo);
 
             var result = await cmd.ExecuteScalarAsync();
@@ -28,13 +29,14 @@ namespace API.DB.DAOs
         {
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = @"UPDATE Prioridade 
-                                SET Nome = @Nome, Descricao = @Descricao, Cor = @Cor 
-                                WHERE Id = @Id AND Ativo = 1";
+            cmd.CommandText = @"UPDATE Prioridade
+                                SET Nome = @Nome, Descricao = @Descricao, Cor = @Cor, Ordem = @Ordem
+                                WHERE Id = @Id";
             cmd.Parameters.AddWithValue("@Id", prioridade.Id);
             cmd.Parameters.AddWithValue("@Nome", prioridade.Nome);
             cmd.Parameters.AddWithValue("@Descricao", (object)prioridade.Descricao ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Cor", prioridade.Cor);
+            cmd.Parameters.AddWithValue("@Ordem", prioridade.Ordem);
 
             int linhas = await cmd.ExecuteNonQueryAsync();
             return linhas > 0;
@@ -83,7 +85,7 @@ namespace API.DB.DAOs
 
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = "SELECT Id, Nome, Descricao, Cor, Ativo FROM Prioridade";
+            cmd.CommandText = "SELECT Id, Nome, Descricao, Cor, Ordem, Ativo FROM Prioridade ORDER BY Ordem ASC";
 
             await using var dr = await cmd.ExecuteReaderAsync();
             while (await dr.ReadAsync())
@@ -94,6 +96,7 @@ namespace API.DB.DAOs
                     Nome = dr["Nome"].ToString(),
                     Descricao = dr["Descricao"]?.ToString(),
                     Cor = dr["Cor"].ToString(),
+                    Ordem = Convert.ToInt32(dr["Ordem"]),
                     Ativo = Convert.ToBoolean(dr["Ativo"])
                 };
                 prioridades.Add(prioridade);
@@ -108,7 +111,7 @@ namespace API.DB.DAOs
 
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = "SELECT Id, Nome, Descricao, Cor, Ativo FROM Prioridade WHERE Id = @Id";
+            cmd.CommandText = "SELECT Id, Nome, Descricao, Cor, Ordem, Ativo FROM Prioridade WHERE Id = @Id";
             cmd.Parameters.AddWithValue("@Id", id);
 
             await using var dr = await cmd.ExecuteReaderAsync();
@@ -120,6 +123,7 @@ namespace API.DB.DAOs
                     Nome = dr["Nome"].ToString(),
                     Descricao = dr["Descricao"]?.ToString(),
                     Cor = dr["Cor"].ToString(),
+                    Ordem = Convert.ToInt32(dr["Ordem"]),
                     Ativo = Convert.ToBoolean(dr["Ativo"])
                 };
             }

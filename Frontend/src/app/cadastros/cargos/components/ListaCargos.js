@@ -21,7 +21,7 @@ export default function ListaCargos({
   aoExcluir,
   aoVisualizar,
   aoReativar,
-  viewMode,
+  modoVisualizacao,
 }) {
   const isClient = useClientOnly();
   const [searchTerm, setSearchTerm] = useState('');
@@ -167,7 +167,7 @@ export default function ListaCargos({
         />
       </div>
 
-      {viewMode === 'cards' ? (
+      {modoVisualizacao === 'cards' ? (
         <>
           {cargosAtivos.length > 0 && (
             <div className="space-y-4">

@@ -19,7 +19,6 @@ namespace API.Models
         public string? ObservacaoConclusao { get; set; }
         public int? ConcluidoPorColaboradorId { get; set; }
         public DateTime? DataHoraConclusao { get; set; }
-        public bool Ativo { get; set; } = true;
         public DateTime DataCadastro { get; set; }
         public List<int> ColaboradoresIds { get; set; } = new List<int>();
         public List<int> NotificacoesMinutosAntecedencia { get; set; } = new List<int>();
@@ -96,7 +95,6 @@ namespace API.Models
             await ValidarEntidadesRelacionadasAsync(dbContext);
             await ValidarConflitosHorarioAsync(dbContext);
 
-            Ativo = true;
             Status = 'A';
             DataCadastro = DateTime.Now;
             ColaboradoresIds = ColaboradoresIds.Distinct().ToList();
@@ -121,22 +119,13 @@ namespace API.Models
                 throw new ValidationException("Atendimento nao encontrado.");
         }
 
-        public async Task InativarAsync(DBContext dbContext)
+        public async Task ExcluirAsync(DBContext dbContext)
         {
             if (Status == 'R')
                 throw new ValidationException("Nao e permitido excluir um atendimento concluido.");
 
-            var inativado = await _atendimentosDAO.InativarAsync(dbContext, Id);
-            if (!inativado)
-                throw new ValidationException("Atendimento nao encontrado.");
-        }
-
-        public async Task ReativarAsync(DBContext dbContext)
-        {
-            await ValidarConflitosHorarioAsync(dbContext, Id);
-
-            var reativado = await _atendimentosDAO.ReativarAsync(dbContext, Id);
-            if (!reativado)
+            var excluido = await _atendimentosDAO.ExcluirAsync(dbContext, Id);
+            if (!excluido)
                 throw new ValidationException("Atendimento nao encontrado.");
         }
 

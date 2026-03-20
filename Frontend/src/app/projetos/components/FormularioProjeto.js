@@ -33,15 +33,20 @@ function criarFormularioInicial() {
 
 function CartaoTarefa({ tarefa, index, prioridadesAtivas, errors, onChange, onRemove, totalTarefas, onAbrirCriarPrioridade }) {
   const [showDesc, setShowDesc] = useState(Boolean(tarefa.descricao));
+  const prioridadeSelecionada = prioridadesAtivas.find((p) => String(p.id) === tarefa.prioridadeId);
+  const cor = prioridadeSelecionada?.cor;
 
   return (
-    <div className="rounded-md border p-3 bg-card space-y-2">
+    <div
+      className="rounded-md border border-l-4 p-2 bg-card space-y-1.5"
+      style={{ borderLeftColor: cor ?? 'transparent' }}
+    >
       <div className="flex items-start gap-2">
         <span className="text-xs font-medium bg-muted rounded px-1.5 py-1 text-muted-foreground shrink-0 leading-none mt-1.5">
           {index + 1}
         </span>
 
-        <div className="flex-1 space-y-2 min-w-0">
+        <div className="flex-1 space-y-1.5 min-w-0">
           <Input
             value={tarefa.titulo}
             onChange={(e) => onChange(index, 'titulo', e.target.value)}
@@ -82,7 +87,7 @@ function CartaoTarefa({ tarefa, index, prioridadesAtivas, errors, onChange, onRe
               value={tarefa.descricao}
               onChange={(e) => onChange(index, 'descricao', e.target.value)}
               placeholder="Descrição da tarefa (opcional)"
-              rows={2}
+              rows={1}
               className="text-sm resize-none"
             />
           ) : (
@@ -406,7 +411,7 @@ export default function FormularioProjeto({
 
                 {errors.tarefas && <p className="text-xs text-destructive mb-2">{errors.tarefas}</p>}
 
-                <div ref={tarefasContainerRef} className="flex-1 overflow-y-auto space-y-2 pr-0.5">
+                <div ref={tarefasContainerRef} className="flex-1 overflow-y-auto space-y-1.5 pr-0.5">
                   {formData.tarefas.map((tarefa, index) => (
                     <CartaoTarefa
                       key={`tarefa-${index}`}
