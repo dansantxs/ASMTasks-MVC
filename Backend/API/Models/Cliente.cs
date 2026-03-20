@@ -159,6 +159,12 @@ namespace API.Models
 
         public async Task InativarAsync(DBContext dbContext)
         {
+            if (await _clientesDAO.VerificarAtendimentosAtivosAsync(dbContext, Id))
+                throw new ValidationException("Não é possível inativar o cliente pois existem atendimentos em aberto vinculados a ele.");
+
+            if (await _clientesDAO.VerificarProjetosAtivosAsync(dbContext, Id))
+                throw new ValidationException("Não é possível inativar o cliente pois existem projetos ativos vinculados a ele.");
+
             var ok = await _clientesDAO.InativarAsync(dbContext, Id);
             if (!ok)
                 throw new ValidationException("Cliente não encontrado.");
