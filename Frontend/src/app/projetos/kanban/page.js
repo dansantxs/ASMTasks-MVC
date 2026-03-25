@@ -5,7 +5,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { LayoutDashboard } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
 import { obterSessaoArmazenada } from '../../../shared/auth/session';
-import { temPermissao, permissoesTelas } from '../../../shared/auth/permissions';
 import {
   getTarefasKanban,
   moverTarefaEtapa,
@@ -21,7 +20,7 @@ import QuadroKanban from './components/QuadroKanban';
 export default function KanbanPage() {
   const session = obterSessaoArmazenada();
   const colaboradorLogadoId = session?.colaboradorId ?? null;
-  const ehAdmin = temPermissao({ permissoes: session?.permissoes ?? [] }, permissoesTelas.projetosCadastro);
+  const ehAdmin = session?.ehAdministrador ?? false;
 
   const [filtros, setFiltros] = useState({
     colaboradorIds: colaboradorLogadoId ? [colaboradorLogadoId] : [],
@@ -119,8 +118,6 @@ export default function KanbanPage() {
     reordenar.mutate(comNovaOrdem.map((e) => ({ id: e.id, ordem: e.ordem })));
   };
 
-  const podeMoverQualquer = ehAdmin;
-
   return (
     <div className="min-h-screen bg-background">
       <div className="py-6 px-4">
@@ -157,7 +154,7 @@ export default function KanbanPage() {
             tarefas={tarefas}
             etapas={etapas}
             colaboradores={colaboradoresAtivos}
-            podeMover={podeMoverQualquer}
+            colaboradorLogadoId={colaboradorLogadoId}
             onMoverTarefa={handleMoverTarefa}
             isMovendo={mover.isPending}
             ehAdmin={ehAdmin}

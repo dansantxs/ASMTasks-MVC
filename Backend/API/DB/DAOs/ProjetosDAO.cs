@@ -222,7 +222,8 @@ namespace API.DB.DAOs
             DBContext dbContext,
             int[] colaboradorIds,
             int[] projetoIds,
-            int[] clienteIds)
+            int[] clienteIds,
+            bool incluirBacklog = false)
         {
             var lista = new List<TarefaKanbanResponse>();
 
@@ -253,6 +254,9 @@ namespace API.DB.DAOs
                 LEFT JOIN Colaborador col ON pt.ColaboradorResponsavelId = col.Id
                 WHERE p.Ativo = 1
             ");
+
+            if (!incluirBacklog)
+                sql.Append(" AND pt.EtapaId IS NOT NULL");
 
             if (colaboradorIds != null && colaboradorIds.Length > 0)
             {
@@ -313,6 +317,19 @@ namespace API.DB.DAOs
             }
 
             return lista;
+        }
+
+        public async Task<int?> ObterResponsavelTarefaAsync(DBContext dbContext, int tarefaId)
+        {
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = "SELECT ColaboradorResponsavelId FROM ProjetoTarefa WHERE Id = @Id";
+            cmd.Parameters.AddWithValue("@Id", tarefaId);
+
+            var result = await cmd.ExecuteScalarAsync();
+            if (result == null || result == DBNull.Value)
+                return null;
+            return Convert.ToInt32(result);
         }
 
         private static async Task InserirTarefasAsync(

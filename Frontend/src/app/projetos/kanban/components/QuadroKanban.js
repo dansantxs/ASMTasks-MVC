@@ -9,7 +9,7 @@ import DialogoVisualizarTarefa from './DialogoVisualizarTarefa';
 
 const COLUNA_BACKLOG = { id: null, nome: 'Backlog', ordem: -1 };
 
-export default function QuadroKanban({ tarefas, etapas, colaboradores, podeMover, onMoverTarefa, isMovendo, ehAdmin, onReordenarColunas }) {
+export default function QuadroKanban({ tarefas, etapas, colaboradores, colaboradorLogadoId, onMoverTarefa, isMovendo, ehAdmin, onReordenarColunas }) {
   const [tarefaArrastando, setTarefaArrastando] = useState(null);
   const [pendente, setPendente] = useState(null);
   const [tarefaVisualizando, setTarefaVisualizando] = useState(null);
@@ -109,8 +109,8 @@ export default function QuadroKanban({ tarefas, etapas, colaboradores, podeMover
               etapaId={coluna.id}
               titulo={coluna.nome}
               tarefas={tarefasPorEtapa(coluna.id)}
-              podeMover={podeMover}
               ehAdmin={ehAdmin}
+              colaboradorLogadoId={colaboradorLogadoId}
               isBacklog={coluna.id === null}
               onVisualizarTarefa={setTarefaVisualizando}
             />

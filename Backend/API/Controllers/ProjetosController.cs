@@ -185,11 +185,15 @@ namespace API.Controllers
         {
             try
             {
+                var ehAdmClaim = User.FindFirstValue("ehAdministrador");
+                var ehAdministrador = string.Equals(ehAdmClaim, "true", StringComparison.OrdinalIgnoreCase);
+
                 var tarefas = await _projetosDAO.ObterTarefasKanbanAsync(
                     _dbContext,
                     colaboradorIds: colaboradorIds ?? [],
                     projetoIds: projetoIds ?? [],
-                    clienteIds: clienteIds ?? []);
+                    clienteIds: clienteIds ?? [],
+                    incluirBacklog: ehAdministrador);
 
                 return Ok(tarefas);
             }
@@ -201,12 +205,28 @@ namespace API.Controllers
 
         [HttpPut("tarefas/{id}/etapa")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> MoverEtapa(int id, [FromBody] TarefaMoverEtapaRequest request)
         {
             try
             {
+                var ehAdmClaim = User.FindFirstValue("ehAdministrador");
+                var ehAdministrador = string.Equals(ehAdmClaim, "true", StringComparison.OrdinalIgnoreCase);
+
+                if (!ehAdministrador)
+                {
+                    var responsavelAtual = await _projetosDAO.ObterResponsavelTarefaAsync(_dbContext, id);
+                    if (responsavelAtual.HasValue)
+                    {
+                        var colaboradorLogado = ObterColaboradorIdLogado();
+                        if (responsavelAtual.Value != colaboradorLogado)
+                            return StatusCode(StatusCodes.Status403Forbidden,
+                                new { erro = "Apenas o responsável ou um administrador pode mover esta tarefa." });
+                    }
+                }
+
                 DateTime? dataAtribuicao = null;
                 if (request.ColaboradorResponsavelId.HasValue)
                     dataAtribuicao = DateTime.Now;
