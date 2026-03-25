@@ -51,7 +51,8 @@ namespace API.Controllers
                 ColaboradorId = usuario.ColaboradorId,
                 ColaboradorNome = usuario.NomeColaborador,
                 NivelAcesso = usuario.NivelAcesso,
-                Permissoes = usuario.Permissoes
+                Permissoes = usuario.Permissoes,
+                EhAdministrador = usuario.EhAdministrador
             });
         }
 
@@ -76,7 +77,8 @@ namespace API.Controllers
                 colaboradorNome = usuario.NomeColaborador,
                 login = usuario.Login,
                 nivelAcesso = usuario.NivelAcesso,
-                permissoes = usuario.Permissoes
+                permissoes = usuario.Permissoes,
+                ehAdministrador = usuario.EhAdministrador
             });
         }
 
@@ -135,6 +137,7 @@ namespace API.Controllers
                 new("colaboradorId", usuario.ColaboradorId.ToString()),
                 new("colaboradorNome", usuario.NomeColaborador),
                 new("nivelAcesso", usuario.NivelAcesso),
+                new("ehAdministrador", usuario.EhAdministrador.ToString().ToLower()),
                 new(ClaimTypes.Name, usuario.Login)
             };
 

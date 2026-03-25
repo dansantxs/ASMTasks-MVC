@@ -6,7 +6,11 @@ import { GripVertical } from 'lucide-react';
 import { cn } from '../../../../ui/form/utils';
 import CartaoTarefa from './CartaoTarefa';
 
-export default function ColunaKanban({ etapaId, titulo, tarefas, podeMover, ehAdmin, isBacklog, onVisualizarTarefa }) {
+export default function ColunaKanban({ etapaId, titulo, tarefas, ehAdmin, colaboradorLogadoId, isBacklog, onVisualizarTarefa }) {
+  const podeMoverTarefa = (tarefa) =>
+    ehAdmin ||
+    tarefa.colaboradorResponsavelId == null ||
+    tarefa.colaboradorResponsavelId === colaboradorLogadoId;
   const podeReordenar = ehAdmin && !isBacklog;
 
   const {
@@ -70,7 +74,7 @@ export default function ColunaKanban({ etapaId, titulo, tarefas, podeMover, ehAd
           <CartaoTarefa
             key={tarefa.id}
             tarefa={tarefa}
-            podeMover={podeMover}
+            podeMover={podeMoverTarefa(tarefa)}
             onVisualizar={onVisualizarTarefa}
           />
         ))}

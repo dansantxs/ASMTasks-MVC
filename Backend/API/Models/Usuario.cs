@@ -22,6 +22,7 @@ namespace API.Models
         public string NomeColaborador { get; set; } = string.Empty;
         public bool ColaboradorAtivo { get; set; } = true;
         public List<string> Permissoes { get; set; } = new();
+        public bool EhAdministrador { get; set; }
 
         public static async Task<Usuario?> AutenticarAsync(DBContext dbContext, string login, string senha)
         {
@@ -302,7 +303,9 @@ namespace API.Models
 
         private static async Task<List<string>> CarregarPermissoesAsync(DBContext dbContext, Usuario usuario)
         {
-            var permissoes = await NivelAcessoModel.ObterPermissoesPorNomeAsync(dbContext, usuario.NivelAcesso);
+            var nivel = await NivelAcessoModel.ObterPorNomeAsync(dbContext, usuario.NivelAcesso);
+            var permissoes = nivel?.Permissoes ?? new List<string>();
+            usuario.EhAdministrador = nivel?.EhAdministrador ?? false;
 
             if (!await _usuariosDAO.ExisteUsuarioAdministradorAsync(dbContext) &&
                 !permissoes.Contains(API.Security.TelaPermissoes.ConfiguracoesAcessos))
