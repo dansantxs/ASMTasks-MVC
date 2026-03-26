@@ -6,6 +6,7 @@ import { Button } from '../../../../ui/base/button';
 import { Input } from '../../../../ui/form/input';
 import { Label } from '../../../../ui/form/label';
 import { Textarea } from '../../../../ui/form/textarea';
+import { Switch } from '../../../../ui/form/switch';
 import { toast } from 'sonner';
 
 export default function FormularioEtapa({
@@ -18,7 +19,8 @@ export default function FormularioEtapa({
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    active: true
+    active: true,
+    isFinalStage: false,
   });
   const [errors, setErrors] = useState({});
 
@@ -27,13 +29,15 @@ export default function FormularioEtapa({
       setFormData({
         name: etapa.name,
         description: etapa.description || '',
-        active: etapa.active
+        active: etapa.active,
+        isFinalStage: etapa.isFinalStage ?? false,
       });
     } else {
       setFormData({
         name: '',
         description: '',
-        active: true
+        active: true,
+        isFinalStage: false,
       });
     }
     setErrors({});
@@ -105,6 +109,26 @@ export default function FormularioEtapa({
               rows={3}
             />
           </div>
+
+          {(() => {
+            const outraEtapaFinal = etapasExistentes.some(
+              (e) => e.isFinalStage && e.id !== (etapa?.id ?? null)
+            );
+            const desabilitado = outraEtapaFinal && !formData.isFinalStage;
+            return (
+              <div className={`flex items-center justify-between rounded-lg border p-3 ${desabilitado ? 'bg-gray-50 border-gray-200 opacity-60' : 'bg-green-50 border-green-200'}`}>
+                <Label htmlFor="isFinalStage" className={`text-sm font-medium cursor-pointer ${desabilitado ? 'text-gray-500' : 'text-green-800'}`}>
+                  Etapa final
+                </Label>
+                <Switch
+                  id="isFinalStage"
+                  checked={formData.isFinalStage}
+                  onCheckedChange={(v) => setFormData(prev => ({ ...prev, isFinalStage: v }))}
+                  disabled={desabilitado}
+                />
+              </div>
+            );
+          })()}
 
           <div className="flex justify-end gap-3 pt-4">
             <Button

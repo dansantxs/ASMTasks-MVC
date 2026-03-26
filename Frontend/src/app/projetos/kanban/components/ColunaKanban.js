@@ -2,16 +2,16 @@
 
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical } from 'lucide-react';
+import { GripVertical, CheckCircle2 } from 'lucide-react';
 import { cn } from '../../../../ui/form/utils';
 import CartaoTarefa from './CartaoTarefa';
 
-export default function ColunaKanban({ etapaId, titulo, tarefas, ehAdmin, colaboradorLogadoId, isBacklog, onVisualizarTarefa }) {
+export default function ColunaKanban({ etapaId, titulo, tarefas, ehAdmin, colaboradorLogadoId, isBacklog, isEtapaFinal, onVisualizarTarefa }) {
   const podeMoverTarefa = (tarefa) =>
     ehAdmin ||
     tarefa.colaboradorResponsavelId == null ||
     tarefa.colaboradorResponsavelId === colaboradorLogadoId;
-  const podeReordenar = ehAdmin && !isBacklog;
+  const podeReordenar = ehAdmin && !isBacklog && !isEtapaFinal;
 
   const {
     attributes: dragAttrs,
@@ -39,12 +39,16 @@ export default function ColunaKanban({ etapaId, titulo, tarefas, ehAdmin, colabo
       ref={(el) => { setDragRef(el); setColDropRef(el); }}
       style={isColumnDragging ? { opacity: 0.5 } : undefined}
       className={cn(
-        'flex flex-col bg-gray-50 border border-gray-200 rounded-xl min-w-[280px] w-[280px] max-h-[calc(100vh-230px)] transition-colors',
+        'flex flex-col bg-gray-50 border rounded-xl min-w-[280px] w-[280px] max-h-[calc(100vh-230px)] transition-colors',
+        isEtapaFinal ? 'border-green-300 bg-green-50/40' : 'border-gray-200',
         isColOver && !isColumnDragging && 'border-brand-blue bg-brand-blue/5'
       )}
       {...(podeReordenar ? dragAttrs : {})}
     >
-      <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-gray-50 rounded-t-xl">
+      <div className={cn(
+        'px-4 py-3 border-b flex items-center justify-between sticky top-0 rounded-t-xl',
+        isEtapaFinal ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-gray-50'
+      )}>
         <div className="flex items-center gap-1.5 min-w-0">
           {podeReordenar && (
             <span
@@ -55,7 +59,8 @@ export default function ColunaKanban({ etapaId, titulo, tarefas, ehAdmin, colabo
               <GripVertical className="h-4 w-4" />
             </span>
           )}
-          <h3 className="text-sm font-semibold text-gray-700 truncate">{titulo}</h3>
+          <h3 className={cn('text-sm font-semibold truncate', isEtapaFinal ? 'text-green-800' : 'text-gray-700')}>{titulo}</h3>
+          {isEtapaFinal && <CheckCircle2 className="h-3.5 w-3.5 text-green-600 flex-shrink-0" title="Etapa final" />}
         </div>
         <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gray-200 text-xs font-medium text-gray-600 flex-shrink-0">
           {tarefas.length}

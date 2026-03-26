@@ -12,6 +12,7 @@ namespace API.Models
         public int? ColaboradorResponsavelId { get; set; }
         public DateTime? DataHoraAtribuicao { get; set; }
         public int? EtapaId { get; set; }
+        public DateTime? DataHoraInicio { get; set; }
 
         public void ValidarDados()
         {

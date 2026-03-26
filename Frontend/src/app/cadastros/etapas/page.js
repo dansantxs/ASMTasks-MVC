@@ -33,6 +33,7 @@ export default function EtapasPage() {
       description: e.descricao,
       active: e.ativo,
       hasActiveTasks: e.possuiTarefasAtivas ?? false,
+      isFinalStage: e.ehEtapaFinal ?? false,
     };
   });
 
@@ -79,6 +80,7 @@ export default function EtapasPage() {
     const dataAPI = {
       nome: stageData.name,
       descricao: stageData.description,
+      ehEtapaFinal: stageData.isFinalStage ?? false,
     };
 
     if (etapaSelecionada) atualizar.mutate({ id: etapaSelecionada.id, data: dataAPI });

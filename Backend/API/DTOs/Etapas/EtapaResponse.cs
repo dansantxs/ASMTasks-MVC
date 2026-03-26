@@ -8,5 +8,6 @@
         public bool Ativo { get; set; }
         public bool PossuiTarefasAtivas { get; set; }
         public int Ordem { get; set; }
+        public bool EhEtapaFinal { get; set; }
     }
 }

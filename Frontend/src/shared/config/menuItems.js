@@ -18,4 +18,5 @@ export const relatorioItems = [
   { key: "prioridades", label: "Prioridades", icon: Flag, permission: permissoesTelas.relatoriosPrioridades },
   { key: "setores", label: "Setores", icon: Building2, permission: permissoesTelas.relatoriosSetores },
   { key: "atendimentos-historico", label: "Histórico Atend.", icon: History, permission: permissoesTelas.relatoriosAtendimentosHistorico },
+  { key: "projetos-historico", label: "Histórico Tarefas", icon: History, permission: permissoesTelas.relatoriosProjetosHistorico },
 ];

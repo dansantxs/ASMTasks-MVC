@@ -215,13 +215,16 @@ namespace API.Controllers
                 var ehAdmClaim = User.FindFirstValue("ehAdministrador");
                 var ehAdministrador = string.Equals(ehAdmClaim, "true", StringComparison.OrdinalIgnoreCase);
 
+                var estadoAtual = await _projetosDAO.ObterEstadoAtualTarefaAsync(_dbContext, id);
+                if (estadoAtual == null)
+                    return NotFound(new { erro = "Tarefa não encontrada." });
+
                 if (!ehAdministrador)
                 {
-                    var responsavelAtual = await _projetosDAO.ObterResponsavelTarefaAsync(_dbContext, id);
-                    if (responsavelAtual.HasValue)
+                    if (estadoAtual.ColaboradorResponsavelId.HasValue)
                     {
                         var colaboradorLogado = ObterColaboradorIdLogado();
-                        if (responsavelAtual.Value != colaboradorLogado)
+                        if (estadoAtual.ColaboradorResponsavelId.Value != colaboradorLogado)
                             return StatusCode(StatusCodes.Status403Forbidden,
                                 new { erro = "Apenas o responsável ou um administrador pode mover esta tarefa." });
                     }
@@ -237,11 +240,172 @@ namespace API.Controllers
                 if (!atualizado)
                     return NotFound(new { erro = "Tarefa não encontrada." });
 
+                var agora = DateTime.Now;
+
+                if (request.EtapaId != estadoAtual.EtapaId)
+                {
+                    await _projetosDAO.InserirHistoricoAsync(_dbContext, new ProjetoTarefaHistorico
+                    {
+                        TarefaId = id,
+                        Tipo = 'E',
+                        EtapaId = request.EtapaId,
+                        DataHoraAcao = agora
+                    });
+                }
+
+                if (request.ColaboradorResponsavelId != estadoAtual.ColaboradorResponsavelId)
+                {
+                    await _projetosDAO.InserirHistoricoAsync(_dbContext, new ProjetoTarefaHistorico
+                    {
+                        TarefaId = id,
+                        Tipo = 'A',
+                        ColaboradorId = request.ColaboradorResponsavelId,
+                        DataHoraAcao = agora
+                    });
+                }
+
                 return NoContent();
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { erro = "Erro ao mover tarefa de etapa.", detalhe = ex.Message });
+            }
+        }
+
+        [HttpPost("tarefas/{id}/iniciar")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> IniciarTarefa(int id)
+        {
+            try
+            {
+                var estadoAtual = await _projetosDAO.ObterEstadoAtualTarefaAsync(_dbContext, id);
+                if (estadoAtual == null)
+                    return NotFound(new { erro = "Tarefa não encontrada." });
+
+                if (!estadoAtual.EtapaId.HasValue)
+                    return BadRequest(new { erro = "Não é possível iniciar uma tarefa que está no backlog." });
+
+                if (!estadoAtual.ColaboradorResponsavelId.HasValue)
+                    return BadRequest(new { erro = "Não é possível iniciar uma tarefa sem responsável." });
+
+                if (estadoAtual.DataHoraInicio.HasValue)
+                    return BadRequest(new { erro = "Esta tarefa já foi iniciada." });
+
+                var ehAdmClaim = User.FindFirstValue("ehAdministrador");
+                var ehAdministrador = string.Equals(ehAdmClaim, "true", StringComparison.OrdinalIgnoreCase);
+                var colaboradorLogado = ObterColaboradorIdLogado();
+
+                if (!ehAdministrador && estadoAtual.ColaboradorResponsavelId.Value != colaboradorLogado)
+                    return StatusCode(StatusCodes.Status403Forbidden,
+                        new { erro = "Apenas o responsável ou um administrador pode iniciar esta tarefa." });
+
+                var iniciado = await _projetosDAO.IniciarTarefaAsync(_dbContext, id, colaboradorLogado, DateTime.Now);
+                if (!iniciado)
+                    return BadRequest(new { erro = "Não foi possível iniciar a tarefa. Ela pode já ter sido iniciada." });
+
+                return NoContent();
+            }
+            catch (ValidationException ex)
+            {
+                return BadRequest(new { erro = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { erro = "Erro ao iniciar tarefa.", detalhe = ex.Message });
+            }
+        }
+
+        [HttpPost("tarefas/{id}/pausar")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> PausarTarefa(int id, [FromBody] TarefaPausarRequest? request)
+        {
+            try
+            {
+                var estadoAtual = await _projetosDAO.ObterEstadoAtualTarefaAsync(_dbContext, id);
+                if (estadoAtual == null)
+                    return NotFound(new { erro = "Tarefa não encontrada." });
+
+                if (!estadoAtual.DataHoraInicio.HasValue)
+                    return BadRequest(new { erro = "Esta tarefa não está em andamento." });
+
+                var ehAdmClaim = User.FindFirstValue("ehAdministrador");
+                var ehAdministrador = string.Equals(ehAdmClaim, "true", StringComparison.OrdinalIgnoreCase);
+                var colaboradorLogado = ObterColaboradorIdLogado();
+
+                if (!ehAdministrador && estadoAtual.ColaboradorResponsavelId.Value != colaboradorLogado)
+                    return StatusCode(StatusCodes.Status403Forbidden,
+                        new { erro = "Apenas o responsável ou um administrador pode pausar esta tarefa." });
+
+                var pausado = await _projetosDAO.PausarTarefaAsync(_dbContext, id, colaboradorLogado, DateTime.Now, request?.Observacao);
+                if (!pausado)
+                    return BadRequest(new { erro = "Não foi possível pausar a tarefa. Ela pode não estar em andamento." });
+
+                return NoContent();
+            }
+            catch (ValidationException ex)
+            {
+                return BadRequest(new { erro = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { erro = "Erro ao pausar tarefa.", detalhe = ex.Message });
+            }
+        }
+
+        [HttpGet("tarefas/{id}/historico")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> ObterHistoricoTarefa(int id)
+        {
+            try
+            {
+                var historico = await _projetosDAO.ObterHistoricoTarefaAsync(_dbContext, id);
+                return Ok(historico);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { erro = "Erro ao obter histórico da tarefa.", detalhe = ex.Message });
+            }
+        }
+
+        [HttpGet("tarefas/relatorio-historico")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> ObterRelatorioHistorico(
+            [FromQuery] string? tipo,
+            [FromQuery] int? colaboradorId,
+            [FromQuery] int? projetoId,
+            [FromQuery] int? clienteId,
+            [FromQuery] DateTime? dataInicio,
+            [FromQuery] DateTime? dataFim)
+        {
+            try
+            {
+                char? tipoChar = null;
+                if (!string.IsNullOrEmpty(tipo) && tipo.Length == 1)
+                    tipoChar = tipo[0];
+
+                var resultado = await _projetosDAO.ObterRelatorioHistoricoAsync(
+                    _dbContext,
+                    tipoChar,
+                    colaboradorId,
+                    projetoId,
+                    clienteId,
+                    dataInicio,
+                    dataFim);
+
+                return Ok(resultado);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { erro = "Erro ao obter relatório de histórico.", detalhe = ex.Message });
             }
         }
 

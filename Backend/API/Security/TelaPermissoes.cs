@@ -18,6 +18,7 @@ namespace API.Security
         public const string RelatoriosPrioridades = "relatorios.prioridades";
         public const string RelatoriosSetores = "relatorios.setores";
         public const string RelatoriosAtendimentosHistorico = "relatorios.atendimentos-historico";
+        public const string RelatoriosProjetosHistorico = "relatorios.projetos-historico";
         public const string ConfiguracoesMinhaConta = "configuracoes.minha-conta";
         public const string ConfiguracoesAcessos = "configuracoes.acessos";
         public const string ConfiguracoesSistema = "configuracoes.sistema";
@@ -40,6 +41,7 @@ namespace API.Security
             RelatoriosPrioridades,
             RelatoriosSetores,
             RelatoriosAtendimentosHistorico,
+            RelatoriosProjetosHistorico,
             ConfiguracoesMinhaConta,
             ConfiguracoesAcessos,
             ConfiguracoesSistema
@@ -63,6 +65,7 @@ namespace API.Security
             RelatoriosPrioridades,
             RelatoriosSetores,
             RelatoriosAtendimentosHistorico,
+            RelatoriosProjetosHistorico,
             ConfiguracoesMinhaConta,
             ConfiguracoesSistema
         };
