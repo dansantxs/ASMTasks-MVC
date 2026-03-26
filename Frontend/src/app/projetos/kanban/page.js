@@ -13,6 +13,8 @@ import {
   getColaboradoresKanban,
   getProjetosKanban,
   getClientesKanban,
+  iniciarTarefa,
+  pausarTarefa,
 } from './api/kanban';
 import FiltrosKanban from './components/FiltrosKanban';
 import QuadroKanban from './components/QuadroKanban';
@@ -53,6 +55,7 @@ export default function KanbanPage() {
   const { data: tarefas = [], isLoading } = useQuery({
     queryKey: ['kanban-tarefas', filtros],
     queryFn: () => getTarefasKanban(filtros),
+    refetchInterval: 30_000,
   });
 
   // Apenas projetos ativos — normaliza titulo → nome para o filtro
@@ -87,6 +90,26 @@ export default function KanbanPage() {
     },
   });
 
+  const iniciar = useMutation({
+    mutationFn: (tarefa) => iniciarTarefa(tarefa.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['kanban-tarefas'] });
+      queryClient.invalidateQueries({ queryKey: ['tarefa-historico'] });
+      toast.success('Tarefa iniciada com sucesso.');
+    },
+    onError: (error) => toast.error(error?.message ?? 'Erro ao iniciar tarefa.'),
+  });
+
+  const pausar = useMutation({
+    mutationFn: ({ tarefa, observacao }) => pausarTarefa(tarefa.id, observacao),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['kanban-tarefas'] });
+      queryClient.invalidateQueries({ queryKey: ['tarefa-historico'] });
+      toast.success('Tarefa pausada com sucesso.');
+    },
+    onError: (error) => toast.error(error?.message ?? 'Erro ao pausar tarefa.'),
+  });
+
   const handleMoverTarefa = (tarefa, etapaIdDestino, colaboradorResponsavelId) => {
     mover.mutate({
       tarefaId: tarefa.id,
@@ -99,6 +122,9 @@ export default function KanbanPage() {
     const etapasAtivas = [...etapas.filter((e) => e.ativo)].sort((a, b) => a.ordem - b.ordem);
     const fromIdx = etapasAtivas.findIndex((e) => e.id === fromEtapaId);
     const toIdx = etapasAtivas.findIndex((e) => e.id === toEtapaId);
+
+    // Etapa final não pode ser reordenada (proteção extra no backend)
+    if (etapasAtivas[fromIdx]?.ehEtapaFinal || etapasAtivas[toIdx]?.ehEtapaFinal) return;
 
     if (fromIdx < 0 || toIdx < 0 || fromIdx === toIdx) return;
 
@@ -159,6 +185,10 @@ export default function KanbanPage() {
             isMovendo={mover.isPending}
             ehAdmin={ehAdmin}
             onReordenarColunas={handleReordenarColunas}
+            onIniciarTarefa={(tarefa) => iniciar.mutate(tarefa)}
+            isIniciando={iniciar.isPending}
+            onPausarTarefa={(tarefa, observacao) => pausar.mutate({ tarefa, observacao })}
+            isPausando={pausar.isPending}
           />
         )}
       </div>

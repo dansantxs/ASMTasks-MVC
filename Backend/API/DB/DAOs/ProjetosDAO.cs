@@ -206,7 +206,8 @@ namespace API.DB.DAOs
                 UPDATE ProjetoTarefa
                 SET EtapaId = @EtapaId,
                     ColaboradorResponsavelId = @ColaboradorResponsavelId,
-                    DataHoraAtribuicao = @DataHoraAtribuicao
+                    DataHoraAtribuicao = @DataHoraAtribuicao,
+                    DataHoraInicio = NULL
                 WHERE Id = @Id;
             ";
             cmd.Parameters.AddWithValue("@Id", tarefaId);
@@ -216,6 +217,318 @@ namespace API.DB.DAOs
 
             var linhas = await cmd.ExecuteNonQueryAsync();
             return linhas > 0;
+        }
+
+        public async Task<ProjetoTarefa?> ObterEstadoAtualTarefaAsync(DBContext dbContext, int tarefaId)
+        {
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = @"
+                SELECT pt.Id, pt.EtapaId, pt.ColaboradorResponsavelId, pt.DataHoraInicio,
+                       col.Nome AS ColaboradorNome, e.Nome AS EtapaNome
+                FROM ProjetoTarefa pt
+                LEFT JOIN Colaborador col ON pt.ColaboradorResponsavelId = col.Id
+                LEFT JOIN Etapa e ON pt.EtapaId = e.Id
+                WHERE pt.Id = @Id;
+            ";
+            cmd.Parameters.AddWithValue("@Id", tarefaId);
+
+            await using var dr = await cmd.ExecuteReaderAsync();
+            if (!await dr.ReadAsync()) return null;
+
+            return new ProjetoTarefa
+            {
+                Id = Convert.ToInt32(dr["Id"]),
+                EtapaId = dr["EtapaId"] == DBNull.Value ? null : Convert.ToInt32(dr["EtapaId"]),
+                ColaboradorResponsavelId = dr["ColaboradorResponsavelId"] == DBNull.Value ? null : Convert.ToInt32(dr["ColaboradorResponsavelId"]),
+                DataHoraInicio = dr["DataHoraInicio"] == DBNull.Value ? null : Convert.ToDateTime(dr["DataHoraInicio"]),
+                // Nomes usados apenas para contexto — não fazem parte do model real, mas o model aceita
+            };
+        }
+
+        public async Task InserirHistoricoAsync(DBContext dbContext, ProjetoTarefaHistorico historico)
+        {
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = @"
+                INSERT INTO ProjetoTarefaHistorico
+                (TarefaId, Tipo, ColaboradorId, ColaboradorNome, EtapaId, EtapaNome, Observacao, DataHoraAcao)
+                VALUES
+                (@TarefaId, @Tipo, @ColaboradorId,
+                 ISNULL(@ColaboradorNome, (SELECT Nome FROM Colaborador WHERE Id = @ColaboradorId)),
+                 @EtapaId,
+                 ISNULL(@EtapaNome, (SELECT Nome FROM Etapa WHERE Id = @EtapaId)),
+                 @Observacao,
+                 @DataHoraAcao);
+            ";
+            cmd.Parameters.AddWithValue("@TarefaId", historico.TarefaId);
+            cmd.Parameters.AddWithValue("@Tipo", historico.Tipo.ToString());
+            cmd.Parameters.AddWithValue("@ColaboradorId", (object?)historico.ColaboradorId ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@ColaboradorNome", (object?)historico.ColaboradorNome ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@EtapaId", (object?)historico.EtapaId ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@EtapaNome", (object?)historico.EtapaNome ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@Observacao", (object?)historico.Observacao ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@DataHoraAcao", historico.DataHoraAcao);
+
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        public async Task<bool> IniciarTarefaAsync(DBContext dbContext, int tarefaId, int colaboradorId, DateTime dataHoraInicio)
+        {
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var transaction = (SqlTransaction)await con.BeginTransactionAsync();
+
+            try
+            {
+                await using (var checkCmd = con.CreateCommand())
+                {
+                    checkCmd.Transaction = transaction;
+                    checkCmd.CommandText = @"
+                        SELECT COUNT(*) FROM ProjetoTarefa
+                        WHERE ColaboradorResponsavelId = @ColaboradorId
+                        AND DataHoraInicio IS NOT NULL
+                        AND Id != @TarefaId;
+                    ";
+                    checkCmd.Parameters.AddWithValue("@ColaboradorId", colaboradorId);
+                    checkCmd.Parameters.AddWithValue("@TarefaId", tarefaId);
+                    var count = Convert.ToInt32(await checkCmd.ExecuteScalarAsync());
+                    if (count > 0)
+                    {
+                        await transaction.RollbackAsync();
+                        throw new System.ComponentModel.DataAnnotations.ValidationException(
+                            "Você já possui outra tarefa em andamento. Pause-a antes de iniciar esta.");
+                    }
+                }
+
+                await using (var cmd = con.CreateCommand())
+                {
+                    cmd.Transaction = transaction;
+                    cmd.CommandText = @"
+                        UPDATE ProjetoTarefa SET DataHoraInicio = @DataHoraInicio
+                        WHERE Id = @Id AND DataHoraInicio IS NULL;
+                    ";
+                    cmd.Parameters.AddWithValue("@Id", tarefaId);
+                    cmd.Parameters.AddWithValue("@DataHoraInicio", dataHoraInicio);
+
+                    var linhas = await cmd.ExecuteNonQueryAsync();
+                    if (linhas == 0)
+                    {
+                        await transaction.RollbackAsync();
+                        return false;
+                    }
+                }
+
+                await using (var histCmd = con.CreateCommand())
+                {
+                    histCmd.Transaction = transaction;
+                    histCmd.CommandText = @"
+                        INSERT INTO ProjetoTarefaHistorico
+                        (TarefaId, Tipo, ColaboradorId, ColaboradorNome, EtapaId, EtapaNome, DataHoraAcao)
+                        VALUES
+                        (@TarefaId, 'I', @ColaboradorId,
+                         (SELECT Nome FROM Colaborador WHERE Id = @ColaboradorId),
+                         NULL, NULL, @DataHoraAcao);
+                    ";
+                    histCmd.Parameters.AddWithValue("@TarefaId", tarefaId);
+                    histCmd.Parameters.AddWithValue("@ColaboradorId", colaboradorId);
+                    histCmd.Parameters.AddWithValue("@DataHoraAcao", dataHoraInicio);
+
+                    await histCmd.ExecuteNonQueryAsync();
+                }
+
+                await transaction.CommitAsync();
+                return true;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<bool> PausarTarefaAsync(DBContext dbContext, int tarefaId, int colaboradorId, DateTime dataHoraPausa, string? observacao = null)
+        {
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var transaction = (SqlTransaction)await con.BeginTransactionAsync();
+
+            try
+            {
+                await using (var cmd = con.CreateCommand())
+                {
+                    cmd.Transaction = transaction;
+                    cmd.CommandText = @"
+                        UPDATE ProjetoTarefa SET DataHoraInicio = NULL
+                        WHERE Id = @Id AND DataHoraInicio IS NOT NULL;
+                    ";
+                    cmd.Parameters.AddWithValue("@Id", tarefaId);
+
+                    var linhas = await cmd.ExecuteNonQueryAsync();
+                    if (linhas == 0)
+                    {
+                        await transaction.RollbackAsync();
+                        return false;
+                    }
+                }
+
+                await using (var histCmd = con.CreateCommand())
+                {
+                    histCmd.Transaction = transaction;
+                    histCmd.CommandText = @"
+                        INSERT INTO ProjetoTarefaHistorico
+                        (TarefaId, Tipo, ColaboradorId, ColaboradorNome, EtapaId, EtapaNome, Observacao, DataHoraAcao)
+                        VALUES
+                        (@TarefaId, 'P', @ColaboradorId,
+                         (SELECT Nome FROM Colaborador WHERE Id = @ColaboradorId),
+                         NULL, NULL, @Observacao, @DataHoraAcao);
+                    ";
+                    histCmd.Parameters.AddWithValue("@TarefaId", tarefaId);
+                    histCmd.Parameters.AddWithValue("@ColaboradorId", colaboradorId);
+                    histCmd.Parameters.AddWithValue("@Observacao", (object?)observacao ?? DBNull.Value);
+                    histCmd.Parameters.AddWithValue("@DataHoraAcao", dataHoraPausa);
+
+                    await histCmd.ExecuteNonQueryAsync();
+                }
+
+                await transaction.CommitAsync();
+                return true;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<ProjetoTarefaHistoricoResponse>> ObterHistoricoTarefaAsync(DBContext dbContext, int tarefaId)
+        {
+            var lista = new List<ProjetoTarefaHistoricoResponse>();
+
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = @"
+                SELECT Id, Tipo, ColaboradorId, ColaboradorNome, EtapaId, EtapaNome, Observacao, DataHoraAcao
+                FROM ProjetoTarefaHistorico
+                WHERE TarefaId = @TarefaId
+                ORDER BY DataHoraAcao ASC;
+            ";
+            cmd.Parameters.AddWithValue("@TarefaId", tarefaId);
+
+            await using var dr = await cmd.ExecuteReaderAsync();
+            while (await dr.ReadAsync())
+            {
+                lista.Add(new ProjetoTarefaHistoricoResponse
+                {
+                    Id = Convert.ToInt32(dr["Id"]),
+                    Tipo = Convert.ToString(dr["Tipo"])![0],
+                    ColaboradorId = dr["ColaboradorId"] == DBNull.Value ? null : Convert.ToInt32(dr["ColaboradorId"]),
+                    ColaboradorNome = dr["ColaboradorNome"] == DBNull.Value ? null : dr["ColaboradorNome"].ToString(),
+                    EtapaId = dr["EtapaId"] == DBNull.Value ? null : Convert.ToInt32(dr["EtapaId"]),
+                    EtapaNome = dr["EtapaNome"] == DBNull.Value ? null : dr["EtapaNome"].ToString(),
+                    Observacao = dr["Observacao"] == DBNull.Value ? null : dr["Observacao"].ToString(),
+                    DataHoraAcao = Convert.ToDateTime(dr["DataHoraAcao"])
+                });
+            }
+
+            return lista;
+        }
+
+        public async Task<IEnumerable<TarefaHistoricoRelatorioResponse>> ObterRelatorioHistoricoAsync(
+            DBContext dbContext,
+            char? tipo,
+            int? colaboradorId,
+            int? projetoId,
+            int? clienteId,
+            DateTime? dataInicio,
+            DateTime? dataFim)
+        {
+            var lista = new List<TarefaHistoricoRelatorioResponse>();
+
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+
+            var sql = new System.Text.StringBuilder(@"
+                SELECT
+                    h.Id,
+                    h.TarefaId,
+                    pt.Titulo AS TarefaTitulo,
+                    p.Id AS ProjetoId,
+                    p.Titulo AS ProjetoTitulo,
+                    c.Id AS ClienteId,
+                    c.Nome AS ClienteNome,
+                    h.Tipo,
+                    h.ColaboradorId,
+                    h.ColaboradorNome,
+                    h.EtapaId,
+                    h.EtapaNome,
+                    h.DataHoraAcao
+                FROM ProjetoTarefaHistorico h
+                INNER JOIN ProjetoTarefa pt ON h.TarefaId = pt.Id
+                INNER JOIN Projeto p ON pt.ProjetoId = p.Id
+                INNER JOIN Cliente c ON p.ClienteId = c.Id
+                WHERE 1 = 1
+            ");
+
+            if (tipo.HasValue)
+            {
+                sql.Append(" AND h.Tipo = @Tipo");
+                cmd.Parameters.AddWithValue("@Tipo", tipo.Value.ToString());
+            }
+
+            if (colaboradorId.HasValue)
+            {
+                sql.Append(" AND h.ColaboradorId = @ColaboradorId");
+                cmd.Parameters.AddWithValue("@ColaboradorId", colaboradorId.Value);
+            }
+
+            if (projetoId.HasValue)
+            {
+                sql.Append(" AND p.Id = @ProjetoId");
+                cmd.Parameters.AddWithValue("@ProjetoId", projetoId.Value);
+            }
+
+            if (clienteId.HasValue)
+            {
+                sql.Append(" AND c.Id = @ClienteId");
+                cmd.Parameters.AddWithValue("@ClienteId", clienteId.Value);
+            }
+
+            if (dataInicio.HasValue)
+            {
+                sql.Append(" AND h.DataHoraAcao >= @DataInicio");
+                cmd.Parameters.AddWithValue("@DataInicio", dataInicio.Value);
+            }
+
+            if (dataFim.HasValue)
+            {
+                sql.Append(" AND h.DataHoraAcao <= @DataFim");
+                cmd.Parameters.AddWithValue("@DataFim", dataFim.Value);
+            }
+
+            sql.Append(" ORDER BY h.DataHoraAcao DESC;");
+            cmd.CommandText = sql.ToString();
+
+            await using var dr = await cmd.ExecuteReaderAsync();
+            while (await dr.ReadAsync())
+            {
+                lista.Add(new TarefaHistoricoRelatorioResponse
+                {
+                    Id = Convert.ToInt32(dr["Id"]),
+                    TarefaId = Convert.ToInt32(dr["TarefaId"]),
+                    TarefaTitulo = dr["TarefaTitulo"]?.ToString() ?? string.Empty,
+                    ProjetoId = Convert.ToInt32(dr["ProjetoId"]),
+                    ProjetoTitulo = dr["ProjetoTitulo"]?.ToString() ?? string.Empty,
+                    ClienteId = Convert.ToInt32(dr["ClienteId"]),
+                    ClienteNome = dr["ClienteNome"]?.ToString() ?? string.Empty,
+                    Tipo = Convert.ToString(dr["Tipo"])![0],
+                    ColaboradorId = dr["ColaboradorId"] == DBNull.Value ? null : Convert.ToInt32(dr["ColaboradorId"]),
+                    ColaboradorNome = dr["ColaboradorNome"] == DBNull.Value ? null : dr["ColaboradorNome"].ToString(),
+                    EtapaId = dr["EtapaId"] == DBNull.Value ? null : Convert.ToInt32(dr["EtapaId"]),
+                    EtapaNome = dr["EtapaNome"] == DBNull.Value ? null : dr["EtapaNome"].ToString(),
+                    DataHoraAcao = Convert.ToDateTime(dr["DataHoraAcao"])
+                });
+            }
+
+            return lista;
         }
 
         public async Task<IEnumerable<TarefaKanbanResponse>> ObterTarefasKanbanAsync(
@@ -246,7 +559,8 @@ namespace API.DB.DAOs
                     pt.ColaboradorResponsavelId,
                     col.Nome AS ColaboradorResponsavelNome,
                     pt.DataHoraAtribuicao,
-                    pt.EtapaId
+                    pt.EtapaId,
+                    pt.DataHoraInicio
                 FROM ProjetoTarefa pt
                 INNER JOIN Projeto p ON pt.ProjetoId = p.Id
                 INNER JOIN Cliente c ON p.ClienteId = c.Id
@@ -312,7 +626,10 @@ namespace API.DB.DAOs
                         : Convert.ToDateTime(dr["DataHoraAtribuicao"]),
                     EtapaId = dr["EtapaId"] == DBNull.Value
                         ? null
-                        : Convert.ToInt32(dr["EtapaId"])
+                        : Convert.ToInt32(dr["EtapaId"]),
+                    DataHoraInicio = dr["DataHoraInicio"] == DBNull.Value
+                        ? null
+                        : Convert.ToDateTime(dr["DataHoraInicio"])
                 });
             }
 
@@ -370,7 +687,7 @@ namespace API.DB.DAOs
 
             await using var cmd = connection.CreateCommand();
             cmd.CommandText = @"
-                SELECT Id, ProjetoId, Titulo, Descricao, PrioridadeId, ColaboradorResponsavelId, DataHoraAtribuicao, EtapaId
+                SELECT Id, ProjetoId, Titulo, Descricao, PrioridadeId, ColaboradorResponsavelId, DataHoraAtribuicao, EtapaId, DataHoraInicio
                 FROM ProjetoTarefa
                 WHERE ProjetoId = @ProjetoId
                 ORDER BY Id;
@@ -395,7 +712,10 @@ namespace API.DB.DAOs
                         : Convert.ToDateTime(dr["DataHoraAtribuicao"]),
                     EtapaId = dr["EtapaId"] == DBNull.Value
                         ? null
-                        : Convert.ToInt32(dr["EtapaId"])
+                        : Convert.ToInt32(dr["EtapaId"]),
+                    DataHoraInicio = dr["DataHoraInicio"] == DBNull.Value
+                        ? null
+                        : Convert.ToDateTime(dr["DataHoraInicio"])
                 });
             }
 

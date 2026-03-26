@@ -11,7 +11,7 @@ import { Input } from '../../../../ui/form/input';
 import { Badge } from '../../../../ui/base/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../../ui/layout/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../../ui/layout/table';
-import { Search, Edit, Trash2, Eye, RefreshCw } from 'lucide-react';
+import { Search, Edit, Trash2, Eye, RefreshCw, CheckCircle2 } from 'lucide-react';
 
 export default function ListaEtapas({
   etapas,
@@ -34,10 +34,18 @@ export default function ListaEtapas({
   const etapasInativas = filteredEtapas.filter((etapa) => !etapa.active);
 
   const EtapaCard = ({ etapa }) => (
-    <Card key={etapa.id} className="hover:shadow-md transition-shadow border-l-4 border-l-brand-blue">
+    <Card key={etapa.id} className={`hover:shadow-md transition-shadow border-l-4 ${etapa.isFinalStage ? 'border-l-green-500' : 'border-l-brand-blue'}`}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">{etapa.name}</CardTitle>
+          <div className="flex items-center gap-2 min-w-0">
+            <CardTitle className="text-lg truncate">{etapa.name}</CardTitle>
+            {etapa.isFinalStage && (
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700 flex-shrink-0">
+                <CheckCircle2 className="h-3 w-3" />
+                Final
+              </span>
+            )}
+          </div>
           <Badge
             variant={etapa.active ? 'default' : 'secondary'}
             className={etapa.active ? 'bg-brand-blue hover:bg-brand-blue-dark' : ''}
@@ -93,7 +101,17 @@ export default function ListaEtapas({
 
   const EtapaRow = ({ etapa }) => (
     <TableRow key={etapa.id} className="hover:bg-muted/50">
-      <TableCell className="font-medium">{etapa.name}</TableCell>
+      <TableCell className="font-medium">
+        <div className="flex items-center gap-2">
+          {etapa.name}
+          {etapa.isFinalStage && (
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">
+              <CheckCircle2 className="h-3 w-3" />
+              Final
+            </span>
+          )}
+        </div>
+      </TableCell>
       <TableCell className="max-w-xs">
         <div className="text-sm text-muted-foreground truncate" title={etapa.description || ''}>
           {etapa.description || '-'}

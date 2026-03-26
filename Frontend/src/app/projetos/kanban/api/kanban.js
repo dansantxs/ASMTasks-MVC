@@ -84,3 +84,25 @@ export async function getClientesKanban() {
   const data = await handleResponse(res);
   return Array.isArray(data) ? data : [];
 }
+
+export async function iniciarTarefa(tarefaId) {
+  const res = await requisicaoApi(`/projetos/tarefas/${tarefaId}/iniciar`, {
+    method: 'POST',
+  });
+  return handleResponse(res);
+}
+
+export async function pausarTarefa(tarefaId, observacao) {
+  const res = await requisicaoApi(`/projetos/tarefas/${tarefaId}/pausar`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ observacao: observacao || null }),
+  });
+  return handleResponse(res);
+}
+
+export async function getHistoricoTarefa(tarefaId) {
+  const res = await requisicaoApi(`/projetos/tarefas/${tarefaId}/historico`, { cache: 'no-store' });
+  const data = await handleResponse(res);
+  return Array.isArray(data) ? data : [];
+}

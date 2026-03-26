@@ -47,7 +47,8 @@ namespace API.Controllers
                 {
                     Nome = request.Nome,
                     Descricao = request.Descricao,
-                    Ordem = request.Ordem
+                    Ordem = request.Ordem,
+                    EhEtapaFinal = request.EhEtapaFinal
                 };
 
                 var id = await etapa.CriarAsync(_dbContext);
@@ -91,6 +92,7 @@ namespace API.Controllers
                 etapa.Nome = request.Nome;
                 etapa.Descricao = request.Descricao;
                 etapa.Ordem = request.Ordem;
+                etapa.EhEtapaFinal = request.EhEtapaFinal;
 
                 await etapa.AtualizarAsync(_dbContext);
                 return NoContent();
@@ -207,7 +209,8 @@ namespace API.Controllers
                 Descricao = etapa.Descricao,
                 Ativo = etapa.Ativo,
                 PossuiTarefasAtivas = false,
-                Ordem = etapa.Ordem
+                Ordem = etapa.Ordem,
+                EhEtapaFinal = etapa.EhEtapaFinal
             });
 
             return Ok(response);
@@ -236,7 +239,8 @@ namespace API.Controllers
                 Descricao = etapa.Descricao,
                 Ativo = etapa.Ativo,
                 PossuiTarefasAtivas = false,
-                Ordem = etapa.Ordem
+                Ordem = etapa.Ordem,
+                EhEtapaFinal = etapa.EhEtapaFinal
             };
 
             return Ok(response);
