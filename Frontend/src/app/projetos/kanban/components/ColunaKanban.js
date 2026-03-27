@@ -7,10 +7,14 @@ import { cn } from '../../../../ui/form/utils';
 import CartaoTarefa from './CartaoTarefa';
 
 export default function ColunaKanban({ etapaId, titulo, tarefas, ehAdmin, colaboradorLogadoId, isBacklog, isEtapaFinal, onVisualizarTarefa }) {
-  const podeMoverTarefa = (tarefa) =>
-    ehAdmin ||
-    tarefa.colaboradorResponsavelId == null ||
-    tarefa.colaboradorResponsavelId === colaboradorLogadoId;
+  const podeMoverTarefa = (tarefa) => {
+    if (isBacklog && !ehAdmin) return false;
+    return (
+      ehAdmin ||
+      tarefa.colaboradorResponsavelId == null ||
+      tarefa.colaboradorResponsavelId === colaboradorLogadoId
+    );
+  };
   const podeReordenar = ehAdmin && !isBacklog && !isEtapaFinal;
 
   const {
@@ -32,6 +36,7 @@ export default function ColunaKanban({ etapaId, titulo, tarefas, ehAdmin, colabo
   const { setNodeRef: setTaskDropRef, isOver: isTaskOver } = useDroppable({
     id: `etapa-${etapaId ?? 'sem-etapa'}`,
     data: { type: 'tarefa', etapaId },
+    disabled: isBacklog && !ehAdmin,
   });
 
   return (
@@ -71,7 +76,7 @@ export default function ColunaKanban({ etapaId, titulo, tarefas, ehAdmin, colabo
         ref={setTaskDropRef}
         className={cn(
           'flex-1 overflow-y-auto p-3 space-y-2 transition-colors',
-          isTaskOver && 'bg-brand-blue/5'
+          isTaskOver && (!isBacklog || ehAdmin) && 'bg-brand-blue/5'
         )}
         style={{ minHeight: 80 }}
       >
@@ -88,11 +93,11 @@ export default function ColunaKanban({ etapaId, titulo, tarefas, ehAdmin, colabo
           <div
             className={cn(
               'h-16 border-2 border-dashed rounded-lg flex items-center justify-center',
-              isTaskOver ? 'border-brand-blue bg-brand-blue/5' : 'border-gray-200'
+              isTaskOver && (!isBacklog || ehAdmin) ? 'border-brand-blue bg-brand-blue/5' : 'border-gray-200'
             )}
           >
             <p className="text-xs text-gray-400">
-              {isTaskOver ? 'Solte aqui' : 'Sem tarefas'}
+              {isTaskOver && (!isBacklog || ehAdmin) ? 'Solte aqui' : 'Sem tarefas'}
             </p>
           </div>
         )}

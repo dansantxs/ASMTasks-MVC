@@ -17,9 +17,9 @@ namespace API.DB.DAOs
                 cmd.Transaction = transaction;
                 cmd.CommandText = @"
                     INSERT INTO Projeto
-                    (Titulo, Descricao, ClienteId, CadastradoPorColaboradorId, DataCadastro, Ativo, SetorId)
+                    (Titulo, Descricao, ClienteId, CadastradoPorColaboradorId, DataCadastro, Ativo, Concluido, SetorId)
                     VALUES
-                    (@Titulo, @Descricao, @ClienteId, @CadastradoPorColaboradorId, @DataCadastro, @Ativo, @SetorId);
+                    (@Titulo, @Descricao, @ClienteId, @CadastradoPorColaboradorId, @DataCadastro, @Ativo, 0, @SetorId);
                     SELECT CAST(SCOPE_IDENTITY() AS int);
                 ";
 
@@ -72,7 +72,8 @@ namespace API.DB.DAOs
                             Titulo = @Titulo,
                             Descricao = @Descricao,
                             ClienteId = @ClienteId,
-                            SetorId = @SetorId
+                            SetorId = @SetorId,
+                            Concluido = 0
                         WHERE Id = @Id;
                     ";
 
@@ -128,7 +129,7 @@ namespace API.DB.DAOs
             await using (var cmd = con.CreateCommand())
             {
                 cmd.CommandText = @"
-                    SELECT Id, Titulo, Descricao, ClienteId, CadastradoPorColaboradorId, DataCadastro, Ativo, SetorId
+                    SELECT Id, Titulo, Descricao, ClienteId, CadastradoPorColaboradorId, DataCadastro, Ativo, Concluido, SetorId
                     FROM Projeto
                     ORDER BY DataCadastro DESC, Id DESC;
                 ";
@@ -145,6 +146,7 @@ namespace API.DB.DAOs
                         CadastradoPorColaboradorId = Convert.ToInt32(dr["CadastradoPorColaboradorId"]),
                         DataCadastro = Convert.ToDateTime(dr["DataCadastro"]),
                         Ativo = Convert.ToBoolean(dr["Ativo"]),
+                        Concluido = Convert.ToBoolean(dr["Concluido"]),
                         SetorId = Convert.ToInt32(dr["SetorId"])
                     });
                 }
@@ -164,7 +166,7 @@ namespace API.DB.DAOs
             await using (var cmd = con.CreateCommand())
             {
                 cmd.CommandText = @"
-                    SELECT Id, Titulo, Descricao, ClienteId, CadastradoPorColaboradorId, DataCadastro, Ativo, SetorId
+                    SELECT Id, Titulo, Descricao, ClienteId, CadastradoPorColaboradorId, DataCadastro, Ativo, Concluido, SetorId
                     FROM Projeto
                     WHERE Id = @Id;
                 ";
@@ -182,6 +184,7 @@ namespace API.DB.DAOs
                         CadastradoPorColaboradorId = Convert.ToInt32(dr["CadastradoPorColaboradorId"]),
                         DataCadastro = Convert.ToDateTime(dr["DataCadastro"]),
                         Ativo = Convert.ToBoolean(dr["Ativo"]),
+                        Concluido = Convert.ToBoolean(dr["Concluido"]),
                         SetorId = Convert.ToInt32(dr["SetorId"])
                     };
                 }
@@ -567,6 +570,7 @@ namespace API.DB.DAOs
                 INNER JOIN Prioridade pr ON pt.PrioridadeId = pr.Id
                 LEFT JOIN Colaborador col ON pt.ColaboradorResponsavelId = col.Id
                 WHERE p.Ativo = 1
+                AND p.Concluido = 0
             ");
 
             if (!incluirBacklog)
@@ -634,6 +638,29 @@ namespace API.DB.DAOs
             }
 
             return lista;
+        }
+
+        public async Task AtualizarStatusConclusaoProjetoAsync(DBContext dbContext, int tarefaId)
+        {
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = @"
+                DECLARE @ProjetoId INT = (SELECT ProjetoId FROM ProjetoTarefa WHERE Id = @TarefaId);
+
+                UPDATE Projeto
+                SET Concluido = (
+                    CASE WHEN (
+                        SELECT COUNT(*) FROM ProjetoTarefa pt
+                        WHERE pt.ProjetoId = @ProjetoId
+                        AND (pt.EtapaId IS NULL OR NOT EXISTS (
+                            SELECT 1 FROM Etapa e WHERE e.Id = pt.EtapaId AND e.EhEtapaFinal = 1
+                        ))
+                    ) = 0 THEN 1 ELSE 0 END
+                )
+                WHERE Id = @ProjetoId;
+            ";
+            cmd.Parameters.AddWithValue("@TarefaId", tarefaId);
+            await cmd.ExecuteNonQueryAsync();
         }
 
         public async Task<int?> ObterResponsavelTarefaAsync(DBContext dbContext, int tarefaId)

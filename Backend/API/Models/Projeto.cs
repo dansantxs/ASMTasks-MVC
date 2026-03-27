@@ -15,6 +15,7 @@ namespace API.Models
         public int CadastradoPorColaboradorId { get; set; }
         public DateTime DataCadastro { get; set; }
         public bool Ativo { get; set; } = true;
+        public bool Concluido { get; set; } = false;
         public int SetorId { get; set; }
         public List<ProjetoTarefa> Tarefas { get; set; } = new List<ProjetoTarefa>();
 
