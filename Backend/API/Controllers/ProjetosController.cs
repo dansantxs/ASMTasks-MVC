@@ -29,6 +29,9 @@ namespace API.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Criar([FromBody] ProjetoCriarRequest request)
         {
+            if (!request.Tarefas.Any())
+                return BadRequest(new { erro = "O projeto deve ter ao menos uma tarefa." });
+
             try
             {
                 var projeto = new Projeto
@@ -94,6 +97,9 @@ namespace API.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Atualizar(int id, [FromBody] ProjetoAtualizarRequest request)
         {
+            if (!request.Tarefas.Any())
+                return BadRequest(new { erro = "O projeto deve ter ao menos uma tarefa." });
+
             try
             {
                 var projeto = await Projeto.ObterPorIdAsync(_dbContext, id);
@@ -106,12 +112,10 @@ namespace API.Controllers
                 projeto.SetorId = request.SetorId;
                 projeto.Tarefas = request.Tarefas.Select(t => new ProjetoTarefa
                 {
+                    Id = t.Id ?? 0,
                     Titulo = t.Titulo,
                     Descricao = t.Descricao,
                     PrioridadeId = t.PrioridadeId,
-                    ColaboradorResponsavelId = t.ColaboradorResponsavelId,
-                    DataHoraAtribuicao = t.DataHoraAtribuicao,
-                    EtapaId = t.EtapaId
                 }).ToList();
 
                 await projeto.AtualizarAsync(_dbContext);
@@ -149,6 +153,27 @@ namespace API.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { erro = "Erro ao reativar o projeto.", detalhe = ex.Message });
+            }
+        }
+
+        [HttpPut("{id}/desmarcar-conclusao")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> DesmarcarConclusao(int id)
+        {
+            try
+            {
+                var projeto = await Projeto.ObterPorIdAsync(_dbContext, id);
+                if (projeto == null)
+                    return NotFound(new { erro = "Projeto nao encontrado." });
+
+                await _projetosDAO.DesmarcarConclusaoProjetoAsync(_dbContext, id);
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { erro = "Erro ao desmarcar conclusão do projeto.", detalhe = ex.Message });
             }
         }
 
@@ -486,6 +511,7 @@ namespace API.Controllers
                 CadastradoPorColaboradorId = projeto.CadastradoPorColaboradorId,
                 DataCadastro = projeto.DataCadastro,
                 Ativo = projeto.Ativo,
+                Concluido = projeto.Concluido,
                 SetorId = projeto.SetorId,
                 Tarefas = projeto.Tarefas.Select(t => new ProjetoTarefaResponse
                 {

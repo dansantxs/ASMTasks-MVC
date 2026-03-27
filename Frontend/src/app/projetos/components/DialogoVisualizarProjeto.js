@@ -3,7 +3,7 @@
 import { Badge } from '../../../ui/base/badge';
 import { Button } from '../../../ui/base/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../../../ui/base/dialog';
-import { FolderKanban, Pencil, RefreshCw, Trash2 } from 'lucide-react';
+import { FolderKanban, Pencil, RefreshCw, RotateCcw, Trash2 } from 'lucide-react';
 
 function formatarDataHora(value) {
   if (!value) return '-';
@@ -25,16 +25,6 @@ function normalizarTexto(value) {
     .toLowerCase();
 }
 
-function projetoEstaConcluido(project, etapasById) {
-  if (!project.ativo) return false;
-  const tarefas = project.tarefas ?? [];
-  if (!tarefas.length) return false;
-  return tarefas.every((task) => {
-    if (!task.etapaId) return false;
-    return normalizarTexto(etapasById.get(task.etapaId)).includes('conclu');
-  });
-}
-
 export default function DialogoVisualizarProjeto({
   open,
   onOpenChange,
@@ -47,8 +37,10 @@ export default function DialogoVisualizarProjeto({
   aoEditar,
   onInativar,
   onReativar,
+  onDesmarcarConclusao,
   isInativando,
   isReativando,
+  isDesmarCando,
 }) {
   if (!projeto) return null;
 
@@ -57,7 +49,7 @@ export default function DialogoVisualizarProjeto({
   const colaboradorCadastroNome =
     colaboradoresById.get(projeto.cadastradoPorColaboradorId) ??
     `Colaborador #${projeto.cadastradoPorColaboradorId}`;
-  const status = !projeto.ativo ? 'Inativo' : projetoEstaConcluido(projeto, etapasById) ? 'Concluido' : 'Ativo';
+  const status = !projeto.ativo ? 'Inativo' : projeto.concluido ? 'Concluido' : 'Ativo';
   const tarefas = [...(projeto.tarefas ?? [])].sort((a, b) => {
     const ordemA = prioridadesById.get(a.prioridadeId)?.ordem ?? 9999;
     const ordemB = prioridadesById.get(b.prioridadeId)?.ordem ?? 9999;
@@ -76,6 +68,11 @@ export default function DialogoVisualizarProjeto({
 
   const handleReativar = () => {
     onReativar(projeto.id);
+    onOpenChange(false);
+  };
+
+  const handleDesmarcarConclusao = () => {
+    onDesmarcarConclusao(projeto.id);
     onOpenChange(false);
   };
 
@@ -144,6 +141,12 @@ export default function DialogoVisualizarProjeto({
                   const prioridade = task.prioridadeId ? prioridadesById.get(task.prioridadeId) : null;
                   const prioridadeNome = prioridade?.nome ?? (task.prioridadeId ? `#${task.prioridadeId}` : null);
                   const prioridadeCor = prioridade?.cor;
+                  const etapaNome = task.etapaId
+                    ? (etapasById.get(task.etapaId) ?? `Etapa #${task.etapaId}`)
+                    : 'Backlog';
+                  const etapaConcluida = task.etapaId
+                    ? normalizarTexto(etapasById.get(task.etapaId) ?? '').includes('conclu')
+                    : false;
 
                   return (
                     <div
@@ -160,14 +163,25 @@ export default function DialogoVisualizarProjeto({
                       {task.descricao && (
                         <p className="text-xs text-muted-foreground leading-snug">{task.descricao}</p>
                       )}
-                      {prioridadeNome && (
-                        <div className="mt-auto pt-1 flex items-center gap-1.5">
-                          {prioridadeCor && (
-                            <span className="inline-block w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: prioridadeCor }} />
-                          )}
-                          <span className="text-xs text-muted-foreground">{prioridadeNome}</span>
-                        </div>
-                      )}
+                      <div className="mt-auto pt-1 flex items-center justify-between gap-2">
+                        {prioridadeNome ? (
+                          <div className="flex items-center gap-1.5">
+                            {prioridadeCor && (
+                              <span className="inline-block w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: prioridadeCor }} />
+                            )}
+                            <span className="text-xs text-muted-foreground">{prioridadeNome}</span>
+                          </div>
+                        ) : <span />}
+                        <span className={`text-xs px-1.5 py-0.5 rounded font-medium shrink-0 ${
+                          etapaConcluida
+                            ? 'bg-green-100 text-green-700'
+                            : task.etapaId
+                              ? 'bg-blue-50 text-blue-700'
+                              : 'bg-muted text-muted-foreground'
+                        }`}>
+                          {etapaNome}
+                        </span>
+                      </div>
                     </div>
                   );
                 })}
@@ -181,6 +195,18 @@ export default function DialogoVisualizarProjeto({
             <Pencil className="h-4 w-4 mr-1" />
             Editar
           </Button>
+
+          {projeto.ativo && projeto.concluido && (
+            <Button
+              variant="outline"
+              className="text-amber-600 border-amber-500 hover:bg-amber-50"
+              onClick={handleDesmarcarConclusao}
+              disabled={isDesmarCando}
+            >
+              <RotateCcw className="h-4 w-4 mr-1" />
+              Reabrir projeto
+            </Button>
+          )}
 
           {projeto.ativo ? (
             <Button
