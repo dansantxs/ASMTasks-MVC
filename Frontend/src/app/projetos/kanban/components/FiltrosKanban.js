@@ -103,14 +103,19 @@ export default function FiltrosKanban({
 }) {
   const { colaboradorIds, projetoIds, clienteIds } = filtros;
 
+  // Para não-admins, o filtro de colaborador é "ativo" apenas quando difere do padrão (somente o próprio ID)
+  const colaboradorFiltroAtivo = ehAdmin
+    ? colaboradorIds.length > 0
+    : !(colaboradorIds.length === 1 && colaboradorIds[0] === colaboradorLogadoId);
+
   const temFiltroAtivo =
     projetoIds.length > 0 ||
     clienteIds.length > 0 ||
-    colaboradorIds.length > 0;
+    colaboradorFiltroAtivo;
 
   const limpar = () => {
     aoAlterarFiltros({
-      colaboradorIds: [],
+      colaboradorIds: ehAdmin ? [] : (colaboradorLogadoId ? [colaboradorLogadoId] : []),
       projetoIds: [],
       clienteIds: [],
     });
@@ -123,15 +128,13 @@ export default function FiltrosKanban({
         <span>Filtros</span>
       </div>
 
-      {ehAdmin && (
-        <MultiSelectDropdown
-          label="Colaborador"
-          items={colaboradores}
-          selectedIds={colaboradorIds}
-          onChange={(ids) => aoAlterarFiltros({ ...filtros, colaboradorIds: ids })}
-          emptyLabel="Todos"
-        />
-      )}
+      <MultiSelectDropdown
+        label="Colaborador"
+        items={colaboradores}
+        selectedIds={colaboradorIds}
+        onChange={(ids) => aoAlterarFiltros({ ...filtros, colaboradorIds: ids })}
+        emptyLabel="Todos"
+      />
 
       <MultiSelectDropdown
         label="Projeto"

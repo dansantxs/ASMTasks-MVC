@@ -2430,6 +2430,71 @@
         }
       }
     },
+    "/api/Projetos/tarefas/{id}/colaborador": {
+      "put": {
+        "tags": [
+          "Projetos"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TarefaTrocarColaboradorRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TarefaTrocarColaboradorRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/TarefaTrocarColaboradorRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
     "/api/Projetos/tarefas/{id}/iniciar": {
       "post": {
         "tags": [
@@ -3704,6 +3769,17 @@
         "properties": {
           "observacao": {
             "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "TarefaTrocarColaboradorRequest": {
+        "type": "object",
+        "properties": {
+          "colaboradorResponsavelId": {
+            "type": "integer",
+            "format": "int32",
             "nullable": true
           }
         },

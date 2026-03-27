@@ -101,6 +101,15 @@ export async function pausarTarefa(tarefaId, observacao) {
   return handleResponse(res);
 }
 
+export async function trocarColaboradorTarefa(tarefaId, colaboradorResponsavelId) {
+  const res = await requisicaoApi(`/projetos/tarefas/${tarefaId}/colaborador`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ colaboradorResponsavelId: colaboradorResponsavelId ?? null }),
+  });
+  return handleResponse(res);
+}
+
 export async function getHistoricoTarefa(tarefaId) {
   const res = await requisicaoApi(`/projetos/tarefas/${tarefaId}/historico`, { cache: 'no-store' });
   const data = await handleResponse(res);

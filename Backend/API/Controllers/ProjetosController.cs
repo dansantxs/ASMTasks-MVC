@@ -275,6 +275,60 @@ namespace API.Controllers
             }
         }
 
+        [HttpPut("tarefas/{id}/colaborador")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> TrocarColaborador(int id, [FromBody] TarefaTrocarColaboradorRequest request)
+        {
+            try
+            {
+                var ehAdmClaim = User.FindFirstValue("ehAdministrador");
+                var ehAdministrador = string.Equals(ehAdmClaim, "true", StringComparison.OrdinalIgnoreCase);
+
+                var estadoAtual = await _projetosDAO.ObterEstadoAtualTarefaAsync(_dbContext, id);
+                if (estadoAtual == null)
+                    return NotFound(new { erro = "Tarefa não encontrada." });
+
+                if (!ehAdministrador)
+                {
+                    if (estadoAtual.ColaboradorResponsavelId.HasValue)
+                    {
+                        var colaboradorLogado = ObterColaboradorIdLogado();
+                        if (estadoAtual.ColaboradorResponsavelId.Value != colaboradorLogado)
+                            return StatusCode(StatusCodes.Status403Forbidden,
+                                new { erro = "Apenas o responsável ou um administrador pode alterar o responsável desta tarefa." });
+                    }
+                }
+
+                if (request.ColaboradorResponsavelId == estadoAtual.ColaboradorResponsavelId)
+                    return NoContent();
+
+                DateTime? dataAtribuicao = request.ColaboradorResponsavelId.HasValue ? DateTime.Now : null;
+
+                var atualizado = await _projetosDAO.AtualizarColaboradorTarefaAsync(
+                    _dbContext, id, request.ColaboradorResponsavelId, dataAtribuicao);
+
+                if (!atualizado)
+                    return NotFound(new { erro = "Tarefa não encontrada." });
+
+                await _projetosDAO.InserirHistoricoAsync(_dbContext, new ProjetoTarefaHistorico
+                {
+                    TarefaId = id,
+                    Tipo = 'A',
+                    ColaboradorId = request.ColaboradorResponsavelId,
+                    DataHoraAcao = DateTime.Now
+                });
+
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { erro = "Erro ao trocar responsável.", detalhe = ex.Message });
+            }
+        }
+
         [HttpPost("tarefas/{id}/iniciar")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

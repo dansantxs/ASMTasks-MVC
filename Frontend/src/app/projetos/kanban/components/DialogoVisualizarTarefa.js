@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { X, Folder, Building2, User, Tag, Play, Pause, Clock, History } from 'lucide-react';
+import { X, Folder, Building2, User, Tag, Play, Pause, Clock, History, UserCog } from 'lucide-react';
 import { Button } from '../../../../ui/base/button';
 import { useQuery } from '@tanstack/react-query';
 import { getHistoricoTarefa } from '../api/kanban';
@@ -43,13 +43,18 @@ export default function DialogoVisualizarTarefa({
   tarefa,
   colaboradorLogadoId,
   ehAdmin,
+  colaboradores = [],
   onIniciarTarefa,
   isIniciando,
   onPausarTarefa,
   isPausando,
+  onTrocarColaborador,
+  isTrocando,
 }) {
   const [dialogoPausaAberto, setDialogoPausaAberto] = useState(false);
   const [historicoVisiveis, setHistoricoVisiveis] = useState(HISTORICO_PAGINA);
+  const [novoColaboradorId, setNovoColaboradorId] = useState(null);
+  const [trocandoResponsavel, setTrocandoResponsavel] = useState(false);
 
   const { data: historico = [] } = useQuery({
     queryKey: ['tarefa-historico', tarefa?.id],
@@ -58,8 +63,30 @@ export default function DialogoVisualizarTarefa({
   });
 
   const handleOpenChange = (v) => {
-    if (!v) setHistoricoVisiveis(HISTORICO_PAGINA);
+    if (!v) {
+      setHistoricoVisiveis(HISTORICO_PAGINA);
+      setTrocandoResponsavel(false);
+      setNovoColaboradorId(null);
+    }
     onOpenChange(v);
+  };
+
+  const podeTrocarResponsavel =
+    tarefa?.etapaId != null &&
+    (ehAdmin || tarefa?.colaboradorResponsavelId == null || tarefa?.colaboradorResponsavelId === colaboradorLogadoId);
+
+  const handleAbrirTrocaResponsavel = () => {
+    setNovoColaboradorId(tarefa?.colaboradorResponsavelId ?? null);
+    setTrocandoResponsavel(true);
+  };
+
+  const handleConfirmarTrocaResponsavel = () => {
+    if (novoColaboradorId === (tarefa?.colaboradorResponsavelId ?? null)) {
+      setTrocandoResponsavel(false);
+      return;
+    }
+    onTrocarColaborador?.(tarefa.id, novoColaboradorId);
+    setTrocandoResponsavel(false);
   };
 
   if (!tarefa) return null;
@@ -160,6 +187,57 @@ export default function DialogoVisualizarTarefa({
                   </div>
                 </div>
               </div>
+
+              {/* Trocar responsável */}
+              {podeTrocarResponsavel && (
+                <div className="border rounded-lg p-3 bg-gray-50">
+                  <div className="flex items-center gap-2 mb-2">
+                    <UserCog className="h-3.5 w-3.5 text-gray-400" />
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Responsável</p>
+                  </div>
+                  {trocandoResponsavel ? (
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={novoColaboradorId ?? ''}
+                        onChange={(e) => setNovoColaboradorId(e.target.value ? Number(e.target.value) : null)}
+                        className="flex-1 rounded-md border border-input bg-background px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent"
+                      >
+                        <option value="">Sem responsável</option>
+                        {colaboradores.map((col) => (
+                          <option key={col.id} value={col.id}>{col.nome}</option>
+                        ))}
+                      </select>
+                      <Button
+                        size="sm"
+                        className="bg-brand-blue hover:bg-brand-blue-dark text-white text-xs px-2 py-1"
+                        onClick={handleConfirmarTrocaResponsavel}
+                        disabled={isTrocando}
+                      >
+                        {isTrocando ? '...' : 'Salvar'}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-xs px-2 py-1"
+                        onClick={() => setTrocandoResponsavel(false)}
+                        disabled={isTrocando}
+                      >
+                        Cancelar
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-gray-700">{tarefa.colaboradorResponsavelNome ?? 'Sem responsável'}</p>
+                      <button
+                        onClick={handleAbrirTrocaResponsavel}
+                        className="text-xs text-brand-blue hover:underline font-medium"
+                      >
+                        Trocar
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Status de elaboração */}
               {tarefa.etapaId && tarefa.colaboradorResponsavelId && (
