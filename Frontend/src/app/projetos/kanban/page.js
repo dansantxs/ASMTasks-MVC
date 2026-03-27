@@ -8,6 +8,7 @@ import { obterSessaoArmazenada } from '../../../shared/auth/session';
 import {
   getTarefasKanban,
   moverTarefaEtapa,
+  trocarColaboradorTarefa,
   reordenarEtapas,
   getEtapasKanban,
   getColaboradoresKanban,
@@ -110,6 +111,17 @@ export default function KanbanPage() {
     onError: (error) => toast.error(error?.message ?? 'Erro ao pausar tarefa.'),
   });
 
+  const trocarColaborador = useMutation({
+    mutationFn: ({ tarefaId, colaboradorResponsavelId }) =>
+      trocarColaboradorTarefa(tarefaId, colaboradorResponsavelId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['kanban-tarefas'] });
+      queryClient.invalidateQueries({ queryKey: ['tarefa-historico'] });
+      toast.success('Responsável alterado com sucesso.');
+    },
+    onError: (error) => toast.error(error?.message ?? 'Erro ao trocar responsável.'),
+  });
+
   const handleMoverTarefa = (tarefa, etapaIdDestino, colaboradorResponsavelId) => {
     mover.mutate({
       tarefaId: tarefa.id,
@@ -189,6 +201,10 @@ export default function KanbanPage() {
             isIniciando={iniciar.isPending}
             onPausarTarefa={(tarefa, observacao) => pausar.mutate({ tarefa, observacao })}
             isPausando={pausar.isPending}
+            onTrocarColaborador={(tarefaId, colaboradorResponsavelId) =>
+              trocarColaborador.mutate({ tarefaId, colaboradorResponsavelId })
+            }
+            isTrocando={trocarColaborador.isPending}
           />
         )}
       </div>

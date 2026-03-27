@@ -222,6 +222,29 @@ namespace API.DB.DAOs
             return linhas > 0;
         }
 
+        public async Task<bool> AtualizarColaboradorTarefaAsync(
+            DBContext dbContext,
+            int tarefaId,
+            int? colaboradorResponsavelId,
+            DateTime? dataHoraAtribuicao)
+        {
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = @"
+                UPDATE ProjetoTarefa
+                SET ColaboradorResponsavelId = @ColaboradorResponsavelId,
+                    DataHoraAtribuicao = @DataHoraAtribuicao,
+                    DataHoraInicio = NULL
+                WHERE Id = @Id;
+            ";
+            cmd.Parameters.AddWithValue("@Id", tarefaId);
+            cmd.Parameters.AddWithValue("@ColaboradorResponsavelId", (object?)colaboradorResponsavelId ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@DataHoraAtribuicao", (object?)dataHoraAtribuicao ?? DBNull.Value);
+
+            var linhas = await cmd.ExecuteNonQueryAsync();
+            return linhas > 0;
+        }
+
         public async Task<ProjetoTarefa?> ObterEstadoAtualTarefaAsync(DBContext dbContext, int tarefaId)
         {
             await using var con = await dbContext.GetConnectionAsync();

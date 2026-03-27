@@ -19,7 +19,7 @@ import {
 
 const COLUNA_BACKLOG = { id: null, nome: 'Backlog', ordem: -1 };
 
-export default function QuadroKanban({ tarefas, etapas, colaboradores, colaboradorLogadoId, onMoverTarefa, isMovendo, ehAdmin, onReordenarColunas, onIniciarTarefa, isIniciando, onPausarTarefa, isPausando }) {
+export default function QuadroKanban({ tarefas, etapas, colaboradores, colaboradorLogadoId, onMoverTarefa, isMovendo, ehAdmin, onReordenarColunas, onIniciarTarefa, isIniciando, onPausarTarefa, isPausando, onTrocarColaborador, isTrocando }) {
   const [tarefaArrastando, setTarefaArrastando] = useState(null);
   const [pendente, setPendente] = useState(null);
   const [pendenteBacklog, setPendenteBacklog] = useState(null);
@@ -158,10 +158,13 @@ export default function QuadroKanban({ tarefas, etapas, colaboradores, colaborad
         tarefa={tarefaVisualizando}
         colaboradorLogadoId={colaboradorLogadoId}
         ehAdmin={ehAdmin}
+        colaboradores={colaboradores}
         onIniciarTarefa={onIniciarTarefa}
         isIniciando={isIniciando}
         onPausarTarefa={onPausarTarefa}
         isPausando={isPausando}
+        onTrocarColaborador={onTrocarColaborador}
+        isTrocando={isTrocando}
       />
 
       <AlertDialog open={!!pendenteBacklog} onOpenChange={(v) => { if (!v) setPendenteBacklog(null); }}>
