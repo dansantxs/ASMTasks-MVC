@@ -6,6 +6,6 @@ namespace API.DTOs.Projetos
         public string? Descricao { get; set; }
         public int ClienteId { get; set; }
         public int SetorId { get; set; }
-        public List<ProjetoTarefaCriarRequest> Tarefas { get; set; } = new List<ProjetoTarefaCriarRequest>();
+        public List<ProjetoTarefaAtualizarRequest> Tarefas { get; set; } = new List<ProjetoTarefaAtualizarRequest>();
     }
 }

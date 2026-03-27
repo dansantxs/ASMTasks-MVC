@@ -21,6 +21,7 @@ function criarTarefaInicial() {
 
 function criarTarefaDoProjeto(tarefa) {
   return {
+    id: tarefa?.id ?? null,
     titulo: tarefa?.titulo ?? '',
     descricao: tarefa?.descricao ?? '',
     prioridadeId: tarefa?.prioridadeId ? String(tarefa.prioridadeId) : '',
@@ -268,12 +269,10 @@ export default function FormularioProjeto({
       clienteId: Number(formData.clienteId),
       setorId: Number(formData.setorId),
       tarefas: formData.tarefas.map((tarefa) => ({
+        id: tarefa.id ?? null,
         titulo: tarefa.titulo.trim(),
         descricao: tarefa.descricao.trim() || null,
         prioridadeId: Number(tarefa.prioridadeId),
-        colaboradorResponsavelId: null,
-        dataHoraAtribuicao: null,
-        etapaId: null,
       })),
     });
   };

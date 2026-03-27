@@ -21,6 +21,7 @@ import {
   getSetores,
   inativarProjeto,
   reativarProjeto,
+  desmarcarConclusaoProjeto,
 } from './api/projetos';
 
 export default function ProjetosPage() {
@@ -132,6 +133,15 @@ export default function ProjetosPage() {
     onError: (error) => toast.error(error?.message ?? 'Erro ao reativar projeto.'),
   });
 
+  const desmarcarConclusao = useMutation({
+    mutationFn: desmarcarConclusaoProjeto,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projetos'] });
+      toast.success('Projeto reaberto com sucesso.');
+    },
+    onError: (error) => toast.error(error?.message ?? 'Erro ao desmarcar conclusão do projeto.'),
+  });
+
   const handleOpenCreate = () => {
     setEditingProject(null);
     setIsFormOpen(true);
@@ -209,8 +219,10 @@ export default function ProjetosPage() {
           aoEditar={handleEditProject}
           onInativar={(id) => inativar.mutate(id)}
           onReativar={(id) => reativar.mutate(id)}
+          onDesmarcarConclusao={(id) => desmarcarConclusao.mutate(id)}
           isInativando={inativar.isPending}
           isReativando={reativar.isPending}
+          isDesmarCando={desmarcarConclusao.isPending}
         />
 
         <FormularioProjeto

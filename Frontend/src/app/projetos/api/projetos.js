@@ -78,6 +78,11 @@ export async function reativarProjeto(id) {
   return handleResponse(res);
 }
 
+export async function desmarcarConclusaoProjeto(id) {
+  const res = await requisicaoApi(`${PROJETOS_API_URL}/${id}/desmarcar-conclusao`, { method: 'PUT' });
+  return handleResponse(res);
+}
+
 export async function getClientes() {
   const res = await requisicaoApi(CLIENTES_API_URL, { cache: 'no-store' });
   const data = await handleResponse(res);

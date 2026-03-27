@@ -72,8 +72,7 @@ namespace API.DB.DAOs
                             Titulo = @Titulo,
                             Descricao = @Descricao,
                             ClienteId = @ClienteId,
-                            SetorId = @SetorId,
-                            Concluido = 0
+                            SetorId = @SetorId
                         WHERE Id = @Id;
                     ";
 
@@ -91,15 +90,57 @@ namespace API.DB.DAOs
                     }
                 }
 
-                await using (var deleteCmd = con.CreateCommand())
+                // Obtém IDs das tarefas existentes no banco
+                var existingIds = new List<int>();
+                await using (var cmd = con.CreateCommand())
                 {
+                    cmd.Transaction = transaction;
+                    cmd.CommandText = "SELECT Id FROM ProjetoTarefa WHERE ProjetoId = @ProjetoId";
+                    cmd.Parameters.AddWithValue("@ProjetoId", projeto.Id);
+                    await using var dr = await cmd.ExecuteReaderAsync();
+                    while (await dr.ReadAsync())
+                        existingIds.Add(Convert.ToInt32(dr["Id"]));
+                }
+
+                var requestedIds = projeto.Tarefas
+                    .Where(t => t.Id > 0)
+                    .Select(t => t.Id)
+                    .ToHashSet();
+
+                // Remove tarefas que foram excluídas do formulário
+                var toDeleteIds = existingIds.Except(requestedIds).ToList();
+                if (toDeleteIds.Count > 0)
+                {
+                    await using var deleteCmd = con.CreateCommand();
                     deleteCmd.Transaction = transaction;
-                    deleteCmd.CommandText = "DELETE FROM ProjetoTarefa WHERE ProjetoId = @ProjetoId";
-                    deleteCmd.Parameters.AddWithValue("@ProjetoId", projeto.Id);
+                    deleteCmd.CommandText = $"DELETE FROM ProjetoTarefa WHERE Id IN ({string.Join(",", toDeleteIds)})";
                     await deleteCmd.ExecuteNonQueryAsync();
                 }
 
-                await InserirTarefasAsync(con, transaction, projeto.Id, projeto.Tarefas);
+                // Atualiza apenas Titulo/Descricao/PrioridadeId das tarefas existentes (preserva estado do Kanban)
+                foreach (var tarefa in projeto.Tarefas.Where(t => t.Id > 0))
+                {
+                    await using var updateCmd = con.CreateCommand();
+                    updateCmd.Transaction = transaction;
+                    updateCmd.CommandText = @"
+                        UPDATE ProjetoTarefa SET
+                            Titulo = @Titulo,
+                            Descricao = @Descricao,
+                            PrioridadeId = @PrioridadeId
+                        WHERE Id = @Id AND ProjetoId = @ProjetoId;
+                    ";
+                    updateCmd.Parameters.AddWithValue("@Id", tarefa.Id);
+                    updateCmd.Parameters.AddWithValue("@ProjetoId", projeto.Id);
+                    updateCmd.Parameters.AddWithValue("@Titulo", tarefa.Titulo);
+                    updateCmd.Parameters.AddWithValue("@Descricao", (object?)tarefa.Descricao ?? DBNull.Value);
+                    updateCmd.Parameters.AddWithValue("@PrioridadeId", tarefa.PrioridadeId);
+                    await updateCmd.ExecuteNonQueryAsync();
+                }
+
+                // Insere novas tarefas (sem Id)
+                var newTarefas = projeto.Tarefas.Where(t => t.Id <= 0).ToList();
+                await InserirTarefasAsync(con, transaction, projeto.Id, newTarefas);
+
                 await transaction.CommitAsync();
                 return true;
             }
@@ -683,6 +724,15 @@ namespace API.DB.DAOs
                 WHERE Id = @ProjetoId;
             ";
             cmd.Parameters.AddWithValue("@TarefaId", tarefaId);
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        public async Task DesmarcarConclusaoProjetoAsync(DBContext dbContext, int projetoId)
+        {
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = "UPDATE Projeto SET Concluido = 0 WHERE Id = @Id";
+            cmd.Parameters.AddWithValue("@Id", projetoId);
             await cmd.ExecuteNonQueryAsync();
         }
 
