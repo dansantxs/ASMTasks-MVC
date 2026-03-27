@@ -58,9 +58,9 @@ export default function KanbanPage() {
     refetchInterval: 30_000,
   });
 
-  // Apenas projetos ativos — normaliza titulo → nome para o filtro
+  // Apenas projetos ativos e não concluídos — normaliza titulo → nome para o filtro
   const projetosAtivos = useMemo(
-    () => projetosRaw.filter((p) => p.ativo !== false).map((p) => ({ ...p, nome: p.titulo })),
+    () => projetosRaw.filter((p) => p.ativo !== false && !p.concluido).map((p) => ({ ...p, nome: p.titulo })),
     [projetosRaw]
   );
 

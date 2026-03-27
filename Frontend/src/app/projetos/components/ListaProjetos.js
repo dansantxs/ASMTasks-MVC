@@ -28,15 +28,6 @@ function normalizarTexto(value) {
     .toLowerCase();
 }
 
-function projetoEstaConcluido(project, etapasById) {
-  if (!project.ativo) return false;
-  const tarefas = project.tarefas ?? [];
-  if (!tarefas.length) return false;
-  return tarefas.every((task) => {
-    if (!task.etapaId) return false;
-    return normalizarTexto(etapasById.get(task.etapaId)).includes('conclu');
-  });
-}
 
 const ABAS = [
   { id: 'ativos', label: 'Ativos', badgeClass: 'border-brand-blue text-brand-blue' },
@@ -56,12 +47,12 @@ export default function ListaProjetos({
   const [abaAtiva, setAbaAtiva] = useState('ativos');
 
   const projetosAtivos = useMemo(
-    () => projetos.filter((p) => p.ativo && !projetoEstaConcluido(p, etapasById)),
-    [projetos, etapasById]
+    () => projetos.filter((p) => p.ativo && !p.concluido),
+    [projetos]
   );
   const projetosConcluidos = useMemo(
-    () => projetos.filter((p) => p.ativo && projetoEstaConcluido(p, etapasById)),
-    [projetos, etapasById]
+    () => projetos.filter((p) => p.ativo && p.concluido),
+    [projetos]
   );
   const projetosInativos = useMemo(
     () => projetos.filter((p) => !p.ativo),
@@ -95,7 +86,7 @@ export default function ListaProjetos({
   const renderProjectCard = (project) => {
     const clienteNome = clientesById.get(project.clienteId) ?? `Cliente #${project.clienteId}`;
     const setorNome = setoresById.get(project.setorId) ?? `Setor #${project.setorId}`;
-    const status = !project.ativo ? 'Inativo' : projetoEstaConcluido(project, etapasById) ? 'Concluido' : 'Ativo';
+    const status = !project.ativo ? 'Inativo' : project.concluido ? 'Concluido' : 'Ativo';
 
     return (
       <Card
@@ -145,7 +136,7 @@ export default function ListaProjetos({
   const renderProjectRow = (project) => {
     const clienteNome = clientesById.get(project.clienteId) ?? `Cliente #${project.clienteId}`;
     const setorNome = setoresById.get(project.setorId) ?? `Setor #${project.setorId}`;
-    const status = !project.ativo ? 'Inativo' : projetoEstaConcluido(project, etapasById) ? 'Concluido' : 'Ativo';
+    const status = !project.ativo ? 'Inativo' : project.concluido ? 'Concluido' : 'Ativo';
 
     return (
       <TableRow key={project.id} className="hover:bg-muted/50">

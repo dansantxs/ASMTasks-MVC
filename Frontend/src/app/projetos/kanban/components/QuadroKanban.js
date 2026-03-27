@@ -40,10 +40,7 @@ export default function QuadroKanban({ tarefas, etapas, colaboradores, colaborad
     return a.ordem - b.ordem;
   });
 
-  const colunas = [
-    ...(ehAdmin ? [COLUNA_BACKLOG] : []),
-    ...etapasOrdenadas,
-  ];
+  const colunas = [COLUNA_BACKLOG, ...etapasOrdenadas];
 
   const tarefasPorEtapa = (etapaId) =>
     tarefas
@@ -95,9 +92,9 @@ export default function QuadroKanban({ tarefas, etapas, colaboradores, colaborad
 
     if (etapaIdDestino === etapaAtualId) return;
 
-    // Mover para o backlog: pede confirmação antes de limpar responsável
+    // Mover para o backlog: apenas admins podem, pede confirmação antes de limpar responsável
     if (etapaIdDestino === null) {
-      setPendenteBacklog(tarefa);
+      if (ehAdmin) setPendenteBacklog(tarefa);
       return;
     }
 

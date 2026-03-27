@@ -193,7 +193,7 @@ namespace API.Controllers
                     colaboradorIds: colaboradorIds ?? [],
                     projetoIds: projetoIds ?? [],
                     clienteIds: clienteIds ?? [],
-                    incluirBacklog: ehAdministrador);
+                    incluirBacklog: true);
 
                 return Ok(tarefas);
             }
@@ -263,6 +263,9 @@ namespace API.Controllers
                         DataHoraAcao = agora
                     });
                 }
+
+                if (request.EtapaId != estadoAtual.EtapaId)
+                    await _projetosDAO.AtualizarStatusConclusaoProjetoAsync(_dbContext, id);
 
                 return NoContent();
             }
