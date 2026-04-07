@@ -14,7 +14,7 @@ import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { configuracoesPadrao, useConfiguracoesSistema } from '../../../shared/configuracoes-sistema/api';
 import { obterRodapeRelatorio, obterLogotipo } from '../../../shared/configuracoes-sistema/reportBranding';
-import { getHistoricoTarefas } from './api/historicoTarefas';
+import { getHistoricoTarefas, getHistoricoProjetosRelatorio } from './api/historicoTarefas';
 import { getColaboradoresKanban, getProjetosKanban, getClientesKanban } from '../../projetos/kanban/api/kanban';
 
 const columns = [
@@ -45,6 +45,10 @@ const getTipoLabel = (tipo) => {
   if (tipo === 'E') return 'Mudança de Etapa';
   if (tipo === 'A') return 'Atribuição de Colaborador';
   if (tipo === 'I') return 'Início de Elaboração';
+  if (tipo === 'P') return 'Elaboração Pausada';
+  if (tipo === 'F') return 'Elaboração Finalizada';
+  if (tipo === 'C') return 'Projeto Concluído';
+  if (tipo === 'R') return 'Projeto Reaberto';
   return tipo ?? ' ';
 };
 
@@ -82,10 +86,17 @@ export default function HistoricoTarefasReportPage() {
     [tipoFilter, colaboradorFilter, projetoFilter, clienteFilter, dataInicioFilter, dataFimFilter]
   );
 
-  const { data: historicoApi = [], isLoading } = useQuery({
+  const { data: historicoTarefasApi = [], isLoading: isLoadingTarefas } = useQuery({
     queryKey: ['relatorio-historico-tarefas', queryParams],
     queryFn: () => getHistoricoTarefas(queryParams),
   });
+
+  const { data: historicoProjetosApi = [], isLoading: isLoadingProjetos } = useQuery({
+    queryKey: ['relatorio-historico-projetos', queryParams],
+    queryFn: () => getHistoricoProjetosRelatorio(queryParams),
+  });
+
+  const isLoading = isLoadingTarefas || isLoadingProjetos;
 
   const { data: colaboradoresRaw = [] } = useQuery({
     queryKey: ['relatorio-tarefas-colaboradores'],
@@ -109,23 +120,37 @@ export default function HistoricoTarefasReportPage() {
   );
   const clientes = useMemo(() => clientesRaw.filter((c) => c.ativo !== false), [clientesRaw]);
 
-  const data = useMemo(
-    () =>
-      historicoApi.map((item) => ({
-        id: item.id,
-        rawDataHoraAcao: item.dataHoraAcao ? new Date(item.dataHoraAcao) : null,
-        dataHoraAcao: formatDateTime(item.dataHoraAcao),
-        tipo: item.tipo,
-        tipoLabel: getTipoLabel(item.tipo),
-        tarefaId: item.tarefaId,
-        tarefaTitulo: item.tarefaTitulo ?? ' ',
-        projetoTitulo: item.projetoTitulo ?? ' ',
-        clienteNome: item.clienteNome ?? ' ',
-        colaboradorNome: item.colaboradorNome ?? ' ',
-        etapaNome: item.etapaNome ?? ' ',
-      })),
-    [historicoApi]
-  );
+  const data = useMemo(() => {
+    const tarefas = historicoTarefasApi.map((item) => ({
+      id: `t-${item.id}`,
+      rawDataHoraAcao: item.dataHoraAcao ? new Date(item.dataHoraAcao) : null,
+      dataHoraAcao: formatDateTime(item.dataHoraAcao),
+      tipo: item.tipo,
+      tipoLabel: getTipoLabel(item.tipo),
+      tarefaId: item.tarefaId,
+      tarefaTitulo: item.tarefaTitulo ?? ' ',
+      projetoTitulo: item.projetoTitulo ?? ' ',
+      clienteNome: item.clienteNome ?? ' ',
+      colaboradorNome: item.colaboradorNome ?? ' ',
+      etapaNome: item.etapaNome ?? ' ',
+    }));
+
+    const projetos = historicoProjetosApi.map((item) => ({
+      id: `p-${item.id}`,
+      rawDataHoraAcao: item.dataHoraAcao ? new Date(item.dataHoraAcao) : null,
+      dataHoraAcao: formatDateTime(item.dataHoraAcao),
+      tipo: item.tipo,
+      tipoLabel: getTipoLabel(item.tipo),
+      tarefaId: null,
+      tarefaTitulo: '—',
+      projetoTitulo: item.projetoTitulo ?? ' ',
+      clienteNome: item.clienteNome ?? ' ',
+      colaboradorNome: item.realizadoPorColaboradorNome ?? ' ',
+      etapaNome: '—',
+    }));
+
+    return [...tarefas, ...projetos];
+  }, [historicoTarefasApi, historicoProjetosApi]);
 
   const filteredData = useMemo(
     () =>
@@ -339,6 +364,10 @@ export default function HistoricoTarefasReportPage() {
                       <SelectItem value="E">Mudança de Etapa</SelectItem>
                       <SelectItem value="A">Atribuição de Colaborador</SelectItem>
                       <SelectItem value="I">Início de Elaboração</SelectItem>
+                      <SelectItem value="P">Elaboração Pausada</SelectItem>
+                      <SelectItem value="F">Elaboração Finalizada</SelectItem>
+                      <SelectItem value="C">Projeto Concluído</SelectItem>
+                      <SelectItem value="R">Projeto Reaberto</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

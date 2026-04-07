@@ -169,6 +169,16 @@ namespace API.Controllers
                     return NotFound(new { erro = "Projeto nao encontrado." });
 
                 await _projetosDAO.DesmarcarConclusaoProjetoAsync(_dbContext, id);
+
+                var colaboradorLogado = ObterColaboradorIdLogado();
+                await _projetosDAO.InserirHistoricoProjetoAsync(_dbContext, new ProjetoHistorico
+                {
+                    ProjetoId = id,
+                    Tipo = 'R',
+                    RealizadoPorColaboradorId = colaboradorLogado,
+                    DataHoraAcao = DateTime.Now
+                });
+
                 return NoContent();
             }
             catch (Exception ex)
@@ -244,11 +254,12 @@ namespace API.Controllers
                 if (estadoAtual == null)
                     return NotFound(new { erro = "Tarefa não encontrada." });
 
+                var colaboradorLogado = ObterColaboradorIdLogado();
+
                 if (!ehAdministrador)
                 {
                     if (estadoAtual.ColaboradorResponsavelId.HasValue)
                     {
-                        var colaboradorLogado = ObterColaboradorIdLogado();
                         if (estadoAtual.ColaboradorResponsavelId.Value != colaboradorLogado)
                             return StatusCode(StatusCodes.Status403Forbidden,
                                 new { erro = "Apenas o responsável ou um administrador pode mover esta tarefa." });
@@ -269,28 +280,65 @@ namespace API.Controllers
 
                 if (request.EtapaId != estadoAtual.EtapaId)
                 {
+                    if (estadoAtual.DataHoraInicio.HasValue)
+                    {
+                        await _projetosDAO.InserirHistoricoAsync(_dbContext, new ProjetoTarefaHistorico
+                        {
+                            TarefaId = id,
+                            Tipo = 'F',
+                            DataHoraAcao = agora,
+                            RealizadoPorColaboradorId = colaboradorLogado
+                        });
+                    }
+
                     await _projetosDAO.InserirHistoricoAsync(_dbContext, new ProjetoTarefaHistorico
                     {
                         TarefaId = id,
                         Tipo = 'E',
                         EtapaId = request.EtapaId,
-                        DataHoraAcao = agora
+                        DataHoraAcao = agora,
+                        RealizadoPorColaboradorId = colaboradorLogado
                     });
                 }
 
                 if (request.ColaboradorResponsavelId != estadoAtual.ColaboradorResponsavelId)
                 {
+                    if (estadoAtual.DataHoraInicio.HasValue && request.EtapaId == estadoAtual.EtapaId)
+                    {
+                        await _projetosDAO.InserirHistoricoAsync(_dbContext, new ProjetoTarefaHistorico
+                        {
+                            TarefaId = id,
+                            Tipo = 'P',
+                            Observacao = "Troca de colaborador",
+                            DataHoraAcao = agora,
+                            RealizadoPorColaboradorId = colaboradorLogado
+                        });
+                    }
+
                     await _projetosDAO.InserirHistoricoAsync(_dbContext, new ProjetoTarefaHistorico
                     {
                         TarefaId = id,
                         Tipo = 'A',
                         ColaboradorId = request.ColaboradorResponsavelId,
-                        DataHoraAcao = agora
+                        DataHoraAcao = agora,
+                        RealizadoPorColaboradorId = colaboradorLogado
                     });
                 }
 
                 if (request.EtapaId != estadoAtual.EtapaId)
-                    await _projetosDAO.AtualizarStatusConclusaoProjetoAsync(_dbContext, id);
+                {
+                    var projetoConcluido = await _projetosDAO.AtualizarStatusConclusaoProjetoAsync(_dbContext, id);
+                    if (projetoConcluido)
+                    {
+                        await _projetosDAO.InserirHistoricoProjetoAsync(_dbContext, new ProjetoHistorico
+                        {
+                            ProjetoId = estadoAtual.ProjetoId,
+                            Tipo = 'C',
+                            RealizadoPorColaboradorId = colaboradorLogado,
+                            DataHoraAcao = agora
+                        });
+                    }
+                }
 
                 return NoContent();
             }
@@ -316,11 +364,12 @@ namespace API.Controllers
                 if (estadoAtual == null)
                     return NotFound(new { erro = "Tarefa não encontrada." });
 
+                var colaboradorLogado = ObterColaboradorIdLogado();
+
                 if (!ehAdministrador)
                 {
                     if (estadoAtual.ColaboradorResponsavelId.HasValue)
                     {
-                        var colaboradorLogado = ObterColaboradorIdLogado();
                         if (estadoAtual.ColaboradorResponsavelId.Value != colaboradorLogado)
                             return StatusCode(StatusCodes.Status403Forbidden,
                                 new { erro = "Apenas o responsável ou um administrador pode alterar o responsável desta tarefa." });
@@ -338,12 +387,27 @@ namespace API.Controllers
                 if (!atualizado)
                     return NotFound(new { erro = "Tarefa não encontrada." });
 
+                var agora = DateTime.Now;
+
+                if (estadoAtual.DataHoraInicio.HasValue)
+                {
+                    await _projetosDAO.InserirHistoricoAsync(_dbContext, new ProjetoTarefaHistorico
+                    {
+                        TarefaId = id,
+                        Tipo = 'P',
+                        Observacao = "Troca de colaborador",
+                        DataHoraAcao = agora,
+                        RealizadoPorColaboradorId = colaboradorLogado
+                    });
+                }
+
                 await _projetosDAO.InserirHistoricoAsync(_dbContext, new ProjetoTarefaHistorico
                 {
                     TarefaId = id,
                     Tipo = 'A',
                     ColaboradorId = request.ColaboradorResponsavelId,
-                    DataHoraAcao = DateTime.Now
+                    DataHoraAcao = agora,
+                    RealizadoPorColaboradorId = colaboradorLogado
                 });
 
                 return NoContent();
@@ -439,6 +503,54 @@ namespace API.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { erro = "Erro ao pausar tarefa.", detalhe = ex.Message });
+            }
+        }
+
+        [HttpGet("historico-relatorio")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> ObterRelatorioHistoricoProjeto(
+            [FromQuery] string? tipo,
+            [FromQuery] int? projetoId,
+            [FromQuery] int? clienteId,
+            [FromQuery] int? colaboradorId,
+            [FromQuery] DateTime? dataInicio,
+            [FromQuery] DateTime? dataFim)
+        {
+            try
+            {
+                char? tipoChar = null;
+                if (!string.IsNullOrEmpty(tipo) && tipo.Length == 1)
+                    tipoChar = tipo[0];
+
+                var resultado = await _projetosDAO.ObterRelatorioHistoricoProjetoAsync(
+                    _dbContext,
+                    tipoChar,
+                    projetoId,
+                    clienteId,
+                    colaboradorId,
+                    dataInicio,
+                    dataFim);
+
+                return Ok(resultado);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { erro = "Erro ao obter relatório de histórico de projetos.", detalhe = ex.Message });
+            }
+        }
+
+        [HttpGet("{id}/historico")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> ObterHistoricoProjeto(int id)
+        {
+            try
+            {
+                var historico = await _projetosDAO.ObterHistoricoProjetoAsync(_dbContext, id);
+                return Ok(historico);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { erro = "Erro ao obter histórico do projeto.", detalhe = ex.Message });
             }
         }
 

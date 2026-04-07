@@ -10,5 +10,7 @@ namespace API.DTOs.Projetos
         public string? EtapaNome { get; set; }
         public string? Observacao { get; set; }
         public DateTime DataHoraAcao { get; set; }
+        public int? RealizadoPorColaboradorId { get; set; }
+        public string? RealizadoPorColaboradorNome { get; set; }
     }
 }
