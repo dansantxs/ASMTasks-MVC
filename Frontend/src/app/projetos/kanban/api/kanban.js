@@ -115,3 +115,9 @@ export async function getHistoricoTarefa(tarefaId) {
   const data = await handleResponse(res);
   return Array.isArray(data) ? data : [];
 }
+
+export async function getHistoricoProjeto(projetoId) {
+  const res = await requisicaoApi(`/projetos/${projetoId}/historico`, { cache: 'no-store' });
+  const data = await handleResponse(res);
+  return Array.isArray(data) ? data : [];
+}

@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { X, Folder, Building2, User, Tag, Play, Pause, Clock, History, UserCog } from 'lucide-react';
 import { Button } from '../../../../ui/base/button';
 import { useQuery } from '@tanstack/react-query';
-import { getHistoricoTarefa } from '../api/kanban';
+import { getHistoricoTarefa, getHistoricoProjeto } from '../api/kanban';
 import DialogoPausarTarefa from './DialogoPausarTarefa';
 
 const formatDateTime = (value) =>
@@ -24,6 +24,9 @@ const getTipoLabel = (tipo) => {
   if (tipo === 'A') return 'Responsável atribuído';
   if (tipo === 'I') return 'Elaboração iniciada';
   if (tipo === 'P') return 'Elaboração pausada';
+  if (tipo === 'F') return 'Elaboração finalizada';
+  if (tipo === 'C') return 'Projeto concluído';
+  if (tipo === 'R') return 'Projeto reaberto';
   return tipo;
 };
 
@@ -32,6 +35,9 @@ const getTipoCor = (tipo) => {
   if (tipo === 'A') return 'bg-amber-100 text-amber-700';
   if (tipo === 'I') return 'bg-green-100 text-green-700';
   if (tipo === 'P') return 'bg-orange-100 text-orange-700';
+  if (tipo === 'F') return 'bg-purple-100 text-purple-700';
+  if (tipo === 'C') return 'bg-teal-100 text-teal-700';
+  if (tipo === 'R') return 'bg-red-100 text-red-700';
   return 'bg-gray-100 text-gray-700';
 };
 
@@ -56,11 +62,32 @@ export default function DialogoVisualizarTarefa({
   const [novoColaboradorId, setNovoColaboradorId] = useState(null);
   const [trocandoResponsavel, setTrocandoResponsavel] = useState(false);
 
-  const { data: historico = [] } = useQuery({
+  const { data: historicoTarefa = [] } = useQuery({
     queryKey: ['tarefa-historico', tarefa?.id],
     queryFn: () => getHistoricoTarefa(tarefa.id),
     enabled: open && !!tarefa?.id,
   });
+
+  const { data: historicoProjeto = [] } = useQuery({
+    queryKey: ['projeto-historico', tarefa?.projetoId],
+    queryFn: () => getHistoricoProjeto(tarefa.projetoId),
+    enabled: open && !!tarefa?.projetoId,
+  });
+
+  const historico = useMemo(() => {
+    const projetoNormalizado = historicoProjeto.map((item) => ({
+      id: `p-${item.id}`,
+      tipo: item.tipo,
+      colaboradorNome: item.realizadoPorColaboradorNome ?? null,
+      etapaNome: null,
+      observacao: null,
+      dataHoraAcao: item.dataHoraAcao,
+      realizadoPorColaboradorNome: item.realizadoPorColaboradorNome,
+    }));
+    return [...historicoTarefa, ...projetoNormalizado].sort(
+      (a, b) => new Date(b.dataHoraAcao) - new Date(a.dataHoraAcao)
+    );
+  }, [historicoTarefa, historicoProjeto]);
 
   const handleOpenChange = (v) => {
     if (!v) {
@@ -292,6 +319,12 @@ export default function DialogoVisualizarTarefa({
                                 <span className="ml-1 italic text-gray-500">· "{item.observacao}"</span>
                               )}
                             </span>
+                          )}
+                          {item.tipo === 'F' && (
+                            <span>{item.colaboradorNome ?? '—'}</span>
+                          )}
+                          {(item.tipo === 'C' || item.tipo === 'R') && (
+                            <span>{item.colaboradorNome ?? '—'}</span>
                           )}
                           <span className="ml-1 text-gray-400">{formatDateTime(item.dataHoraAcao)}</span>
                         </div>

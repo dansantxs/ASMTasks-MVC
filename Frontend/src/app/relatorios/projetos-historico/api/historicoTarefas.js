@@ -30,6 +30,22 @@ async function handleResponse(res) {
   return Array.isArray(data) ? data : [];
 }
 
+export async function getHistoricoProjetosRelatorio(params = {}) {
+  const query = new URLSearchParams();
+
+  if (params.tipo && params.tipo !== 'todos') query.set('tipo', params.tipo);
+  if (params.colaboradorId && params.colaboradorId !== 'todos') query.set('colaboradorId', params.colaboradorId);
+  if (params.projetoId && params.projetoId !== 'todos') query.set('projetoId', params.projetoId);
+  if (params.clienteId && params.clienteId !== 'todos') query.set('clienteId', params.clienteId);
+  if (params.dataInicio) query.set('dataInicio', params.dataInicio);
+  if (params.dataFim) query.set('dataFim', params.dataFim);
+
+  const suffix = query.toString();
+  const url = suffix ? `/projetos/historico-relatorio?${suffix}` : '/projetos/historico-relatorio';
+  const res = await requisicaoApi(url, { cache: 'no-store' });
+  return handleResponse(res);
+}
+
 export async function getHistoricoTarefas(params = {}) {
   const query = new URLSearchParams();
 
