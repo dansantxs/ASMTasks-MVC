@@ -78,6 +78,7 @@ function CartaoTarefa({ tarefa, index, prioridadesAtivas, errors, onChange, onRe
               className="h-8 w-8 shrink-0"
               onClick={() => onAbrirCriarPrioridade(index)}
               title="Cadastrar nova prioridade"
+              tabIndex={-1}
             >
               <Plus className="h-3 w-3" />
             </Button>
@@ -117,6 +118,7 @@ function CartaoTarefa({ tarefa, index, prioridadesAtivas, errors, onChange, onRe
           onClick={() => onRemove(index)}
           disabled={totalTarefas <= 1}
           title="Remover tarefa"
+          tabIndex={-1}
         >
           <Trash2 className="h-4 w-4" />
         </Button>
@@ -350,6 +352,7 @@ export default function FormularioProjeto({
                       className="shrink-0"
                       onClick={() => setShowModalCliente(true)}
                       title="Cadastrar novo cliente"
+                      tabIndex={-1}
                     >
                       <Plus className="h-4 w-4" />
                     </Button>
@@ -384,6 +387,7 @@ export default function FormularioProjeto({
                       className="shrink-0"
                       onClick={() => setShowModalSetor(true)}
                       title="Cadastrar novo setor"
+                      tabIndex={-1}
                     >
                       <Plus className="h-4 w-4" />
                     </Button>
@@ -439,7 +443,7 @@ export default function FormularioProjeto({
             </div>
 
             <div className="flex justify-end gap-3 px-6 py-4 border-t shrink-0">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={salvando}>
+              <Button type="button" variant="outline" tabIndex={-1} onClick={() => onOpenChange(false)} disabled={salvando}>
                 Cancelar
               </Button>
               <Button type="submit" className="bg-brand-blue hover:bg-brand-blue-dark" disabled={salvando}>

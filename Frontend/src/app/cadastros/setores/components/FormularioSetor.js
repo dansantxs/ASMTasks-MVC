@@ -107,6 +107,7 @@ export default function FormularioSetor({
             <Button
               type="button"
               variant="outline"
+              tabIndex={-1}
               onClick={() => onOpenChange(false)}
             >
               Cancelar

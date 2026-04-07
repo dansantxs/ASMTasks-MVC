@@ -382,7 +382,7 @@ export default function ConfiguracoesAcessosPage() {
                     {salvarNivel.isPending ? 'Salvando...' : form.id ? 'Salvar nível' : 'Criar nível'}
                   </Button>
                   {form.id && (
-                    <Button type="button" variant="outline" onClick={() => setForm(formularioVazio)}>
+                    <Button type="button" variant="outline" tabIndex={-1} onClick={() => setForm(formularioVazio)}>
                       Cancelar edição
                     </Button>
                   )}

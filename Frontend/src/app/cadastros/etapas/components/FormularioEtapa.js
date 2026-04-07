@@ -134,6 +134,7 @@ export default function FormularioEtapa({
             <Button
               type="button"
               variant="outline"
+              tabIndex={-1}
               onClick={() => onOpenChange(false)}
             >
               Cancelar

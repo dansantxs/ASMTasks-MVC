@@ -70,7 +70,7 @@ export default function DialogoMoverTarefa({ open, onOpenChange, tarefa, etapaDe
           </div>
 
           <div className="flex justify-end gap-3 mt-6">
-            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isMovendo}>
+            <Button variant="outline" tabIndex={-1} onClick={() => onOpenChange(false)} disabled={isMovendo}>
               Cancelar
             </Button>
             <Button

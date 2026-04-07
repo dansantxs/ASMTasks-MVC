@@ -385,6 +385,7 @@ export default function FormularioAtendimento({
                     variant="outline"
                     onClick={() => removerConfigNotificacao(indice)}
                     className="w-full md:w-auto"
+                    tabIndex={-1}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -404,7 +405,7 @@ export default function FormularioAtendimento({
           </div>
 
           <div className="flex justify-end gap-3 pt-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" tabIndex={-1} onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
             <Button type="submit" className="bg-brand-blue hover:bg-brand-blue-dark" disabled={salvando}>

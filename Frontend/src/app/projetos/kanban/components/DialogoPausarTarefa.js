@@ -32,7 +32,7 @@ export default function DialogoPausarTarefa({ open, onOpenChange, tarefa, onConf
               </Dialog.Title>
             </div>
             <Dialog.Close asChild>
-              <button className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors">
+              <button tabIndex={-1} className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors">
                 <X className="h-4 w-4" />
               </button>
             </Dialog.Close>
@@ -62,7 +62,7 @@ export default function DialogoPausarTarefa({ open, onOpenChange, tarefa, onConf
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={isConfirmando}>
+            <Button variant="outline" tabIndex={-1} onClick={() => handleOpenChange(false)} disabled={isConfirmando}>
               Cancelar
             </Button>
             <Button
