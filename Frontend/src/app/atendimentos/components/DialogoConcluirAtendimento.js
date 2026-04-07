@@ -49,7 +49,7 @@ export default function DialogoConcluirAtendimento({
         </div>
 
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={salvando}>
+          <Button type="button" variant="outline" tabIndex={-1} onClick={() => onOpenChange(false)} disabled={salvando}>
             Cancelar
           </Button>
           <Button

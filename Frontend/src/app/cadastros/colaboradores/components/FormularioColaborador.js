@@ -343,7 +343,7 @@ export default function FormularioColaborador({
                   maxLength={9}
                 />
               </div>
-              <div className="col-span-9">
+              <div className="col-span-7">
                 <Label htmlFor="logradouro">Logradouro</Label>
                 <Input
                   id="logradouro"
@@ -352,22 +352,22 @@ export default function FormularioColaborador({
                   placeholder="Rua, Avenida, etc."
                 />
               </div>
-            </div>
-            <div className="grid grid-cols-12 gap-4 mt-3">
-              <div className="col-span-10">
-                <Label htmlFor="bairro">Bairro</Label>
-                <Input
-                  id="bairro"
-                  value={formData.bairro}
-                  onChange={(e) => setFormData(prev => ({ ...prev, bairro: e.target.value }))}
-                />
-              </div>
               <div className="col-span-2">
                 <Label htmlFor="numero">Nº</Label>
                 <Input
                   id="numero"
                   value={formData.numero}
                   onChange={(e) => setFormData(prev => ({ ...prev, numero: e.target.value }))}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-12 gap-4 mt-3">
+              <div className="col-span-12">
+                <Label htmlFor="bairro">Bairro</Label>
+                <Input
+                  id="bairro"
+                  value={formData.bairro}
+                  onChange={(e) => setFormData(prev => ({ ...prev, bairro: e.target.value }))}
                 />
               </div>
             </div>
@@ -447,7 +447,7 @@ export default function FormularioColaborador({
           </section>
 
           <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" tabIndex={-1} onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
             <Button type="submit" className="bg-brand-blue hover:bg-brand-blue-dark">

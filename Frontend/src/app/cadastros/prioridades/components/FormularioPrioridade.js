@@ -160,7 +160,7 @@ export default function FormularioPrioridade({
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" tabIndex={-1} onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
             <Button type="submit" className="bg-brand-blue hover:bg-brand-blue-dark">
