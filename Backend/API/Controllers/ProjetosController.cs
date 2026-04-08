@@ -211,6 +211,62 @@ namespace API.Controllers
             return Ok(MapearProjetoResponse(projeto));
         }
 
+        [HttpPost("{id}/duplicar")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> Duplicar(int id, [FromBody] ProjetoDuplicarRequest request)
+        {
+            if (request.ClienteIds == null || !request.ClienteIds.Any())
+                return BadRequest(new { erro = "Selecione ao menos um cliente." });
+
+            try
+            {
+                var original = await Projeto.ObterPorIdAsync(_dbContext, id);
+                if (original == null)
+                    return NotFound(new { erro = "Projeto nao encontrado." });
+
+                var colaboradorId = ObterColaboradorIdLogado();
+                var idsGerados = new List<int>();
+
+                foreach (var clienteId in request.ClienteIds)
+                {
+                    var copia = new Projeto
+                    {
+                        Titulo = original.Titulo,
+                        Descricao = original.Descricao,
+                        ClienteId = clienteId,
+                        SetorId = original.SetorId,
+                        CadastradoPorColaboradorId = colaboradorId,
+                        Tarefas = original.Tarefas.Select(t => new ProjetoTarefa
+                        {
+                            Titulo = t.Titulo,
+                            Descricao = t.Descricao,
+                            PrioridadeId = t.PrioridadeId,
+                            ColaboradorResponsavelId = null,
+                            DataHoraAtribuicao = null,
+                            EtapaId = null,
+                            DataHoraInicio = null
+                        }).ToList()
+                    };
+
+                    var novoId = await copia.CriarAsync(_dbContext);
+                    idsGerados.Add(novoId);
+                }
+
+                return Ok(new { ids = idsGerados, mensagem = $"{idsGerados.Count} projeto(s) duplicado(s) com sucesso." });
+            }
+            catch (ValidationException ex)
+            {
+                return BadRequest(new { erro = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { erro = "Erro ao duplicar o projeto.", detalhe = ex.Message });
+            }
+        }
+
         [HttpGet("kanban")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> ObterKanban(

@@ -83,6 +83,15 @@ export async function desmarcarConclusaoProjeto(id) {
   return handleResponse(res);
 }
 
+export async function duplicarProjeto(id, clienteIds) {
+  const res = await requisicaoApi(`${PROJETOS_API_URL}/${id}/duplicar`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ clienteIds }),
+  });
+  return handleResponse(res);
+}
+
 export async function getClientes() {
   const res = await requisicaoApi(CLIENTES_API_URL, { cache: 'no-store' });
   const data = await handleResponse(res);

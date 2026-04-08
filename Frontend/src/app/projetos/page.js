@@ -9,10 +9,12 @@ import AlternarVisualizacao from '../../shared/components/AlternarVisualizacao';
 import FormularioProjeto from './components/FormularioProjeto';
 import ListaProjetos from './components/ListaProjetos';
 import DialogoVisualizarProjeto from './components/DialogoVisualizarProjeto';
+import DialogoDuplicarProjeto from './components/DialogoDuplicarProjeto';
 import { obterSessaoArmazenada } from '../../shared/auth/session';
 import {
   atualizarProjeto,
   criarProjeto,
+  duplicarProjeto,
   getColaboradores,
   getClientes,
   getEtapas,
@@ -27,8 +29,10 @@ import {
 export default function ProjetosPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
+  const [isDuplicarOpen, setIsDuplicarOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
   const [editingProject, setEditingProject] = useState(null);
+  const [duplicatingProject, setDuplicatingProject] = useState(null);
   const [modoVisualizacao, setModoVisualizacao] = useState('cards');
   const queryClient = useQueryClient();
   const session = obterSessaoArmazenada();
@@ -142,6 +146,18 @@ export default function ProjetosPage() {
     onError: (error) => toast.error(error?.message ?? 'Erro ao desmarcar conclusão do projeto.'),
   });
 
+  const duplicar = useMutation({
+    mutationFn: ({ id, clienteIds }) => duplicarProjeto(id, clienteIds),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['projetos'] });
+      setIsDuplicarOpen(false);
+      setDuplicatingProject(null);
+      const qtd = data?.ids?.length ?? 1;
+      toast.success(qtd === 1 ? 'Projeto duplicado com sucesso.' : `${qtd} projetos duplicados com sucesso.`);
+    },
+    onError: (error) => toast.error(error?.message ?? 'Erro ao duplicar projeto.'),
+  });
+
   const handleOpenCreate = () => {
     setEditingProject(null);
     setIsFormOpen(true);
@@ -155,6 +171,11 @@ export default function ProjetosPage() {
   const handleEditProject = (project) => {
     setEditingProject(project);
     setIsFormOpen(true);
+  };
+
+  const handleAbrirDuplicar = (project) => {
+    setDuplicatingProject(project);
+    setIsDuplicarOpen(true);
   };
 
   const handleSalvarProjeto = (payload) => {
@@ -220,6 +241,7 @@ export default function ProjetosPage() {
           onInativar={(id) => inativar.mutate(id)}
           onReativar={(id) => reativar.mutate(id)}
           onDesmarcarConclusao={(id) => desmarcarConclusao.mutate(id)}
+          onDuplicar={handleAbrirDuplicar}
           isInativando={inativar.isPending}
           isReativando={reativar.isPending}
           isDesmarCando={desmarcarConclusao.isPending}
@@ -238,6 +260,18 @@ export default function ProjetosPage() {
           prioridades={prioridades}
           colaboradorLogadoNome={colaboradorLogadoNome}
           dadosIniciais={editingProject}
+        />
+
+        <DialogoDuplicarProjeto
+          open={isDuplicarOpen}
+          onOpenChange={(next) => {
+            setIsDuplicarOpen(next);
+            if (!next) setDuplicatingProject(null);
+          }}
+          projeto={duplicatingProject}
+          clientes={clientes}
+          aoConfirmar={(id, clienteIds) => duplicar.mutate({ id, clienteIds })}
+          salvando={duplicar.isPending}
         />
 
         <Toaster position="top-right" />
