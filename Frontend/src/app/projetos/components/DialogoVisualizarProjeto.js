@@ -3,7 +3,7 @@
 import { Badge } from '../../../ui/base/badge';
 import { Button } from '../../../ui/base/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../../../ui/base/dialog';
-import { FolderKanban, Pencil, RefreshCw, RotateCcw, Trash2 } from 'lucide-react';
+import { Copy, FolderKanban, Pencil, RefreshCw, RotateCcw, Trash2 } from 'lucide-react';
 
 function formatarDataHora(value) {
   if (!value) return '-';
@@ -38,9 +38,11 @@ export default function DialogoVisualizarProjeto({
   onInativar,
   onReativar,
   onDesmarcarConclusao,
+  onDuplicar,
   isInativando,
   isReativando,
   isDesmarCando,
+  isDuplicando,
 }) {
   if (!projeto) return null;
 
@@ -74,6 +76,11 @@ export default function DialogoVisualizarProjeto({
   const handleDesmarcarConclusao = () => {
     onDesmarcarConclusao(projeto.id);
     onOpenChange(false);
+  };
+
+  const handleDuplicar = () => {
+    onOpenChange(false);
+    onDuplicar(projeto);
   };
 
   return (
@@ -194,6 +201,16 @@ export default function DialogoVisualizarProjeto({
           <Button variant="outline" onClick={handleEdit}>
             <Pencil className="h-4 w-4 mr-1" />
             Editar
+          </Button>
+
+          <Button
+            variant="outline"
+            className="text-brand-blue border-brand-blue hover:bg-brand-blue hover:text-white"
+            onClick={handleDuplicar}
+            disabled={isDuplicando}
+          >
+            <Copy className="h-4 w-4 mr-1" />
+            Duplicar
           </Button>
 
           {projeto.ativo && projeto.concluido && (
