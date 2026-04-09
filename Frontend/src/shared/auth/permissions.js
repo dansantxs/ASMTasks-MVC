@@ -45,6 +45,7 @@ const mapeamentoPermissoes = [
 ];
 
 const rotasPadrao = [
+  { path: '/dashboard', permission: null },
   { path: '/atendimentos', permission: permissoesTelas.atendimentosAgenda },
   { path: '/projetos', permission: permissoesTelas.projetosCadastro },
   { path: '/projetos/kanban', permission: permissoesTelas.projetosKanban },
