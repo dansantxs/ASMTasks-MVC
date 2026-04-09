@@ -173,10 +173,10 @@ export function BarraLateral({ caminhoAtual, aoNavegar, aoAlternarRecolhimento, 
 
       <nav className="flex-1 min-h-0 overflow-y-auto p-4 space-y-2">
         <button
-          onClick={() => aoNavegar('/')}
+          onClick={() => aoNavegar('/dashboard')}
           className={cn(
             'w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors',
-            secaoAtual === 'inicio' ? 'bg-[#1e3a8a] text-white' : 'text-gray-300 hover:bg-gray-800',
+            secaoAtual === 'dashboard' ? 'bg-[#1e3a8a] text-white' : 'text-gray-300 hover:bg-gray-800',
             recolhido && 'justify-center px-2'
           )}
           title={recolhido ? 'Início' : undefined}
