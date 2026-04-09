@@ -42,6 +42,11 @@ async function handleResponse(res) {
   return data;
 }
 
+export async function getProjeto(id) {
+  const res = await requisicaoApi(`${PROJETOS_API_URL}/${id}`, { cache: 'no-store' });
+  return handleResponse(res);
+}
+
 export async function getProjetos() {
   const res = await requisicaoApi(PROJETOS_API_URL, { cache: 'no-store' });
   const data = await handleResponse(res);

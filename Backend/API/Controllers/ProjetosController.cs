@@ -16,11 +16,25 @@ namespace API.Controllers
     public class ProjetosController : ControllerBase
     {
         private readonly DBContext _dbContext;
+        private readonly IWebHostEnvironment _env;
         private static readonly ProjetosDAO _projetosDAO = new ProjetosDAO();
 
-        public ProjetosController(DBContext dbContext)
+        private static readonly string[] _tiposArquivoPermitidos =
+            ["image/jpeg", "image/png", "image/gif", "image/webp", "application/pdf"];
+
+        private const long _tamanhoMaximoBytes = 20 * 1024 * 1024; // 20 MB
+
+        public ProjetosController(DBContext dbContext, IWebHostEnvironment env)
         {
             _dbContext = dbContext;
+            _env = env;
+        }
+
+        private string ObterPastaAnexos()
+        {
+            var pasta = Path.Combine(_env.ContentRootPath, "uploads", "tarefas");
+            Directory.CreateDirectory(pasta);
+            return pasta;
         }
 
         [HttpPost]
@@ -656,6 +670,148 @@ namespace API.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { erro = "Erro ao obter relatório de histórico.", detalhe = ex.Message });
+            }
+        }
+
+        [HttpPost("tarefas/{id}/anexos")]
+        [RequestSizeLimit(20 * 1024 * 1024)]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> UploadAnexo(int id, IFormFile arquivo)
+        {
+            if (arquivo == null || arquivo.Length == 0)
+                return BadRequest(new { erro = "Nenhum arquivo enviado." });
+
+            if (arquivo.Length > _tamanhoMaximoBytes)
+                return BadRequest(new { erro = "O arquivo excede o tamanho máximo de 20 MB." });
+
+            if (!_tiposArquivoPermitidos.Contains(arquivo.ContentType.ToLower()))
+                return BadRequest(new { erro = "Tipo de arquivo não permitido. São aceitos: JPEG, PNG, GIF, WebP e PDF." });
+
+            try
+            {
+                var existe = await _projetosDAO.TarefaExisteAsync(_dbContext, id);
+                if (!existe)
+                    return NotFound(new { erro = "Tarefa não encontrada." });
+
+                var extensao = Path.GetExtension(arquivo.FileName);
+                var nomeArquivo = $"{Guid.NewGuid()}{extensao}";
+                var caminho = Path.Combine(ObterPastaAnexos(), nomeArquivo);
+
+                await using (var stream = System.IO.File.Create(caminho))
+                    await arquivo.CopyToAsync(stream);
+
+                var anexo = new ProjetoTarefaAnexo
+                {
+                    TarefaId = id,
+                    NomeOriginal = arquivo.FileName,
+                    NomeArquivo = nomeArquivo,
+                    ContentType = arquivo.ContentType,
+                    Tamanho = arquivo.Length,
+                    DataUpload = DateTime.Now,
+                    EnviadoPorColaboradorId = ObterColaboradorIdLogado()
+                };
+
+                var novoId = await _projetosDAO.InserirAnexoAsync(_dbContext, anexo);
+                anexo.Id = novoId;
+
+                return StatusCode(StatusCodes.Status201Created, new
+                {
+                    id = novoId,
+                    tarefaId = id,
+                    nomeOriginal = anexo.NomeOriginal,
+                    contentType = anexo.ContentType,
+                    tamanho = anexo.Tamanho,
+                    dataUpload = anexo.DataUpload
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { erro = "Erro ao fazer upload do anexo.", detalhe = ex.Message });
+            }
+        }
+
+        [HttpGet("tarefas/{id}/anexos")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> ObterAnexos(int id)
+        {
+            try
+            {
+                var existe = await _projetosDAO.TarefaExisteAsync(_dbContext, id);
+                if (!existe)
+                    return NotFound(new { erro = "Tarefa não encontrada." });
+
+                var anexos = await _projetosDAO.ObterAnexosTarefaAsync(_dbContext, id);
+                return Ok(anexos.Select(a => new
+                {
+                    id = a.Id,
+                    tarefaId = a.TarefaId,
+                    nomeOriginal = a.NomeOriginal,
+                    contentType = a.ContentType,
+                    tamanho = a.Tamanho,
+                    dataUpload = a.DataUpload
+                }));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { erro = "Erro ao obter anexos.", detalhe = ex.Message });
+            }
+        }
+
+        [HttpGet("tarefas/anexos/{anexoId}/arquivo")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> ObterArquivoAnexo(int anexoId)
+        {
+            try
+            {
+                var anexo = await _projetosDAO.ObterAnexoPorIdAsync(_dbContext, anexoId);
+                if (anexo == null)
+                    return NotFound(new { erro = "Anexo não encontrado." });
+
+                var caminho = Path.Combine(ObterPastaAnexos(), anexo.NomeArquivo);
+                if (!System.IO.File.Exists(caminho))
+                    return NotFound(new { erro = "Arquivo não encontrado no servidor." });
+
+                var bytes = await System.IO.File.ReadAllBytesAsync(caminho);
+                return File(bytes, anexo.ContentType, anexo.NomeOriginal);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { erro = "Erro ao obter arquivo.", detalhe = ex.Message });
+            }
+        }
+
+        [HttpDelete("tarefas/anexos/{anexoId}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> DeletarAnexo(int anexoId)
+        {
+            try
+            {
+                var anexo = await _projetosDAO.ObterAnexoPorIdAsync(_dbContext, anexoId);
+                if (anexo == null)
+                    return NotFound(new { erro = "Anexo não encontrado." });
+
+                var deletado = await _projetosDAO.DeletarAnexoAsync(_dbContext, anexoId);
+                if (!deletado)
+                    return NotFound(new { erro = "Anexo não encontrado." });
+
+                var caminho = Path.Combine(ObterPastaAnexos(), anexo.NomeArquivo);
+                if (System.IO.File.Exists(caminho))
+                    System.IO.File.Delete(caminho);
+
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { erro = "Erro ao deletar anexo.", detalhe = ex.Message });
             }
         }
 

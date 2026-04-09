@@ -2,11 +2,12 @@
 
 import { useMemo, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { X, Folder, Building2, User, Tag, Play, Pause, Clock, History, UserCog } from 'lucide-react';
+import { X, Folder, Building2, User, Tag, Play, Pause, Clock, History, UserCog, Paperclip } from 'lucide-react';
 import { Button } from '../../../../ui/base/button';
 import { useQuery } from '@tanstack/react-query';
 import { getHistoricoTarefa, getHistoricoProjeto } from '../api/kanban';
 import DialogoPausarTarefa from './DialogoPausarTarefa';
+import DialogoAnexosTarefa from '../../components/DialogoAnexosTarefa';
 
 const formatDateTime = (value) =>
   value
@@ -58,6 +59,7 @@ export default function DialogoVisualizarTarefa({
   isTrocando,
 }) {
   const [dialogoPausaAberto, setDialogoPausaAberto] = useState(false);
+  const [anexosAbertos, setAnexosAbertos] = useState(false);
   const [historicoVisiveis, setHistoricoVisiveis] = useState(HISTORICO_PAGINA);
   const [novoColaboradorId, setNovoColaboradorId] = useState(null);
   const [trocandoResponsavel, setTrocandoResponsavel] = useState(false);
@@ -94,8 +96,13 @@ export default function DialogoVisualizarTarefa({
       setHistoricoVisiveis(HISTORICO_PAGINA);
       setTrocandoResponsavel(false);
       setNovoColaboradorId(null);
+      setAnexosAbertos(false);
     }
     onOpenChange(v);
+  };
+
+  const handleAbrirAnexos = () => {
+    setAnexosAbertos(true);
   };
 
   const podeTrocarResponsavel =
@@ -143,6 +150,12 @@ export default function DialogoVisualizarTarefa({
       tarefa={tarefa}
       onConfirmar={handleConfirmarPausa}
       isConfirmando={isPausando}
+    />
+    <DialogoAnexosTarefa
+      open={anexosAbertos}
+      onOpenChange={setAnexosAbertos}
+      tarefaId={tarefa?.id}
+      tarefaTitulo={tarefa?.titulo}
     />
     <Dialog.Root open={open} onOpenChange={handleOpenChange}>
       <Dialog.Portal>
@@ -365,6 +378,14 @@ export default function DialogoVisualizarTarefa({
                     {isPausando ? 'Pausando...' : 'Pausar Tarefa'}
                   </Button>
                 )}
+                <Button
+                  variant="outline"
+                  className="flex items-center gap-2"
+                  onClick={handleAbrirAnexos}
+                >
+                  <Paperclip className="h-3.5 w-3.5" />
+                  Arquivos
+                </Button>
               </div>
               <Button variant="outline" onClick={() => onOpenChange(false)}>
                 Fechar
