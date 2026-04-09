@@ -121,3 +121,32 @@ export async function getHistoricoProjeto(projetoId) {
   const data = await handleResponse(res);
   return Array.isArray(data) ? data : [];
 }
+
+export async function getAnexosTarefa(tarefaId) {
+  const res = await requisicaoApi(`/projetos/tarefas/${tarefaId}/anexos`, { cache: 'no-store' });
+  const data = await handleResponse(res);
+  return Array.isArray(data) ? data : [];
+}
+
+export async function uploadAnexoTarefa(tarefaId, arquivo) {
+  const formData = new FormData();
+  formData.append('arquivo', arquivo);
+  const res = await requisicaoApi(`/projetos/tarefas/${tarefaId}/anexos`, {
+    method: 'POST',
+    body: formData,
+  });
+  return handleResponse(res);
+}
+
+export async function deletarAnexoTarefa(anexoId) {
+  const res = await requisicaoApi(`/projetos/tarefas/anexos/${anexoId}`, {
+    method: 'DELETE',
+  });
+  return handleResponse(res);
+}
+
+export async function fetchAnexoComoBlob(anexoId) {
+  const res = await requisicaoApi(`/projetos/tarefas/anexos/${anexoId}/arquivo`, { cache: 'no-store' });
+  if (!res.ok) throw new Error('Erro ao carregar imagem.');
+  return res.blob();
+}

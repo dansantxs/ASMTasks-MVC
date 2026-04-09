@@ -19,12 +19,14 @@ import {
   getClientes,
   getEtapas,
   getPrioridades,
+  getProjeto,
   getProjetos,
   getSetores,
   inativarProjeto,
   reativarProjeto,
   desmarcarConclusaoProjeto,
 } from './api/projetos';
+import { uploadAnexoTarefa } from './kanban/api/kanban';
 
 export default function ProjetosPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -99,7 +101,19 @@ export default function ProjetosPage() {
   }, [etapas]);
 
   const criar = useMutation({
-    mutationFn: criarProjeto,
+    mutationFn: async ({ payload, pendingFilesByIndex }) => {
+      const result = await criarProjeto(payload);
+      if (Object.keys(pendingFilesByIndex).length > 0) {
+        const projeto = await getProjeto(result.id);
+        for (const [indexStr, files] of Object.entries(pendingFilesByIndex)) {
+          const tarefaId = projeto.tarefas[Number(indexStr)]?.id;
+          if (tarefaId) {
+            for (const file of files) await uploadAnexoTarefa(tarefaId, file);
+          }
+        }
+      }
+      return result;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projetos'] });
       setIsFormOpen(false);
@@ -109,7 +123,25 @@ export default function ProjetosPage() {
   });
 
   const atualizar = useMutation({
-    mutationFn: ({ id, payload }) => atualizarProjeto(id, payload),
+    mutationFn: async ({ id, payload, pendingFilesByIndex }) => {
+      await atualizarProjeto(id, payload);
+      if (Object.keys(pendingFilesByIndex).length > 0) {
+        const projeto = await getProjeto(id);
+        const existingIds = new Set(payload.tarefas.filter((t) => t.id).map((t) => t.id));
+        const novasTarefas = projeto.tarefas.filter((t) => !existingIds.has(t.id));
+        let novaIdx = 0;
+        for (let i = 0; i < payload.tarefas.length; i++) {
+          if (!payload.tarefas[i].id) {
+            const files = pendingFilesByIndex[i] ?? [];
+            const tarefaId = novasTarefas[novaIdx]?.id;
+            if (tarefaId) {
+              for (const file of files) await uploadAnexoTarefa(tarefaId, file);
+            }
+            novaIdx++;
+          }
+        }
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projetos'] });
       setIsFormOpen(false);
@@ -178,15 +210,15 @@ export default function ProjetosPage() {
     setIsDuplicarOpen(true);
   };
 
-  const handleSalvarProjeto = (payload) => {
+  const handleSalvarProjeto = (payload, pendingFilesByIndex = {}) => {
     if (editingProject?.id) {
       const body = { ...payload };
       delete body.id;
-      atualizar.mutate({ id: editingProject.id, payload: body });
+      atualizar.mutate({ id: editingProject.id, payload: body, pendingFilesByIndex });
       return;
     }
 
-    criar.mutate(payload);
+    criar.mutate({ payload, pendingFilesByIndex });
   };
 
   if (isLoadingProjetos) return <div className="p-6">Carregando projetos...</div>;

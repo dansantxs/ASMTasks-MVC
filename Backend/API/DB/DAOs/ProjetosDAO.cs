@@ -981,5 +981,110 @@ namespace API.DB.DAOs
 
             return tarefas;
         }
+
+        public async Task<int> InserirAnexoAsync(DBContext dbContext, ProjetoTarefaAnexo anexo)
+        {
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = @"
+                INSERT INTO ProjetoTarefaAnexo
+                (TarefaId, NomeOriginal, NomeArquivo, ContentType, Tamanho, DataUpload, EnviadoPorColaboradorId)
+                VALUES
+                (@TarefaId, @NomeOriginal, @NomeArquivo, @ContentType, @Tamanho, @DataUpload, @EnviadoPorColaboradorId);
+                SELECT CAST(SCOPE_IDENTITY() AS int);
+            ";
+            cmd.Parameters.AddWithValue("@TarefaId", anexo.TarefaId);
+            cmd.Parameters.AddWithValue("@NomeOriginal", anexo.NomeOriginal);
+            cmd.Parameters.AddWithValue("@NomeArquivo", anexo.NomeArquivo);
+            cmd.Parameters.AddWithValue("@ContentType", anexo.ContentType);
+            cmd.Parameters.AddWithValue("@Tamanho", anexo.Tamanho);
+            cmd.Parameters.AddWithValue("@DataUpload", anexo.DataUpload);
+            cmd.Parameters.AddWithValue("@EnviadoPorColaboradorId", anexo.EnviadoPorColaboradorId);
+
+            var result = await cmd.ExecuteScalarAsync();
+            return Convert.ToInt32(result);
+        }
+
+        public async Task<IEnumerable<ProjetoTarefaAnexo>> ObterAnexosTarefaAsync(DBContext dbContext, int tarefaId)
+        {
+            var lista = new List<ProjetoTarefaAnexo>();
+
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = @"
+                SELECT Id, TarefaId, NomeOriginal, NomeArquivo, ContentType, Tamanho, DataUpload, EnviadoPorColaboradorId
+                FROM ProjetoTarefaAnexo
+                WHERE TarefaId = @TarefaId
+                ORDER BY DataUpload ASC;
+            ";
+            cmd.Parameters.AddWithValue("@TarefaId", tarefaId);
+
+            await using var dr = await cmd.ExecuteReaderAsync();
+            while (await dr.ReadAsync())
+            {
+                lista.Add(new ProjetoTarefaAnexo
+                {
+                    Id = Convert.ToInt32(dr["Id"]),
+                    TarefaId = Convert.ToInt32(dr["TarefaId"]),
+                    NomeOriginal = dr["NomeOriginal"].ToString()!,
+                    NomeArquivo = dr["NomeArquivo"].ToString()!,
+                    ContentType = dr["ContentType"].ToString()!,
+                    Tamanho = Convert.ToInt64(dr["Tamanho"]),
+                    DataUpload = Convert.ToDateTime(dr["DataUpload"]),
+                    EnviadoPorColaboradorId = Convert.ToInt32(dr["EnviadoPorColaboradorId"])
+                });
+            }
+
+            return lista;
+        }
+
+        public async Task<ProjetoTarefaAnexo?> ObterAnexoPorIdAsync(DBContext dbContext, int anexoId)
+        {
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = @"
+                SELECT Id, TarefaId, NomeOriginal, NomeArquivo, ContentType, Tamanho, DataUpload, EnviadoPorColaboradorId
+                FROM ProjetoTarefaAnexo
+                WHERE Id = @Id;
+            ";
+            cmd.Parameters.AddWithValue("@Id", anexoId);
+
+            await using var dr = await cmd.ExecuteReaderAsync();
+            if (!await dr.ReadAsync()) return null;
+
+            return new ProjetoTarefaAnexo
+            {
+                Id = Convert.ToInt32(dr["Id"]),
+                TarefaId = Convert.ToInt32(dr["TarefaId"]),
+                NomeOriginal = dr["NomeOriginal"].ToString()!,
+                NomeArquivo = dr["NomeArquivo"].ToString()!,
+                ContentType = dr["ContentType"].ToString()!,
+                Tamanho = Convert.ToInt64(dr["Tamanho"]),
+                DataUpload = Convert.ToDateTime(dr["DataUpload"]),
+                EnviadoPorColaboradorId = Convert.ToInt32(dr["EnviadoPorColaboradorId"])
+            };
+        }
+
+        public async Task<bool> DeletarAnexoAsync(DBContext dbContext, int anexoId)
+        {
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = "DELETE FROM ProjetoTarefaAnexo WHERE Id = @Id";
+            cmd.Parameters.AddWithValue("@Id", anexoId);
+
+            var linhas = await cmd.ExecuteNonQueryAsync();
+            return linhas > 0;
+        }
+
+        public async Task<bool> TarefaExisteAsync(DBContext dbContext, int tarefaId)
+        {
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = "SELECT COUNT(1) FROM ProjetoTarefa WHERE Id = @Id";
+            cmd.Parameters.AddWithValue("@Id", tarefaId);
+
+            var result = await cmd.ExecuteScalarAsync();
+            return Convert.ToInt32(result) > 0;
+        }
     }
 }

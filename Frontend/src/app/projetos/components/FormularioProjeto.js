@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../../../ui/base/dialog';
 import { Button } from '../../../ui/base/button';
@@ -8,19 +8,27 @@ import { Input } from '../../../ui/form/input';
 import { Label } from '../../../ui/form/label';
 import { Textarea } from '../../../ui/form/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../ui/form/select';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Paperclip, X as XIcon, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { criarCliente, criarPrioridade, criarSetor } from '../api/projetos';
 import FormularioCliente from '../../cadastros/clientes/components/FormularioCliente';
 import FormularioPrioridade from '../../cadastros/prioridades/components/FormularioPrioridade';
 import FormularioSetor from '../../cadastros/setores/components/FormularioSetor';
+import DialogoAnexosTarefa from './DialogoAnexosTarefa';
+
+function gerarTempId() {
+  return typeof crypto !== 'undefined' && crypto.randomUUID
+    ? crypto.randomUUID()
+    : Math.random().toString(36).slice(2);
+}
 
 function criarTarefaInicial() {
-  return { titulo: '', descricao: '', prioridadeId: '' };
+  return { _tempId: gerarTempId(), titulo: '', descricao: '', prioridadeId: '' };
 }
 
 function criarTarefaDoProjeto(tarefa) {
   return {
+    _tempId: gerarTempId(),
     id: tarefa?.id ?? null,
     titulo: tarefa?.titulo ?? '',
     descricao: tarefa?.descricao ?? '',
@@ -32,10 +40,17 @@ function criarFormularioInicial() {
   return { titulo: '', descricao: '', clienteId: '', setorId: '', tarefas: [criarTarefaInicial()] };
 }
 
-function CartaoTarefa({ tarefa, index, prioridadesAtivas, errors, onChange, onRemove, totalTarefas, onAbrirCriarPrioridade }) {
+function CartaoTarefa({ tarefa, index, prioridadesAtivas, errors, onChange, onRemove, totalTarefas, onAbrirCriarPrioridade, onAbrirAnexos, arquivosPendentes = [], onAdicionarArquivos, onRemoverArquivo }) {
   const [showDesc, setShowDesc] = useState(Boolean(tarefa.descricao));
+  const inputArquivoRef = useRef(null);
   const prioridadeSelecionada = prioridadesAtivas.find((p) => String(p.id) === tarefa.prioridadeId);
   const cor = prioridadeSelecionada?.cor;
+
+  const handleArquivosSelecionados = (e) => {
+    const files = Array.from(e.target.files ?? []);
+    if (inputArquivoRef.current) inputArquivoRef.current.value = '';
+    if (files.length > 0) onAdicionarArquivos?.(files);
+  };
 
   return (
     <div
@@ -108,6 +123,54 @@ function CartaoTarefa({ tarefa, index, prioridadesAtivas, errors, onChange, onRe
               {errors.prioridadeId && <p className="text-xs text-destructive">{errors.prioridadeId}</p>}
             </div>
           )}
+
+          {/* Arquivos: gestão real para tarefas existentes, pendentes para novas */}
+          {tarefa.id && onAbrirAnexos ? (
+            <button
+              type="button"
+              onClick={() => onAbrirAnexos(tarefa)}
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              tabIndex={-1}
+            >
+              <Paperclip className="h-3 w-3" />
+              Arquivos
+            </button>
+          ) : (
+            <div className="space-y-1">
+              {arquivosPendentes.length > 0 && (
+                <div className="space-y-0.5">
+                  {arquivosPendentes.map((file, fi) => (
+                    <div key={fi} className="flex items-center gap-1 text-xs text-muted-foreground bg-muted/50 rounded px-1.5 py-0.5">
+                      {file.type === 'application/pdf'
+                        ? <FileText className="h-3 w-3 shrink-0 text-red-400" />
+                        : <Paperclip className="h-3 w-3 shrink-0" />}
+                      <span className="truncate flex-1 max-w-[140px]">{file.name}</span>
+                      <button type="button" onClick={() => onRemoverArquivo?.(fi)} className="shrink-0 hover:text-destructive" tabIndex={-1}>
+                        <XIcon className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={() => inputArquivoRef.current?.click()}
+                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                tabIndex={-1}
+              >
+                <Paperclip className="h-3 w-3" />
+                Adicionar arquivo
+              </button>
+              <input
+                ref={inputArquivoRef}
+                type="file"
+                accept="image/jpeg,image/png,image/gif,image/webp,application/pdf"
+                multiple
+                className="hidden"
+                onChange={handleArquivosSelecionados}
+              />
+            </div>
+          )}
         </div>
 
         <Button
@@ -140,10 +203,12 @@ export default function FormularioProjeto({
 }) {
   const [formData, setFormData] = useState(criarFormularioInicial);
   const [errors, setErrors] = useState({});
+  const [pendingFiles, setPendingFiles] = useState({}); // { [_tempId]: File[] }
   const tarefasContainerRef = useRef(null);
   const [showModalCliente, setShowModalCliente] = useState(false);
   const [showModalSetor, setShowModalSetor] = useState(false);
   const [indicePrioridadeTarefa, setIndicePrioridadeTarefa] = useState(null);
+  const [tarefaAnexosAberta, setTarefaAnexosAberta] = useState(null);
   const queryClient = useQueryClient();
   const isEditMode = Boolean(dadosIniciais?.id);
 
@@ -162,6 +227,7 @@ export default function FormularioProjeto({
       } else {
         setFormData(criarFormularioInicial());
       }
+      setPendingFiles({});
       setErrors({});
       setShowModalCliente(false);
       setShowModalSetor(false);
@@ -192,9 +258,31 @@ export default function FormularioProjeto({
   const removerTarefa = (index) => {
     setFormData((prev) => {
       if (prev.tarefas.length <= 1) return prev;
+      const removida = prev.tarefas[index];
+      if (removida?._tempId) {
+        setPendingFiles((pf) => {
+          const next = { ...pf };
+          delete next[removida._tempId];
+          return next;
+        });
+      }
       return { ...prev, tarefas: prev.tarefas.filter((_, i) => i !== index) };
     });
   };
+
+  const adicionarArquivosPendentes = useCallback((tempId, files) => {
+    setPendingFiles((pf) => ({
+      ...pf,
+      [tempId]: [...(pf[tempId] ?? []), ...files],
+    }));
+  }, []);
+
+  const removerArquivoPendente = useCallback((tempId, fileIndex) => {
+    setPendingFiles((pf) => ({
+      ...pf,
+      [tempId]: (pf[tempId] ?? []).filter((_, i) => i !== fileIndex),
+    }));
+  }, []);
 
   const handleSalvarNovoCliente = async (dados) => {
     try {
@@ -264,19 +352,31 @@ export default function FormularioProjeto({
     event.preventDefault();
     if (!validarFormulario()) return;
 
-    aoSalvar({
-      id: dadosIniciais?.id,
-      titulo: formData.titulo.trim(),
-      descricao: formData.descricao.trim() || null,
-      clienteId: Number(formData.clienteId),
-      setorId: Number(formData.setorId),
-      tarefas: formData.tarefas.map((tarefa) => ({
-        id: tarefa.id ?? null,
-        titulo: tarefa.titulo.trim(),
-        descricao: tarefa.descricao.trim() || null,
-        prioridadeId: Number(tarefa.prioridadeId),
-      })),
+    // Mapeia índice da tarefa → arquivos pendentes (somente tarefas sem id)
+    const pendingFilesByIndex = {};
+    formData.tarefas.forEach((tarefa, index) => {
+      if (!tarefa.id) {
+        const files = pendingFiles[tarefa._tempId] ?? [];
+        if (files.length > 0) pendingFilesByIndex[index] = files;
+      }
     });
+
+    aoSalvar(
+      {
+        id: dadosIniciais?.id,
+        titulo: formData.titulo.trim(),
+        descricao: formData.descricao.trim() || null,
+        clienteId: Number(formData.clienteId),
+        setorId: Number(formData.setorId),
+        tarefas: formData.tarefas.map((tarefa) => ({
+          id: tarefa.id ?? null,
+          titulo: tarefa.titulo.trim(),
+          descricao: tarefa.descricao.trim() || null,
+          prioridadeId: Number(tarefa.prioridadeId),
+        })),
+      },
+      pendingFilesByIndex,
+    );
   };
 
   return (
@@ -417,7 +517,7 @@ export default function FormularioProjeto({
                 <div ref={tarefasContainerRef} className="flex-1 overflow-y-auto space-y-1.5 pr-0.5">
                   {formData.tarefas.map((tarefa, index) => (
                     <CartaoTarefa
-                      key={`tarefa-${index}`}
+                      key={tarefa._tempId ?? `tarefa-${index}`}
                       tarefa={tarefa}
                       index={index}
                       prioridadesAtivas={prioridadesAtivas}
@@ -426,6 +526,10 @@ export default function FormularioProjeto({
                       onRemove={removerTarefa}
                       totalTarefas={formData.tarefas.length}
                       onAbrirCriarPrioridade={setIndicePrioridadeTarefa}
+                      onAbrirAnexos={isEditMode && tarefa.id ? setTarefaAnexosAberta : undefined}
+                      arquivosPendentes={!tarefa.id ? (pendingFiles[tarefa._tempId] ?? []) : undefined}
+                      onAdicionarArquivos={!tarefa.id ? (files) => adicionarArquivosPendentes(tarefa._tempId, files) : undefined}
+                      onRemoverArquivo={!tarefa.id ? (fi) => removerArquivoPendente(tarefa._tempId, fi) : undefined}
                     />
                   ))}
                 </div>
@@ -480,6 +584,14 @@ export default function FormularioProjeto({
         prioridade={null}
         aoSalvar={handleSalvarNovaPrioridade}
         prioridadesExistentes={prioridades.map((p) => ({ ...p, name: p.nome }))}
+      />
+
+      {/* Diálogo de imagens da tarefa */}
+      <DialogoAnexosTarefa
+        open={tarefaAnexosAberta !== null}
+        onOpenChange={(v) => { if (!v) setTarefaAnexosAberta(null); }}
+        tarefaId={tarefaAnexosAberta?.id ?? null}
+        tarefaTitulo={tarefaAnexosAberta?.titulo ?? ''}
       />
     </>
   );
