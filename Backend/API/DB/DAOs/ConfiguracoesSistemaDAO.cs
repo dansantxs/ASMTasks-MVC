@@ -14,7 +14,8 @@ namespace API.DB.DAOs
                 SELECT TOP 1 Id, HoraInicioAgenda, HoraFimAgenda, LogoBase64,
                        Email, Telefone, RazaoSocial, NomeFantasia, Cnpj, InscricaoEstadual,
                        Cep, Logradouro, Numero, Bairro, Cidade, Uf,
-                       SmtpServidor, SmtpPorta, SmtpUsuario, SmtpSenha, SmtpUsarSslTls
+                       SmtpServidor, SmtpPorta, SmtpUsuario, SmtpSenha, SmtpUsarSslTls,
+                       AnexoTamanhoMaximoMB, AnexoLimiteImagemMB, AnexoLimitePdfMB, AnexoLimiteExcelMB
                 FROM ConfiguracaoSistema
                 WHERE Id = 1;";
 
@@ -43,7 +44,11 @@ namespace API.DB.DAOs
                     SmtpPorta = dr["SmtpPorta"] == DBNull.Value ? null : Convert.ToInt32(dr["SmtpPorta"]),
                     SmtpUsuario = dr["SmtpUsuario"] == DBNull.Value ? null : dr["SmtpUsuario"].ToString(),
                     SmtpSenha = dr["SmtpSenha"] == DBNull.Value ? null : dr["SmtpSenha"].ToString(),
-                    SmtpUsarSslTls = dr["SmtpUsarSslTls"] != DBNull.Value && Convert.ToBoolean(dr["SmtpUsarSslTls"])
+                    SmtpUsarSslTls = dr["SmtpUsarSslTls"] != DBNull.Value && Convert.ToBoolean(dr["SmtpUsarSslTls"]),
+                    AnexoTamanhoMaximoMB = dr["AnexoTamanhoMaximoMB"] == DBNull.Value ? 20 : Convert.ToInt32(dr["AnexoTamanhoMaximoMB"]),
+                    AnexoLimiteImagemMB = dr["AnexoLimiteImagemMB"] == DBNull.Value ? null : Convert.ToInt32(dr["AnexoLimiteImagemMB"]),
+                    AnexoLimitePdfMB = dr["AnexoLimitePdfMB"] == DBNull.Value ? null : Convert.ToInt32(dr["AnexoLimitePdfMB"]),
+                    AnexoLimiteExcelMB = dr["AnexoLimiteExcelMB"] == DBNull.Value ? null : Convert.ToInt32(dr["AnexoLimiteExcelMB"])
                 };
             }
 
@@ -79,10 +84,14 @@ namespace API.DB.DAOs
                                SmtpPorta = @SmtpPorta,
                                SmtpUsuario = @SmtpUsuario,
                                SmtpSenha = @SmtpSenha,
-                               SmtpUsarSslTls = @SmtpUsarSslTls
+                               SmtpUsarSslTls = @SmtpUsarSslTls,
+                               AnexoTamanhoMaximoMB = @AnexoTamanhoMaximoMB,
+                               AnexoLimiteImagemMB = @AnexoLimiteImagemMB,
+                               AnexoLimitePdfMB = @AnexoLimitePdfMB,
+                               AnexoLimiteExcelMB = @AnexoLimiteExcelMB
                 WHEN NOT MATCHED THEN
-                    INSERT (Id, HoraInicioAgenda, HoraFimAgenda, LogoBase64, Email, Telefone, RazaoSocial, NomeFantasia, Cnpj, InscricaoEstadual, Cep, Logradouro, Numero, Bairro, Cidade, Uf, SmtpServidor, SmtpPorta, SmtpUsuario, SmtpSenha, SmtpUsarSslTls)
-                    VALUES (1, @HoraInicioAgenda, @HoraFimAgenda, @LogoBase64, @Email, @Telefone, @RazaoSocial, @NomeFantasia, @Cnpj, @InscricaoEstadual, @Cep, @Logradouro, @Numero, @Bairro, @Cidade, @Uf, @SmtpServidor, @SmtpPorta, @SmtpUsuario, @SmtpSenha, @SmtpUsarSslTls);";
+                    INSERT (Id, HoraInicioAgenda, HoraFimAgenda, LogoBase64, Email, Telefone, RazaoSocial, NomeFantasia, Cnpj, InscricaoEstadual, Cep, Logradouro, Numero, Bairro, Cidade, Uf, SmtpServidor, SmtpPorta, SmtpUsuario, SmtpSenha, SmtpUsarSslTls, AnexoTamanhoMaximoMB, AnexoLimiteImagemMB, AnexoLimitePdfMB, AnexoLimiteExcelMB)
+                    VALUES (1, @HoraInicioAgenda, @HoraFimAgenda, @LogoBase64, @Email, @Telefone, @RazaoSocial, @NomeFantasia, @Cnpj, @InscricaoEstadual, @Cep, @Logradouro, @Numero, @Bairro, @Cidade, @Uf, @SmtpServidor, @SmtpPorta, @SmtpUsuario, @SmtpSenha, @SmtpUsarSslTls, @AnexoTamanhoMaximoMB, @AnexoLimiteImagemMB, @AnexoLimitePdfMB, @AnexoLimiteExcelMB);";
 
             cmd.Parameters.AddWithValue("@HoraInicioAgenda", configuracao.HoraInicioAgenda);
             cmd.Parameters.AddWithValue("@HoraFimAgenda", configuracao.HoraFimAgenda);
@@ -104,6 +113,10 @@ namespace API.DB.DAOs
             cmd.Parameters.AddWithValue("@SmtpUsuario", (object?)configuracao.SmtpUsuario ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@SmtpSenha", (object?)configuracao.SmtpSenha ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@SmtpUsarSslTls", configuracao.SmtpUsarSslTls);
+            cmd.Parameters.AddWithValue("@AnexoTamanhoMaximoMB", configuracao.AnexoTamanhoMaximoMB);
+            cmd.Parameters.AddWithValue("@AnexoLimiteImagemMB", (object?)configuracao.AnexoLimiteImagemMB ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@AnexoLimitePdfMB", (object?)configuracao.AnexoLimitePdfMB ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@AnexoLimiteExcelMB", (object?)configuracao.AnexoLimiteExcelMB ?? DBNull.Value);
 
             await cmd.ExecuteNonQueryAsync();
         }

@@ -3818,6 +3818,25 @@
           },
           "smtpUsarSslTls": {
             "type": "boolean"
+          },
+          "anexoTamanhoMaximoMB": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "anexoLimiteImagemMB": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "anexoLimitePdfMB": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "anexoLimiteExcelMB": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
           }
         },
         "additionalProperties": false

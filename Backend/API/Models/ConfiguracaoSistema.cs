@@ -32,6 +32,12 @@ namespace API.Models
         public string? SmtpSenha { get; set; }
         public bool SmtpUsarSslTls { get; set; } = true;
 
+        // Limites de tamanho de anexos
+        public int AnexoTamanhoMaximoMB { get; set; } = 20;
+        public int? AnexoLimiteImagemMB { get; set; }
+        public int? AnexoLimitePdfMB { get; set; }
+        public int? AnexoLimiteExcelMB { get; set; }
+
         public async Task SalvarAsync(DBContext dbContext)
         {
             Normalizar();
@@ -74,6 +80,22 @@ namespace API.Models
 
             ValidarConfiguracaoSmtp();
             ValidarLogo(LogoBase64);
+            ValidarLimitesAnexo();
+        }
+
+        private void ValidarLimitesAnexo()
+        {
+            if (AnexoTamanhoMaximoMB <= 0 || AnexoTamanhoMaximoMB > 500)
+                throw new ValidationException("O tamanho máximo de anexo deve ser entre 1 e 500 MB.");
+
+            if (AnexoLimiteImagemMB.HasValue && (AnexoLimiteImagemMB.Value <= 0 || AnexoLimiteImagemMB.Value > 500))
+                throw new ValidationException("O limite de tamanho para imagens deve ser entre 1 e 500 MB.");
+
+            if (AnexoLimitePdfMB.HasValue && (AnexoLimitePdfMB.Value <= 0 || AnexoLimitePdfMB.Value > 500))
+                throw new ValidationException("O limite de tamanho para PDF deve ser entre 1 e 500 MB.");
+
+            if (AnexoLimiteExcelMB.HasValue && (AnexoLimiteExcelMB.Value <= 0 || AnexoLimiteExcelMB.Value > 500))
+                throw new ValidationException("O limite de tamanho para Excel deve ser entre 1 e 500 MB.");
         }
 
         public bool PossuiConfiguracaoEmailCompleta()

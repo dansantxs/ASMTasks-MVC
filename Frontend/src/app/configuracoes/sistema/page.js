@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Building2, ImagePlus, Save, Clock3, Mail, Phone, Server, Eye, EyeOff } from 'lucide-react';
+import { Building2, ImagePlus, Save, Clock3, Mail, Phone, Server, Eye, EyeOff, Paperclip } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/layout/card';
 import { Input } from '../../../ui/form/input';
@@ -440,6 +440,71 @@ export default function ConfiguracoesSistemaPage() {
                 />
                 <span>Usar SSL/TLS no envio de e-mail</span>
               </label>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Paperclip className="h-5 w-5" />
+                Limites de tamanho de anexos
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <p className="text-sm text-muted-foreground">
+                Define o tamanho máximo permitido por upload. Use os campos por tipo para sobrescrever o limite global; deixe em branco para usar o padrão.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="anexoTamanhoMaximoMB">Limite global (MB)</Label>
+                  <Input
+                    id="anexoTamanhoMaximoMB"
+                    type="number"
+                    min="1"
+                    max="500"
+                    value={form.anexoTamanhoMaximoMB ?? 20}
+                    onChange={(e) => setForm((prev) => ({ ...prev, anexoTamanhoMaximoMB: Number(e.target.value) || 20 }))}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="anexoLimiteImagemMB">Limite para imagens (MB)</Label>
+                  <Input
+                    id="anexoLimiteImagemMB"
+                    type="number"
+                    min="1"
+                    max="500"
+                    placeholder={`Padrão: ${form.anexoTamanhoMaximoMB ?? 20} MB`}
+                    value={form.anexoLimiteImagemMB ?? ''}
+                    onChange={(e) => setForm((prev) => ({ ...prev, anexoLimiteImagemMB: e.target.value === '' ? null : Number(e.target.value) }))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="anexoLimitePdfMB">Limite para PDF (MB)</Label>
+                  <Input
+                    id="anexoLimitePdfMB"
+                    type="number"
+                    min="1"
+                    max="500"
+                    placeholder={`Padrão: ${form.anexoTamanhoMaximoMB ?? 20} MB`}
+                    value={form.anexoLimitePdfMB ?? ''}
+                    onChange={(e) => setForm((prev) => ({ ...prev, anexoLimitePdfMB: e.target.value === '' ? null : Number(e.target.value) }))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="anexoLimiteExcelMB">Limite para Excel (MB)</Label>
+                  <Input
+                    id="anexoLimiteExcelMB"
+                    type="number"
+                    min="1"
+                    max="500"
+                    placeholder={`Padrão: ${form.anexoTamanhoMaximoMB ?? 20} MB`}
+                    value={form.anexoLimiteExcelMB ?? ''}
+                    onChange={(e) => setForm((prev) => ({ ...prev, anexoLimiteExcelMB: e.target.value === '' ? null : Number(e.target.value) }))}
+                  />
+                </div>
+              </div>
             </CardContent>
           </Card>
 

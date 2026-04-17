@@ -24,6 +24,10 @@ export const configuracoesPadrao = {
   smtpUsuario: '',
   smtpSenha: '',
   smtpUsarSslTls: true,
+  anexoTamanhoMaximoMB: 20,
+  anexoLimiteImagemMB: null,
+  anexoLimitePdfMB: null,
+  anexoLimiteExcelMB: null,
 };
 
 async function tratarResposta(res) {
@@ -75,6 +79,10 @@ function normalizarConfiguracoes(dados) {
     smtpUsuario: mesclado.smtpUsuario || '',
     smtpSenha: mesclado.smtpSenha || '',
     smtpUsarSslTls: mesclado.smtpUsarSslTls ?? true,
+    anexoTamanhoMaximoMB: mesclado.anexoTamanhoMaximoMB ?? 20,
+    anexoLimiteImagemMB: mesclado.anexoLimiteImagemMB ?? null,
+    anexoLimitePdfMB: mesclado.anexoLimitePdfMB ?? null,
+    anexoLimiteExcelMB: mesclado.anexoLimiteExcelMB ?? null,
   };
 }
 

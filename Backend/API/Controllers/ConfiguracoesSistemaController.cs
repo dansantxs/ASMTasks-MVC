@@ -58,7 +58,11 @@ namespace API.Controllers
                     SmtpPorta = request.SmtpPorta,
                     SmtpUsuario = request.SmtpUsuario,
                     SmtpSenha = request.SmtpSenha,
-                    SmtpUsarSslTls = request.SmtpUsarSslTls
+                    SmtpUsarSslTls = request.SmtpUsarSslTls,
+                    AnexoTamanhoMaximoMB = request.AnexoTamanhoMaximoMB > 0 ? request.AnexoTamanhoMaximoMB : 20,
+                    AnexoLimiteImagemMB = request.AnexoLimiteImagemMB,
+                    AnexoLimitePdfMB = request.AnexoLimitePdfMB,
+                    AnexoLimiteExcelMB = request.AnexoLimiteExcelMB
                 };
 
                 await configuracao.SalvarAsync(_dbContext);
@@ -104,7 +108,11 @@ namespace API.Controllers
                 SmtpPorta = configuracao.SmtpPorta,
                 SmtpUsuario = configuracao.SmtpUsuario,
                 SmtpSenha = configuracao.SmtpSenha,
-                SmtpUsarSslTls = configuracao.SmtpUsarSslTls
+                SmtpUsarSslTls = configuracao.SmtpUsarSslTls,
+                AnexoTamanhoMaximoMB = configuracao.AnexoTamanhoMaximoMB,
+                AnexoLimiteImagemMB = configuracao.AnexoLimiteImagemMB,
+                AnexoLimitePdfMB = configuracao.AnexoLimitePdfMB,
+                AnexoLimiteExcelMB = configuracao.AnexoLimiteExcelMB
             };
         }
     }
