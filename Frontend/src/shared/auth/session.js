@@ -37,7 +37,7 @@ export function salvarSessao(respostaLogin) {
     usuarioId: respostaLogin.usuarioId,
     colaboradorId: Number(respostaLogin.colaboradorId ?? payload.colaboradorId),
     colaboradorNome: respostaLogin.colaboradorNome ?? payload.colaboradorNome ?? '',
-    nivelAcesso: respostaLogin.nivelAcesso ?? payload.nivelAcesso ?? 'PADRAO',
+    nivelAcesso: respostaLogin.nivelAcesso ?? payload.nivelAcesso ?? 0,
     permissoes: respostaLogin.permissoes ?? [],
     ehAdministrador: respostaLogin.ehAdministrador ?? false,
     ultimoAcessoEm: Date.now(),

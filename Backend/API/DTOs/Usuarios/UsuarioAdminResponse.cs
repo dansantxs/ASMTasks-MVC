@@ -7,7 +7,7 @@ namespace API.DTOs.Usuarios
         public string ColaboradorNome { get; set; } = string.Empty;
         public string Login { get; set; } = string.Empty;
         public bool Ativo { get; set; }
-        public string NivelAcesso { get; set; } = string.Empty;
+        public int NivelAcesso { get; set; }
         public bool ColaboradorAtivo { get; set; }
     }
 }

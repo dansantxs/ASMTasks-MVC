@@ -510,8 +510,8 @@ export default function ConfiguracoesAcessosPage() {
                       </TableCell>
                       <TableCell className="min-w-[220px]">
                         <Select
-                          value={usuario.nivelAcesso}
-                          onValueChange={(value) => atualizarUsuario.mutate({ id: usuario.id, nivelAcesso: value })}
+                          value={String(usuario.nivelAcesso)}
+                          onValueChange={(value) => atualizarUsuario.mutate({ id: usuario.id, nivelAcesso: parseInt(value, 10) })}
                           disabled={!usuario.ativo || atualizarUsuario.isPending}
                         >
                           <SelectTrigger>
@@ -519,7 +519,7 @@ export default function ConfiguracoesAcessosPage() {
                           </SelectTrigger>
                           <SelectContent>
                             {niveisAtivos.map((nivel) => (
-                              <SelectItem key={nivel.id} value={nivel.nome}>
+                              <SelectItem key={nivel.id} value={String(nivel.id)}>
                                 {nivel.nome}
                               </SelectItem>
                             ))}

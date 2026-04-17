@@ -69,7 +69,7 @@ namespace API.Models
             if (nivelAtual.EhAdministrador && !EhAdministrador)
             {
                 var totalAdministradoresAtivos = await _usuariosDAO.ContarUsuariosAdministradoresAtivosAsync(dbContext);
-                var administradoresAtivosDoNivel = await _usuariosDAO.ContarUsuariosAdministradoresAtivosPorNivelAsync(dbContext, nivelAtual.Nome);
+                var administradoresAtivosDoNivel = await _usuariosDAO.ContarUsuariosAdministradoresAtivosPorNivelAsync(dbContext, nivelAtual.Id);
                 if (totalAdministradoresAtivos - administradoresAtivosDoNivel <= 0)
                     throw new ValidationException("Nao e possivel remover o ultimo administrador ativo do sistema.");
             }
@@ -77,14 +77,11 @@ namespace API.Models
             var atualizado = await _niveisAcessoDAO.AtualizarAsync(dbContext, this, nomeAnterior);
             if (!atualizado)
                 throw new ValidationException("Nivel de acesso nao encontrado.");
-
-            if (!string.Equals(nomeAnterior, Nome, StringComparison.OrdinalIgnoreCase))
-                await _usuariosDAO.AtualizarNivelAcessoPorNomeAsync(dbContext, nomeAnterior, Nome);
         }
 
         public async Task InativarAsync(DBContext dbContext)
         {
-            var possuiUsuarios = await _usuariosDAO.ExisteUsuarioComNivelAcessoAsync(dbContext, Nome);
+            var possuiUsuarios = await _usuariosDAO.ExisteUsuarioComNivelAcessoAsync(dbContext, Id);
             if (possuiUsuarios)
                 throw new ValidationException("Nao e possivel inativar um nivel vinculado a usuarios.");
 
