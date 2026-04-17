@@ -17,7 +17,7 @@ namespace API.Models
         public string Login { get; set; } = string.Empty;
         public string SenhaHash { get; set; } = string.Empty;
         public bool Ativo { get; set; } = true;
-        public string NivelAcesso { get; set; } = "PADRAO";
+        public int NivelAcesso { get; set; }
         public DateTime DataCadastro { get; set; }
         public string NomeColaborador { get; set; } = string.Empty;
         public bool ColaboradorAtivo { get; set; } = true;
@@ -77,13 +77,15 @@ namespace API.Models
             var loginDisponivel = await GerarLoginDisponivelAsync(dbContext, loginBase);
             var senhaInicial = colaborador.DataNascimento.ToString("ddMMyyyy");
 
+            var nivelPadrao = await NivelAcessoModel.ObterPorNomeAsync(dbContext, "PADRAO");
+
             var usuario = new Usuario
             {
                 ColaboradorId = colaborador.Id,
                 Login = loginDisponivel,
                 SenhaHash = GerarHashSenha(senhaInicial),
                 Ativo = true,
-                NivelAcesso = "PADRAO",
+                NivelAcesso = nivelPadrao!.Id,
                 DataCadastro = DateTime.Now
             };
 
@@ -197,18 +199,15 @@ namespace API.Models
             return await _usuariosDAO.ObterTodosParaAdministracaoAsync(dbContext);
         }
 
-        public static async Task AtualizarNivelAcessoAsync(DBContext dbContext, int usuarioId, string nivelAcesso)
+        public static async Task AtualizarNivelAcessoAsync(DBContext dbContext, int usuarioId, int nivelAcessoId)
         {
-            if (string.IsNullOrWhiteSpace(nivelAcesso))
-                throw new ValidationException("O nivel de acesso e obrigatorio.");
-
             await NivelAcessoModel.SincronizarPadroesAsync(dbContext);
 
             var usuario = await _usuariosDAO.ObterPorIdAsync(dbContext, usuarioId);
             if (usuario == null)
                 throw new ValidationException("Usuario nao encontrado.");
 
-            var nivel = await NivelAcessoModel.ObterPorNomeAsync(dbContext, nivelAcesso);
+            var nivel = await NivelAcessoModel.ObterPorIdAsync(dbContext, nivelAcessoId);
             if (nivel == null || !nivel.Ativo)
                 throw new ValidationException("Nivel de acesso invalido.");
 
@@ -220,7 +219,7 @@ namespace API.Models
                     throw new ValidationException("Nao e possivel remover o ultimo administrador ativo do sistema.");
             }
 
-            var atualizado = await _usuariosDAO.AtualizarNivelAcessoAsync(dbContext, usuarioId, nivel.Nome);
+            var atualizado = await _usuariosDAO.AtualizarNivelAcessoAsync(dbContext, usuarioId, nivelAcessoId);
             if (!atualizado)
                 throw new ValidationException("Nao foi possivel atualizar o nivel de acesso.");
         }
@@ -253,7 +252,7 @@ namespace API.Models
             if (!usuario.ColaboradorAtivo)
                 throw new ValidationException("Nao e possivel reativar o usuario de um colaborador inativo.");
 
-            var nivel = await NivelAcessoModel.ObterPorNomeAsync(dbContext, usuario.NivelAcesso);
+            var nivel = await NivelAcessoModel.ObterPorIdAsync(dbContext, usuario.NivelAcesso);
             if (nivel == null || !nivel.Ativo)
                 throw new ValidationException("Nao e possivel reativar o usuario com um nivel de acesso inativo.");
 
@@ -303,7 +302,7 @@ namespace API.Models
 
         private static async Task<List<string>> CarregarPermissoesAsync(DBContext dbContext, Usuario usuario)
         {
-            var nivel = await NivelAcessoModel.ObterPorNomeAsync(dbContext, usuario.NivelAcesso);
+            var nivel = await NivelAcessoModel.ObterPorIdAsync(dbContext, usuario.NivelAcesso);
             var permissoes = nivel?.Permissoes ?? new List<string>();
             usuario.EhAdministrador = nivel?.EhAdministrador ?? false;
 

@@ -13,22 +13,16 @@ namespace API.Controllers
     [Route("api/[controller]")]
     [Authorize]
     [Produces("application/json")]
-    public class ProjetosController : ControllerBase
+    public class ProjetosController(DBContext dbContext, IWebHostEnvironment env) : ControllerBase
     {
-        private readonly DBContext _dbContext;
-        private readonly IWebHostEnvironment _env;
-        private static readonly ProjetosDAO _projetosDAO = new ProjetosDAO();
+        private readonly DBContext _dbContext = dbContext;
+        private readonly IWebHostEnvironment _env = env;
+        private static readonly ProjetosDAO _projetosDAO = new();
 
         private static readonly string[] _tiposArquivoPermitidos =
             ["image/jpeg", "image/png", "image/gif", "image/webp", "application/pdf"];
 
         private const long _tamanhoMaximoBytes = 20 * 1024 * 1024; // 20 MB
-
-        public ProjetosController(DBContext dbContext, IWebHostEnvironment env)
-        {
-            _dbContext = dbContext;
-            _env = env;
-        }
 
         private string ObterPastaAnexos()
         {
@@ -43,7 +37,7 @@ namespace API.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Criar([FromBody] ProjetoCriarRequest request)
         {
-            if (!request.Tarefas.Any())
+            if (request.Tarefas.Count == 0)
                 return BadRequest(new { erro = "O projeto deve ter ao menos uma tarefa." });
 
             try
@@ -55,7 +49,7 @@ namespace API.Controllers
                     ClienteId = request.ClienteId,
                     SetorId = request.SetorId,
                     CadastradoPorColaboradorId = ObterColaboradorIdLogado(),
-                    Tarefas = request.Tarefas.Select(t => new ProjetoTarefa
+                    Tarefas = [.. request.Tarefas.Select(t => new ProjetoTarefa
                     {
                         Titulo = t.Titulo,
                         Descricao = t.Descricao,
@@ -63,7 +57,7 @@ namespace API.Controllers
                         ColaboradorResponsavelId = t.ColaboradorResponsavelId,
                         DataHoraAtribuicao = t.DataHoraAtribuicao,
                         EtapaId = t.EtapaId
-                    }).ToList()
+                    })]
                 };
 
                 var id = await projeto.CriarAsync(_dbContext);
@@ -111,7 +105,7 @@ namespace API.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Atualizar(int id, [FromBody] ProjetoAtualizarRequest request)
         {
-            if (!request.Tarefas.Any())
+            if (request.Tarefas.Count == 0)
                 return BadRequest(new { erro = "O projeto deve ter ao menos uma tarefa." });
 
             try
@@ -124,13 +118,13 @@ namespace API.Controllers
                 projeto.Descricao = request.Descricao;
                 projeto.ClienteId = request.ClienteId;
                 projeto.SetorId = request.SetorId;
-                projeto.Tarefas = request.Tarefas.Select(t => new ProjetoTarefa
+                projeto.Tarefas = [.. request.Tarefas.Select(t => new ProjetoTarefa
                 {
                     Id = t.Id ?? 0,
                     Titulo = t.Titulo,
                     Descricao = t.Descricao,
                     PrioridadeId = t.PrioridadeId,
-                }).ToList();
+                })];
 
                 await projeto.AtualizarAsync(_dbContext);
                 return NoContent();
@@ -232,7 +226,7 @@ namespace API.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Duplicar(int id, [FromBody] ProjetoDuplicarRequest request)
         {
-            if (request.ClienteIds == null || !request.ClienteIds.Any())
+            if (request.ClienteIds == null || request.ClienteIds.Count == 0)
                 return BadRequest(new { erro = "Selecione ao menos um cliente." });
 
             try
@@ -253,7 +247,7 @@ namespace API.Controllers
                         ClienteId = clienteId,
                         SetorId = original.SetorId,
                         CadastradoPorColaboradorId = colaboradorId,
-                        Tarefas = original.Tarefas.Select(t => new ProjetoTarefa
+                        Tarefas = [.. original.Tarefas.Select(t => new ProjetoTarefa
                         {
                             Titulo = t.Titulo,
                             Descricao = t.Descricao,
@@ -262,7 +256,7 @@ namespace API.Controllers
                             DataHoraAtribuicao = null,
                             EtapaId = null,
                             DataHoraInicio = null
-                        }).ToList()
+                        })]
                     };
 
                     var novoId = await copia.CriarAsync(_dbContext);
@@ -556,7 +550,7 @@ namespace API.Controllers
                 var ehAdministrador = string.Equals(ehAdmClaim, "true", StringComparison.OrdinalIgnoreCase);
                 var colaboradorLogado = ObterColaboradorIdLogado();
 
-                if (!ehAdministrador && estadoAtual.ColaboradorResponsavelId.Value != colaboradorLogado)
+                if (!ehAdministrador && estadoAtual.ColaboradorResponsavelId.GetValueOrDefault() != colaboradorLogado)
                     return StatusCode(StatusCodes.Status403Forbidden,
                         new { erro = "Apenas o responsável ou um administrador pode pausar esta tarefa." });
 
@@ -837,7 +831,7 @@ namespace API.Controllers
                 Ativo = projeto.Ativo,
                 Concluido = projeto.Concluido,
                 SetorId = projeto.SetorId,
-                Tarefas = projeto.Tarefas.Select(t => new ProjetoTarefaResponse
+                Tarefas = [.. projeto.Tarefas.Select(t => new ProjetoTarefaResponse
                 {
                     Id = t.Id,
                     ProjetoId = t.ProjetoId,
@@ -847,7 +841,7 @@ namespace API.Controllers
                     ColaboradorResponsavelId = t.ColaboradorResponsavelId,
                     DataHoraAtribuicao = t.DataHoraAtribuicao,
                     EtapaId = t.EtapaId
-                }).ToList()
+                })]
             };
         }
     }

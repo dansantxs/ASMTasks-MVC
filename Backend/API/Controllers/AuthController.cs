@@ -136,7 +136,7 @@ namespace API.Controllers
                 new(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
                 new("colaboradorId", usuario.ColaboradorId.ToString()),
                 new("colaboradorNome", usuario.NomeColaborador),
-                new("nivelAcesso", usuario.NivelAcesso),
+                new("nivelAcesso", usuario.NivelAcesso.ToString()),
                 new("ehAdministrador", usuario.EhAdministrador.ToString().ToLower()),
                 new(ClaimTypes.Name, usuario.Login)
             };
