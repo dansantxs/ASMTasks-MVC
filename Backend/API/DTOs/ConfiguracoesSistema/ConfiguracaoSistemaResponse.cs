@@ -22,5 +22,9 @@ namespace API.DTOs.ConfiguracoesSistema
         public string? SmtpUsuario { get; set; }
         public string? SmtpSenha { get; set; }
         public bool SmtpUsarSslTls { get; set; } = true;
+        public int AnexoTamanhoMaximoMB { get; set; } = 20;
+        public int? AnexoLimiteImagemMB { get; set; }
+        public int? AnexoLimitePdfMB { get; set; }
+        public int? AnexoLimiteExcelMB { get; set; }
     }
 }

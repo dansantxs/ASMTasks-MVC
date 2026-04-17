@@ -20,9 +20,48 @@ namespace API.Controllers
         private static readonly ProjetosDAO _projetosDAO = new();
 
         private static readonly string[] _tiposArquivoPermitidos =
-            ["image/jpeg", "image/png", "image/gif", "image/webp", "application/pdf"];
+        [
+            "image/jpeg", "image/png", "image/gif", "image/webp",
+            "application/pdf",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
+            "application/vnd.ms-excel"                                            // .xls
+        ];
 
-        private const long _tamanhoMaximoBytes = 20 * 1024 * 1024; // 20 MB
+        // Assinaturas de magic bytes por tipo MIME: cada entrada é uma lista de prefixos válidos.
+        private static readonly Dictionary<string, byte[][]> _magicBytes = new()
+        {
+            ["image/jpeg"] = [[0xFF, 0xD8, 0xFF]],
+            ["image/png"]  = [[0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]],
+            ["image/gif"]  = [[0x47, 0x49, 0x46, 0x38]], // GIF8
+            ["image/webp"] = [[0x52, 0x49, 0x46, 0x46]], // RIFF (cabeçalho WebP)
+            ["application/pdf"] = [[0x25, 0x50, 0x44, 0x46]], // %PDF
+            ["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"] = [[0x50, 0x4B, 0x03, 0x04]], // PK (ZIP/OOXML)
+            ["application/vnd.ms-excel"] = [[0xD0, 0xCF, 0x11, 0xE0]], // Compound Document (OLE2)
+        };
+
+        private static bool ValidarMagicBytes(byte[] cabecalho, string contentType)
+        {
+            if (!_magicBytes.TryGetValue(contentType, out var assinaturas))
+                return false;
+            return assinaturas.Any(sig => cabecalho.Length >= sig.Length && sig.SequenceEqual(cabecalho[..sig.Length]));
+        }
+
+        private static long ObterLimiteTamanhoBytes(ConfiguracaoSistema config, string contentType)
+        {
+            int? limiteMb = contentType.StartsWith("image/")
+                ? config.AnexoLimiteImagemMB
+                : contentType == "application/pdf"
+                    ? config.AnexoLimitePdfMB
+                    : (contentType == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                       || contentType == "application/vnd.ms-excel")
+                        ? config.AnexoLimiteExcelMB
+                        : null;
+
+            var mb = limiteMb is > 0 ? limiteMb.Value
+                   : config.AnexoTamanhoMaximoMB > 0 ? config.AnexoTamanhoMaximoMB
+                   : 20;
+            return mb * 1024L * 1024L;
+        }
 
         private string ObterPastaAnexos()
         {
@@ -668,7 +707,7 @@ namespace API.Controllers
         }
 
         [HttpPost("tarefas/{id}/anexos")]
-        [RequestSizeLimit(20 * 1024 * 1024)]
+        [RequestSizeLimit(500 * 1024 * 1024)] // teto absoluto de 500 MB; limite real vem da configuração
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -678,14 +717,30 @@ namespace API.Controllers
             if (arquivo == null || arquivo.Length == 0)
                 return BadRequest(new { erro = "Nenhum arquivo enviado." });
 
-            if (arquivo.Length > _tamanhoMaximoBytes)
-                return BadRequest(new { erro = "O arquivo excede o tamanho máximo de 20 MB." });
+            var contentType = arquivo.ContentType.ToLower();
 
-            if (!_tiposArquivoPermitidos.Contains(arquivo.ContentType.ToLower()))
-                return BadRequest(new { erro = "Tipo de arquivo não permitido. São aceitos: JPEG, PNG, GIF, WebP e PDF." });
+            if (!_tiposArquivoPermitidos.Contains(contentType))
+                return BadRequest(new { erro = "Tipo de arquivo não permitido. São aceitos: JPEG, PNG, GIF, WebP, PDF e Excel (XLS/XLSX)." });
 
             try
             {
+                var config = await ConfiguracaoSistema.ObterAsync(_dbContext);
+                var tamanhoMaximo = ObterLimiteTamanhoBytes(config, contentType);
+
+                if (arquivo.Length > tamanhoMaximo)
+                    return BadRequest(new { erro = $"O arquivo excede o tamanho máximo de {tamanhoMaximo / (1024 * 1024)} MB para este tipo." });
+
+                // Carrega em memória para validar magic bytes antes de gravar em disco
+                using var memStream = new MemoryStream();
+                await arquivo.CopyToAsync(memStream);
+                memStream.Position = 0;
+
+                var cabecalho = new byte[Math.Min(12, (int)memStream.Length)];
+                _ = await memStream.ReadAsync(cabecalho);
+
+                if (!ValidarMagicBytes(cabecalho, contentType))
+                    return BadRequest(new { erro = "O conteúdo do arquivo não corresponde ao tipo declarado." });
+
                 var existe = await _projetosDAO.TarefaExisteAsync(_dbContext, id);
                 if (!existe)
                     return NotFound(new { erro = "Tarefa não encontrada." });
@@ -694,15 +749,16 @@ namespace API.Controllers
                 var nomeArquivo = $"{Guid.NewGuid()}{extensao}";
                 var caminho = Path.Combine(ObterPastaAnexos(), nomeArquivo);
 
-                await using (var stream = System.IO.File.Create(caminho))
-                    await arquivo.CopyToAsync(stream);
+                memStream.Position = 0;
+                await using (var fileStream = System.IO.File.Create(caminho))
+                    await memStream.CopyToAsync(fileStream);
 
                 var anexo = new ProjetoTarefaAnexo
                 {
                     TarefaId = id,
                     NomeOriginal = arquivo.FileName,
                     NomeArquivo = nomeArquivo,
-                    ContentType = arquivo.ContentType,
+                    ContentType = contentType,
                     Tamanho = arquivo.Length,
                     DataUpload = DateTime.Now,
                     EnviadoPorColaboradorId = ObterColaboradorIdLogado()
