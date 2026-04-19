@@ -127,6 +127,11 @@ export async function getEtapas() {
   return Array.isArray(data) ? data : [];
 }
 
+export async function getProjetoDocumento(id) {
+  const res = await requisicaoApi(`${PROJETOS_API_URL}/${id}/documento`, { cache: 'no-store' });
+  return handleResponse(res);
+}
+
 export async function criarSetor(payload) {
   const res = await requisicaoApi(SETORES_API_URL, {
     method: 'POST',

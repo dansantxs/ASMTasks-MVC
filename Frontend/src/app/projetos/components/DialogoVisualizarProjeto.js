@@ -1,9 +1,17 @@
 'use client';
 
+import { useState } from 'react';
 import { Badge } from '../../../ui/base/badge';
 import { Button } from '../../../ui/base/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../../../ui/base/dialog';
-import { Copy, FolderKanban, Pencil, RefreshCw, RotateCcw, Trash2 } from 'lucide-react';
+import { Copy, FileText, FolderKanban, Loader2, Pencil, RefreshCw, RotateCcw, Trash2 } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { configuracoesPadrao, useConfiguracoesSistema } from '../../../shared/configuracoes-sistema/api';
+import { obterLogotipo, obterRodapeRelatorio } from '../../../shared/configuracoes-sistema/reportBranding';
+import { getProjetoDocumento } from '../api/projetos';
+
+// ─── helpers ───────────────────────────────────────────────────────────────
 
 function formatarDataHora(value) {
   if (!value) return '-';
@@ -18,12 +26,289 @@ function formatarDataHora(value) {
   }).format(date);
 }
 
+function formatarData(value) {
+  if (!value) return '-';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '-';
+  return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(date);
+}
+
 function normalizarTexto(value) {
   return (value ?? '')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase();
 }
+
+function formatarDocumento(documento, tipoPessoa) {
+  if (!documento) return '-';
+  const d = documento.replace(/\D/g, '');
+  if (tipoPessoa === 'F' && d.length === 11)
+    return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`;
+  if (tipoPessoa === 'J' && d.length === 14)
+    return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8, 12)}-${d.slice(12)}`;
+  return documento;
+}
+
+function montarEnderecoCliente(doc) {
+  const partes = [
+    doc.clienteLogradouro,
+    doc.clienteNumero ? `nº ${doc.clienteNumero}` : null,
+    doc.clienteBairro,
+    doc.clienteCidade && doc.clienteUf ? `${doc.clienteCidade} - ${doc.clienteUf}` : doc.clienteCidade || doc.clienteUf,
+    doc.clienteCep,
+  ].filter(Boolean);
+  return partes.length > 0 ? partes.join(', ') : '-';
+}
+
+// ─── PDF ───────────────────────────────────────────────────────────────────
+
+const COR_PRIMARIA = [30, 58, 95];       // #1e3a5f
+const COR_CABECALHO_TABELA = [241, 245, 249]; // #f1f5f9
+const COR_TEXTO = [30, 30, 30];
+const COR_MUTED = [100, 100, 100];
+const COR_DIVISOR = [200, 210, 220];
+
+async function gerarDocumentoPDF(projetoId, systemSettings) {
+  const doc = await getProjetoDocumento(projetoId);
+  if (!doc) throw new Error('Projeto não encontrado.');
+
+  const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const larguraPagina = pdf.internal.pageSize.getWidth();
+  const alturaPagina = pdf.internal.pageSize.getHeight();
+  const margemEsq = 14;
+  const margemDir = larguraPagina - 14;
+  const larguraUtil = margemDir - margemEsq;
+
+  const logoDataUrl = await obterLogotipo(systemSettings);
+  const footerLines = obterRodapeRelatorio(systemSettings);
+  const emissaoTexto = `Emitido em: ${formatarData(new Date())}`;
+  const status = !doc.ativo ? 'Inativo' : doc.concluido ? 'Concluído' : 'Ativo';
+
+  // ── função que desenha cabeçalho e rodapé em cada página ──
+  function desenharCabecalhoRodape(pageNumber, pageCount) {
+    // logo
+    if (logoDataUrl) {
+      pdf.addImage(logoDataUrl, 'PNG', larguraPagina - 52, 8, 38, 22);
+    }
+
+    // título do documento
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(...COR_PRIMARIA);
+    pdf.text('DOCUMENTO GERAL DO PROJETO', margemEsq, 17);
+
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setTextColor(...COR_MUTED);
+    pdf.text(emissaoTexto, margemEsq, 23);
+
+    // linha divisória sob cabeçalho (logo termina em y=30, linha fica em y=33)
+    pdf.setDrawColor(...COR_DIVISOR);
+    pdf.setLineWidth(0.4);
+    pdf.line(margemEsq, 33, margemDir, 33);
+
+    // rodapé
+    const yRodape = alturaPagina - 8;
+    pdf.setDrawColor(...COR_DIVISOR);
+    pdf.line(margemEsq, yRodape - 3, margemDir, yRodape - 3);
+
+    pdf.setFontSize(7);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setTextColor(...COR_MUTED);
+
+    const footerLeft = footerLines.join(' | ');
+    pdf.text(footerLeft, margemEsq, yRodape);
+    pdf.text(`Página ${pageNumber} de ${pageCount}`, margemDir, yRodape, { align: 'right' });
+  }
+
+  let cursorY = 37;
+
+  // ── função auxiliar: título de seção ──
+  function tituloSecao(texto, y) {
+    pdf.setFillColor(...COR_PRIMARIA);
+    pdf.rect(margemEsq, y, larguraUtil, 6, 'F');
+    pdf.setFontSize(9);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(255, 255, 255);
+    pdf.text(texto.toUpperCase(), margemEsq + 3, y + 4.2);
+    return y + 9;
+  }
+
+  // ── função auxiliar: campo rotulo + valor ──
+  function campo(rotulo, valor, x, y, largura) {
+    pdf.setFontSize(7.5);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(...COR_MUTED);
+    pdf.text(rotulo, x, y);
+
+    pdf.setFontSize(9);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setTextColor(...COR_TEXTO);
+    const linhas = pdf.splitTextToSize(valor || '-', largura);
+    pdf.text(linhas, x, y + 4.5);
+    return linhas.length * 4.5;
+  }
+
+  // ── SEÇÃO 1: Identificação do Projeto ──────────────────────────────────
+  cursorY = tituloSecao('1. Identificação do Projeto', cursorY);
+
+  const col1 = margemEsq;
+  const col2 = margemEsq + larguraUtil * 0.35;
+  const col3 = margemEsq + larguraUtil * 0.68;
+  const largCol1 = larguraUtil * 0.32;
+  const largCol2 = larguraUtil * 0.30;
+  const largCol3 = larguraUtil * 0.30;
+
+  const alturaCampo1 = campo('Nº do Projeto', `#${doc.id}`, col1, cursorY, largCol1);
+  const alturaCampo2 = campo('Status', status, col2, cursorY, largCol2);
+  campo('Data de Cadastro', formatarData(doc.dataCadastro), col3, cursorY, largCol3);
+  cursorY += Math.max(alturaCampo1, 9) + 2;
+
+  const alturaTitulo = campo('Título', doc.titulo, col1, cursorY, larguraUtil * 0.62);
+  campo('Setor', doc.setorNome, col3, cursorY, largCol3);
+  cursorY += Math.max(alturaTitulo, 9) + 2;
+
+  campo('Lançado por', doc.cadastradoPorNome, col1, cursorY, larguraUtil * 0.62);
+  cursorY += 11;
+
+  if (doc.descricao) {
+    campo('Descrição / Escopo', doc.descricao, col1, cursorY, larguraUtil);
+    const linhasDesc = pdf.splitTextToSize(doc.descricao, larguraUtil);
+    cursorY += linhasDesc.length * 4.5 + 6;
+  } else {
+    cursorY += 2;
+  }
+
+  // ── SEÇÃO 2: Dados do Contratante ───────────────────────────────────────
+  cursorY = tituloSecao('2. Dados do Contratante', cursorY);
+
+  const tipoLabel = doc.clienteTipoPessoa === 'J' ? 'Pessoa Jurídica' : 'Pessoa Física';
+  const docLabel = doc.clienteTipoPessoa === 'J' ? 'CNPJ' : 'CPF';
+
+  const alturaNome = campo('Nome / Razão Social', doc.clienteNome, col1, cursorY, larguraUtil * 0.62);
+  campo(docLabel, formatarDocumento(doc.clienteDocumento, doc.clienteTipoPessoa), col3, cursorY, largCol3);
+  cursorY += Math.max(alturaNome, 9) + 2;
+
+  campo('Tipo', tipoLabel, col1, cursorY, largCol1);
+  campo('E-mail', doc.clienteEmail || '-', col2, cursorY, largCol2);
+  campo('Telefone', doc.clienteTelefone || '-', col3, cursorY, largCol3);
+  cursorY += 11;
+
+  campo('Endereço', montarEnderecoCliente(doc), col1, cursorY, larguraUtil);
+  const linhasEnd = pdf.splitTextToSize(montarEnderecoCliente(doc), larguraUtil);
+  cursorY += linhasEnd.length * 4.5 + 6;
+
+  // ── SEÇÃO 3: Atividades ─────────────────────────────────────────────────
+  cursorY = tituloSecao('3. Atividades do Projeto', cursorY);
+  cursorY += 1;
+
+  const tarefas = doc.tarefas ?? [];
+
+  if (tarefas.length === 0) {
+    pdf.setFontSize(9);
+    pdf.setFont('helvetica', 'italic');
+    pdf.setTextColor(...COR_MUTED);
+    pdf.text('Nenhuma atividade cadastrada.', margemEsq, cursorY + 5);
+    cursorY += 10;
+  } else {
+    autoTable(pdf, {
+      startY: cursorY,
+      margin: { left: margemEsq, right: 14 },
+      head: [['#', 'Atividade', 'Descrição', 'Prioridade', 'Responsável']],
+      body: tarefas.map((t, i) => [
+        i + 1,
+        t.titulo,
+        t.descricao || '-',
+        t.prioridadeNome,
+        t.colaboradorResponsavelNome || 'A definir',
+      ]),
+      headStyles: {
+        fillColor: COR_PRIMARIA,
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        fontSize: 8,
+      },
+      bodyStyles: { fontSize: 8, textColor: COR_TEXTO },
+      alternateRowStyles: { fillColor: [248, 250, 252] },
+      columnStyles: {
+        0: { cellWidth: 8, halign: 'center' },
+        1: { cellWidth: 44 },
+        2: { cellWidth: 66 },
+        3: { cellWidth: 26 },
+        4: { cellWidth: 38 },
+      },
+      didDrawPage: () => {
+        // cabeçalho/rodapé serão adicionados após a tabela
+      },
+    });
+    cursorY = pdf.lastAutoTable.finalY + 8;
+  }
+
+  // ── SEÇÃO 4: Assinaturas ────────────────────────────────────────────────
+  const alturaAssinaturas = 45;
+  const paginaAtual = pdf.internal.getCurrentPageInfo().pageNumber;
+  const totalPaginas = pdf.internal.getNumberOfPages();
+
+  // garante espaço para assinaturas — se não couber, nova página
+  if (cursorY + alturaAssinaturas > alturaPagina - 20) {
+    pdf.addPage();
+    cursorY = 37;
+  }
+
+  cursorY = tituloSecao('4. Assinaturas', cursorY);
+  cursorY += 4;
+
+  const largAssinatura = larguraUtil * 0.42;
+  const xAssin1 = margemEsq;
+  const xAssin2 = margemDir - largAssinatura;
+  const yLinha = cursorY + 18;
+
+  pdf.setDrawColor(...COR_TEXTO);
+  pdf.setLineWidth(0.4);
+  pdf.line(xAssin1, yLinha, xAssin1 + largAssinatura, yLinha);
+  pdf.line(xAssin2, yLinha, xAssin2 + largAssinatura, yLinha);
+
+  pdf.setFontSize(8);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(...COR_TEXTO);
+  pdf.text('Contratante', xAssin1 + largAssinatura / 2, yLinha + 4.5, { align: 'center' });
+  pdf.text('Contratada', xAssin2 + largAssinatura / 2, yLinha + 4.5, { align: 'center' });
+
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(7.5);
+  pdf.setTextColor(...COR_MUTED);
+  pdf.text(doc.clienteNome, xAssin1 + largAssinatura / 2, yLinha + 9, { align: 'center' });
+
+  const nomeEmpresa =
+    systemSettings?.nomeFantasia || systemSettings?.razaoSocial || 'ASM Tasks';
+  pdf.text(nomeEmpresa, xAssin2 + largAssinatura / 2, yLinha + 9, { align: 'center' });
+
+  pdf.setFontSize(7);
+  pdf.text(`Local e data: ____________________________`, xAssin1, yLinha + 18);
+  pdf.text(`Local e data: ____________________________`, xAssin2, yLinha + 18);
+
+  // ── Desenha cabeçalho/rodapé em todas as páginas ───────────────────────
+  const numPaginas = pdf.internal.getNumberOfPages();
+  for (let p = 1; p <= numPaginas; p++) {
+    pdf.setPage(p);
+    desenharCabecalhoRodape(p, numPaginas);
+  }
+
+  // nome do arquivo: projeto-<id>-<slug-titulo>.pdf
+  const slug = doc.titulo
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9 ]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .toLowerCase()
+    .slice(0, 40);
+
+  pdf.save(`projeto-${doc.id}-${slug}.pdf`);
+}
+
+// ─── Componente ────────────────────────────────────────────────────────────
 
 export default function DialogoVisualizarProjeto({
   open,
@@ -44,6 +329,9 @@ export default function DialogoVisualizarProjeto({
   isDesmarCando,
   isDuplicando,
 }) {
+  const [isEmitindo, setIsEmitindo] = useState(false);
+  const { data: systemSettings = configuracoesPadrao } = useConfiguracoesSistema();
+
   if (!projeto) return null;
 
   const clienteNome = clientesById.get(projeto.clienteId) ?? `Cliente #${projeto.clienteId}`;
@@ -81,6 +369,17 @@ export default function DialogoVisualizarProjeto({
   const handleDuplicar = () => {
     onOpenChange(false);
     onDuplicar(projeto);
+  };
+
+  const handleEmitirDocumento = async () => {
+    setIsEmitindo(true);
+    try {
+      await gerarDocumentoPDF(projeto.id, systemSettings);
+    } catch (err) {
+      console.error('Erro ao gerar documento:', err);
+    } finally {
+      setIsEmitindo(false);
+    }
   };
 
   return (
@@ -198,6 +497,20 @@ export default function DialogoVisualizarProjeto({
         </div>
 
         <DialogFooter className="px-6 py-4 border-t gap-2 shrink-0">
+          <Button
+            variant="outline"
+            className="text-emerald-700 border-emerald-600 hover:bg-emerald-600 hover:text-white"
+            onClick={handleEmitirDocumento}
+            disabled={isEmitindo}
+          >
+            {isEmitindo ? (
+              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+            ) : (
+              <FileText className="h-4 w-4 mr-1" />
+            )}
+            {isEmitindo ? 'Gerando...' : 'Emitir Documento'}
+          </Button>
+
           <Button variant="outline" onClick={handleEdit}>
             <Pencil className="h-4 w-4 mr-1" />
             Editar
