@@ -258,6 +258,26 @@ namespace API.Controllers
             return Ok(MapearProjetoResponse(projeto));
         }
 
+        [HttpGet("{id}/documento")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> ObterDocumento(int id)
+        {
+            try
+            {
+                var doc = await _projetosDAO.ObterDocumentoAsync(_dbContext, id);
+                if (doc == null)
+                    return NotFound(new { erro = "Projeto não encontrado." });
+
+                return Ok(doc);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { erro = "Erro ao obter documento do projeto.", detalhe = ex.Message });
+            }
+        }
+
         [HttpPost("{id}/duplicar")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

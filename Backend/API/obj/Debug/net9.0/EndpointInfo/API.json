@@ -2,7 +2,7 @@
   "openapi": "3.0.4",
   "info": {
     "title": "API de Gerenciamento - ASMTasks",
-    "description": "\nEsta API gerencia entidades internas do sistema.\n\n### Recursos disponíveis:\n- **Cargos:** definição de funções/posições dentro da organização.\n- **Colaboradores:** gerenciamento de usuários/funcionários.\n- **Etapas:** controle de fases de desenvolvimento.\n- **Prioridades:** definição de níveis de prioridade.\n- **Setores:** organização de departamentos e responsáveis.\n- **Clientes:** gerenciamento de clientes.\n- **Atendimentos:** agenda de atendimentos com validação de conflito de horário.\n- **Projetos:** cadastro de projetos com tarefas e dados de atribuição futura.\n\n### Funcionalidades gerais:\n- Criação (`POST`)\n- Atualização (`PUT`)\n- Inativação (`DELETE`)\n- Reativação (`PUT /reativar`)\n- Consulta (`GET`)\n        ",
+    "description": "\r\nEsta API gerencia entidades internas do sistema.\r\n\r\n### Recursos disponíveis:\r\n- **Cargos:** definição de funções/posições dentro da organização.\r\n- **Colaboradores:** gerenciamento de usuários/funcionários.\r\n- **Etapas:** controle de fases de desenvolvimento.\r\n- **Prioridades:** definição de níveis de prioridade.\r\n- **Setores:** organização de departamentos e responsáveis.\r\n- **Clientes:** gerenciamento de clientes.\r\n- **Atendimentos:** agenda de atendimentos com validação de conflito de horário.\r\n- **Projetos:** cadastro de projetos com tarefas e dados de atribuição futura.\r\n\r\n### Funcionalidades gerais:\r\n- Criação (`POST`)\r\n- Atualização (`PUT`)\r\n- Inativação (`DELETE`)\r\n- Reativação (`PUT /reativar`)\r\n- Consulta (`GET`)\r\n        ",
     "version": "v1"
   },
   "paths": {
@@ -2362,6 +2362,42 @@
         "responses": {
           "204": {
             "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/Projetos/{id}/documento": {
+      "get": {
+        "tags": [
+          "Projetos"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           },
           "404": {
             "description": "Not Found",

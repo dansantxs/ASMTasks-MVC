@@ -1938,6 +1938,40 @@
   },
   {
     "ContainingType": "API.Controllers.ProjetosController",
+    "Method": "ObterDocumento",
+    "RelativePath": "api/Projetos/{id}/documento",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 200
+      },
+      {
+        "Type": "Microsoft.AspNetCore.Mvc.ProblemDetails",
+        "MediaTypes": [
+          "application/json"
+        ],
+        "StatusCode": 404
+      },
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 500
+      }
+    ]
+  },
+  {
+    "ContainingType": "API.Controllers.ProjetosController",
     "Method": "Duplicar",
     "RelativePath": "api/Projetos/{id}/duplicar",
     "HttpMethod": "POST",

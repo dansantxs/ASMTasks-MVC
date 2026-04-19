@@ -1086,5 +1086,113 @@ namespace API.DB.DAOs
             var result = await cmd.ExecuteScalarAsync();
             return Convert.ToInt32(result) > 0;
         }
+
+        public async Task<ProjetoDocumentoResponse?> ObterDocumentoAsync(DBContext dbContext, int projetoId)
+        {
+            ProjetoDocumentoResponse? doc = null;
+
+            await using var con = await dbContext.GetConnectionAsync();
+
+            await using (var cmd = con.CreateCommand())
+            {
+                cmd.CommandText = @"
+                    SELECT
+                        p.Id,
+                        p.Titulo,
+                        p.Descricao,
+                        p.DataCadastro,
+                        p.Ativo,
+                        p.Concluido,
+                        s.Nome  AS SetorNome,
+                        col.Nome AS CadastradoPorNome,
+                        c.Id    AS ClienteId,
+                        c.Nome  AS ClienteNome,
+                        c.Documento AS ClienteDocumento,
+                        c.TipoPessoa AS ClienteTipoPessoa,
+                        c.Email AS ClienteEmail,
+                        c.Telefone AS ClienteTelefone,
+                        c.Cidade AS ClienteCidade,
+                        c.UF AS ClienteUf,
+                        c.Logradouro AS ClienteLogradouro,
+                        c.Bairro AS ClienteBairro,
+                        c.Numero AS ClienteNumero,
+                        c.CEP AS ClienteCep
+                    FROM Projeto p
+                    INNER JOIN Setor s ON p.SetorId = s.Id
+                    INNER JOIN Colaborador col ON p.CadastradoPorColaboradorId = col.Id
+                    INNER JOIN Cliente c ON p.ClienteId = c.Id
+                    WHERE p.Id = @ProjetoId;
+                ";
+                cmd.Parameters.AddWithValue("@ProjetoId", projetoId);
+
+                await using var dr = await cmd.ExecuteReaderAsync();
+                if (await dr.ReadAsync())
+                {
+                    doc = new ProjetoDocumentoResponse
+                    {
+                        Id = Convert.ToInt32(dr["Id"]),
+                        Titulo = dr["Titulo"]?.ToString() ?? string.Empty,
+                        Descricao = dr["Descricao"] == DBNull.Value ? null : dr["Descricao"].ToString(),
+                        DataCadastro = Convert.ToDateTime(dr["DataCadastro"]),
+                        Ativo = Convert.ToBoolean(dr["Ativo"]),
+                        Concluido = Convert.ToBoolean(dr["Concluido"]),
+                        SetorNome = dr["SetorNome"]?.ToString() ?? string.Empty,
+                        CadastradoPorNome = dr["CadastradoPorNome"]?.ToString() ?? string.Empty,
+                        ClienteId = Convert.ToInt32(dr["ClienteId"]),
+                        ClienteNome = dr["ClienteNome"]?.ToString() ?? string.Empty,
+                        ClienteDocumento = dr["ClienteDocumento"]?.ToString() ?? string.Empty,
+                        ClienteTipoPessoa = dr["ClienteTipoPessoa"]?.ToString() ?? string.Empty,
+                        ClienteEmail = dr["ClienteEmail"] == DBNull.Value ? null : dr["ClienteEmail"].ToString(),
+                        ClienteTelefone = dr["ClienteTelefone"] == DBNull.Value ? null : dr["ClienteTelefone"].ToString(),
+                        ClienteCidade = dr["ClienteCidade"] == DBNull.Value ? null : dr["ClienteCidade"].ToString(),
+                        ClienteUf = dr["ClienteUf"] == DBNull.Value ? null : dr["ClienteUf"].ToString(),
+                        ClienteLogradouro = dr["ClienteLogradouro"] == DBNull.Value ? null : dr["ClienteLogradouro"].ToString(),
+                        ClienteBairro = dr["ClienteBairro"] == DBNull.Value ? null : dr["ClienteBairro"].ToString(),
+                        ClienteNumero = dr["ClienteNumero"] == DBNull.Value ? null : Convert.ToInt32(dr["ClienteNumero"]),
+                        ClienteCep = dr["ClienteCep"] == DBNull.Value ? null : dr["ClienteCep"].ToString(),
+                    };
+                }
+            }
+
+            if (doc == null) return null;
+
+            await using (var cmd = con.CreateCommand())
+            {
+                cmd.CommandText = @"
+                    SELECT
+                        pt.Id,
+                        pt.Titulo,
+                        pt.Descricao,
+                        pr.Nome AS PrioridadeNome,
+                        pr.Cor  AS PrioridadeCor,
+                        col.Nome AS ColaboradorResponsavelNome,
+                        e.Nome AS EtapaNome
+                    FROM ProjetoTarefa pt
+                    INNER JOIN Prioridade pr ON pt.PrioridadeId = pr.Id
+                    LEFT JOIN Colaborador col ON pt.ColaboradorResponsavelId = col.Id
+                    LEFT JOIN Etapa e ON pt.EtapaId = e.Id
+                    WHERE pt.ProjetoId = @ProjetoId
+                    ORDER BY pr.Ordem, pt.Id;
+                ";
+                cmd.Parameters.AddWithValue("@ProjetoId", projetoId);
+
+                await using var dr = await cmd.ExecuteReaderAsync();
+                while (await dr.ReadAsync())
+                {
+                    doc.Tarefas.Add(new ProjetoDocumentoTarefaResponse
+                    {
+                        Id = Convert.ToInt32(dr["Id"]),
+                        Titulo = dr["Titulo"]?.ToString() ?? string.Empty,
+                        Descricao = dr["Descricao"] == DBNull.Value ? null : dr["Descricao"].ToString(),
+                        PrioridadeNome = dr["PrioridadeNome"]?.ToString() ?? string.Empty,
+                        PrioridadeCor = dr["PrioridadeCor"] == DBNull.Value ? null : dr["PrioridadeCor"].ToString(),
+                        ColaboradorResponsavelNome = dr["ColaboradorResponsavelNome"] == DBNull.Value ? null : dr["ColaboradorResponsavelNome"].ToString(),
+                        EtapaNome = dr["EtapaNome"] == DBNull.Value ? null : dr["EtapaNome"].ToString(),
+                    });
+                }
+            }
+
+            return doc;
+        }
     }
 }
