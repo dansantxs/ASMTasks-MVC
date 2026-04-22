@@ -24,7 +24,7 @@ export default function DialogoVisualizarCargo({ open, onOpenChange, cargo, aoRe
         </DialogHeader>
 
         <div className="space-y-6">
-          <Card>
+          <Card id="tour-view-cargo">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-xl">{cargo.name}</CardTitle>
@@ -46,7 +46,7 @@ export default function DialogoVisualizarCargo({ open, onOpenChange, cargo, aoRe
             </CardContent>
           </Card>
 
-          <Card>
+          <Card id="tour-view-info">
             <CardHeader>
               <CardTitle className="text-lg">Informações do Sistema</CardTitle>
             </CardHeader>

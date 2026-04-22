@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from '../../../ui/base/button';
 import { Plus, Briefcase } from 'lucide-react';
@@ -9,6 +9,7 @@ import FormularioCargo from './components/FormularioCargo';
 import ListaCargos from './components/ListaCargos';
 import DialogoVisualizarCargo from './components/DialogoVisualizarCargo';
 import AlternarVisualizacao from '../../../shared/components/AlternarVisualizacao';
+import TourGuia from '../../../shared/components/TourGuia';
 import { getCargos, criarCargo, atualizarCargo, inativarCargo, reativarCargo } from './api/cargos';
 
 export default function CargosPage() {
@@ -92,13 +93,144 @@ export default function CargosPage() {
 
   const handleReativarCargo = (cargo) => reativar.mutate(cargo.id);
 
+  const iniciarTour = useCallback(() => {
+    import('driver.js').then(({ driver }) => {
+      let tour;
+
+      const primeiroCargo = cargos.find(c => c.active) ?? cargos[0];
+
+      const passosPagina = [
+        {
+          element: '#tour-cabecalho',
+          popover: {
+            title: 'Gerenciamento de Cargos',
+            description: 'Esta tela permite cadastrar e gerenciar todos os cargos do sistema. Cargos classificam e organizam os colaboradores por função.',
+            side: 'bottom',
+            align: 'start',
+          },
+        },
+        {
+          element: '#tour-alternar-visualizacao',
+          popover: {
+            title: 'Alternar Visualização',
+            description: 'Alterne entre visualização em <strong>cards</strong> (grade) ou em <strong>tabela</strong>, de acordo com sua preferência.',
+            side: 'bottom',
+            align: 'center',
+          },
+        },
+        {
+          element: '#tour-busca',
+          popover: {
+            title: 'Buscar Cargos',
+            description: 'Digite aqui para filtrar os cargos pelo nome ou descrição. A busca é feita em tempo real conforme você digita.',
+            side: 'bottom',
+            align: 'start',
+          },
+        },
+        {
+          element: '#tour-lista-cargos',
+          popover: {
+            title: 'Lista de Cargos Ativos',
+            description: 'Aqui são exibidos todos os cargos ativos cadastrados. Cada item mostra o nome, descrição, status e botões de ação.',
+            side: 'top',
+            align: 'center',
+          },
+        },
+        {
+          element: '#tour-btn-novo-cargo',
+          popover: {
+            title: 'Criar Novo Cargo',
+            description: 'Clique aqui para abrir o formulário de cadastro. Clique em <strong>Próximo</strong> para ver o formulário em ação.',
+            side: 'bottom',
+            align: 'end',
+            onNextClick: () => {
+              setCargoSelecionado(null);
+              setIsFormOpen(true);
+              setTimeout(() => tour.moveNext(), 350);
+            },
+          },
+        },
+        {
+          element: '#tour-form-nome',
+          popover: {
+            title: 'Nome do Cargo',
+            description: 'Campo <strong>obrigatório</strong>. Digite um nome único para o cargo (ex.: "Desenvolvedor", "Analista de QA").',
+            side: 'bottom',
+          },
+        },
+        {
+          element: '#tour-form-descricao',
+          popover: {
+            title: 'Descrição',
+            description: 'Campo <strong>opcional</strong>. Descreva as responsabilidades e atribuições do cargo para facilitar a identificação.',
+            side: 'bottom',
+          },
+        },
+        {
+          element: '#tour-form-botoes',
+          popover: {
+            title: 'Salvar ou Cancelar',
+            description: 'Clique em <strong>Cadastrar Cargo</strong> para salvar ou em <strong>Cancelar</strong> para fechar sem salvar.',
+            side: 'top',
+            onNextClick: () => {
+              setIsFormOpen(false);
+              if (primeiroCargo) {
+                setCargoSelecionado(primeiroCargo);
+                setIsViewDialogOpen(true);
+                setTimeout(() => tour.moveNext(), 350);
+              } else {
+                tour.destroy();
+              }
+            },
+          },
+        },
+        ...(primeiroCargo ? [
+          {
+            element: '#tour-view-cargo',
+            popover: {
+              title: 'Informações do Cargo',
+              description: 'Exibe o nome, descrição e o status atual (ativo ou inativo) do cargo selecionado.',
+              side: 'right',
+            },
+          },
+          {
+            element: '#tour-view-info',
+            popover: {
+              title: 'Informações do Sistema',
+              description: 'Exibe o ID único do cargo e o status detalhado. Cargos excluídos ficam <strong>inativos</strong> (exclusão lógica), preservando o histórico de colaboradores.',
+              side: 'top',
+            },
+          },
+        ] : []),
+      ];
+
+      tour = driver({
+        showProgress: true,
+        progressText: '{{current}} de {{total}}',
+        nextBtnText: 'Próximo →',
+        prevBtnText: '← Anterior',
+        doneBtnText: '✓ Concluir',
+        overlayOpacity: 0.6,
+        smoothScroll: true,
+        onDestroyed: () => {
+          setIsFormOpen(false);
+          setIsViewDialogOpen(false);
+          setCargoSelecionado(null);
+        },
+        steps: passosPagina,
+      });
+
+      tour.drive();
+    });
+  }, [cargos]);
+
   if (isLoading) return <div className="p-6">Carregando cargos...</div>;
 
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto py-8 px-4">
         <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
+          <div id="tour-cabecalho" className="flex items-center gap-3">
             <div className="p-2 bg-brand-blue/10 rounded-lg">
               <Briefcase className="h-6 w-6 text-brand-blue" />
             </div>
@@ -110,8 +242,12 @@ export default function CargosPage() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <AlternarVisualizacao modoVisualizacao={modoVisualizacao} aoAlterarModoVisualizacao={setModoVisualizacao} />
+            <TourGuia aoIniciar={iniciarTour} />
+            <div id="tour-alternar-visualizacao">
+              <AlternarVisualizacao modoVisualizacao={modoVisualizacao} aoAlterarModoVisualizacao={setModoVisualizacao} />
+            </div>
             <Button
+              id="tour-btn-novo-cargo"
               onClick={() => { setCargoSelecionado(null); setIsFormOpen(true); }}
               className="flex items-center gap-2 bg-brand-blue hover:bg-brand-blue-dark"
             >

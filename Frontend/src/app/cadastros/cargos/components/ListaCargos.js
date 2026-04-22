@@ -157,7 +157,7 @@ export default function ListaCargos({
 
   return (
     <div className="space-y-6">
-      <div className="relative">
+      <div id="tour-busca" className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
         <Input
           placeholder="Buscar cargos por nome ou descrição..."
@@ -175,7 +175,7 @@ export default function ListaCargos({
                 <h3>Cargos Ativos</h3>
                 <Badge variant="outline" className="border-brand-blue text-brand-blue">{cargosAtivos.length}</Badge>
               </div>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div id="tour-lista-cargos" className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {cargosAtivos.map(cargo => (
                   <CargoCard key={cargo.id} cargo={cargo} />
                 ))}
