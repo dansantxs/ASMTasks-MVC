@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   CalendarCheck,
@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { getDashboard } from './api/dashboard';
 import { obterSessaoArmazenada } from '../../shared/auth/session';
+import TourGuia from '../../shared/components/TourGuia';
 
 function CardKPI({ icone: Icone, titulo, valor, corIcone, corFundo, destaque, sufixo }) {
   return (
@@ -226,6 +227,77 @@ export default function DashboardPage() {
     weekday: 'long', day: '2-digit', month: 'long', year: 'numeric',
   });
 
+  const iniciarTour = useCallback(() => {
+    import('driver.js').then(({ driver }) => {
+      const tour = driver({
+        showProgress: true,
+        progressText: '{{current}} de {{total}}',
+        nextBtnText: 'Próximo →',
+        prevBtnText: '← Anterior',
+        doneBtnText: '✓ Concluir',
+        overlayOpacity: 0.6,
+        smoothScroll: true,
+        steps: [
+          {
+            element: '#tour-dashboard-cabecalho',
+            popover: {
+              title: 'Dashboard',
+              description: 'Visão consolidada de atendimentos, tarefas e projetos. Administradores visualizam dados de toda a equipe; colaboradores veem somente seus próprios dados.',
+              side: 'bottom',
+              align: 'start',
+            },
+          },
+          {
+            element: '#tour-dashboard-filtro',
+            popover: {
+              title: 'Filtro por Colaborador',
+              description: 'Selecione um colaborador específico para visualizar somente os dados dele. Deixe em branco para ver todos.',
+              side: 'bottom',
+              align: 'end',
+            },
+          },
+          {
+            element: '#tour-dashboard-atendimentos',
+            popover: {
+              title: 'Atendimentos',
+              description: 'KPIs de atendimentos: agendados hoje, pendentes, em atraso e realizados no mês. O gráfico mostra a tendência dos últimos 6 meses e a lista exibe os próximos agendamentos.',
+              side: 'bottom',
+              align: 'center',
+            },
+          },
+          {
+            element: '#tour-dashboard-tarefas',
+            popover: {
+              title: 'Tarefas de Projetos Ativos',
+              description: 'KPIs das tarefas em andamento: em elaboração, concluídas este mês e sem responsável. Os gráficos mostram a distribuição por etapa e por prioridade.',
+              side: 'bottom',
+              align: 'center',
+            },
+          },
+          {
+            element: '#tour-dashboard-projetos',
+            popover: {
+              title: 'Projetos',
+              description: 'Visão geral dos projetos: cadastrados hoje, ativos e concluídos no mês. Disponível apenas para administradores.',
+              side: 'bottom',
+              align: 'center',
+            },
+          },
+          {
+            element: '#tour-dashboard-rankings',
+            popover: {
+              title: 'Ranking de Colaboradores',
+              description: 'Top colaboradores do mês em atendimentos realizados, tarefas concluídas e tarefas atribuídas. Útil para reconhecer o desempenho da equipe.',
+              side: 'top',
+              align: 'center',
+            },
+          },
+        ].filter((p) => !p.element || document.querySelector(p.element)),
+      });
+      tour.drive();
+    });
+  }, []);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -250,7 +322,7 @@ export default function DashboardPage() {
     <div className="p-6 max-w-7xl mx-auto space-y-6">
 
       {/* Cabeçalho */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div id="tour-dashboard-cabecalho" className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">
             {ehAdministrador ? 'Dashboard Geral' : 'Meu Dashboard'}
@@ -263,8 +335,10 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {ehAdministrador && colaboradoresDisponiveis?.length > 0 && (
-          <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <TourGuia aoIniciar={iniciarTour} />
+          {ehAdministrador && colaboradoresDisponiveis?.length > 0 && (
+          <div id="tour-dashboard-filtro" className="flex items-center gap-2">
             <Filter className="h-4 w-4 text-gray-400 shrink-0" />
             <select
               value={filtroColaboradorId}
@@ -286,7 +360,8 @@ export default function DashboardPage() {
               </button>
             )}
           </div>
-        )}
+          )}
+        </div>
       </div>
 
       {filtro && (
@@ -296,7 +371,7 @@ export default function DashboardPage() {
       )}
 
       {/* ───── ATENDIMENTOS ───── */}
-      <section>
+      <section id="tour-dashboard-atendimentos">
         <h2 className="text-base font-semibold text-gray-700 mb-3 flex items-center gap-2">
           <CalendarClock className="h-4 w-4 text-blue-500" />
           Atendimentos · {tituloSecao}
@@ -357,7 +432,7 @@ export default function DashboardPage() {
       </section>
 
       {/* ───── TAREFAS ───── */}
-      <section>
+      <section id="tour-dashboard-tarefas">
         <h2 className="text-base font-semibold text-gray-700 mb-3 flex items-center gap-2">
           <ClipboardList className="h-4 w-4 text-violet-500" />
           Tarefas (projetos ativos) · {tituloSecao}
@@ -436,7 +511,7 @@ export default function DashboardPage() {
       {/* ───── ADMIN: PROJETOS + RANKINGS ───── */}
       {ehAdministrador && projetos && colaboradores && !filtro && (
         <>
-          <section>
+          <section id="tour-dashboard-projetos">
             <h2 className="text-base font-semibold text-gray-700 mb-3 flex items-center gap-2">
               <FolderOpen className="h-4 w-4 text-teal-500" />
               Projetos
@@ -466,7 +541,7 @@ export default function DashboardPage() {
             </div>
           </section>
 
-          <section>
+          <section id="tour-dashboard-rankings">
             <h2 className="text-base font-semibold text-gray-700 mb-3 flex items-center gap-2">
               <Users className="h-4 w-4 text-indigo-500" />
               Ranking de Colaboradores — Este Mês

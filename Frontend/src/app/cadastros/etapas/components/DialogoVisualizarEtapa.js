@@ -22,7 +22,7 @@ export default function DialogoVisualizarEtapa({ open, onOpenChange, etapa, aoRe
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-6">
-          <Card>
+          <Card id="tour-etapa-view-card">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-xl">{etapa.name}</CardTitle>
@@ -45,7 +45,7 @@ export default function DialogoVisualizarEtapa({ open, onOpenChange, etapa, aoRe
               )}
             </CardContent>
           </Card>
-          <Card>
+          <Card id="tour-etapa-view-sistema">
             <CardHeader>
               <CardTitle className="text-lg">Informações do Sistema</CardTitle>
             </CardHeader>

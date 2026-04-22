@@ -31,7 +31,7 @@ export default function DialogoVisualizarCliente({ open, onOpenChange, cliente }
         </DialogHeader>
 
         <div className="space-y-6 text-sm">
-          <Card>
+          <Card id="tour-cli-view-card">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <div>
@@ -92,7 +92,7 @@ export default function DialogoVisualizarCliente({ open, onOpenChange, cliente }
             </CardContent>
           </Card>
 
-          <Card>
+          <Card id="tour-cli-view-sistema">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Briefcase className="h-5 w-5 text-brand-blue" />

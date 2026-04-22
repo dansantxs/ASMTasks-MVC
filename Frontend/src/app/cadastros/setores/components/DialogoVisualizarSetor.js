@@ -23,7 +23,7 @@ export default function DialogoVisualizarSetor({ open, onOpenChange, setor, aoRe
         </DialogHeader>
 
         <div className="space-y-6">
-          <Card>
+          <Card id="tour-setor-view-card">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-xl">{setor.name}</CardTitle>
@@ -42,7 +42,7 @@ export default function DialogoVisualizarSetor({ open, onOpenChange, setor, aoRe
             </CardContent>
           </Card>
 
-          <Card>
+          <Card id="tour-setor-view-sistema">
             <CardHeader>
               <CardTitle className="text-lg">Informações do Sistema</CardTitle>
             </CardHeader>

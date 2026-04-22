@@ -396,10 +396,10 @@ export default function FormularioProjeto({
             <div className="flex flex-col md:flex-row flex-1 min-h-0">
 
               {/* Painel esquerdo — dados do projeto */}
-              <div className="md:w-[360px] shrink-0 px-6 py-4 space-y-4 overflow-y-auto border-r">
+              <div id="tour-form-projeto-dados" className="md:w-[360px] shrink-0 px-6 py-4 space-y-4 overflow-y-auto border-r">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Dados do projeto</p>
 
-                <div className="space-y-2">
+                <div id="tour-form-projeto-titulo" className="space-y-2">
                   <Label htmlFor="titulo">
                     Título do projeto <span className="text-destructive">*</span>
                   </Label>
@@ -502,7 +502,7 @@ export default function FormularioProjeto({
               </div>
 
               {/* Painel direito — tarefas */}
-              <div className="flex-1 flex flex-col min-h-0 px-6 py-4">
+              <div id="tour-form-projeto-tarefas" className="flex-1 flex flex-col min-h-0 px-6 py-4">
                 <div className="shrink-0 mb-3">
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                     Tarefas ({formData.tarefas.length})
@@ -546,7 +546,7 @@ export default function FormularioProjeto({
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 px-6 py-4 border-t shrink-0">
+            <div id="tour-form-projeto-botoes" className="flex justify-end gap-3 px-6 py-4 border-t shrink-0">
               <Button type="button" variant="outline" tabIndex={-1} onClick={() => onOpenChange(false)} disabled={salvando}>
                 Cancelar
               </Button>

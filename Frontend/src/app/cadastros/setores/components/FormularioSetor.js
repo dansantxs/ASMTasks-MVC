@@ -78,7 +78,7 @@ export default function FormularioSetor({
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
+          <div id="tour-setor-form-nome" className="space-y-2">
             <Label htmlFor="name">Nome do Setor <span className="text-destructive">*</span></Label>
             <Input
               id="name"
@@ -92,7 +92,7 @@ export default function FormularioSetor({
             )}
           </div>
 
-          <div className="space-y-2">
+          <div id="tour-setor-form-descricao" className="space-y-2">
             <Label htmlFor="description">Descrição</Label>
             <Textarea
               id="description"
@@ -103,7 +103,7 @@ export default function FormularioSetor({
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-4">
+          <div id="tour-setor-form-botoes" className="flex justify-end gap-3 pt-4">
             <Button
               type="button"
               variant="outline"

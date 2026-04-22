@@ -24,7 +24,7 @@ export default function DialogoVisualizarPrioridade({ open, onOpenChange, priori
         </DialogHeader>
 
         <div className="space-y-6">
-          <Card>
+          <Card id="tour-prior-view-card">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-xl">{prioridade.name}</CardTitle>
@@ -65,7 +65,7 @@ export default function DialogoVisualizarPrioridade({ open, onOpenChange, priori
             </CardContent>
           </Card>
 
-          <Card>
+          <Card id="tour-prior-view-sistema">
             <CardHeader>
               <CardTitle className="text-lg">Informações do Sistema</CardTitle>
             </CardHeader>

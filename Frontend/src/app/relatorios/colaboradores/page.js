@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/layout/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../ui/layout/table';
@@ -18,6 +18,7 @@ import { getSetores } from '../../cadastros/setores/api/setores';
 import { getCargos } from '../../cadastros/cargos/api/cargos';
 import { configuracoesPadrao, useConfiguracoesSistema } from '../../../shared/configuracoes-sistema/api';
 import { obterRodapeRelatorio, obterLogotipo } from '../../../shared/configuracoes-sistema/reportBranding';
+import TourGuia from '../../../shared/components/TourGuia';
 
 const columns = [
   { id: 'name', label: 'Nome' },
@@ -280,6 +281,43 @@ export default function ColaboradoresReportPage() {
     XLSX.writeFile(workbook, 'relatorio-colaboradores.xlsx');
   };
 
+  const iniciarTour = useCallback(() => {
+    import('driver.js').then(({ driver }) => {
+      const tour = driver({
+        showProgress: true,
+        progressText: '{{current}} de {{total}}',
+        nextBtnText: 'Próximo →',
+        prevBtnText: '← Anterior',
+        doneBtnText: '✓ Concluir',
+        overlayOpacity: 0.6,
+        smoothScroll: true,
+        steps: [
+          {
+            element: '#tour-relatorio-cabecalho',
+            popover: { title: 'Relatório de Colaboradores', description: 'Visualize, filtre e exporte dados dos colaboradores, incluindo setor, cargo, contato e datas de admissão.', side: 'bottom', align: 'start' },
+          },
+          {
+            element: '#tour-relatorio-exportar',
+            popover: { title: 'Exportar Dados', description: 'Exporte em <strong>Excel (.xlsx)</strong> ou <strong>PDF</strong> com filtros e colunas selecionados.', side: 'bottom', align: 'end' },
+          },
+          {
+            element: '#tour-relatorio-filtros',
+            popover: { title: 'Filtros', description: 'Filtre por <strong>busca</strong>, <strong>status</strong>, <strong>setor</strong> e <strong>cargo</strong>.', side: 'bottom', align: 'start' },
+          },
+          {
+            element: '#tour-relatorio-colunas',
+            popover: { title: 'Seleção de Colunas', description: 'Escolha quais colunas serão exibidas e exportadas.', side: 'bottom', align: 'end' },
+          },
+          {
+            element: '#tour-relatorio-tabela',
+            popover: { title: 'Tabela de Resultados', description: 'Clique no cabeçalho de uma coluna para <strong>ordenar</strong> os dados.', side: 'top', align: 'center' },
+          },
+        ],
+      });
+      tour.drive();
+    });
+  }, []);
+
   if (loadingColaboradores) {
     return <div className="p-6">Carregando relatório de colaboradores...</div>;
   }
@@ -290,7 +328,7 @@ export default function ColaboradoresReportPage() {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto py-8 px-4 space-y-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div id="tour-relatorio-cabecalho" className="flex items-center gap-3">
             <div className="p-2 bg-brand-blue/10 rounded-lg">
               <Users2 className="h-6 w-6 text-brand-blue" />
             </div>
@@ -301,18 +339,21 @@ export default function ColaboradoresReportPage() {
               </p>
             </div>
           </div>
-          <div className="flex gap-3">
-            <Button variant="outline" className="flex items-center gap-2" onClick={exportToExcel}>
-              <Download className="h-4 w-4" /> Exportar Excel
-            </Button>
-            <Button className="bg-brand-blue hover:bg-brand-blue-dark flex items-center gap-2" onClick={exportToPDF}>
-              <Download className="h-4 w-4" /> Exportar PDF
-            </Button>
+          <div className="flex items-center gap-3">
+            <TourGuia aoIniciar={iniciarTour} />
+            <div id="tour-relatorio-exportar" className="flex gap-3">
+              <Button variant="outline" className="flex items-center gap-2" onClick={exportToExcel}>
+                <Download className="h-4 w-4" /> Exportar Excel
+              </Button>
+              <Button className="bg-brand-blue hover:bg-brand-blue-dark flex items-center gap-2" onClick={exportToPDF}>
+                <Download className="h-4 w-4" /> Exportar PDF
+              </Button>
+            </div>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <Card className="lg:col-span-2">
+          <Card id="tour-relatorio-filtros" className="lg:col-span-2">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Filter className="h-5 w-5" /> Filtros
@@ -376,7 +417,7 @@ export default function ColaboradoresReportPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card id="tour-relatorio-colunas">
             <CardHeader>
               <CardTitle className="flex items-center gap-2"><ListChecks className="h-5 w-5" /> Colunas</CardTitle>
             </CardHeader>
@@ -395,7 +436,7 @@ export default function ColaboradoresReportPage() {
           </Card>
         </div>
 
-        <Card>
+        <Card id="tour-relatorio-tabela">
           <CardHeader>
             <CardTitle>{filteredData.length} resultado(s)</CardTitle>
           </CardHeader>

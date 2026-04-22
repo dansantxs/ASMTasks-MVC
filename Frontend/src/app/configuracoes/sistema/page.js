@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Building2, ImagePlus, Save, Clock3, Mail, Phone, Server, Eye, EyeOff, Paperclip } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
@@ -11,6 +11,88 @@ import { Switch } from '../../../ui/form/switch';
 import { Button } from '../../../ui/base/button';
 import { configuracoesPadrao, atualizarConfiguracoesSistema, useConfiguracoesSistema } from '../../../shared/configuracoes-sistema/api';
 import { buscarEnderecoPorCep } from '../../../shared/api/viacep';
+import TourGuia from '../../../shared/components/TourGuia';
+
+const PASSOS_TOUR = [
+  {
+    element: '#tour-cabecalho',
+    popover: {
+      title: 'Parametrização do Sistema',
+      description: 'Nesta tela você configura os dados institucionais da empresa, o horário da agenda de atendimentos, a logo exibida nos relatórios, as configurações de e-mail e os limites de tamanho para upload de anexos.',
+      side: 'bottom',
+      align: 'start',
+    },
+  },
+  {
+    element: '#tour-card-agenda',
+    popover: {
+      title: 'Agenda e Identificação',
+      description: 'Define o intervalo de horário visível na agenda de atendimentos e os dados institucionais (razão social, CNPJ, e-mail, telefone e endereço) usados nos relatórios e documentos gerados pelo sistema.',
+      side: 'right',
+      align: 'start',
+    },
+  },
+  {
+    element: '#tour-agenda-horarios',
+    popover: {
+      title: 'Horário da Agenda',
+      description: 'O calendário de atendimentos exibe apenas o intervalo definido aqui. Novos agendamentos devem estar dentro deste período — por isso é importante manter os horários alinhados com o expediente da empresa.',
+      side: 'bottom',
+    },
+  },
+  {
+    element: '#tour-agenda-identificacao',
+    popover: {
+      title: 'Dados da Empresa',
+      description: 'Razão social, nome fantasia, CNPJ, inscrição estadual, e-mail e telefone. Essas informações aparecem no cabeçalho dos relatórios exportados em PDF.',
+      side: 'bottom',
+    },
+  },
+  {
+    element: '#tour-agenda-endereco',
+    popover: {
+      title: 'Endereço da Empresa',
+      description: 'Preencha o CEP para preenchimento automático de logradouro, bairro, cidade e UF via ViaCEP. Complete o número manualmente.',
+      side: 'top',
+    },
+  },
+  {
+    element: '#tour-card-logo',
+    popover: {
+      title: 'Logo do Sistema',
+      description: 'Faça upload de uma imagem para ser exibida como logo nos documentos e relatórios exportados. Clique em <strong>Remover logo</strong> para limpar a imagem atual.',
+      side: 'left',
+      align: 'start',
+    },
+  },
+  {
+    element: '#tour-card-smtp',
+    popover: {
+      title: 'Configuração de E-mail (SMTP)',
+      description: 'Configure o servidor de e-mail para envio de notificações de atendimento. Preencha todos os campos (servidor, porta, usuário e senha) ou deixe todos em branco para desativar o envio. Ative <strong>SSL/TLS</strong> conforme exigido pelo seu provedor.',
+      side: 'top',
+      align: 'start',
+    },
+  },
+  {
+    element: '#tour-card-anexos',
+    popover: {
+      title: 'Limites de Tamanho de Anexos',
+      description: 'Define o tamanho máximo permitido nos uploads. O <strong>limite global</strong> se aplica a todos os tipos de arquivo. Use os campos por tipo (imagem, PDF, Excel) para definir valores específicos — deixe em branco para herdar o limite global.',
+      side: 'top',
+      align: 'start',
+    },
+  },
+  {
+    element: '#tour-btn-salvar',
+    popover: {
+      title: 'Salvar Parametrização',
+      description: 'Clique aqui para salvar todas as configurações de uma vez. As alterações entram em vigor imediatamente após o salvamento.',
+      side: 'top',
+      align: 'end',
+    },
+  },
+];
 
 const emptyErrors = {};
 
@@ -36,21 +118,25 @@ export default function ConfiguracoesSistemaPage() {
   const [errors, setErrors] = useState(emptyErrors);
   const [buscandoCep, setBuscandoCep] = useState(false);
   const [mostrarSenhaSmtp, setMostrarSenhaSmtp] = useState(false);
+  const cepAlteradoPeloUsuario = useRef(false);
 
   useEffect(() => {
+    cepAlteradoPeloUsuario.current = false;
     setForm(settings);
   }, [settings]);
 
   useEffect(() => {
+    const controller = new AbortController();
     let ativo = true;
 
     async function preencherEndereco() {
+      if (!cepAlteradoPeloUsuario.current) return;
       const cepLimpo = String(form.cep || '').replace(/\D/g, '');
       if (cepLimpo.length !== 8) return;
 
       setBuscandoCep(true);
       try {
-        const endereco = await buscarEnderecoPorCep(cepLimpo);
+        const endereco = await buscarEnderecoPorCep(cepLimpo, controller.signal);
         if (!ativo || !endereco) return;
 
         setForm((prev) => ({
@@ -68,6 +154,7 @@ export default function ConfiguracoesSistemaPage() {
     preencherEndereco();
     return () => {
       ativo = false;
+      controller.abort();
     };
   }, [form.cep]);
 
@@ -152,21 +239,24 @@ export default function ConfiguracoesSistemaPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto w-full max-w-7xl px-4 py-8 space-y-6">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-brand-blue/10 rounded-lg">
-            <Building2 className="h-6 w-6 text-brand-blue" />
+        <div className="flex items-center justify-between">
+          <div id="tour-cabecalho" className="flex items-center gap-3">
+            <div className="p-2 bg-brand-blue/10 rounded-lg">
+              <Building2 className="h-6 w-6 text-brand-blue" />
+            </div>
+            <div>
+              <h1>Parametrização do Sistema</h1>
+              <p className="text-muted-foreground">
+                Defina os dados institucionais usados na agenda, relatórios e demais áreas do sistema
+              </p>
+            </div>
           </div>
-          <div>
-            <h1>Parametrização do Sistema</h1>
-            <p className="text-muted-foreground">
-              Defina os dados institucionais usados na agenda, relatórios e demais áreas do sistema
-            </p>
-          </div>
+          <TourGuia passos={PASSOS_TOUR} />
         </div>
 
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_360px] gap-6 items-start">
-            <Card>
+            <Card id="tour-card-agenda">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Clock3 className="h-5 w-5" />
@@ -174,7 +264,7 @@ export default function ConfiguracoesSistemaPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-5">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div id="tour-agenda-horarios" className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="horaInicioAgenda">Hora de início da agenda</Label>
                     <Input
@@ -200,7 +290,7 @@ export default function ConfiguracoesSistemaPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div id="tour-agenda-identificacao" className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="razaoSocial">Razão social</Label>
                     <Input
@@ -265,7 +355,7 @@ export default function ConfiguracoesSistemaPage() {
                   </div>
                 </div>
 
-                <div className="space-y-4">
+                <div id="tour-agenda-endereco" className="space-y-4">
                   <Label>Endereço da empresa</Label>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
@@ -273,7 +363,7 @@ export default function ConfiguracoesSistemaPage() {
                       <Input
                         id="cep"
                         value={form.cep}
-                        onChange={(e) => setForm((prev) => ({ ...prev, cep: maskCEP(e.target.value) }))}
+                        onChange={(e) => { cepAlteradoPeloUsuario.current = true; setForm((prev) => ({ ...prev, cep: maskCEP(e.target.value) })); }}
                         placeholder="00000-000"
                       />
                     </div>
@@ -333,7 +423,7 @@ export default function ConfiguracoesSistemaPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card id="tour-card-logo">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <ImagePlus className="h-5 w-5" />
@@ -362,7 +452,7 @@ export default function ConfiguracoesSistemaPage() {
             </Card>
           </div>
 
-          <Card>
+          <Card id="tour-card-smtp">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Server className="h-5 w-5" />
@@ -443,7 +533,7 @@ export default function ConfiguracoesSistemaPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card id="tour-card-anexos">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Paperclip className="h-5 w-5" />
@@ -508,7 +598,7 @@ export default function ConfiguracoesSistemaPage() {
             </CardContent>
           </Card>
 
-          <div className="flex justify-end">
+          <div id="tour-btn-salvar" className="flex justify-end">
             <Button type="submit" className="bg-brand-blue hover:bg-brand-blue-dark" disabled={salvar.isPending}>
               <Save className="h-4 w-4 mr-2" />
               {salvar.isPending ? 'Salvando...' : 'Salvar parametrização'}

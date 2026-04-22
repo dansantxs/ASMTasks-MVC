@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from '../../../ui/base/button';
 import { Plus, Handshake } from 'lucide-react';
@@ -9,13 +9,8 @@ import ListaClientes from './components/ListaClientes';
 import DialogoVisualizarCliente from './components/DialogoVisualizarCliente';
 import { DialogoConfirmarExclusao } from './components/DialogoConfirmarExclusao';
 import AlternarVisualizacao from '../../../shared/components/AlternarVisualizacao';
-import {
-  getClientes,
-  criarCliente,
-  atualizarCliente,
-  inativarCliente,
-  reativarCliente
-} from './api/cliente';
+import TourGuia from '../../../shared/components/TourGuia';
+import { getClientes, criarCliente, atualizarCliente, inativarCliente, reativarCliente } from './api/cliente';
 
 export default function ClientesPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -107,9 +102,8 @@ export default function ClientesPage() {
       uf: clientData.uf,
       logradouro: clientData.logradouro,
       bairro: clientData.bairro,
-      numero: clientData.numero
+      numero: clientData.numero,
     };
-
     if (clienteSelecionado) atualizar.mutate({ id: clienteSelecionado.id, data: dataAPI });
     else criar.mutate(dataAPI);
   };
@@ -120,15 +114,144 @@ export default function ClientesPage() {
 
   const handleReativarCliente = (cliente) => reativar.mutate(cliente.id);
 
-  if (loadingClientes) {
-    return <div className="p-6">Carregando clientes...</div>;
-  }
+  const iniciarTour = useCallback(() => {
+    import('driver.js').then(({ driver }) => {
+      let tour;
+      const primeiroCliente = clientes.find(c => c.active) ?? clientes[0];
+
+      tour = driver({
+        showProgress: true,
+        progressText: '{{current}} de {{total}}',
+        nextBtnText: 'Próximo →',
+        prevBtnText: '← Anterior',
+        doneBtnText: '✓ Concluir',
+        overlayOpacity: 0.6,
+        smoothScroll: true,
+        onDestroyed: () => {
+          setIsFormOpen(false);
+          setIsViewDialogOpen(false);
+          setClienteSelecionado(null);
+        },
+        steps: [
+          {
+            element: '#tour-cabecalho',
+            popover: {
+              title: 'Gerenciamento de Clientes',
+              description: 'Cadastre e gerencie os clientes vinculados aos projetos. O sistema suporta <strong>Pessoa Física</strong> (CPF) e <strong>Pessoa Jurídica</strong> (CNPJ).',
+              side: 'bottom', align: 'start',
+            },
+          },
+          {
+            element: '#tour-alternar-visualizacao',
+            popover: {
+              title: 'Alternar Visualização',
+              description: 'Alterne entre visualização em <strong>cards</strong> ou em <strong>tabela</strong>.',
+              side: 'bottom',
+            },
+          },
+          {
+            element: '#tour-busca',
+            popover: {
+              title: 'Buscar Clientes',
+              description: 'Filtre os clientes por nome ou CPF/CNPJ em tempo real.',
+              side: 'bottom', align: 'start',
+            },
+          },
+          {
+            element: '#tour-lista-ativos',
+            popover: {
+              title: 'Clientes Ativos',
+              description: 'Lista de todos os clientes ativos. Cada card exibe nome, documento, contato e botões de ação.',
+              side: 'top',
+            },
+          },
+          {
+            element: '#tour-btn-novo-cliente',
+            popover: {
+              title: 'Cadastrar Novo Cliente',
+              description: 'Clique para abrir o formulário. Clique em <strong>Próximo</strong> para ver o formulário em ação.',
+              side: 'bottom', align: 'end',
+              onNextClick: () => {
+                setClienteSelecionado(null);
+                setIsFormOpen(true);
+                setTimeout(() => tour.moveNext(), 350);
+              },
+            },
+          },
+          {
+            element: '#tour-cli-form-identificacao',
+            popover: {
+              title: 'Identificação',
+              description: 'Informe <strong>Nome/Razão Social</strong>, <strong>Tipo de Pessoa</strong> (Física ou Jurídica), <strong>CPF/CNPJ</strong> e <strong>data de nascimento/inauguração</strong>. Campos obrigatórios marcados com *.',
+              side: 'bottom',
+            },
+          },
+          {
+            element: '#tour-cli-form-contato',
+            popover: {
+              title: 'Contato',
+              description: 'Informe <strong>e-mail</strong>, <strong>telefone</strong> e (para Pessoa Jurídica) o <strong>site</strong> do cliente.',
+              side: 'bottom',
+            },
+          },
+          {
+            element: '#tour-cli-form-endereco',
+            popover: {
+              title: 'Endereço',
+              description: 'Digite o <strong>CEP</strong> para preencher automaticamente logradouro, bairro e cidade via ViaCEP. Ajuste os dados se necessário.',
+              side: 'top',
+            },
+          },
+          {
+            element: '#tour-cli-form-botoes',
+            popover: {
+              title: 'Salvar ou Cancelar',
+              description: 'Clique em <strong>Cadastrar Cliente</strong> para salvar ou <strong>Cancelar</strong> para fechar sem salvar.',
+              side: 'top',
+              onNextClick: () => {
+                setIsFormOpen(false);
+                if (primeiroCliente) {
+                  setClienteSelecionado(primeiroCliente);
+                  setIsViewDialogOpen(true);
+                  setTimeout(() => tour.moveNext(), 350);
+                } else {
+                  tour.destroy();
+                }
+              },
+            },
+          },
+          ...(primeiroCliente ? [
+            {
+              element: '#tour-cli-view-card',
+              popover: {
+                title: 'Dados do Cliente',
+                description: 'Exibe todos os dados cadastrados: documentos, contato e endereço completo.',
+                side: 'right',
+              },
+            },
+            {
+              element: '#tour-cli-view-sistema',
+              popover: {
+                title: 'Informações do Sistema',
+                description: 'ID único e status. Clientes excluídos ficam <strong>inativos</strong> (exclusão lógica), preservando o histórico de projetos.',
+                side: 'top',
+              },
+            },
+          ] : []),
+        ],
+      });
+
+      tour.drive();
+    });
+  }, [clientes]);
+
+  if (loadingClientes) return <div className="p-6">Carregando clientes...</div>;
 
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto py-8 px-4">
         <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
+          <div id="tour-cabecalho" className="flex items-center gap-3">
             <div className="p-2 bg-brand-blue/10 rounded-lg">
               <Handshake className="h-6 w-6 text-brand-blue" />
             </div>
@@ -140,12 +263,13 @@ export default function ClientesPage() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <AlternarVisualizacao modoVisualizacao={modoVisualizacao} aoAlterarModoVisualizacao={setModoVisualizacao} />
+            <TourGuia aoIniciar={iniciarTour} />
+            <div id="tour-alternar-visualizacao">
+              <AlternarVisualizacao modoVisualizacao={modoVisualizacao} aoAlterarModoVisualizacao={setModoVisualizacao} />
+            </div>
             <Button
-              onClick={() => {
-                setClienteSelecionado(null);
-                setIsFormOpen(true);
-              }}
+              id="tour-btn-novo-cliente"
+              onClick={() => { setClienteSelecionado(null); setIsFormOpen(true); }}
               className="flex items-center gap-2 bg-brand-blue hover:bg-brand-blue-dark"
             >
               <Plus className="h-4 w-4" />
@@ -156,18 +280,9 @@ export default function ClientesPage() {
 
         <ListaClientes
           clientes={clientes}
-          aoEditar={(c) => {
-            setClienteSelecionado(c);
-            setIsFormOpen(true);
-          }}
-          aoExcluir={(c) => {
-            setClienteSelecionado(c);
-            setIsDeleteDialogOpen(true);
-          }}
-          aoVisualizar={(c) => {
-            setClienteSelecionado(c);
-            setIsViewDialogOpen(true);
-          }}
+          aoEditar={(c) => { setClienteSelecionado(c); setIsFormOpen(true); }}
+          aoExcluir={(c) => { setClienteSelecionado(c); setIsDeleteDialogOpen(true); }}
+          aoVisualizar={(c) => { setClienteSelecionado(c); setIsViewDialogOpen(true); }}
           aoReativar={handleReativarCliente}
           modoVisualizacao={modoVisualizacao}
         />

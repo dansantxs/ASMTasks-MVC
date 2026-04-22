@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { LayoutDashboard } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
@@ -19,6 +19,7 @@ import {
 } from './api/kanban';
 import FiltrosKanban from './components/FiltrosKanban';
 import QuadroKanban from './components/QuadroKanban';
+import TourGuia from '../../../shared/components/TourGuia';
 
 export default function KanbanPage() {
   const session = obterSessaoArmazenada();
@@ -156,19 +157,66 @@ export default function KanbanPage() {
     reordenar.mutate(comNovaOrdem.map((e) => ({ id: e.id, ordem: e.ordem })));
   };
 
+  const iniciarTour = useCallback(() => {
+    import('driver.js').then(({ driver }) => {
+      const tour = driver({
+        showProgress: true,
+        progressText: '{{current}} de {{total}}',
+        nextBtnText: 'Próximo →',
+        prevBtnText: '← Anterior',
+        doneBtnText: '✓ Concluir',
+        overlayOpacity: 0.6,
+        smoothScroll: true,
+        steps: [
+          {
+            element: '#tour-kanban-cabecalho',
+            popover: {
+              title: 'Quadro Kanban',
+              description: 'Acompanhe o progresso das tarefas de todos os projetos organizadas por etapa. As colunas representam as etapas do fluxo de trabalho.',
+              side: 'bottom',
+              align: 'start',
+            },
+          },
+          {
+            element: '#tour-kanban-filtros',
+            popover: {
+              title: 'Filtros',
+              description: 'Filtre as tarefas por <strong>colaborador</strong>, <strong>projeto</strong> ou <strong>cliente</strong>. Use múltiplos filtros simultaneamente. Por padrão, exibe as tarefas do colaborador logado.',
+              side: 'bottom',
+              align: 'start',
+            },
+          },
+          {
+            element: '#tour-kanban-quadro',
+            popover: {
+              title: 'Quadro de Tarefas',
+              description: 'Cada coluna é uma etapa. <strong>Arraste os cards</strong> entre colunas para mover uma tarefa de etapa. Clique em um card para ver detalhes, iniciar ou pausar a elaboração.',
+              side: 'top',
+              align: 'center',
+            },
+          },
+        ].filter((p) => !p.element || document.querySelector(p.element)),
+      });
+      tour.drive();
+    });
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       <div className="py-6 px-4">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 bg-brand-blue/10 rounded-lg">
-            <LayoutDashboard className="h-6 w-6 text-brand-blue" />
+        <div className="flex items-center justify-between mb-6">
+          <div id="tour-kanban-cabecalho" className="flex items-center gap-3">
+            <div className="p-2 bg-brand-blue/10 rounded-lg">
+              <LayoutDashboard className="h-6 w-6 text-brand-blue" />
+            </div>
+            <div>
+              <h1>Quadro Kanban</h1>
+              <p className="text-muted-foreground">
+                Acompanhe o andamento das tarefas por etapa de desenvolvimento
+              </p>
+            </div>
           </div>
-          <div>
-            <h1>Quadro Kanban</h1>
-            <p className="text-muted-foreground">
-              Acompanhe o andamento das tarefas por etapa de desenvolvimento
-            </p>
-          </div>
+          <TourGuia aoIniciar={iniciarTour} />
         </div>
 
         <div className="mb-4">
@@ -188,6 +236,7 @@ export default function KanbanPage() {
             Carregando tarefas...
           </div>
         ) : (
+          <div id="tour-kanban-quadro">
           <QuadroKanban
             tarefas={tarefas}
             etapas={etapas}
@@ -206,6 +255,7 @@ export default function KanbanPage() {
             }
             isTrocando={trocarColaborador.isPending}
           />
+          </div>
         )}
       </div>
 

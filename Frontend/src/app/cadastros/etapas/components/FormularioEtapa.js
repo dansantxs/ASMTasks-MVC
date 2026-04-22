@@ -85,7 +85,7 @@ export default function FormularioEtapa({
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
+          <div id="tour-etapa-form-nome" className="space-y-2">
             <Label htmlFor="name">Nome da Etapa <span className="text-destructive">*</span></Label>
             <Input
               id="name"
@@ -99,7 +99,7 @@ export default function FormularioEtapa({
             )}
           </div>
 
-          <div className="space-y-2">
+          <div id="tour-etapa-form-descricao" className="space-y-2">
             <Label htmlFor="description">Descrição</Label>
             <Textarea
               id="description"
@@ -116,7 +116,7 @@ export default function FormularioEtapa({
             );
             const desabilitado = outraEtapaFinal && !formData.isFinalStage;
             return (
-              <div className={`flex items-center justify-between rounded-lg border p-3 ${desabilitado ? 'bg-gray-50 border-gray-200 opacity-60' : 'bg-green-50 border-green-200'}`}>
+              <div id="tour-etapa-form-final" className={`flex items-center justify-between rounded-lg border p-3 ${desabilitado ? 'bg-gray-50 border-gray-200 opacity-60' : 'bg-green-50 border-green-200'}`}>
                 <Label htmlFor="isFinalStage" className={`text-sm font-medium cursor-pointer ${desabilitado ? 'text-gray-500' : 'text-green-800'}`}>
                   Etapa final
                 </Label>
@@ -130,7 +130,7 @@ export default function FormularioEtapa({
             );
           })()}
 
-          <div className="flex justify-end gap-3 pt-4">
+          <div id="tour-etapa-form-botoes" className="flex justify-end gap-3 pt-4">
             <Button
               type="button"
               variant="outline"

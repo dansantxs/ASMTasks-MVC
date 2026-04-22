@@ -1,11 +1,12 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { FolderKanban, Plus } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
 import { Button } from '../../ui/base/button';
 import AlternarVisualizacao from '../../shared/components/AlternarVisualizacao';
+import TourGuia from '../../shared/components/TourGuia';
 import FormularioProjeto from './components/FormularioProjeto';
 import ListaProjetos from './components/ListaProjetos';
 import DialogoVisualizarProjeto from './components/DialogoVisualizarProjeto';
@@ -221,13 +222,153 @@ export default function ProjetosPage() {
     criar.mutate({ payload, pendingFilesByIndex });
   };
 
+  const iniciarTour = useCallback(() => {
+    import('driver.js').then(({ driver }) => {
+      let tour;
+
+      const primeiroProjeto = projetos.find((p) => p.ativo && !p.concluido) ?? projetos[0];
+
+      const passos = [
+        {
+          element: '#tour-cabecalho',
+          popover: {
+            title: 'Gerenciamento de Projetos',
+            description: 'Esta tela lista todos os projetos do sistema. Você pode criar novos projetos, visualizar os existentes e acompanhar o status de cada um.',
+            side: 'bottom',
+            align: 'start',
+          },
+        },
+        {
+          element: '#tour-alternar-visualizacao',
+          popover: {
+            title: 'Alternar Visualização',
+            description: 'Alterne entre visualização em <strong>cards</strong> (grade) ou em <strong>tabela</strong>, de acordo com sua preferência.',
+            side: 'bottom',
+            align: 'center',
+          },
+        },
+        {
+          element: '#tour-busca',
+          popover: {
+            title: 'Buscar Projetos',
+            description: 'Filtre projetos por título, descrição, cliente ou setor. A busca é feita em tempo real conforme você digita.',
+            side: 'bottom',
+            align: 'start',
+          },
+        },
+        {
+          element: '#tour-lista-projetos',
+          popover: {
+            title: 'Lista de Projetos',
+            description: 'Exibe os projetos da aba selecionada (Ativos, Concluídos ou Inativos). Clique em um card para ver os detalhes completos.',
+            side: 'top',
+            align: 'center',
+          },
+        },
+        {
+          element: '#tour-btn-novo-projeto',
+          popover: {
+            title: 'Criar Novo Projeto',
+            description: 'Clique aqui para abrir o formulário de cadastro de projeto. Clique em <strong>Próximo</strong> para ver o formulário em ação.',
+            side: 'bottom',
+            align: 'end',
+            onNextClick: () => {
+              setEditingProject(null);
+              setIsFormOpen(true);
+              setTimeout(() => tour.moveNext(), 350);
+            },
+          },
+        },
+        {
+          element: '#tour-form-projeto-dados',
+          popover: {
+            title: 'Dados do Projeto',
+            description: 'Preencha o <strong>título</strong> (obrigatório), descrição, <strong>cliente</strong> e <strong>setor</strong> do projeto. É possível cadastrar novos clientes e setores diretamente neste formulário.',
+            side: 'right',
+          },
+        },
+        {
+          element: '#tour-form-projeto-titulo',
+          popover: {
+            title: 'Título do Projeto',
+            description: 'Campo <strong>obrigatório</strong>. Informe um título claro e descritivo para o projeto (ex.: "Implantação do módulo comercial").',
+            side: 'bottom',
+          },
+        },
+        {
+          element: '#tour-form-projeto-tarefas',
+          popover: {
+            title: 'Tarefas do Projeto',
+            description: 'Adicione as tarefas iniciais do projeto. Cada tarefa precisa de um <strong>título</strong> e uma <strong>prioridade</strong>. Responsável e etapa são definidos depois no Kanban.',
+            side: 'left',
+          },
+        },
+        {
+          element: '#tour-form-projeto-botoes',
+          popover: {
+            title: 'Salvar ou Cancelar',
+            description: 'Clique em <strong>Criar projeto</strong> para salvar ou <strong>Cancelar</strong> para fechar sem salvar.',
+            side: 'top',
+            onNextClick: () => {
+              setIsFormOpen(false);
+              if (primeiroProjeto) {
+                setSelectedProject(primeiroProjeto);
+                setIsViewOpen(true);
+                setTimeout(() => tour.moveNext(), 350);
+              } else {
+                tour.destroy();
+              }
+            },
+          },
+        },
+        ...(primeiroProjeto ? [
+          {
+            element: '#tour-view-projeto-dados',
+            popover: {
+              title: 'Dados do Projeto',
+              description: 'Exibe o cliente, setor, data de cadastro e responsável pelo lançamento. Também mostra a descrição quando preenchida.',
+              side: 'bottom',
+            },
+          },
+          {
+            element: '#tour-view-projeto-tarefas',
+            popover: {
+              title: 'Tarefas do Projeto',
+              description: 'Lista todas as tarefas vinculadas ao projeto com sua prioridade e etapa atual no Kanban. Tarefas em <strong>Backlog</strong> ainda não foram iniciadas.',
+              side: 'top',
+            },
+          },
+        ] : []),
+      ];
+
+      tour = driver({
+        showProgress: true,
+        progressText: '{{current}} de {{total}}',
+        nextBtnText: 'Próximo →',
+        prevBtnText: '← Anterior',
+        doneBtnText: '✓ Concluir',
+        overlayOpacity: 0.6,
+        smoothScroll: true,
+        onDestroyed: () => {
+          setIsFormOpen(false);
+          setIsViewOpen(false);
+          setSelectedProject(null);
+          setEditingProject(null);
+        },
+        steps: passos,
+      });
+
+      tour.drive();
+    });
+  }, [projetos]);
+
   if (isLoadingProjetos) return <div className="p-6">Carregando projetos...</div>;
 
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto py-8 px-4">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
-          <div className="flex items-center gap-3">
+          <div id="tour-cabecalho" className="flex items-center gap-3">
             <div className="p-2 bg-brand-blue/10 rounded-lg">
               <FolderKanban className="h-6 w-6 text-brand-blue" />
             </div>
@@ -240,8 +381,12 @@ export default function ProjetosPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            <AlternarVisualizacao modoVisualizacao={modoVisualizacao} aoAlterarModoVisualizacao={setModoVisualizacao} />
+            <TourGuia aoIniciar={iniciarTour} />
+            <div id="tour-alternar-visualizacao">
+              <AlternarVisualizacao modoVisualizacao={modoVisualizacao} aoAlterarModoVisualizacao={setModoVisualizacao} />
+            </div>
             <Button
+              id="tour-btn-novo-projeto"
               className="flex items-center gap-2 bg-brand-blue hover:bg-brand-blue-dark"
               onClick={handleOpenCreate}
             >

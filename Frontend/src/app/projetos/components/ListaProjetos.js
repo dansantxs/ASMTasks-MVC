@@ -192,7 +192,7 @@ export default function ListaProjetos({
       </div>
 
       {/* Busca */}
-      <div className="relative">
+      <div id="tour-busca" className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           className="pl-10"
@@ -216,11 +216,11 @@ export default function ListaProjetos({
           </p>
         </div>
       ) : modoVisualizacao === 'cards' ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div id="tour-lista-projetos" className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {projetosDaAba.map(renderProjectCard)}
         </div>
       ) : (
-        <div className="border rounded-lg overflow-hidden">
+        <div id="tour-lista-projetos" className="border rounded-lg overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/30">

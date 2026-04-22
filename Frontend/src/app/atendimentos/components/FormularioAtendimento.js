@@ -244,7 +244,7 @@ export default function FormularioAtendimento({
 
         <form className="space-y-5" onSubmit={handleEnviar}>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="md:col-span-2">
+            <div id="tour-form-titulo" className="md:col-span-2">
               <Label htmlFor="titulo">Título <span className="text-destructive">*</span></Label>
               <Input
                 id="titulo"
@@ -266,7 +266,7 @@ export default function FormularioAtendimento({
               />
             </div>
 
-            <div>
+            <div id="tour-form-cliente">
               <Label>Cliente <span className="text-destructive">*</span></Label>
               <Select
                 value={dadosFormulario.clienteId}
@@ -291,7 +291,7 @@ export default function FormularioAtendimento({
               <Input value={colaboradorLogadoNome || '-'} disabled />
             </div>
 
-            <div>
+            <div id="tour-form-datas">
               <Label htmlFor="dataHoraInicio">Data/hora início <span className="text-destructive">*</span></Label>
               <Input
                 id="dataHoraInicio"
@@ -321,7 +321,7 @@ export default function FormularioAtendimento({
             </div>
           </div>
 
-          <div>
+          <div id="tour-form-colaboradores">
             <Label>Colaboradores do atendimento <span className="text-destructive">*</span></Label>
             <div className="mt-2 max-h-48 overflow-y-auto rounded-md border p-3 space-y-2">
               {colaboradoresAtivos.map((colaborador) => (
@@ -346,7 +346,7 @@ export default function FormularioAtendimento({
             )}
           </div>
 
-          <div>
+          <div id="tour-form-notificacoes">
             <Label>Notificações antes do atendimento</Label>
             <div className="mt-2 rounded-md border p-3 space-y-3">
               {configsNotificacao.length === 0 && (
@@ -404,7 +404,7 @@ export default function FormularioAtendimento({
             )}
           </div>
 
-          <div className="flex justify-end gap-3 pt-2">
+          <div id="tour-form-botoes" className="flex justify-end gap-3 pt-2">
             <Button type="button" variant="outline" tabIndex={-1} onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>

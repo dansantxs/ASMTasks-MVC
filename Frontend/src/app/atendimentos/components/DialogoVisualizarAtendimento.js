@@ -58,7 +58,7 @@ export default function DialogoVisualizarAtendimento({
           <DialogDescription>Visualização do atendimento selecionado.</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-3 text-sm">
+        <div id="tour-view-atendimento" className="space-y-3 text-sm">
           <div className="flex items-center gap-2">
             <Badge className={concluido ? 'bg-slate-600 hover:bg-slate-700' : 'bg-emerald-600 hover:bg-emerald-700'}>
               {concluido ? 'Concluído' : 'Agendado'}
@@ -79,7 +79,7 @@ export default function DialogoVisualizarAtendimento({
           <p><span className="font-medium">Resumo da reunião:</span> {atendimento.observacaoConclusao || '-'}</p>
         </div>
 
-        <div className="flex justify-end gap-2 pt-2">
+        <div id="tour-view-acoes" className="flex justify-end gap-2 pt-2">
           <Button type="button" variant="outline" onClick={aoExcluir} disabled={excluindo || concluido}>
             {excluindo ? 'Excluindo...' : 'Excluir'}
           </Button>

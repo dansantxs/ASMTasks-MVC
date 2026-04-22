@@ -104,7 +104,7 @@ export default function FormularioPrioridade({
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
+          <div id="tour-prior-form-nome" className="space-y-2">
             <Label htmlFor="name">
               Nome da Prioridade <span className="text-destructive">*</span>
             </Label>
@@ -118,7 +118,7 @@ export default function FormularioPrioridade({
             {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
           </div>
 
-          <div className="space-y-2">
+          <div id="tour-prior-form-descricao" className="space-y-2">
             <Label htmlFor="description">Descrição</Label>
             <Textarea
               id="description"
@@ -129,7 +129,7 @@ export default function FormularioPrioridade({
             />
           </div>
 
-          <div className="space-y-2">
+          <div id="tour-prior-form-cor" className="space-y-2">
             <Label htmlFor="color">
               Cor da Prioridade <span className="text-destructive">*</span>
             </Label>
@@ -144,7 +144,7 @@ export default function FormularioPrioridade({
             {errors.color && <p className="text-sm text-destructive">{errors.color}</p>}
           </div>
 
-          <div className="space-y-2">
+          <div id="tour-prior-form-ordem" className="space-y-2">
             <Label htmlFor="order">
               Ordem <span className="text-destructive">*</span>
             </Label>
@@ -159,7 +159,7 @@ export default function FormularioPrioridade({
             <p className="text-xs text-muted-foreground">Número menor = maior urgência</p>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4">
+          <div id="tour-prior-form-botoes" className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="outline" tabIndex={-1} onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>

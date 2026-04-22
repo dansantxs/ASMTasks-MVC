@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '../../ui/base/button';
 import { ChevronLeft, ChevronRight, Plus, CalendarDays } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
 import CalendarioAtendimentos from './components/CalendarioAtendimentos';
 import FormularioAtendimento from './components/FormularioAtendimento';
+import TourGuia from '../../shared/components/TourGuia';
 import DialogoVisualizarAtendimento from './components/DialogoVisualizarAtendimento';
 import DialogoConcluirAtendimento from './components/DialogoConcluirAtendimento';
 import {
@@ -249,11 +250,166 @@ export default function AgendaAtendimentosPage() {
     });
   };
 
+  const iniciarTour = useCallback(() => {
+    import('driver.js').then(({ driver }) => {
+      let tour;
+
+      const primeiroAtendimento = atendimentos[0] ?? null;
+
+      const passos = [
+        {
+          element: '#tour-cabecalho',
+          popover: {
+            title: 'Agenda de Atendimentos',
+            description: 'Esta tela exibe os atendimentos agendados e realizados em formato de calendário semanal. Aqui você visualiza, cria e gerencia reuniões com clientes.',
+            side: 'bottom',
+            align: 'start',
+          },
+        },
+        {
+          element: '#tour-navegacao-semana',
+          popover: {
+            title: 'Navegação entre Semanas',
+            description: 'Use as setas para avançar ou voltar semanas. O botão <strong>Hoje</strong> retorna à semana atual.',
+            side: 'bottom',
+            align: 'center',
+          },
+        },
+        {
+          element: '#tour-painel-filtro',
+          popover: {
+            title: 'Filtro por Colaborador',
+            description: 'Clique em <strong>Mostrar filtro de colaboradores</strong> para exibir ou ocultar os atendimentos de colaboradores específicos. Por padrão, apenas os seus atendimentos são exibidos.',
+            side: 'bottom',
+            align: 'start',
+          },
+        },
+        {
+          element: '#tour-calendario',
+          popover: {
+            title: 'Calendário Semanal',
+            description: 'Cada coluna representa um dia da semana. Os blocos coloridos são atendimentos — <strong>verde</strong> para agendados e <strong>cinza</strong> para concluídos. Clique em qualquer bloco para ver os detalhes.',
+            side: 'top',
+            align: 'center',
+          },
+        },
+        {
+          element: '#tour-btn-novo-atendimento',
+          popover: {
+            title: 'Novo Atendimento',
+            description: 'Clique aqui para agendar um atendimento. Clique em <strong>Próximo</strong> para ver o formulário em ação.',
+            side: 'bottom',
+            align: 'end',
+            onNextClick: () => {
+              setAtendimentoSelecionado(null);
+              setFormularioAberto(true);
+              setTimeout(() => tour.moveNext(), 350);
+            },
+          },
+        },
+        {
+          element: '#tour-form-titulo',
+          popover: {
+            title: 'Título do Atendimento',
+            description: 'Campo <strong>obrigatório</strong>. Informe um nome descritivo para identificar o atendimento (ex.: "Reunião de alinhamento").',
+            side: 'bottom',
+          },
+        },
+        {
+          element: '#tour-form-cliente',
+          popover: {
+            title: 'Cliente',
+            description: 'Selecione o cliente ao qual este atendimento está vinculado. Apenas clientes ativos aparecem na lista.',
+            side: 'bottom',
+          },
+        },
+        {
+          element: '#tour-form-datas',
+          popover: {
+            title: 'Data e Hora de Início',
+            description: 'Informe quando o atendimento começa. O horário deve estar dentro do intervalo configurado para a agenda.',
+            side: 'bottom',
+          },
+        },
+        {
+          element: '#tour-form-colaboradores',
+          popover: {
+            title: 'Colaboradores',
+            description: 'Selecione ao menos um colaborador participante. O calendário filtra os atendimentos com base nos colaboradores selecionados.',
+            side: 'top',
+          },
+        },
+        {
+          element: '#tour-form-notificacoes',
+          popover: {
+            title: 'Notificações',
+            description: 'Configure lembretes antes do atendimento (ex.: 30 minutos ou 1 dia antes). Adicione quantas notificações precisar.',
+            side: 'top',
+          },
+        },
+        {
+          element: '#tour-form-botoes',
+          popover: {
+            title: 'Agendar ou Cancelar',
+            description: 'Clique em <strong>Agendar Atendimento</strong> para salvar ou em <strong>Cancelar</strong> para fechar sem salvar.',
+            side: 'top',
+            onNextClick: () => {
+              setFormularioAberto(false);
+              if (primeiroAtendimento) {
+                setAtendimentoSelecionado(primeiroAtendimento);
+                setVisualizacaoAberta(true);
+                setTimeout(() => tour.moveNext(), 350);
+              } else {
+                tour.destroy();
+              }
+            },
+          },
+        },
+        ...(primeiroAtendimento ? [
+          {
+            element: '#tour-view-atendimento',
+            popover: {
+              title: 'Detalhes do Atendimento',
+              description: 'Exibe título, cliente, colaboradores, horário e descrição. Atendimentos concluídos mostram também quem concluiu e o resumo da reunião.',
+              side: 'right',
+            },
+          },
+          {
+            element: '#tour-view-acoes',
+            popover: {
+              title: 'Ações do Atendimento',
+              description: '<strong>Excluir</strong> remove o agendamento. <strong>Alterar</strong> reabre o formulário. <strong>Marcar como concluído</strong> registra a conclusão e permite informar um resumo da reunião.',
+              side: 'top',
+            },
+          },
+        ] : []),
+      ];
+
+      tour = driver({
+        showProgress: true,
+        progressText: '{{current}} de {{total}}',
+        nextBtnText: 'Próximo →',
+        prevBtnText: '← Anterior',
+        doneBtnText: '✓ Concluir',
+        overlayOpacity: 0.6,
+        smoothScroll: true,
+        onDestroyed: () => {
+          setFormularioAberto(false);
+          setVisualizacaoAberta(false);
+          setAtendimentoSelecionado(null);
+        },
+        steps: passos,
+      });
+
+      tour.drive();
+    });
+  }, [atendimentos]);
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto py-8 px-4">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
-          <div className="flex items-center gap-3">
+          <div id="tour-cabecalho" className="flex items-center gap-3">
             <div className="p-2 bg-brand-blue/10 rounded-lg">
               <CalendarDays className="h-6 w-6 text-brand-blue" />
             </div>
@@ -266,27 +422,31 @@ export default function AgendaAtendimentosPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => {
-              const anterior = new Date(inicioSemana);
-              anterior.setDate(anterior.getDate() - 7);
-              setInicioSemana(inicioDaSemana(anterior));
-            }}>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <span className="text-sm font-medium min-w-[120px] text-center">
-              {formatarPeriodo(inicioSemana, fimSemana)}
-            </span>
-            <Button variant="outline" onClick={() => {
-              const proximo = new Date(inicioSemana);
-              proximo.setDate(proximo.getDate() + 7);
-              setInicioSemana(inicioDaSemana(proximo));
-            }}>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-            <Button onClick={() => setInicioSemana(inicioDaSemana(new Date()))} variant="outline">
-              Hoje
-            </Button>
+            <TourGuia aoIniciar={iniciarTour} />
+            <div id="tour-navegacao-semana" className="flex items-center gap-2">
+              <Button variant="outline" onClick={() => {
+                const anterior = new Date(inicioSemana);
+                anterior.setDate(anterior.getDate() - 7);
+                setInicioSemana(inicioDaSemana(anterior));
+              }}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span className="text-sm font-medium min-w-[120px] text-center">
+                {formatarPeriodo(inicioSemana, fimSemana)}
+              </span>
+              <Button variant="outline" onClick={() => {
+                const proximo = new Date(inicioSemana);
+                proximo.setDate(proximo.getDate() + 7);
+                setInicioSemana(inicioDaSemana(proximo));
+              }}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+              <Button onClick={() => setInicioSemana(inicioDaSemana(new Date()))} variant="outline">
+                Hoje
+              </Button>
+            </div>
             <Button
+              id="tour-btn-novo-atendimento"
               onClick={handleAbrirNovo}
               className="flex items-center gap-2 bg-brand-blue hover:bg-brand-blue-dark"
             >
@@ -300,7 +460,7 @@ export default function AgendaAtendimentosPage() {
           <div className="p-6">Carregando agenda...</div>
         ) : (
           <div className="space-y-4">
-            <div className="rounded-lg border bg-card p-4 space-y-3">
+            <div id="tour-painel-filtro" className="rounded-lg border bg-card p-4 space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <Button
                   type="button"
@@ -343,6 +503,7 @@ export default function AgendaAtendimentosPage() {
               )}
             </div>
 
+            <div id="tour-calendario">
             <CalendarioAtendimentos
               dias={diasSemana}
               atendimentos={atendimentosFiltrados}
@@ -350,6 +511,7 @@ export default function AgendaAtendimentosPage() {
               horaFimAgenda={configuracoes.horaFimAgenda}
               aoSelecionarAtendimento={handleAbrirVisualizacao}
             />
+            </div>
           </div>
         )}
 

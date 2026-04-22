@@ -58,7 +58,7 @@ export default function DialogoVisualizarColaborador({ open, onOpenChange, colab
 
           <Separator />
 
-          <Section icon={<User />} title="Informações pessoais">
+          <Section id="tour-colab-view-pessoal" icon={<User />} title="Informações pessoais">
             <Grid2>
               <Field label="CPF" value={colaborador.cpf} mono />
               <Field label="Data de nascimento" value={formatDate(colaborador.dataNascimento)} />
@@ -79,14 +79,14 @@ export default function DialogoVisualizarColaborador({ open, onOpenChange, colab
             </Grid2>
           </Section>
 
-          <Section icon={<Building2 />} title="Vínculos organizacionais">
+          <Section id="tour-colab-view-vinculos" icon={<Building2 />} title="Vínculos organizacionais">
             <Grid2>
               <Field label="Setor" value={colaborador.setorNome} />
               <Field label="Cargo" value={colaborador.cargoNome} />
             </Grid2>
           </Section>
 
-          <Section icon={<Briefcase />} title="Informações do sistema">
+          <Section id="tour-colab-view-sistema" icon={<Briefcase />} title="Informações do sistema">
             <Grid2>
               <Field label="ID do colaborador" value={colaborador.id} mono />
               <Field
@@ -123,9 +123,9 @@ export default function DialogoVisualizarColaborador({ open, onOpenChange, colab
   );
 }
 
-function Section({ title, icon, children }) {
+function Section({ title, icon, children, id }) {
   return (
-    <div>
+    <div id={id}>
       <div className="flex items-center gap-2 mb-2">
         {icon && <div className="text-brand-blue">{icon}</div>}
         <h3 className="font-medium text-sm font-semibold text-base text-foreground text-muted-foreground">{title}</h3>

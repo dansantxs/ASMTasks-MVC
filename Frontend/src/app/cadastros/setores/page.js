@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from '../../../ui/base/button';
 import { Plus, Building2 } from 'lucide-react';
@@ -10,6 +10,7 @@ import ListaSetores from './components/ListaSetores';
 import AlternarVisualizacao from '../../../shared/components/AlternarVisualizacao';
 import { DialogoConfirmarExclusao } from './components/DialogoConfirmarExclusao';
 import DialogoVisualizarSetor from './components/DialogoVisualizarSetor';
+import TourGuia from '../../../shared/components/TourGuia';
 import { getSetores, criarSetor, atualizarSetor, inativarSetor, reativarSetor } from './api/setores';
 
 export default function SetoresPage() {
@@ -75,11 +76,7 @@ export default function SetoresPage() {
   });
 
   const handleSalvarSetor = (sectorData) => {
-    const dataAPI = {
-      nome: sectorData.name,
-      descricao: sectorData.description,
-    };
-
+    const dataAPI = { nome: sectorData.name, descricao: sectorData.description };
     if (setorSelecionado) atualizar.mutate({ id: setorSelecionado.id, data: dataAPI });
     else criar.mutate(dataAPI);
   };
@@ -90,26 +87,151 @@ export default function SetoresPage() {
 
   const handleReativarSetor = (setor) => reativar.mutate(setor.id);
 
+  const iniciarTour = useCallback(() => {
+    import('driver.js').then(({ driver }) => {
+      let tour;
+      const primeiroSetor = setores.find(s => s.active) ?? setores[0];
+
+      tour = driver({
+        showProgress: true,
+        progressText: '{{current}} de {{total}}',
+        nextBtnText: 'Próximo →',
+        prevBtnText: '← Anterior',
+        doneBtnText: '✓ Concluir',
+        overlayOpacity: 0.6,
+        smoothScroll: true,
+        onDestroyed: () => {
+          setIsFormOpen(false);
+          setIsViewDialogOpen(false);
+          setSetorSelecionado(null);
+        },
+        steps: [
+          {
+            element: '#tour-cabecalho',
+            popover: {
+              title: 'Gerenciamento de Setores',
+              description: 'Setores organizam os colaboradores e tarefas por área ou departamento da empresa.',
+              side: 'bottom', align: 'start',
+            },
+          },
+          {
+            element: '#tour-alternar-visualizacao',
+            popover: {
+              title: 'Alternar Visualização',
+              description: 'Alterne entre visualização em <strong>cards</strong> ou em <strong>tabela</strong>.',
+              side: 'bottom',
+            },
+          },
+          {
+            element: '#tour-busca',
+            popover: {
+              title: 'Buscar Setores',
+              description: 'Filtre os setores por nome ou descrição em tempo real.',
+              side: 'bottom', align: 'start',
+            },
+          },
+          {
+            element: '#tour-lista-ativos',
+            popover: {
+              title: 'Setores Ativos',
+              description: 'Lista de todos os setores ativos. Cada card exibe nome, descrição e botões de ação.',
+              side: 'top',
+            },
+          },
+          {
+            element: '#tour-btn-novo-setor',
+            popover: {
+              title: 'Criar Novo Setor',
+              description: 'Clique para abrir o formulário. Clique em <strong>Próximo</strong> para ver o formulário em ação.',
+              side: 'bottom', align: 'end',
+              onNextClick: () => {
+                setSetorSelecionado(null);
+                setIsFormOpen(true);
+                setTimeout(() => tour.moveNext(), 350);
+              },
+            },
+          },
+          {
+            element: '#tour-setor-form-nome',
+            popover: {
+              title: 'Nome do Setor',
+              description: 'Campo <strong>obrigatório</strong>. Informe um nome único (ex.: "Desenvolvimento", "Financeiro").',
+              side: 'bottom',
+            },
+          },
+          {
+            element: '#tour-setor-form-descricao',
+            popover: {
+              title: 'Descrição',
+              description: 'Campo <strong>opcional</strong>. Descreva as responsabilidades ou o propósito do setor.',
+              side: 'bottom',
+            },
+          },
+          {
+            element: '#tour-setor-form-botoes',
+            popover: {
+              title: 'Salvar ou Cancelar',
+              description: 'Clique em <strong>Cadastrar Setor</strong> para salvar ou <strong>Cancelar</strong> para fechar sem salvar.',
+              side: 'top',
+              onNextClick: () => {
+                setIsFormOpen(false);
+                if (primeiroSetor) {
+                  setSetorSelecionado(primeiroSetor);
+                  setIsViewDialogOpen(true);
+                  setTimeout(() => tour.moveNext(), 350);
+                } else {
+                  tour.destroy();
+                }
+              },
+            },
+          },
+          ...(primeiroSetor ? [
+            {
+              element: '#tour-setor-view-card',
+              popover: {
+                title: 'Informações do Setor',
+                description: 'Exibe nome, descrição e status (ativo/inativo) do setor selecionado.',
+                side: 'right',
+              },
+            },
+            {
+              element: '#tour-setor-view-sistema',
+              popover: {
+                title: 'Informações do Sistema',
+                description: 'ID único e status detalhado. Setores excluídos ficam <strong>inativos</strong> (exclusão lógica), preservando o histórico.',
+                side: 'top',
+              },
+            },
+          ] : []),
+        ],
+      });
+
+      tour.drive();
+    });
+  }, [setores]);
+
   if (isLoading) return <div className="p-6">Carregando setores...</div>;
 
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto py-8 px-4">
         <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
+          <div id="tour-cabecalho" className="flex items-center gap-3">
             <div className="p-2 bg-brand-blue/10 rounded-lg">
               <Building2 className="h-6 w-6 text-brand-blue" />
             </div>
             <div>
               <h1>Gerenciamento de Setores</h1>
-              <p className="text-muted-foreground">
-                Gerencie os setores da empresa
-              </p>
+              <p className="text-muted-foreground">Gerencie os setores da empresa</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <AlternarVisualizacao modoVisualizacao={modoVisualizacao} aoAlterarModoVisualizacao={setModoVisualizacao} />
+            <TourGuia aoIniciar={iniciarTour} />
+            <div id="tour-alternar-visualizacao">
+              <AlternarVisualizacao modoVisualizacao={modoVisualizacao} aoAlterarModoVisualizacao={setModoVisualizacao} />
+            </div>
             <Button
+              id="tour-btn-novo-setor"
               onClick={() => { setSetorSelecionado(null); setIsFormOpen(true); }}
               className="flex items-center gap-2 bg-brand-blue hover:bg-brand-blue-dark"
             >

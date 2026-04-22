@@ -156,14 +156,17 @@ export default function FormularioColaborador({
   useEffect(() => {
     if (!open) return;
 
+    const controller = new AbortController();
+    let ativo = true;
+
     const carregarEndereco = async () => {
       const cepLimpo = formData.cep.replace(/\D/g, '');
       if (cepLimpo.length === 8) {
         setBuscandoCep(true);
-        const endereco = await buscarEnderecoPorCep(cepLimpo);
-        setBuscandoCep(false);
+        const endereco = await buscarEnderecoPorCep(cepLimpo, controller.signal);
+        if (ativo) setBuscandoCep(false);
 
-        if (endereco) {
+        if (ativo && endereco) {
           setFormData((prev) => ({
             ...prev,
             logradouro: endereco.logradouro,
@@ -176,6 +179,10 @@ export default function FormularioColaborador({
     };
 
     carregarEndereco();
+    return () => {
+      ativo = false;
+      controller.abort();
+    };
   }, [formData.cep]);
 
   const validateForm = () => {
@@ -271,7 +278,7 @@ export default function FormularioColaborador({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <section>
+          <section id="tour-colab-form-pessoal">
             <h3 className="text-base font-semibold mb-3">Informações pessoais</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -301,7 +308,7 @@ export default function FormularioColaborador({
             </div>
           </section>
 
-          <section>
+          <section id="tour-colab-form-contato">
             <h3 className="text-base font-semibold mb-3">Contato</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -330,7 +337,7 @@ export default function FormularioColaborador({
             </div>
           </section>
 
-          <section>
+          <section id="tour-colab-form-endereco">
             <h3 className="text-base font-semibold mb-3">Endereço</h3>
             <div className="grid grid-cols-12 gap-4">
               <div className="col-span-3">
@@ -394,7 +401,7 @@ export default function FormularioColaborador({
             </div>
           </section>
 
-          <section>
+          <section id="tour-colab-form-datas">
             <h3 className="text-base font-semibold mb-3">Datas</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -426,7 +433,7 @@ export default function FormularioColaborador({
             </div>
           </section>
 
-          <section>
+          <section id="tour-colab-form-vinculos">
             <h3 className="text-base font-semibold mb-3">Vínculos organizacionais</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <SelectField
@@ -446,7 +453,7 @@ export default function FormularioColaborador({
             </div>
           </section>
 
-          <div className="flex justify-end gap-3 pt-4">
+          <div id="tour-colab-form-botoes" className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="outline" tabIndex={-1} onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>

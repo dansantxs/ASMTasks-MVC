@@ -169,7 +169,7 @@ export default function ListaClientes({
 
   return (
     <div className="space-y-6">
-      <div className="relative">
+      <div id="tour-busca" className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
         <Input
           placeholder="Buscar clientes por nome ou CPF/CNPJ..."
@@ -189,7 +189,7 @@ export default function ListaClientes({
                   {ativos.length}
                 </Badge>
               </div>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div id="tour-lista-ativos" className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {ativos.map((c) => (<ClienteCard key={c.id} cliente={c} />))}
               </div>
             </div>

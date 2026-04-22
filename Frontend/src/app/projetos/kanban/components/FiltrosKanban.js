@@ -122,7 +122,7 @@ export default function FiltrosKanban({
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-3 p-4 bg-white border border-gray-200 rounded-xl">
+    <div id="tour-kanban-filtros" className="flex flex-wrap items-center gap-3 p-4 bg-white border border-gray-200 rounded-xl">
       <div className="flex items-center gap-1.5 text-sm font-medium text-gray-600">
         <Filter className="h-4 w-4" />
         <span>Filtros</span>

@@ -408,7 +408,7 @@ export default function DialogoVisualizarProjeto({
 
         <div className="overflow-y-auto flex-1">
           {/* Dados do projeto */}
-          <div className="px-6 py-4 border-b">
+          <div id="tour-view-projeto-dados" className="px-6 py-4 border-b">
             {projeto.descricao && (
               <p className="text-sm text-muted-foreground mb-3">{projeto.descricao}</p>
             )}
@@ -433,7 +433,7 @@ export default function DialogoVisualizarProjeto({
           </div>
 
           {/* Tarefas */}
-          <div className="px-6 py-4">
+          <div id="tour-view-projeto-tarefas" className="px-6 py-4">
             <div className="flex items-center justify-between mb-3">
               <p className="text-sm font-semibold">Tarefas</p>
               <Badge variant="outline">{tarefas.length} {tarefas.length === 1 ? 'tarefa' : 'tarefas'}</Badge>

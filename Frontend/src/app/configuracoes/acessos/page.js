@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ShieldCheck, Users, Plus, Save, Trash2, RefreshCw, Eye, EyeOff } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../../ui/form/select';
+import TourGuia from '../../../shared/components/TourGuia';
 import {
   criarNivelAcesso,
   getNiveisAcesso,
@@ -273,29 +274,126 @@ export default function ConfiguracoesAcessosPage() {
     }));
   };
 
+  const iniciarTour = useCallback(() => {
+    import('driver.js').then(({ driver }) => {
+      const tour = driver({
+        showProgress: true,
+        progressText: '{{current}} de {{total}}',
+        nextBtnText: 'Próximo →',
+        prevBtnText: '← Anterior',
+        doneBtnText: '✓ Concluir',
+        overlayOpacity: 0.6,
+        smoothScroll: true,
+        steps: [
+          {
+            element: '#tour-cabecalho',
+            popover: {
+              title: 'Níveis de Acesso e Usuários',
+              description: 'Esta tela centraliza o controle de permissões do sistema. Aqui você cria níveis de acesso, define quais telas cada nível pode usar e gerencia os usuários vinculados aos colaboradores.',
+              side: 'bottom',
+              align: 'start',
+            },
+          },
+          {
+            element: '#tour-form-nivel',
+            popover: {
+              title: 'Formulário de Nível de Acesso',
+              description: 'Preencha este formulário para criar um novo nível ou editar um existente. Um nível define um conjunto de permissões que pode ser atribuído a um ou mais usuários.',
+              side: 'right',
+              align: 'start',
+            },
+          },
+          {
+            element: '#tour-form-nome',
+            popover: {
+              title: 'Nome do Nível',
+              description: 'Campo <strong>obrigatório</strong>. O nome é convertido automaticamente para maiúsculas (ex.: "FINANCEIRO", "SUPORTE"). Deve ser único no sistema.',
+              side: 'right',
+            },
+          },
+          {
+            element: '#tour-form-descricao',
+            popover: {
+              title: 'Descrição',
+              description: 'Campo <strong>opcional</strong>. Descreva o objetivo deste nível para facilitar a identificação por outros administradores.',
+              side: 'right',
+            },
+          },
+          {
+            element: '#tour-form-admin',
+            popover: {
+              title: 'Nível Administrador',
+              description: 'Marque esta opção para conceder acesso total ao sistema. Administradores têm todas as permissões liberadas automaticamente e não podem ter permissões removidas individualmente.',
+              side: 'right',
+            },
+          },
+          {
+            element: '#tour-form-permissoes',
+            popover: {
+              title: 'Permissões',
+              description: 'Selecione quais telas e funcionalidades este nível pode acessar. As permissões são agrupadas por área (Cadastros, Atendimento, Projetos etc.). Use <strong>Liberar grupo</strong> para marcar todas de uma área de uma vez.',
+              side: 'right',
+            },
+          },
+          {
+            element: '#tour-form-botoes',
+            popover: {
+              title: 'Criar ou Salvar Nível',
+              description: 'Clique em <strong>Criar nível</strong> para cadastrar. Ao editar um nível existente, este botão muda para <strong>Salvar nível</strong> e aparece um botão para cancelar a edição.',
+              side: 'top',
+            },
+          },
+          {
+            element: '#tour-tabela-niveis',
+            popover: {
+              title: 'Níveis de Acesso Cadastrados',
+              description: 'Lista todos os níveis do sistema com nome, descrição, tipo (Administrador ou Padrão) e status. Clique em <strong>Editar</strong> para alterar ou em <strong>Inativar</strong> para desativar sem excluir permanentemente.',
+              side: 'left',
+              align: 'start',
+            },
+          },
+          {
+            element: '#tour-tabela-usuarios',
+            popover: {
+              title: 'Usuários com Acesso',
+              description: 'Cada colaborador pode ter um usuário vinculado para acessar o sistema. Aqui você edita o login, troca a senha e altera o nível de acesso de cada usuário. Clique em <strong>Salvar</strong> para confirmar as alterações.',
+              side: 'top',
+              align: 'center',
+            },
+          },
+        ],
+      });
+
+      tour.drive();
+    });
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto w-full max-w-full px-4 py-8 space-y-6">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-brand-blue/10 rounded-lg">
-            <ShieldCheck className="h-6 w-6 text-brand-blue" />
+        <div className="flex items-center justify-between">
+          <div id="tour-cabecalho" className="flex items-center gap-3">
+            <div className="p-2 bg-brand-blue/10 rounded-lg">
+              <ShieldCheck className="h-6 w-6 text-brand-blue" />
+            </div>
+            <div>
+              <h1>Níveis de Acesso e Usuários</h1>
+              <p className="text-muted-foreground">
+                Defina o que cada nível pode acessar e gerencie os usuários vinculados aos colaboradores
+              </p>
+            </div>
           </div>
-          <div>
-            <h1>Níveis de Acesso e Usuários</h1>
-            <p className="text-muted-foreground">
-              Defina o que cada nível pode acessar e gerencie os usuários vinculados aos colaboradores
-            </p>
-          </div>
+          <TourGuia aoIniciar={iniciarTour} />
         </div>
 
         <div className="grid grid-cols-1 2xl:grid-cols-[minmax(320px,380px)_minmax(0,1fr)] gap-4 items-start">
-          <Card className="min-w-0">
+          <Card id="tour-form-nivel" className="min-w-0">
             <CardHeader>
               <CardTitle>{form.id ? 'Editar nível de acesso' : 'Novo nível de acesso'}</CardTitle>
             </CardHeader>
             <CardContent>
               <form className="space-y-4" onSubmit={handleEnviar}>
-                <div>
+                <div id="tour-form-nome">
                   <Label htmlFor="nome">Nome</Label>
                   <Input
                     id="nome"
@@ -305,7 +403,7 @@ export default function ConfiguracoesAcessosPage() {
                   />
                 </div>
 
-                <div>
+                <div id="tour-form-descricao">
                   <Label htmlFor="descricao">Descrição</Label>
                   <Textarea
                     id="descricao"
@@ -315,7 +413,7 @@ export default function ConfiguracoesAcessosPage() {
                   />
                 </div>
 
-                <label className="flex items-center gap-2 text-sm">
+                <label id="tour-form-admin" className="flex items-center gap-2 text-sm">
                   <input
                     type="checkbox"
                     checked={form.ehAdministrador}
@@ -324,7 +422,7 @@ export default function ConfiguracoesAcessosPage() {
                   <span>Nível administrador</span>
                 </label>
 
-                <div>
+                <div id="tour-form-permissoes">
                   <Label>Permissões</Label>
                   <p className="mt-1 text-sm text-muted-foreground">
                     Você pode liberar uma tela específica ou uma área inteira de uma vez.
@@ -376,7 +474,7 @@ export default function ConfiguracoesAcessosPage() {
                   </div>
                 </div>
 
-                <div className="flex gap-2">
+                <div id="tour-form-botoes" className="flex gap-2">
                   <Button type="submit" className="bg-brand-blue hover:bg-brand-blue-dark" disabled={salvarNivel.isPending}>
                     {form.id ? <Save className="h-4 w-4 mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
                     {salvarNivel.isPending ? 'Salvando...' : form.id ? 'Salvar nível' : 'Criar nível'}
@@ -391,7 +489,7 @@ export default function ConfiguracoesAcessosPage() {
             </CardContent>
           </Card>
 
-          <Card className="min-w-0">
+          <Card id="tour-tabela-niveis" className="min-w-0">
             <CardHeader>
               <CardTitle>Níveis de acesso cadastrados</CardTitle>
             </CardHeader>
@@ -451,7 +549,7 @@ export default function ConfiguracoesAcessosPage() {
           </Card>
         </div>
 
-        <Card className="min-w-0">
+        <Card id="tour-tabela-usuarios" className="min-w-0">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5" />

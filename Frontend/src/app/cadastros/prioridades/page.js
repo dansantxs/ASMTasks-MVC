@@ -1,15 +1,15 @@
 'use client';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from '../../../ui/base/button';
 import { Plus, Flag } from 'lucide-react';
-import { Toaster } from 'sonner';
+import { Toaster, toast } from 'sonner';
 import FormularioPrioridade from './components/FormularioPrioridade';
 import ListaPrioridades from './components/ListaPrioridades';
 import AlternarVisualizacao from '../../../shared/components/AlternarVisualizacao';
 import { DialogoConfirmarExclusao } from './components/DialogoConfirmarExclusao';
 import DialogoVisualizarPrioridade from './components/DialogoVisualizarPrioridade';
-import { toast } from 'sonner';
+import TourGuia from '../../../shared/components/TourGuia';
 import { getPrioridades, criarPrioridade, atualizarPrioridade, inativarPrioridade, reativarPrioridade } from './api/prioridades';
 
 export default function PrioridadesPage() {
@@ -82,11 +82,8 @@ export default function PrioridadesPage() {
       cor: priorityData.color,
       ordem: priorityData.order,
     };
-
-    if (prioridadeSelecionada)
-      atualizar.mutate({ id: prioridadeSelecionada.id, data: dataAPI });
-    else
-      criar.mutate(dataAPI);
+    if (prioridadeSelecionada) atualizar.mutate({ id: prioridadeSelecionada.id, data: dataAPI });
+    else criar.mutate(dataAPI);
   };
 
   const handleConfirmarExclusao = () => {
@@ -95,26 +92,167 @@ export default function PrioridadesPage() {
 
   const handleReativarPrioridade = (prioridade) => reativar.mutate(prioridade.id);
 
+  const iniciarTour = useCallback(() => {
+    import('driver.js').then(({ driver }) => {
+      let tour;
+      const primeiraPrioridade = prioridades.find(p => p.active) ?? prioridades[0];
+
+      tour = driver({
+        showProgress: true,
+        progressText: '{{current}} de {{total}}',
+        nextBtnText: 'Próximo →',
+        prevBtnText: '← Anterior',
+        doneBtnText: '✓ Concluir',
+        overlayOpacity: 0.6,
+        smoothScroll: true,
+        onDestroyed: () => {
+          setIsFormOpen(false);
+          setIsViewDialogOpen(false);
+          setPrioridadeSelecionada(null);
+        },
+        steps: [
+          {
+            element: '#tour-cabecalho',
+            popover: {
+              title: 'Gerenciamento de Prioridades',
+              description: 'Prioridades classificam a urgência das tarefas. Cada prioridade tem uma <strong>cor</strong> e uma <strong>ordem</strong> que define seu nível de urgência.',
+              side: 'bottom', align: 'start',
+            },
+          },
+          {
+            element: '#tour-alternar-visualizacao',
+            popover: {
+              title: 'Alternar Visualização',
+              description: 'Alterne entre visualização em <strong>cards</strong> ou em <strong>tabela</strong>.',
+              side: 'bottom',
+            },
+          },
+          {
+            element: '#tour-busca',
+            popover: {
+              title: 'Buscar Prioridades',
+              description: 'Filtre as prioridades por nome ou descrição em tempo real.',
+              side: 'bottom', align: 'start',
+            },
+          },
+          {
+            element: '#tour-lista-ativos',
+            popover: {
+              title: 'Prioridades Ativas',
+              description: 'Lista de prioridades ativas, ordenadas por urgência. A cor facilita a identificação visual nas tarefas.',
+              side: 'top',
+            },
+          },
+          {
+            element: '#tour-btn-nova-prioridade',
+            popover: {
+              title: 'Criar Nova Prioridade',
+              description: 'Clique para abrir o formulário. Clique em <strong>Próximo</strong> para ver o formulário em ação.',
+              side: 'bottom', align: 'end',
+              onNextClick: () => {
+                setPrioridadeSelecionada(null);
+                setIsFormOpen(true);
+                setTimeout(() => tour.moveNext(), 350);
+              },
+            },
+          },
+          {
+            element: '#tour-prior-form-nome',
+            popover: {
+              title: 'Nome da Prioridade',
+              description: 'Campo <strong>obrigatório</strong> e único. Ex.: "Urgente", "Alta", "Normal", "Baixa".',
+              side: 'bottom',
+            },
+          },
+          {
+            element: '#tour-prior-form-descricao',
+            popover: {
+              title: 'Descrição',
+              description: 'Campo <strong>opcional</strong>. Explique quando esta prioridade deve ser aplicada.',
+              side: 'bottom',
+            },
+          },
+          {
+            element: '#tour-prior-form-cor',
+            popover: {
+              title: 'Cor da Prioridade',
+              description: 'Campo <strong>obrigatório</strong>. Escolha uma cor que represente visualmente o nível de urgência (ex.: vermelho = urgente).',
+              side: 'bottom',
+            },
+          },
+          {
+            element: '#tour-prior-form-ordem',
+            popover: {
+              title: 'Ordem',
+              description: 'Campo <strong>obrigatório</strong>. Número que define a urgência: <strong>1 = mais urgente</strong>. Permite ordenar as prioridades de forma clara.',
+              side: 'top',
+            },
+          },
+          {
+            element: '#tour-prior-form-botoes',
+            popover: {
+              title: 'Salvar ou Cancelar',
+              description: 'Clique em <strong>Cadastrar Prioridade</strong> para salvar ou <strong>Cancelar</strong> para fechar sem salvar.',
+              side: 'top',
+              onNextClick: () => {
+                setIsFormOpen(false);
+                if (primeiraPrioridade) {
+                  setPrioridadeSelecionada(primeiraPrioridade);
+                  setIsViewDialogOpen(true);
+                  setTimeout(() => tour.moveNext(), 350);
+                } else {
+                  tour.destroy();
+                }
+              },
+            },
+          },
+          ...(primeiraPrioridade ? [
+            {
+              element: '#tour-prior-view-card',
+              popover: {
+                title: 'Informações da Prioridade',
+                description: 'Exibe nome, descrição, cor visual e status (ativo/inativo).',
+                side: 'right',
+              },
+            },
+            {
+              element: '#tour-prior-view-sistema',
+              popover: {
+                title: 'Informações do Sistema',
+                description: 'ID único e status. Prioridades excluídas ficam <strong>inativas</strong> (exclusão lógica), preservando o histórico das tarefas.',
+                side: 'top',
+              },
+            },
+          ] : []),
+        ],
+      });
+
+      tour.drive();
+    });
+  }, [prioridades]);
+
   if (isLoading) return <div className="p-6">Carregando prioridades...</div>;
 
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto py-8 px-4">
         <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
+          <div id="tour-cabecalho" className="flex items-center gap-3">
             <div className="p-2 bg-brand-blue/10 rounded-lg">
               <Flag className="h-6 w-6 text-brand-blue" />
             </div>
             <div>
               <h1>Gerenciamento de Prioridades</h1>
-              <p className="text-muted-foreground">
-                Gerencie as prioridades do sistema
-              </p>
+              <p className="text-muted-foreground">Gerencie as prioridades do sistema</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <AlternarVisualizacao modoVisualizacao={modoVisualizacao} aoAlterarModoVisualizacao={setModoVisualizacao} />
+            <TourGuia aoIniciar={iniciarTour} />
+            <div id="tour-alternar-visualizacao">
+              <AlternarVisualizacao modoVisualizacao={modoVisualizacao} aoAlterarModoVisualizacao={setModoVisualizacao} />
+            </div>
             <Button
+              id="tour-btn-nova-prioridade"
               onClick={() => { setPrioridadeSelecionada(null); setIsFormOpen(true); }}
               className="flex items-center gap-2 bg-brand-blue hover:bg-brand-blue-dark"
             >
