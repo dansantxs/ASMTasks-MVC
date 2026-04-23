@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/layout/car
 import { Input } from '../../../ui/form/input';
 import { Label } from '../../../ui/form/label';
 import { Button } from '../../../ui/base/button';
-import { Settings, Eye, EyeOff } from 'lucide-react';
+import { KeyRound, Eye, EyeOff } from 'lucide-react';
 import { alterarLogin, alterarSenha } from '../../login/api/auth';
 import { limparSessao } from '../../../shared/auth/session';
 import { toast, Toaster } from 'sonner';
@@ -135,7 +135,7 @@ export default function AlterarSenhaPage() {
         <div className="flex items-center justify-between">
           <div id="tour-cabecalho" className="flex items-center gap-3">
             <div className="p-2 bg-brand-blue/10 rounded-lg">
-              <Settings className="h-6 w-6 text-brand-blue" />
+              <KeyRound className="h-6 w-6 text-brand-blue" />
             </div>
             <div>
               <h1>Configurações da Conta</h1>

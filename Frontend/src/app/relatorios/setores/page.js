@@ -8,7 +8,7 @@ import { Input } from '../../../ui/form/input';
 import { Label } from '../../../ui/form/label';
 import { Button } from '../../../ui/base/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../ui/form/select';
-import { Download, Filter, ListChecks, Building2 } from 'lucide-react';
+import { FileSpreadsheet, FileText, Filter, ListChecks, Building2 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
@@ -276,10 +276,10 @@ export default function SetoresReportPage() {
             <TourGuia aoIniciar={iniciarTour} />
             <div id="tour-relatorio-exportar" className="flex gap-3">
               <Button variant="outline" className="flex items-center gap-2" onClick={exportToExcel}>
-                <Download className="h-4 w-4" /> Exportar Excel
+                <FileSpreadsheet className="h-4 w-4" /> Exportar Excel
               </Button>
               <Button className="bg-brand-blue hover:bg-brand-blue-dark flex items-center gap-2" onClick={exportToPDF}>
-                <Download className="h-4 w-4" /> Exportar PDF
+                <FileText className="h-4 w-4" /> Exportar PDF
               </Button>
             </div>
           </div>

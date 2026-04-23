@@ -9,7 +9,7 @@ import { Label } from '../../../ui/form/label';
 import { Button } from '../../../ui/base/button';
 import { Badge } from '../../../ui/base/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../ui/form/select';
-import { Download, Filter, ListChecks, Users2 } from 'lucide-react';
+import { FileSpreadsheet, FileText, Filter, ListChecks, Users } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
@@ -330,7 +330,7 @@ export default function ColaboradoresReportPage() {
         <div className="flex items-center justify-between">
           <div id="tour-relatorio-cabecalho" className="flex items-center gap-3">
             <div className="p-2 bg-brand-blue/10 rounded-lg">
-              <Users2 className="h-6 w-6 text-brand-blue" />
+              <Users className="h-6 w-6 text-brand-blue" />
             </div>
             <div>
               <h1>Relatório de Colaboradores</h1>
@@ -343,10 +343,10 @@ export default function ColaboradoresReportPage() {
             <TourGuia aoIniciar={iniciarTour} />
             <div id="tour-relatorio-exportar" className="flex gap-3">
               <Button variant="outline" className="flex items-center gap-2" onClick={exportToExcel}>
-                <Download className="h-4 w-4" /> Exportar Excel
+                <FileSpreadsheet className="h-4 w-4" /> Exportar Excel
               </Button>
               <Button className="bg-brand-blue hover:bg-brand-blue-dark flex items-center gap-2" onClick={exportToPDF}>
-                <Download className="h-4 w-4" /> Exportar PDF
+                <FileText className="h-4 w-4" /> Exportar PDF
               </Button>
             </div>
           </div>

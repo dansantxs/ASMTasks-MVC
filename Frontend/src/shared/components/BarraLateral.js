@@ -12,7 +12,7 @@ import {
   BarChart3,
   CalendarDays,
   FolderKanban,
-  LayoutDashboard,
+  Kanban,
   Settings,
   LogOut,
   KeyRound,
@@ -331,7 +331,7 @@ export function BarraLateral({ caminhoAtual, aoNavegar, aoAlternarRecolhimento, 
                         : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200'
                     )}
                   >
-                    <LayoutDashboard className="h-4 w-4" />
+                    <Kanban className="h-4 w-4" />
                     <span>Quadro Kanban</span>
                   </button>
                 )}

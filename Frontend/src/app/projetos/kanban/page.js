@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { LayoutDashboard } from 'lucide-react';
+import { Kanban } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
 import { obterSessaoArmazenada } from '../../../shared/auth/session';
 import {
@@ -207,7 +207,7 @@ export default function KanbanPage() {
         <div className="flex items-center justify-between mb-6">
           <div id="tour-kanban-cabecalho" className="flex items-center gap-3">
             <div className="p-2 bg-brand-blue/10 rounded-lg">
-              <LayoutDashboard className="h-6 w-6 text-brand-blue" />
+              <Kanban className="h-6 w-6 text-brand-blue" />
             </div>
             <div>
               <h1>Quadro Kanban</h1>
