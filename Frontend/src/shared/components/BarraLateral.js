@@ -27,6 +27,7 @@ import { Button } from '../../ui/base/button';
 import { cadastroItems, relatorioItems } from '../config/menuItems';
 import { temPermissao, permissoesTelas } from '../auth/permissions';
 import { respostaPadraoNotificacoes, buscarNotificacoes, marcarNotificacaoLida } from '../notificacoes/api';
+import { useConfiguracoesSistema } from '../configuracoes-sistema/api';
 import { toast } from 'sonner';
 
 function formatarDataHora(valor) {
@@ -110,6 +111,8 @@ export function BarraLateral({ caminhoAtual, aoNavegar, aoAlternarRecolhimento, 
     mutacaoMarcarComoLida.mutate(id);
   };
 
+  const { data: configuracoes } = useConfiguracoesSistema();
+
   const sessao = { permissoes };
   const cadastrosDisponiveis = cadastroItems.filter((item) => temPermissao(sessao, item.permission));
   const relatoriosDisponiveis = relatorioItems.filter((item) => temPermissao(sessao, item.permission));
@@ -152,20 +155,36 @@ export function BarraLateral({ caminhoAtual, aoNavegar, aoAlternarRecolhimento, 
         recolhido ? 'w-20' : 'w-64'
       )}
     >
-      <div className="p-4 border-b border-gray-800 flex items-center justify-between">
+      <div className="p-4 border-b border-gray-800 flex items-center justify-between gap-2">
         {!recolhido && (
-          <div className="flex items-center gap-3">
-            <div>
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            {configuracoes?.logoBase64 && (
+              <img
+                src={configuracoes.logoBase64}
+                alt="Logo"
+                className="h-8 w-8 object-contain flex-shrink-0"
+              />
+            )}
+            <div className="min-w-0">
               <h2 className="text-white">ASM Tasks</h2>
               <p className="text-gray-400 text-sm mt-1">Gerenciamento de Tarefas</p>
             </div>
+          </div>
+        )}
+        {recolhido && configuracoes?.logoBase64 && (
+          <div className="mx-auto">
+            <img
+              src={configuracoes.logoBase64}
+              alt="Logo"
+              className="h-8 w-8 object-contain"
+            />
           </div>
         )}
         <Button
           variant="ghost"
           size="icon"
           onClick={alternarBarraLateral}
-          className="text-gray-400 hover:text-white hover:bg-gray-800 ml-auto"
+          className="text-gray-400 hover:text-white hover:bg-gray-800 flex-shrink-0"
         >
           {recolhido ? <Menu className="h-5 w-5" /> : <X className="h-5 w-5" />}
         </Button>

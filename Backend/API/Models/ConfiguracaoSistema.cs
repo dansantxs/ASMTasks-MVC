@@ -14,6 +14,7 @@ namespace API.Models
         public TimeSpan HoraInicioAgenda { get; set; } = new(8, 0, 0);
         public TimeSpan HoraFimAgenda { get; set; } = new(18, 0, 0);
         public string? LogoBase64 { get; set; }
+        public string? LogoDocumentosBase64 { get; set; }
         public string? Email { get; set; }
         public string? Telefone { get; set; }
         public string? RazaoSocial { get; set; }
@@ -65,6 +66,7 @@ namespace API.Models
             Cidade = NormalizarTexto(Cidade);
             Uf = NormalizarTexto(Uf)?.ToUpperInvariant();
             LogoBase64 = NormalizarTexto(LogoBase64);
+            LogoDocumentosBase64 = NormalizarTexto(LogoDocumentosBase64);
             SmtpServidor = NormalizarTexto(SmtpServidor);
             SmtpUsuario = NormalizarTexto(SmtpUsuario);
             SmtpSenha = NormalizarTexto(SmtpSenha);
@@ -80,6 +82,7 @@ namespace API.Models
 
             ValidarConfiguracaoSmtp();
             ValidarLogo(LogoBase64);
+            ValidarLogo(LogoDocumentosBase64);
             ValidarLimitesAnexo();
         }
 

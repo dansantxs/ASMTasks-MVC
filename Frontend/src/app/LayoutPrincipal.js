@@ -11,6 +11,7 @@ import {
   registrarAtividadeSessao,
 } from "../shared/auth/session";
 import { obterRotaPadrao, obterPermissaoPorRota, temPermissao } from "../shared/auth/permissions";
+import { useConfiguracoesSistema } from "../shared/configuracoes-sistema/api";
 
 export default function LayoutPrincipal({ children }) {
   const pathname = usePathname();
@@ -18,6 +19,20 @@ export default function LayoutPrincipal({ children }) {
   const [barraLateralRecolhida, setBarraLateralRecolhida] = useState(false);
   const [autenticacaoVerificada, setAutenticacaoVerificada] = useState(false);
   const paginaLogin = pathname === "/login";
+
+  const { data: configuracoes } = useConfiguracoesSistema({ enabled: !paginaLogin });
+
+  useEffect(() => {
+    const logo = configuracoes?.logoBase64;
+    if (!logo) return;
+    let link = document.querySelector("link[rel~='icon']");
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = 'icon';
+      document.head.appendChild(link);
+    }
+    link.href = logo;
+  }, [configuracoes?.logoBase64]);
 
   const sessao = useMemo(() => obterSessaoArmazenada(), [pathname]);
 

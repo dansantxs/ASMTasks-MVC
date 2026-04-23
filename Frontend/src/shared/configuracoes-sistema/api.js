@@ -7,6 +7,7 @@ export const configuracoesPadrao = {
   horaInicioAgenda: '08:00',
   horaFimAgenda: '18:00',
   logoBase64: null,
+  logoDocumentosBase64: null,
   email: '',
   telefone: '',
   razaoSocial: '',
@@ -59,6 +60,7 @@ function normalizarConfiguracoes(dados) {
     horaInicioAgenda: mesclado.horaInicioAgenda || configuracoesPadrao.horaInicioAgenda,
     horaFimAgenda: mesclado.horaFimAgenda || configuracoesPadrao.horaFimAgenda,
     logoBase64: mesclado.logoBase64 || null,
+    logoDocumentosBase64: mesclado.logoDocumentosBase64 || null,
     email: mesclado.email || '',
     telefone: mesclado.telefone || '',
     razaoSocial: mesclado.razaoSocial || '',
@@ -111,10 +113,11 @@ export async function atualizarConfiguracoesSistema(payload) {
   return normalizarConfiguracoes(dados);
 }
 
-export function useConfiguracoesSistema() {
+export function useConfiguracoesSistema({ enabled = true } = {}) {
   return useQuery({
     queryKey: ['configuracoes-sistema'],
     queryFn: buscarConfiguracoesSistema,
     staleTime: 5 * 60 * 1000,
+    enabled,
   });
 }

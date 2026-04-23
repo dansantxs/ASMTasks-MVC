@@ -11,7 +11,7 @@ namespace API.DB.DAOs
 
             await using var cmd = con.CreateCommand();
             cmd.CommandText = @"
-                SELECT TOP 1 Id, HoraInicioAgenda, HoraFimAgenda, LogoBase64,
+                SELECT TOP 1 Id, HoraInicioAgenda, HoraFimAgenda, LogoBase64, LogoDocumentosBase64,
                        Email, Telefone, RazaoSocial, NomeFantasia, Cnpj, InscricaoEstadual,
                        Cep, Logradouro, Numero, Bairro, Cidade, Uf,
                        SmtpServidor, SmtpPorta, SmtpUsuario, SmtpSenha, SmtpUsarSslTls,
@@ -28,6 +28,7 @@ namespace API.DB.DAOs
                     HoraInicioAgenda = (TimeSpan)dr["HoraInicioAgenda"],
                     HoraFimAgenda = (TimeSpan)dr["HoraFimAgenda"],
                     LogoBase64 = dr["LogoBase64"] == DBNull.Value ? null : dr["LogoBase64"].ToString(),
+                    LogoDocumentosBase64 = dr["LogoDocumentosBase64"] == DBNull.Value ? null : dr["LogoDocumentosBase64"].ToString(),
                     Email = dr["Email"] == DBNull.Value ? null : dr["Email"].ToString(),
                     Telefone = dr["Telefone"] == DBNull.Value ? null : dr["Telefone"].ToString(),
                     RazaoSocial = dr["RazaoSocial"] == DBNull.Value ? null : dr["RazaoSocial"].ToString(),
@@ -68,6 +69,7 @@ namespace API.DB.DAOs
                     UPDATE SET HoraInicioAgenda = @HoraInicioAgenda,
                                HoraFimAgenda = @HoraFimAgenda,
                                LogoBase64 = @LogoBase64,
+                               LogoDocumentosBase64 = @LogoDocumentosBase64,
                                Email = @Email,
                                Telefone = @Telefone,
                                RazaoSocial = @RazaoSocial,
@@ -90,12 +92,13 @@ namespace API.DB.DAOs
                                AnexoLimitePdfMB = @AnexoLimitePdfMB,
                                AnexoLimiteExcelMB = @AnexoLimiteExcelMB
                 WHEN NOT MATCHED THEN
-                    INSERT (Id, HoraInicioAgenda, HoraFimAgenda, LogoBase64, Email, Telefone, RazaoSocial, NomeFantasia, Cnpj, InscricaoEstadual, Cep, Logradouro, Numero, Bairro, Cidade, Uf, SmtpServidor, SmtpPorta, SmtpUsuario, SmtpSenha, SmtpUsarSslTls, AnexoTamanhoMaximoMB, AnexoLimiteImagemMB, AnexoLimitePdfMB, AnexoLimiteExcelMB)
-                    VALUES (1, @HoraInicioAgenda, @HoraFimAgenda, @LogoBase64, @Email, @Telefone, @RazaoSocial, @NomeFantasia, @Cnpj, @InscricaoEstadual, @Cep, @Logradouro, @Numero, @Bairro, @Cidade, @Uf, @SmtpServidor, @SmtpPorta, @SmtpUsuario, @SmtpSenha, @SmtpUsarSslTls, @AnexoTamanhoMaximoMB, @AnexoLimiteImagemMB, @AnexoLimitePdfMB, @AnexoLimiteExcelMB);";
+                    INSERT (Id, HoraInicioAgenda, HoraFimAgenda, LogoBase64, LogoDocumentosBase64, Email, Telefone, RazaoSocial, NomeFantasia, Cnpj, InscricaoEstadual, Cep, Logradouro, Numero, Bairro, Cidade, Uf, SmtpServidor, SmtpPorta, SmtpUsuario, SmtpSenha, SmtpUsarSslTls, AnexoTamanhoMaximoMB, AnexoLimiteImagemMB, AnexoLimitePdfMB, AnexoLimiteExcelMB)
+                    VALUES (1, @HoraInicioAgenda, @HoraFimAgenda, @LogoBase64, @LogoDocumentosBase64, @Email, @Telefone, @RazaoSocial, @NomeFantasia, @Cnpj, @InscricaoEstadual, @Cep, @Logradouro, @Numero, @Bairro, @Cidade, @Uf, @SmtpServidor, @SmtpPorta, @SmtpUsuario, @SmtpSenha, @SmtpUsarSslTls, @AnexoTamanhoMaximoMB, @AnexoLimiteImagemMB, @AnexoLimitePdfMB, @AnexoLimiteExcelMB);";
 
             cmd.Parameters.AddWithValue("@HoraInicioAgenda", configuracao.HoraInicioAgenda);
             cmd.Parameters.AddWithValue("@HoraFimAgenda", configuracao.HoraFimAgenda);
             cmd.Parameters.AddWithValue("@LogoBase64", (object?)configuracao.LogoBase64 ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@LogoDocumentosBase64", (object?)configuracao.LogoDocumentosBase64 ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Email", (object?)configuracao.Email ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Telefone", (object?)configuracao.Telefone ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@RazaoSocial", (object?)configuracao.RazaoSocial ?? DBNull.Value);

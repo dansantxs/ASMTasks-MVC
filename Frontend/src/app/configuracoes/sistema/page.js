@@ -213,24 +213,28 @@ export default function ConfiguracoesSistemaPage() {
   const handleLogoUpload = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
-
     try {
       const dataUrl = await fileToDataUrl(file);
-      setForm((prev) => ({
-        ...prev,
-        logoBase64: dataUrl,
-      }));
+      setForm((prev) => ({ ...prev, logoBase64: dataUrl }));
     } catch {
       toast.error('Não foi possível carregar a imagem selecionada.');
     }
   };
 
-  const clearLogo = () => {
-    setForm((prev) => ({
-      ...prev,
-      logoBase64: null,
-    }));
+  const clearLogo = () => setForm((prev) => ({ ...prev, logoBase64: null }));
+
+  const handleLogoDocumentosUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      setForm((prev) => ({ ...prev, logoDocumentosBase64: dataUrl }));
+    } catch {
+      toast.error('Não foi possível carregar a imagem selecionada.');
+    }
   };
+
+  const clearLogoDocumentos = () => setForm((prev) => ({ ...prev, logoDocumentosBase64: null }));
 
   if (isLoading) {
     return <div className="p-6">Carregando parametrização do sistema...</div>;
@@ -427,23 +431,41 @@ export default function ConfiguracoesSistemaPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <ImagePlus className="h-5 w-5" />
-                  Logo
+                  Logos
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-5">
                 <div className="space-y-2">
-                  <Label>Logo do sistema</Label>
-                  <div className="rounded-lg border border-dashed p-4 space-y-3">
+                  <Label>Logo do ícone (fundo escuro)</Label>
+                  <p className="text-xs text-muted-foreground">Usada como ícone da aba do navegador. Recomendado: versão branca ou clara do logo.</p>
+                  <div className="rounded-lg border border-dashed p-4 space-y-3 bg-slate-800">
                     {form.logoBase64 ? (
-                      <img src={form.logoBase64} alt="Logo do sistema" className="h-28 max-w-full object-contain" />
+                      <img src={form.logoBase64} alt="Logo do ícone" className="h-20 max-w-full object-contain" />
+                    ) : (
+                      <div className="text-sm text-slate-400">Nenhuma imagem definida.</div>
+                    )}
+                    <Input type="file" accept="image/*" onChange={handleLogoUpload} className="bg-white" />
+                    {form.logoBase64 && (
+                      <Button type="button" variant="outline" size="sm" onClick={clearLogo} className="bg-white">
+                        Remover
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Logo para documentos (fundo claro)</Label>
+                  <p className="text-xs text-muted-foreground">Usada em relatórios e documentos exportados em PDF. Recomendado: versão colorida ou azul do logo.</p>
+                  <div className="rounded-lg border border-dashed p-4 space-y-3">
+                    {form.logoDocumentosBase64 ? (
+                      <img src={form.logoDocumentosBase64} alt="Logo para documentos" className="h-20 max-w-full object-contain" />
                     ) : (
                       <div className="text-sm text-muted-foreground">Nenhuma imagem definida.</div>
                     )}
-
-                    <Input type="file" accept="image/*" onChange={handleLogoUpload} />
-                    {form.logoBase64 && (
-                      <Button type="button" variant="outline" size="sm" onClick={clearLogo}>
-                        Remover logo
+                    <Input type="file" accept="image/*" onChange={handleLogoDocumentosUpload} />
+                    {form.logoDocumentosBase64 && (
+                      <Button type="button" variant="outline" size="sm" onClick={clearLogoDocumentos}>
+                        Remover
                       </Button>
                     )}
                   </div>

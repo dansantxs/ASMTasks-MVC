@@ -5,6 +5,7 @@ namespace API.DTOs.ConfiguracoesSistema
         public string? HoraInicioAgenda { get; set; }
         public string? HoraFimAgenda { get; set; }
         public string? LogoBase64 { get; set; }
+        public string? LogoDocumentosBase64 { get; set; }
         public string? Email { get; set; }
         public string? Telefone { get; set; }
         public string? RazaoSocial { get; set; }
