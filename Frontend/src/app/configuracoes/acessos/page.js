@@ -353,10 +353,28 @@ export default function ConfiguracoesAcessosPage() {
             },
           },
           {
+            element: '#tour-tabela-niveis',
+            popover: {
+              title: 'Como Alterar/Inativar um Nível',
+              description: 'Para <strong>alterar</strong> um nível, clique em <strong>Editar</strong> — o formulário será preenchido com os dados do nível. Faça as alterações e clique em <strong>Salvar nível</strong>.<br>Para <strong>inativar</strong>, clique em <strong>Inativar</strong>. Níveis inativos não aparecem para seleção de usuários, mas os usuários já vinculados mantêm seus acessos até a próxima edição.<br>Para reativar, clique em <strong>Reativar</strong>.',
+              side: 'left',
+              align: 'start',
+            },
+          },
+          {
             element: '#tour-tabela-usuarios',
             popover: {
               title: 'Usuários com Acesso',
               description: 'Cada colaborador pode ter um usuário vinculado para acessar o sistema. Aqui você edita o login, troca a senha e altera o nível de acesso de cada usuário. Clique em <strong>Salvar</strong> para confirmar as alterações.',
+              side: 'top',
+              align: 'center',
+            },
+          },
+          {
+            element: '#tour-tabela-usuarios',
+            popover: {
+              title: 'Possíveis Erros em Acessos',
+              description: '⛔ <strong>Nome do nível já cadastrado:</strong> já existe um nível com este nome — use um nome diferente.<br>⛔ <strong>Nome obrigatório:</strong> o campo Nome do nível não pode estar em branco.<br>⛔ <strong>Login já existe:</strong> o login informado para o usuário já está em uso — escolha outro.<br>⛔ <strong>Não é possível reativar usuário:</strong> o colaborador vinculado está inativo — reative o colaborador primeiro em Gerenciamento de Colaboradores.',
               side: 'top',
               align: 'center',
             },

@@ -278,6 +278,15 @@ export default function PrioridadesReportPage() {
             element: '#tour-relatorio-tabela',
             popover: { title: 'Tabela de Resultados', description: 'Clique no cabeçalho de uma coluna para <strong>ordenar</strong> os dados.', side: 'top', align: 'center' },
           },
+          {
+            element: '#tour-relatorio-filtros',
+            popover: {
+              title: 'Possíveis Erros e Dicas',
+              description: '⚠️ <strong>Sem resultados:</strong> nenhum registro corresponde aos filtros aplicados — amplie os critérios ou limpe os filtros.<br>⛔ <strong>Sem colunas selecionadas:</strong> selecione ao menos uma coluna antes de exportar.<br>⛔ <strong>Erro ao exportar:</strong> verifique sua conexão e tente novamente. Se persistir, reduza os registros usando os filtros.',
+              side: 'bottom',
+              align: 'start',
+            },
+          },
         ],
       });
       tour.drive();

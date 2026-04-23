@@ -142,6 +142,22 @@ export default function EtapasPage() {
             },
           },
           {
+            element: '#tour-lista-ativos',
+            popover: {
+              title: 'Como Alterar uma Etapa',
+              description: 'Para alterar uma etapa existente, clique no botão <strong>Editar</strong> (ícone de lápis) em qualquer card ou linha da tabela. O formulário abrirá com os dados já preenchidos — faça as alterações e clique em <strong>Salvar</strong>.',
+              side: 'top',
+            },
+          },
+          {
+            element: '#tour-lista-ativos',
+            popover: {
+              title: 'Como Excluir/Inativar uma Etapa',
+              description: 'Clique no botão <strong>Excluir</strong> (ícone de lixeira) para inativar a etapa. A exclusão é <strong>lógica</strong> — o registro fica inativo e pode ser reativado com o botão <strong>Reativar</strong>.<br><br>⚠️ <strong>Não é possível inativar</strong> uma etapa que possui <strong>tarefas em andamento</strong> associadas. Mova as tarefas para outra etapa antes.',
+              side: 'top',
+            },
+          },
+          {
             element: '#tour-btn-nova-etapa',
             popover: {
               title: 'Criar Nova Etapa',
@@ -176,6 +192,14 @@ export default function EtapasPage() {
               title: 'Etapa Final',
               description: 'Ative para indicar que esta etapa representa a <strong>conclusão</strong> da tarefa. Só pode haver uma etapa final por vez.',
               side: 'bottom',
+            },
+          },
+          {
+            element: '#tour-etapa-form-botoes',
+            popover: {
+              title: 'Possíveis Erros ao Salvar',
+              description: '⛔ <strong>Nome obrigatório:</strong> o campo Nome não pode estar em branco.<br>⛔ <strong>Nome já cadastrado:</strong> já existe uma etapa com este nome — use um nome diferente.<br>⛔ <strong>Etapa final já existe:</strong> só é permitida uma etapa final — desative a atual antes de marcar outra.<br>⛔ <strong>Erro de conexão:</strong> verifique sua conexão e tente novamente.',
+              side: 'top',
             },
           },
           {

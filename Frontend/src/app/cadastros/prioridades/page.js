@@ -144,6 +144,22 @@ export default function PrioridadesPage() {
             },
           },
           {
+            element: '#tour-lista-ativos',
+            popover: {
+              title: 'Como Alterar uma Prioridade',
+              description: 'Para alterar uma prioridade existente, clique no botão <strong>Editar</strong> (ícone de lápis) em qualquer card ou linha da tabela. O formulário abrirá com os dados já preenchidos — faça as alterações e clique em <strong>Salvar</strong>.',
+              side: 'top',
+            },
+          },
+          {
+            element: '#tour-lista-ativos',
+            popover: {
+              title: 'Como Excluir/Inativar uma Prioridade',
+              description: 'Clique no botão <strong>Excluir</strong> (ícone de lixeira) para inativar a prioridade. A exclusão é <strong>lógica</strong> — o registro fica inativo e pode ser reativado com o botão <strong>Reativar</strong>.<br><br>⚠️ <strong>Não é possível inativar</strong> uma prioridade que possui <strong>tarefas ativas</strong> associadas. Altere a prioridade das tarefas antes.',
+              side: 'top',
+            },
+          },
+          {
             element: '#tour-btn-nova-prioridade',
             popover: {
               title: 'Criar Nova Prioridade',
@@ -185,6 +201,14 @@ export default function PrioridadesPage() {
             popover: {
               title: 'Ordem',
               description: 'Campo <strong>obrigatório</strong>. Número que define a urgência: <strong>1 = mais urgente</strong>. Permite ordenar as prioridades de forma clara.',
+              side: 'top',
+            },
+          },
+          {
+            element: '#tour-prior-form-botoes',
+            popover: {
+              title: 'Possíveis Erros ao Salvar',
+              description: '⛔ <strong>Nome obrigatório:</strong> o campo Nome não pode estar em branco.<br>⛔ <strong>Nome já cadastrado:</strong> já existe uma prioridade com este nome — use um nome diferente.<br>⛔ <strong>Cor obrigatória:</strong> selecione uma cor para a prioridade.<br>⛔ <strong>Ordem já utilizada:</strong> já existe outra prioridade com este número de ordem — escolha um valor diferente.<br>⛔ <strong>Erro de conexão:</strong> verifique sua conexão e tente novamente.',
               side: 'top',
             },
           },

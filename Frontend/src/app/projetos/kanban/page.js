@@ -195,6 +195,24 @@ export default function KanbanPage() {
               align: 'center',
             },
           },
+          {
+            element: '#tour-kanban-quadro',
+            popover: {
+              title: 'Como Alterar Tarefas no Kanban',
+              description: 'Para mover uma tarefa, <strong>arraste o card</strong> para a coluna desejada. Para trocar o responsável, clique no card e use o seletor de colaborador.<br>Para <strong>iniciar</strong> ou <strong>pausar</strong> o trabalho em uma tarefa, clique no card e use os botões correspondentes.',
+              side: 'top',
+              align: 'center',
+            },
+          },
+          {
+            element: '#tour-kanban-quadro',
+            popover: {
+              title: 'Possíveis Erros no Kanban',
+              description: '⛔ <strong>Erro ao mover tarefa:</strong> pode ocorrer por problema de conexão — tente novamente.<br>⛔ <strong>Tarefa já nesta etapa:</strong> a tarefa já está na etapa de destino — nenhuma ação é necessária.<br>⛔ <strong>Nenhuma tarefa exibida:</strong> verifique se os filtros de colaborador, projeto ou cliente estão muito restritivos — tente limpar os filtros.<br>⛔ <strong>Colunas sem etapas:</strong> certifique-se de que há etapas ativas cadastradas em Gerenciamento de Etapas.',
+              side: 'top',
+              align: 'center',
+            },
+          },
         ].filter((p) => !p.element || document.querySelector(p.element)),
       });
       tour.drive();

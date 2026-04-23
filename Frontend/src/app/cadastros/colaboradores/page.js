@@ -189,6 +189,22 @@ export default function ColaboradoresPage() {
             },
           },
           {
+            element: '#tour-lista-ativos',
+            popover: {
+              title: 'Como Alterar um Colaborador',
+              description: 'Para alterar um colaborador existente, clique no botão <strong>Editar</strong> (ícone de lápis) em qualquer card ou linha da tabela. O formulário abrirá com os dados já preenchidos — faça as alterações e clique em <strong>Salvar</strong>.',
+              side: 'top',
+            },
+          },
+          {
+            element: '#tour-lista-ativos',
+            popover: {
+              title: 'Como Excluir/Inativar um Colaborador',
+              description: 'Clique no botão <strong>Excluir</strong> (ícone de lixeira) para inativar o colaborador. A exclusão é <strong>lógica</strong> — o registro fica inativo e pode ser reativado com o botão <strong>Reativar</strong>.<br><br>⚠️ <strong>Não é possível inativar</strong> um colaborador que possui <strong>tarefas ativas</strong> atribuídas. Reatribua ou conclua as tarefas antes.',
+              side: 'top',
+            },
+          },
+          {
             element: '#tour-btn-novo-colaborador',
             popover: {
               title: 'Cadastrar Novo Colaborador',
@@ -238,6 +254,14 @@ export default function ColaboradoresPage() {
             popover: {
               title: 'Vínculos Organizacionais',
               description: 'Selecione o <strong>setor</strong> e o <strong>cargo</strong> do colaborador. Ambos são obrigatórios. Cadastre-os primeiro nas telas de Setores e Cargos.',
+              side: 'top',
+            },
+          },
+          {
+            element: '#tour-colab-form-botoes',
+            popover: {
+              title: 'Possíveis Erros ao Salvar',
+              description: '⛔ <strong>Nome obrigatório:</strong> informe nome e sobrenome do colaborador.<br>⛔ <strong>CPF inválido:</strong> verifique o formato e os dígitos verificadores do CPF.<br>⛔ <strong>CPF já cadastrado:</strong> já existe um colaborador com este CPF.<br>⛔ <strong>E-mail obrigatório e único:</strong> o e-mail é usado como login e não pode ser repetido.<br>⛔ <strong>Idade mínima:</strong> o colaborador deve ter 18 anos ou mais.<br>⛔ <strong>Setor/Cargo obrigatórios:</strong> selecione um setor e um cargo ativos antes de salvar.',
               side: 'top',
             },
           },

@@ -166,6 +166,22 @@ export default function ClientesPage() {
             },
           },
           {
+            element: '#tour-lista-ativos',
+            popover: {
+              title: 'Como Alterar um Cliente',
+              description: 'Para alterar um cliente existente, clique no botão <strong>Editar</strong> (ícone de lápis) em qualquer card ou linha da tabela. O formulário abrirá com os dados já preenchidos — faça as alterações e clique em <strong>Salvar</strong>.',
+              side: 'top',
+            },
+          },
+          {
+            element: '#tour-lista-ativos',
+            popover: {
+              title: 'Como Excluir/Inativar um Cliente',
+              description: 'Clique no botão <strong>Excluir</strong> (ícone de lixeira) para inativar o cliente. A exclusão é <strong>lógica</strong> — o registro fica inativo e pode ser reativado com o botão <strong>Reativar</strong>.<br><br>⚠️ <strong>Não é possível inativar</strong> um cliente que possui <strong>tarefas ou projetos ativos</strong>. Conclua ou reatribua as tarefas antes.',
+              side: 'top',
+            },
+          },
+          {
             element: '#tour-btn-novo-cliente',
             popover: {
               title: 'Cadastrar Novo Cliente',
@@ -199,6 +215,14 @@ export default function ClientesPage() {
             popover: {
               title: 'Endereço',
               description: 'Digite o <strong>CEP</strong> para preencher automaticamente logradouro, bairro e cidade via ViaCEP. Ajuste os dados se necessário.',
+              side: 'top',
+            },
+          },
+          {
+            element: '#tour-cli-form-botoes',
+            popover: {
+              title: 'Possíveis Erros ao Salvar',
+              description: '⛔ <strong>Nome obrigatório:</strong> o campo Nome/Razão Social não pode estar em branco.<br>⛔ <strong>CPF/CNPJ inválido:</strong> verifique se o documento informado possui o formato correto e dígitos verificadores válidos.<br>⛔ <strong>CPF/CNPJ já cadastrado:</strong> já existe um cliente com este documento — verifique se é um cadastro duplicado.<br>⛔ <strong>E-mail inválido:</strong> informe um endereço de e-mail válido.<br>⛔ <strong>Erro de conexão:</strong> verifique sua conexão e tente novamente.',
               side: 'top',
             },
           },

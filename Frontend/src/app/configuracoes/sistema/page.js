@@ -92,6 +92,15 @@ const PASSOS_TOUR = [
       align: 'end',
     },
   },
+  {
+    element: '#tour-btn-salvar',
+    popover: {
+      title: 'Possíveis Erros ao Salvar',
+      description: '⛔ <strong>Hora de início obrigatória:</strong> informe o horário de início da agenda.<br>⛔ <strong>Hora de fim obrigatória:</strong> informe o horário de fim da agenda.<br>⛔ <strong>Hora final menor que inicial:</strong> o horário de fim deve ser posterior ao de início.<br>⛔ <strong>SMTP incompleto:</strong> se qualquer campo SMTP for preenchido, todos são obrigatórios (servidor, porta, usuário e senha).<br>⛔ <strong>Porta SMTP inválida:</strong> informe um número entre 1 e 65535.<br>⛔ <strong>Imagem inválida:</strong> o arquivo selecionado não pôde ser carregado — use PNG, JPG ou GIF.<br>⛔ <strong>Erro de conexão:</strong> verifique sua conexão e tente novamente.',
+      side: 'top',
+      align: 'end',
+    },
+  },
 ];
 
 const emptyErrors = {};

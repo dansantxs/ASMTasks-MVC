@@ -292,6 +292,15 @@ export default function DashboardPage() {
               align: 'center',
             },
           },
+          {
+            element: '#tour-dashboard-cabecalho',
+            popover: {
+              title: 'Informações Importantes',
+              description: 'ℹ️ O dashboard exibe dados <strong>somente leitura</strong> — não é possível alterar ou excluir registros diretamente aqui. Acesse as telas específicas (Atendimentos, Projetos, Kanban) para fazer alterações.<br><br>⚠️ <strong>Dados desatualizados:</strong> os dados são atualizados automaticamente ao acessar a tela. Se os números parecerem incorretos, recarregue a página.<br>⛔ <strong>Erro ao carregar:</strong> se o dashboard não carregar, verifique sua conexão e tente novamente.',
+              side: 'bottom',
+              align: 'start',
+            },
+          },
         ].filter((p) => !p.element || document.querySelector(p.element)),
       });
       tour.drive();

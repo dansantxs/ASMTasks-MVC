@@ -266,6 +266,24 @@ export default function ProjetosPage() {
           },
         },
         {
+          element: '#tour-lista-projetos',
+          popover: {
+            title: 'Como Alterar um Projeto',
+            description: 'Para alterar um projeto, clique no card para abrir a visualização e então clique no botão <strong>Editar</strong>. O formulário abrirá com todos os dados já preenchidos — faça as alterações e clique em <strong>Salvar</strong>.',
+            side: 'top',
+            align: 'center',
+          },
+        },
+        {
+          element: '#tour-lista-projetos',
+          popover: {
+            title: 'Como Inativar um Projeto',
+            description: 'Abra a visualização do projeto e clique no botão <strong>Inativar</strong>. A exclusão é <strong>lógica</strong>: o projeto fica inativo (aba "Inativos") e pode ser reativado. Projetos concluídos podem ser reabertos com <strong>Reabrir projeto</strong>.',
+            side: 'top',
+            align: 'center',
+          },
+        },
+        {
           element: '#tour-btn-novo-projeto',
           popover: {
             title: 'Criar Novo Projeto',
@@ -301,6 +319,14 @@ export default function ProjetosPage() {
             title: 'Tarefas do Projeto',
             description: 'Adicione as tarefas iniciais do projeto. Cada tarefa precisa de um <strong>título</strong> e uma <strong>prioridade</strong>. Responsável e etapa são definidos depois no Kanban.',
             side: 'left',
+          },
+        },
+        {
+          element: '#tour-form-projeto-botoes',
+          popover: {
+            title: 'Possíveis Erros ao Salvar',
+            description: '⛔ <strong>Título obrigatório:</strong> o campo Título não pode estar em branco.<br>⛔ <strong>Tarefa sem título:</strong> todas as tarefas adicionadas precisam ter um título preenchido.<br>⛔ <strong>Tarefa sem prioridade:</strong> selecione uma prioridade para cada tarefa.<br>⛔ <strong>Erro de conexão:</strong> verifique sua conexão e tente novamente.',
+            side: 'top',
           },
         },
         {

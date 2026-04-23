@@ -137,6 +137,24 @@ export default function CargosPage() {
           },
         },
         {
+          element: '#tour-lista-cargos',
+          popover: {
+            title: 'Como Alterar um Cargo',
+            description: 'Para alterar um cargo existente, clique no botão <strong>Editar</strong> (ícone de lápis) em qualquer card ou linha da tabela. O formulário abrirá com os dados já preenchidos — faça as alterações e clique em <strong>Salvar</strong>.',
+            side: 'top',
+            align: 'center',
+          },
+        },
+        {
+          element: '#tour-lista-cargos',
+          popover: {
+            title: 'Como Excluir/Inativar um Cargo',
+            description: 'Clique no botão <strong>Excluir</strong> (ícone de lixeira) para inativar o cargo. A exclusão é <strong>lógica</strong>: o registro fica inativo e pode ser reativado com o botão <strong>Reativar</strong>.<br><br>⚠️ <strong>Não é possível inativar</strong> um cargo que possui colaboradores ativos vinculados. Transfira ou inative os colaboradores antes.',
+            side: 'top',
+            align: 'center',
+          },
+        },
+        {
           element: '#tour-btn-novo-cargo',
           popover: {
             title: 'Criar Novo Cargo',
@@ -164,6 +182,14 @@ export default function CargosPage() {
             title: 'Descrição',
             description: 'Campo <strong>opcional</strong>. Descreva as responsabilidades e atribuições do cargo para facilitar a identificação.',
             side: 'bottom',
+          },
+        },
+        {
+          element: '#tour-form-botoes',
+          popover: {
+            title: 'Possíveis Erros ao Salvar',
+            description: '⛔ <strong>Nome obrigatório:</strong> o campo Nome não pode estar em branco.<br>⛔ <strong>Nome já cadastrado:</strong> já existe um cargo com este nome — use um nome diferente.<br>⛔ <strong>Erro de conexão:</strong> verifique sua conexão e tente novamente.',
+            side: 'top',
           },
         },
         {

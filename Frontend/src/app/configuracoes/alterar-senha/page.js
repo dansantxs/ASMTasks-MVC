@@ -72,6 +72,22 @@ const PASSOS_TOUR = [
       side: 'bottom',
     },
   },
+  {
+    element: '#tour-card-login',
+    popover: {
+      title: 'Possíveis Erros ao Alterar Login',
+      description: '⛔ <strong>Login muito curto:</strong> o login deve ter ao menos 4 caracteres.<br>⛔ <strong>Login com espaços:</strong> espaços não são permitidos no login.<br>⛔ <strong>Login já em uso:</strong> este login já pertence a outro usuário — escolha um diferente.<br>⛔ <strong>Erro de conexão:</strong> verifique sua conexão e tente novamente.',
+      side: 'bottom',
+    },
+  },
+  {
+    element: '#tour-card-senha',
+    popover: {
+      title: 'Possíveis Erros ao Alterar Senha',
+      description: '⛔ <strong>Senha atual incorreta:</strong> a senha atual informada não confere com a registrada no sistema.<br>⛔ <strong>Nova senha muito curta:</strong> a nova senha deve ter ao menos 6 caracteres.<br>⛔ <strong>Senhas não conferem:</strong> os campos "Nova senha" e "Confirmar nova senha" devem ser idênticos.<br>⛔ <strong>Erro de conexão:</strong> verifique sua conexão e tente novamente.',
+      side: 'bottom',
+    },
+  },
 ];
 
 export default function AlterarSenhaPage() {

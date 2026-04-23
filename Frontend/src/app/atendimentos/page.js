@@ -378,7 +378,15 @@ export default function AgendaAtendimentosPage() {
             element: '#tour-view-acoes',
             popover: {
               title: 'Ações do Atendimento',
-              description: '<strong>Excluir</strong> remove o agendamento. <strong>Alterar</strong> reabre o formulário. <strong>Marcar como concluído</strong> registra a conclusão e permite informar um resumo da reunião.',
+              description: '<strong>Excluir</strong> remove permanentemente o agendamento. <strong>Alterar</strong> reabre o formulário com os dados preenchidos. <strong>Marcar como concluído</strong> registra a conclusão e permite informar um resumo da reunião.<br><br>⚠️ Atendimentos <strong>já concluídos</strong> não podem ser alterados ou excluídos — apenas reabertos.',
+              side: 'top',
+            },
+          },
+          {
+            element: '#tour-view-acoes',
+            popover: {
+              title: 'Possíveis Erros ao Agendar',
+              description: '⛔ <strong>Título obrigatório:</strong> o campo Título não pode estar em branco.<br>⛔ <strong>Sem colaborador:</strong> selecione ao menos um colaborador participante.<br>⛔ <strong>Horário fora da agenda:</strong> o horário informado está fora do intervalo configurado em Configurações do Sistema.<br>⛔ <strong>Data inválida:</strong> informe uma data e hora válidas.<br>⛔ <strong>Erro de conexão:</strong> verifique sua conexão e tente novamente.',
               side: 'top',
             },
           },

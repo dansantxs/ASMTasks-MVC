@@ -139,6 +139,22 @@ export default function SetoresPage() {
             },
           },
           {
+            element: '#tour-lista-ativos',
+            popover: {
+              title: 'Como Alterar um Setor',
+              description: 'Para alterar um setor existente, clique no botão <strong>Editar</strong> (ícone de lápis) em qualquer card ou linha da tabela. O formulário abrirá com os dados já preenchidos — faça as alterações e clique em <strong>Salvar</strong>.',
+              side: 'top',
+            },
+          },
+          {
+            element: '#tour-lista-ativos',
+            popover: {
+              title: 'Como Excluir/Inativar um Setor',
+              description: 'Clique no botão <strong>Excluir</strong> (ícone de lixeira) para inativar o setor. A exclusão é <strong>lógica</strong> — o registro fica inativo e pode ser reativado com o botão <strong>Reativar</strong>.<br><br>⚠️ <strong>Não é possível inativar</strong> um setor que possua <strong>colaboradores ativos</strong> ou <strong>tarefas em andamento</strong>. Resolva os vínculos antes de inativar.',
+              side: 'top',
+            },
+          },
+          {
             element: '#tour-btn-novo-setor',
             popover: {
               title: 'Criar Novo Setor',
@@ -165,6 +181,14 @@ export default function SetoresPage() {
               title: 'Descrição',
               description: 'Campo <strong>opcional</strong>. Descreva as responsabilidades ou o propósito do setor.',
               side: 'bottom',
+            },
+          },
+          {
+            element: '#tour-setor-form-botoes',
+            popover: {
+              title: 'Possíveis Erros ao Salvar',
+              description: '⛔ <strong>Nome obrigatório:</strong> o campo Nome não pode estar em branco.<br>⛔ <strong>Nome já cadastrado:</strong> já existe um setor com este nome — use um nome diferente.<br>⛔ <strong>Erro de conexão:</strong> verifique sua conexão e tente novamente.',
+              side: 'top',
             },
           },
           {
