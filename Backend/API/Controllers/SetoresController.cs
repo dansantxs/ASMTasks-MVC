@@ -1,6 +1,7 @@
 ﻿using API.DB;
 using API.DTOs.Setores;
 using API.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 
@@ -9,6 +10,7 @@ namespace API.Controllers
     /// <summary>
     /// Controlador responsável por gerenciar os setores e departamentos da organização.
     /// </summary>
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]

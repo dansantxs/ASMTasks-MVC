@@ -3,6 +3,7 @@ using API.DB.DAOs;
 using API.DTOs.Cargos;
 using API.DTOs.Etapas;
 using API.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 
@@ -11,6 +12,7 @@ namespace API.Controllers
     /// <summary>
     /// Controlador responsável por gerenciar as etapas de desenvolvimento do sistema.
     /// </summary>
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
