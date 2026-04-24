@@ -81,9 +81,18 @@ Esta API gerencia entidades internas do sistema.
 
 builder.Services.AddControllers();
 
-Environment.SetEnvironmentVariable("STRING_CONEXAO", builder.Configuration["StringConexao"]);
+var stringConexao = builder.Configuration["StringConexao"];
+if (string.IsNullOrWhiteSpace(stringConexao))
+    throw new InvalidOperationException(
+        "StringConexao não configurada. Use 'dotnet user-secrets' em dev ou a variável de ambiente StringConexao em produção.");
 
-var chaveJwt = builder.Configuration["Jwt:Key"] ?? "***REMOVED***";
+Environment.SetEnvironmentVariable("STRING_CONEXAO", stringConexao);
+
+var chaveJwt = builder.Configuration["Jwt:Key"];
+if (string.IsNullOrWhiteSpace(chaveJwt))
+    throw new InvalidOperationException(
+        "Jwt:Key não configurada. Use 'dotnet user-secrets' em dev ou a variável de ambiente Jwt__Key em produção.");
+
 var emissorJwt = builder.Configuration["Jwt:Issuer"] ?? "ASMTasks";
 var audienciaJwt = builder.Configuration["Jwt:Audience"] ?? "ASMTasks.Frontend";
 var chaveBytes = Encoding.UTF8.GetBytes(chaveJwt);
