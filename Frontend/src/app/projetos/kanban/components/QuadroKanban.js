@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core';
 import ColunaKanban from './ColunaKanban';
 import CartaoTarefa from './CartaoTarefa';
 import DialogoMoverTarefa from './DialogoMoverTarefa';
-import DialogoVisualizarTarefa from './DialogoVisualizarTarefa';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -19,17 +18,10 @@ import {
 
 const COLUNA_BACKLOG = { id: null, nome: 'Backlog', ordem: -1 };
 
-export default function QuadroKanban({ tarefas, etapas, colaboradores, colaboradorLogadoId, onMoverTarefa, isMovendo, ehAdmin, onReordenarColunas, onIniciarTarefa, isIniciando, onPausarTarefa, isPausando, onTrocarColaborador, isTrocando }) {
+export default function QuadroKanban({ tarefas, etapas, colaboradores, colaboradorLogadoId, onMoverTarefa, isMovendo, ehAdmin, onReordenarColunas, onVisualizarTarefa }) {
   const [tarefaArrastando, setTarefaArrastando] = useState(null);
   const [pendente, setPendente] = useState(null);
   const [pendenteBacklog, setPendenteBacklog] = useState(null);
-  const [tarefaVisualizando, setTarefaVisualizando] = useState(null);
-
-  useEffect(() => {
-    if (!tarefaVisualizando) return;
-    const atualizada = tarefas.find((t) => t.id === tarefaVisualizando.id);
-    if (atualizada) setTarefaVisualizando(atualizada);
-  }, [tarefas]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
@@ -130,7 +122,7 @@ export default function QuadroKanban({ tarefas, etapas, colaboradores, colaborad
               colaboradorLogadoId={colaboradorLogadoId}
               isBacklog={coluna.id === null}
               isEtapaFinal={coluna.ehEtapaFinal ?? false}
-              onVisualizarTarefa={setTarefaVisualizando}
+              onVisualizarTarefa={onVisualizarTarefa}
             />
           ))}
         </div>
@@ -152,20 +144,6 @@ export default function QuadroKanban({ tarefas, etapas, colaboradores, colaborad
         isMovendo={isMovendo}
       />
 
-      <DialogoVisualizarTarefa
-        open={!!tarefaVisualizando}
-        onOpenChange={(v) => { if (!v) setTarefaVisualizando(null); }}
-        tarefa={tarefaVisualizando}
-        colaboradorLogadoId={colaboradorLogadoId}
-        ehAdmin={ehAdmin}
-        colaboradores={colaboradores}
-        onIniciarTarefa={onIniciarTarefa}
-        isIniciando={isIniciando}
-        onPausarTarefa={onPausarTarefa}
-        isPausando={isPausando}
-        onTrocarColaborador={onTrocarColaborador}
-        isTrocando={isTrocando}
-      />
 
       <AlertDialog open={!!pendenteBacklog} onOpenChange={(v) => { if (!v) setPendenteBacklog(null); }}>
         <AlertDialogContent>

@@ -177,7 +177,7 @@ export default function DialogoVisualizarTarefa({
               </Dialog.Close>
             </div>
 
-            <div className="space-y-4">
+            <div id="tour-kanban-view-info" className="space-y-4">
               {tarefa.descricao && (
                 <div>
                   <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Descrição</p>
@@ -230,7 +230,7 @@ export default function DialogoVisualizarTarefa({
 
               {/* Trocar responsável */}
               {podeTrocarResponsavel && (
-                <div className="border rounded-lg p-3 bg-gray-50">
+                <div id="tour-kanban-view-responsavel" className="border rounded-lg p-3 bg-gray-50">
                   <div className="flex items-center gap-2 mb-2">
                     <UserCog className="h-3.5 w-3.5 text-gray-400" />
                     <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Responsável</p>
@@ -281,7 +281,7 @@ export default function DialogoVisualizarTarefa({
 
               {/* Status de elaboração */}
               {tarefa.etapaId && tarefa.colaboradorResponsavelId && (
-                <div className="border rounded-lg p-3 bg-gray-50">
+                <div id="tour-kanban-view-elaboracao" className="border rounded-lg p-3 bg-gray-50">
                   <div className="flex items-center gap-2 mb-1">
                     <Clock className="h-3.5 w-3.5 text-gray-400" />
                     <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Elaboração</p>
@@ -356,7 +356,7 @@ export default function DialogoVisualizarTarefa({
               )}
             </div>
 
-            <div className="flex justify-between items-center mt-6 gap-3">
+            <div id="tour-kanban-view-acoes" className="flex justify-between items-center mt-6 gap-3">
               <div className="flex gap-2">
                 {podeIniciar && (
                   <Button
