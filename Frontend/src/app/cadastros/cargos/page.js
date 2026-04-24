@@ -140,11 +140,33 @@ export default function CargosPage() {
           element: '#tour-lista-cargos',
           popover: {
             title: 'Como Alterar um Cargo',
-            description: 'Para alterar um cargo existente, clique no botão <strong>Editar</strong> (ícone de lápis) em qualquer card ou linha da tabela. O formulário abrirá com os dados já preenchidos — faça as alterações e clique em <strong>Salvar</strong>.',
+            description: 'Para alterar, clique no botão <strong>Editar</strong> (ícone de lápis) em qualquer card ou linha. Clique em <strong>Próximo</strong> para ver o formulário pré-preenchido em ação.',
             side: 'top',
             align: 'center',
+            onNextClick: () => {
+              if (primeiroCargo) {
+                setCargoSelecionado(primeiroCargo);
+                setIsFormOpen(true);
+                setTimeout(() => tour.moveNext(), 350);
+              } else {
+                tour.moveNext();
+              }
+            },
           },
         },
+        ...(primeiroCargo ? [{
+          element: '#tour-form-nome',
+          popover: {
+            title: 'Formulário de Alteração',
+            description: 'O formulário abre com os dados do cargo já preenchidos. Faça as alterações necessárias e clique em <strong>Salvar Alterações</strong> para confirmar.',
+            side: 'bottom',
+            onNextClick: () => {
+              setIsFormOpen(false);
+              setCargoSelecionado(null);
+              setTimeout(() => tour.moveNext(), 200);
+            },
+          },
+        }] : []),
         {
           element: '#tour-lista-cargos',
           popover: {
