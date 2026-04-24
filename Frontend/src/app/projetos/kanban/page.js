@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Kanban } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
@@ -20,6 +20,7 @@ import {
 import FiltrosKanban from './components/FiltrosKanban';
 import QuadroKanban from './components/QuadroKanban';
 import TourGuia from '../../../shared/components/TourGuia';
+import DialogoVisualizarTarefa from './components/DialogoVisualizarTarefa';
 
 export default function KanbanPage() {
   const session = obterSessaoArmazenada();
@@ -123,6 +124,14 @@ export default function KanbanPage() {
     onError: (error) => toast.error(error?.message ?? 'Erro ao trocar responsável.'),
   });
 
+  const [tarefaVisualizando, setTarefaVisualizando] = useState(null);
+
+  useEffect(() => {
+    if (!tarefaVisualizando) return;
+    const atualizada = tarefas.find((t) => t.id === tarefaVisualizando.id);
+    if (atualizada) setTarefaVisualizando(atualizada);
+  }, [tarefas]);
+
   const handleMoverTarefa = (tarefa, etapaIdDestino, colaboradorResponsavelId) => {
     mover.mutate({
       tarefaId: tarefa.id,
@@ -159,7 +168,59 @@ export default function KanbanPage() {
 
   const iniciarTour = useCallback(() => {
     import('driver.js').then(({ driver }) => {
-      const tour = driver({
+      let tour;
+      const primeiraIdeal =
+        tarefas.find((t) => t.etapaId && t.colaboradorResponsavelId) ??
+        tarefas.find((t) => t.etapaId) ??
+        tarefas[0] ??
+        null;
+
+      const passosDialogo = primeiraIdeal
+        ? [
+            {
+              element: '#tour-kanban-view-info',
+              popover: {
+                title: 'Detalhes da Tarefa',
+                description:
+                  'Visualize todas as informações da tarefa: <strong>título</strong>, <strong>descrição</strong>, <strong>prioridade</strong>, <strong>projeto</strong>, <strong>cliente</strong> e <strong>responsável atual</strong>.',
+                side: 'left',
+              },
+            },
+            {
+              element: '#tour-kanban-view-responsavel',
+              popover: {
+                title: 'Trocar Responsável',
+                description:
+                  'Clique em <strong>Trocar</strong> para alterar o colaborador responsável pela tarefa. Selecione o novo responsável na lista e confirme com <strong>Salvar</strong>.',
+                side: 'left',
+              },
+            },
+            {
+              element: '#tour-kanban-view-elaboracao',
+              popover: {
+                title: 'Status de Elaboração',
+                description:
+                  'Indica se a tarefa já foi <strong>iniciada</strong> e registra a data/hora do início. Todas as ações da tarefa ficam no histórico logo abaixo.',
+                side: 'left',
+              },
+            },
+            {
+              element: '#tour-kanban-view-acoes',
+              popover: {
+                title: 'Iniciar e Pausar Tarefa',
+                description:
+                  '▶ <strong>Iniciar Tarefa</strong>: registra o início da elaboração (disponível quando há responsável e a tarefa ainda não foi iniciada).<br>⏸ <strong>Pausar Tarefa</strong>: interrompe a elaboração com uma observação opcional.<br>📎 <strong>Arquivos</strong>: acesse e gerencie os anexos da tarefa.',
+                side: 'top',
+                onNextClick: () => {
+                  setTarefaVisualizando(null);
+                  setTimeout(() => tour.moveNext(), 200);
+                },
+              },
+            },
+          ]
+        : [];
+
+      tour = driver({
         showProgress: true,
         progressText: '{{current}} de {{total}}',
         nextBtnText: 'Próximo →',
@@ -167,12 +228,16 @@ export default function KanbanPage() {
         doneBtnText: '✓ Concluir',
         overlayOpacity: 0.6,
         smoothScroll: true,
+        onDestroyed: () => {
+          setTarefaVisualizando(null);
+        },
         steps: [
           {
             element: '#tour-kanban-cabecalho',
             popover: {
               title: 'Quadro Kanban',
-              description: 'Acompanhe o progresso das tarefas de todos os projetos organizadas por etapa. As colunas representam as etapas do fluxo de trabalho.',
+              description:
+                'Acompanhe o progresso das tarefas de todos os projetos organizadas por etapa. As colunas representam as etapas do fluxo de trabalho.',
               side: 'bottom',
               align: 'start',
             },
@@ -181,7 +246,8 @@ export default function KanbanPage() {
             element: '#tour-kanban-filtros',
             popover: {
               title: 'Filtros',
-              description: 'Filtre as tarefas por <strong>colaborador</strong>, <strong>projeto</strong> ou <strong>cliente</strong>. Use múltiplos filtros simultaneamente. Por padrão, exibe as tarefas do colaborador logado.',
+              description:
+                'Filtre as tarefas por <strong>colaborador</strong>, <strong>projeto</strong> ou <strong>cliente</strong>. Use múltiplos filtros simultaneamente. Por padrão, exibe as tarefas do colaborador logado.',
               side: 'bottom',
               align: 'start',
             },
@@ -190,34 +256,36 @@ export default function KanbanPage() {
             element: '#tour-kanban-quadro',
             popover: {
               title: 'Quadro de Tarefas',
-              description: 'Cada coluna é uma etapa. <strong>Arraste os cards</strong> entre colunas para mover uma tarefa de etapa. Clique em um card para ver detalhes, iniciar ou pausar a elaboração.',
+              description:
+                '<strong>Arraste os cards</strong> entre colunas para mover uma tarefa de etapa. Clique no ícone 👁 de um card para abrir os detalhes, trocar o responsável, iniciar ou pausar a elaboração.',
               side: 'top',
               align: 'center',
+              onNextClick: () => {
+                if (primeiraIdeal) {
+                  setTarefaVisualizando(primeiraIdeal);
+                  setTimeout(() => tour.moveNext(), 350);
+                } else {
+                  tour.moveNext();
+                }
+              },
             },
           },
-          {
-            element: '#tour-kanban-quadro',
-            popover: {
-              title: 'Como Alterar Tarefas no Kanban',
-              description: 'Para mover uma tarefa, <strong>arraste o card</strong> para a coluna desejada. Para trocar o responsável, clique no card e use o seletor de colaborador.<br>Para <strong>iniciar</strong> ou <strong>pausar</strong> o trabalho em uma tarefa, clique no card e use os botões correspondentes.',
-              side: 'top',
-              align: 'center',
-            },
-          },
+          ...passosDialogo,
           {
             element: '#tour-kanban-quadro',
             popover: {
               title: 'Possíveis Erros no Kanban',
-              description: '⛔ <strong>Erro ao mover tarefa:</strong> pode ocorrer por problema de conexão — tente novamente.<br>⛔ <strong>Tarefa já nesta etapa:</strong> a tarefa já está na etapa de destino — nenhuma ação é necessária.<br>⛔ <strong>Nenhuma tarefa exibida:</strong> verifique se os filtros de colaborador, projeto ou cliente estão muito restritivos — tente limpar os filtros.<br>⛔ <strong>Colunas sem etapas:</strong> certifique-se de que há etapas ativas cadastradas em Gerenciamento de Etapas.',
+              description:
+                '⛔ <strong>Erro ao mover tarefa:</strong> pode ocorrer por problema de conexão — tente novamente.<br>⛔ <strong>Tarefa já nesta etapa:</strong> a tarefa já está na etapa de destino — nenhuma ação é necessária.<br>⛔ <strong>Nenhuma tarefa exibida:</strong> verifique se os filtros estão muito restritivos — tente limpá-los.<br>⛔ <strong>Colunas sem etapas:</strong> certifique-se de que há etapas ativas cadastradas.',
               side: 'top',
               align: 'center',
             },
           },
-        ].filter((p) => !p.element || document.querySelector(p.element)),
+        ],
       });
       tour.drive();
     });
-  }, []);
+  }, [tarefas]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -264,19 +332,28 @@ export default function KanbanPage() {
             isMovendo={mover.isPending}
             ehAdmin={ehAdmin}
             onReordenarColunas={handleReordenarColunas}
-            onIniciarTarefa={(tarefa) => iniciar.mutate(tarefa)}
-            isIniciando={iniciar.isPending}
-            onPausarTarefa={(tarefa, observacao) => pausar.mutate({ tarefa, observacao })}
-            isPausando={pausar.isPending}
-            onTrocarColaborador={(tarefaId, colaboradorResponsavelId) =>
-              trocarColaborador.mutate({ tarefaId, colaboradorResponsavelId })
-            }
-            isTrocando={trocarColaborador.isPending}
+            onVisualizarTarefa={setTarefaVisualizando}
           />
           </div>
         )}
       </div>
 
+      <DialogoVisualizarTarefa
+        open={!!tarefaVisualizando}
+        onOpenChange={(v) => { if (!v) setTarefaVisualizando(null); }}
+        tarefa={tarefaVisualizando}
+        colaboradorLogadoId={colaboradorLogadoId}
+        ehAdmin={ehAdmin}
+        colaboradores={colaboradoresAtivos}
+        onIniciarTarefa={(tarefa) => iniciar.mutate(tarefa)}
+        isIniciando={iniciar.isPending}
+        onPausarTarefa={(tarefa, observacao) => pausar.mutate({ tarefa, observacao })}
+        isPausando={pausar.isPending}
+        onTrocarColaborador={(tarefaId, colaboradorResponsavelId) =>
+          trocarColaborador.mutate({ tarefaId, colaboradorResponsavelId })
+        }
+        isTrocando={trocarColaborador.isPending}
+      />
       <Toaster position="top-right" />
     </div>
   );
