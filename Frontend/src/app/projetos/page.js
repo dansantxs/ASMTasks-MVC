@@ -269,11 +269,33 @@ export default function ProjetosPage() {
           element: '#tour-lista-projetos',
           popover: {
             title: 'Como Alterar um Projeto',
-            description: 'Para alterar um projeto, clique no card para abrir a visualização e então clique no botão <strong>Editar</strong>. O formulário abrirá com todos os dados já preenchidos — faça as alterações e clique em <strong>Salvar</strong>.',
+            description: 'Para alterar, clique no card para abrir a visualização e depois em <strong>Editar</strong>. Clique em <strong>Próximo</strong> para ver o formulário pré-preenchido em ação.',
             side: 'top',
             align: 'center',
+            onNextClick: () => {
+              if (primeiroProjeto) {
+                setEditingProject(primeiroProjeto);
+                setIsFormOpen(true);
+                setTimeout(() => tour.moveNext(), 350);
+              } else {
+                tour.moveNext();
+              }
+            },
           },
         },
+        ...(primeiroProjeto ? [{
+          element: '#tour-form-projeto-titulo',
+          popover: {
+            title: 'Formulário de Alteração',
+            description: 'O formulário abre com os dados do projeto já preenchidos — título, cliente, setor e tarefas. Faça as alterações necessárias e clique em <strong>Salvar Alterações</strong> para confirmar.',
+            side: 'bottom',
+            onNextClick: () => {
+              setIsFormOpen(false);
+              setEditingProject(null);
+              setTimeout(() => tour.moveNext(), 200);
+            },
+          },
+        }] : []),
         {
           element: '#tour-lista-projetos',
           popover: {

@@ -147,10 +147,32 @@ export default function PrioridadesPage() {
             element: '#tour-lista-ativos',
             popover: {
               title: 'Como Alterar uma Prioridade',
-              description: 'Para alterar uma prioridade existente, clique no botão <strong>Editar</strong> (ícone de lápis) em qualquer card ou linha da tabela. O formulário abrirá com os dados já preenchidos — faça as alterações e clique em <strong>Salvar</strong>.',
+              description: 'Para alterar, clique no botão <strong>Editar</strong> (ícone de lápis) em qualquer card ou linha. Clique em <strong>Próximo</strong> para ver o formulário pré-preenchido em ação.',
               side: 'top',
+              onNextClick: () => {
+                if (primeiraPrioridade) {
+                  setPrioridadeSelecionada(primeiraPrioridade);
+                  setIsFormOpen(true);
+                  setTimeout(() => tour.moveNext(), 350);
+                } else {
+                  tour.moveNext();
+                }
+              },
             },
           },
+          ...(primeiraPrioridade ? [{
+            element: '#tour-prior-form-nome',
+            popover: {
+              title: 'Formulário de Alteração',
+              description: 'O formulário abre com os dados da prioridade já preenchidos — nome, cor e ordem. Faça as alterações necessárias e clique em <strong>Salvar Alterações</strong> para confirmar.',
+              side: 'bottom',
+              onNextClick: () => {
+                setIsFormOpen(false);
+                setPrioridadeSelecionada(null);
+                setTimeout(() => tour.moveNext(), 200);
+              },
+            },
+          }] : []),
           {
             element: '#tour-lista-ativos',
             popover: {

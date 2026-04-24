@@ -142,10 +142,32 @@ export default function SetoresPage() {
             element: '#tour-lista-ativos',
             popover: {
               title: 'Como Alterar um Setor',
-              description: 'Para alterar um setor existente, clique no botão <strong>Editar</strong> (ícone de lápis) em qualquer card ou linha da tabela. O formulário abrirá com os dados já preenchidos — faça as alterações e clique em <strong>Salvar</strong>.',
+              description: 'Para alterar, clique no botão <strong>Editar</strong> (ícone de lápis) em qualquer card ou linha. Clique em <strong>Próximo</strong> para ver o formulário pré-preenchido em ação.',
               side: 'top',
+              onNextClick: () => {
+                if (primeiroSetor) {
+                  setSetorSelecionado(primeiroSetor);
+                  setIsFormOpen(true);
+                  setTimeout(() => tour.moveNext(), 350);
+                } else {
+                  tour.moveNext();
+                }
+              },
             },
           },
+          ...(primeiroSetor ? [{
+            element: '#tour-setor-form-nome',
+            popover: {
+              title: 'Formulário de Alteração',
+              description: 'O formulário abre com os dados do setor já preenchidos. Faça as alterações necessárias e clique em <strong>Salvar Alterações</strong> para confirmar.',
+              side: 'bottom',
+              onNextClick: () => {
+                setIsFormOpen(false);
+                setSetorSelecionado(null);
+                setTimeout(() => tour.moveNext(), 200);
+              },
+            },
+          }] : []),
           {
             element: '#tour-lista-ativos',
             popover: {

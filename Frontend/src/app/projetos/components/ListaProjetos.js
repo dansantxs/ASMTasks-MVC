@@ -203,6 +203,7 @@ export default function ListaProjetos({
       </div>
 
       {/* Lista */}
+      <div id="tour-lista-projetos">
       {projetosDaAba.length === 0 ? (
         <div className="text-center py-12">
           <div className="mx-auto h-16 w-16 rounded-full bg-muted flex items-center justify-center">
@@ -216,11 +217,11 @@ export default function ListaProjetos({
           </p>
         </div>
       ) : modoVisualizacao === 'cards' ? (
-        <div id="tour-lista-projetos" className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {projetosDaAba.map(renderProjectCard)}
         </div>
       ) : (
-        <div id="tour-lista-projetos" className="border rounded-lg overflow-hidden">
+        <div className="border rounded-lg overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/30">
@@ -239,6 +240,7 @@ export default function ListaProjetos({
           </Table>
         </div>
       )}
+      </div>
     </div>
   );
 }

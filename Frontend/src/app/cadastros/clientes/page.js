@@ -169,10 +169,32 @@ export default function ClientesPage() {
             element: '#tour-lista-ativos',
             popover: {
               title: 'Como Alterar um Cliente',
-              description: 'Para alterar um cliente existente, clique no botão <strong>Editar</strong> (ícone de lápis) em qualquer card ou linha da tabela. O formulário abrirá com os dados já preenchidos — faça as alterações e clique em <strong>Salvar</strong>.',
+              description: 'Para alterar, clique no botão <strong>Editar</strong> (ícone de lápis) em qualquer card ou linha. Clique em <strong>Próximo</strong> para ver o formulário pré-preenchido em ação.',
               side: 'top',
+              onNextClick: () => {
+                if (primeiroCliente) {
+                  setClienteSelecionado(primeiroCliente);
+                  setIsFormOpen(true);
+                  setTimeout(() => tour.moveNext(), 350);
+                } else {
+                  tour.moveNext();
+                }
+              },
             },
           },
+          ...(primeiroCliente ? [{
+            element: '#tour-cli-form-identificacao',
+            popover: {
+              title: 'Formulário de Alteração',
+              description: 'O formulário abre com os dados do cliente já preenchidos — identificação, contato e endereço. Faça as alterações necessárias e clique em <strong>Salvar Alterações</strong> para confirmar.',
+              side: 'bottom',
+              onNextClick: () => {
+                setIsFormOpen(false);
+                setClienteSelecionado(null);
+                setTimeout(() => tour.moveNext(), 200);
+              },
+            },
+          }] : []),
           {
             element: '#tour-lista-ativos',
             popover: {

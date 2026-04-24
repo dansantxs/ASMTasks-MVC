@@ -350,6 +350,14 @@ export default function AgendaAtendimentosPage() {
         {
           element: '#tour-form-botoes',
           popover: {
+            title: 'Possíveis Erros ao Agendar',
+            description: '⛔ <strong>Título obrigatório:</strong> o campo Título não pode estar em branco.<br>⛔ <strong>Sem colaborador:</strong> selecione ao menos um colaborador participante.<br>⛔ <strong>Horário fora da agenda:</strong> o horário informado está fora do intervalo configurado em Configurações do Sistema.<br>⛔ <strong>Data inválida:</strong> informe uma data e hora válidas.<br>⛔ <strong>Erro de conexão:</strong> verifique sua conexão e tente novamente.',
+            side: 'top',
+          },
+        },
+        {
+          element: '#tour-form-botoes',
+          popover: {
             title: 'Agendar ou Cancelar',
             description: 'Clique em <strong>Agendar Atendimento</strong> para salvar ou em <strong>Cancelar</strong> para fechar sem salvar.',
             side: 'top',
@@ -378,16 +386,22 @@ export default function AgendaAtendimentosPage() {
             element: '#tour-view-acoes',
             popover: {
               title: 'Ações do Atendimento',
-              description: '<strong>Excluir</strong> remove permanentemente o agendamento. <strong>Alterar</strong> reabre o formulário com os dados preenchidos. <strong>Marcar como concluído</strong> registra a conclusão e permite informar um resumo da reunião.<br><br>⚠️ Atendimentos <strong>já concluídos</strong> não podem ser alterados ou excluídos — apenas reabertos.',
+              description: '<strong>Excluir</strong> remove permanentemente o agendamento. <strong>Alterar</strong> reabre o formulário com os dados preenchidos. <strong>Marcar como concluído</strong> registra a conclusão e permite informar um resumo da reunião.<br><br>⚠️ Atendimentos <strong>já concluídos</strong> não podem ser alterados ou excluídos — apenas reabertos.<br><br>Clique em <strong>Próximo</strong> para ver o formulário de alteração pré-preenchido em ação.',
               side: 'top',
+              onNextClick: () => {
+                setAtendimentoSelecionado(primeiroAtendimento);
+                setVisualizacaoAberta(false);
+                setFormularioAberto(true);
+                setTimeout(() => tour.moveNext(), 350);
+              },
             },
           },
           {
-            element: '#tour-view-acoes',
+            element: '#tour-form-titulo',
             popover: {
-              title: 'Possíveis Erros ao Agendar',
-              description: '⛔ <strong>Título obrigatório:</strong> o campo Título não pode estar em branco.<br>⛔ <strong>Sem colaborador:</strong> selecione ao menos um colaborador participante.<br>⛔ <strong>Horário fora da agenda:</strong> o horário informado está fora do intervalo configurado em Configurações do Sistema.<br>⛔ <strong>Data inválida:</strong> informe uma data e hora válidas.<br>⛔ <strong>Erro de conexão:</strong> verifique sua conexão e tente novamente.',
-              side: 'top',
+              title: 'Formulário de Alteração',
+              description: 'O formulário abre com os dados do atendimento já preenchidos — título, cliente, data e colaboradores. Faça as alterações necessárias e clique em <strong>Salvar Alterações</strong> para confirmar.',
+              side: 'bottom',
             },
           },
         ] : []),
