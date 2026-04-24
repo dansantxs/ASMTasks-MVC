@@ -1,16 +1,94 @@
+# ==========================================
 # Visual Studio
+# ==========================================
 .vs/
-
-# Build outputs
-bin/
-obj/
-
-# User-specific files
-*.user
 *.suo
+*.user
 *.userosscache
 *.sln.docstates
+*.aps
 
+# ==========================================
+# Saídas de build
+# ==========================================
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+build-check/
+
+# ==========================================
 # NuGet
+# ==========================================
 packages/
 *.nupkg
+*.snupkg
+project.lock.json
+project.fragment.lock.json
+*.nuget.props
+*.nuget.targets
+
+# ==========================================
+# Resultados de testes
+# ==========================================
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+[Tt]est[Rr]esult*/
+
+# ==========================================
+# Publish
+# ==========================================
+publish/
+
+# ==========================================
+# Configurações sensíveis / ambiente específico
+# ATENÇÃO: appsettings.json e appsettings.Development.json
+# contêm credenciais hardcoded — migrar para variáveis de
+# ambiente antes de usar em produção.
+# ==========================================
+appsettings.Production.json
+appsettings.Staging.json
+appsettings.*.local.json
+secrets.json
+*.pfx
+*.p12
+*.cer
+*.key
+
+# ==========================================
+# Uploads de usuário (conteúdo gerado)
+# ==========================================
+API/uploads/
+
+# ==========================================
+# Banco de dados local
+# ==========================================
+*.mdf
+*.ldf
+*.db
+*.db-shm
+*.db-wal
+
+# ==========================================
+# Rider / ReSharper
+# ==========================================
+.idea/
+*.DotSettings.user
+_ReSharper*/
+*.[Rr]e[Ss]harper
+
+# ==========================================
+# NCrunch
+# ==========================================
+*.ncrunch*
+.*ncrunch*
+_NCrunch_*/
