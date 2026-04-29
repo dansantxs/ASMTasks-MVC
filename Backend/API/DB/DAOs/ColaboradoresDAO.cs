@@ -103,8 +103,8 @@ namespace API.DB.DAOs
                 lista.Add(new Colaborador
                 {
                     Id = Convert.ToInt32(dr["Id"]),
-                    Nome = dr["Nome"].ToString(),
-                    CPF = dr["CPF"].ToString(),
+                    Nome = dr["Nome"].ToString()!,
+                    CPF = dr["CPF"].ToString()!,
                     Email = dr["Email"].ToString(),
                     Telefone = dr["Telefone"]?.ToString(),
                     CEP = dr["CEP"]?.ToString(),
@@ -137,8 +137,8 @@ namespace API.DB.DAOs
                 return new Colaborador
                 {
                     Id = Convert.ToInt32(dr["Id"]),
-                    Nome = dr["Nome"].ToString(),
-                    CPF = dr["CPF"].ToString(),
+                    Nome = dr["Nome"].ToString()!,
+                    CPF = dr["CPF"].ToString()!,
                     Email = dr["Email"].ToString(),
                     Telefone = dr["Telefone"]?.ToString(),
                     CEP = dr["CEP"]?.ToString(),

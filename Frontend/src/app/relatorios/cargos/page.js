@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useMemo, useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { FileSpreadsheet, FileText, Filter, ListChecks, Briefcase } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import * as XLSX from 'xlsx';
+import XLSX from '@/shared/utils/exceljs-compat';
 import { getCargos } from '../../cadastros/cargos/api/cargos';
 import { configuracoesPadrao, useConfiguracoesSistema } from '../../../shared/configuracoes-sistema/api';
 import TourGuia from '../../../shared/components/TourGuia';
@@ -209,7 +209,7 @@ export default function CargosReportPage() {
 
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Cargos');
-    XLSX.writeFile(workbook, 'relatorio-cargos.xlsx');
+    await XLSX.writeFile(workbook, 'relatorio-cargos.xlsx');
   };
 
   const iniciarTour = useCallback(() => {

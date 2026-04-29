@@ -14,7 +14,7 @@ namespace API.DB.DAOs
                 SELECT CAST(SCOPE_IDENTITY() AS int);
             ";
             cmd.Parameters.AddWithValue("@Nome", prioridade.Nome);
-            cmd.Parameters.AddWithValue("@Descricao", (object)prioridade.Descricao ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@Descricao", (object?)prioridade.Descricao ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Cor", prioridade.Cor);
             cmd.Parameters.AddWithValue("@Ordem", prioridade.Ordem);
             cmd.Parameters.AddWithValue("@Ativo", prioridade.Ativo);
@@ -34,7 +34,7 @@ namespace API.DB.DAOs
                                 WHERE Id = @Id";
             cmd.Parameters.AddWithValue("@Id", prioridade.Id);
             cmd.Parameters.AddWithValue("@Nome", prioridade.Nome);
-            cmd.Parameters.AddWithValue("@Descricao", (object)prioridade.Descricao ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@Descricao", (object?)prioridade.Descricao ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Cor", prioridade.Cor);
             cmd.Parameters.AddWithValue("@Ordem", prioridade.Ordem);
 
@@ -71,7 +71,7 @@ namespace API.DB.DAOs
             cmd.CommandText = @"SELECT COUNT(1) FROM Prioridade 
                                 WHERE Nome = @Nome AND (@Id IS NULL OR Id <> @Id)";
             cmd.Parameters.AddWithValue("@Nome", nome);
-            cmd.Parameters.AddWithValue("@Id", (object)id ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@Id", (object?)id ?? DBNull.Value);
 
             var result = await cmd.ExecuteScalarAsync();
             int count = Convert.ToInt32(result);
@@ -93,9 +93,9 @@ namespace API.DB.DAOs
                 var prioridade = new Prioridade
                 {
                     Id = Convert.ToInt32(dr["Id"]),
-                    Nome = dr["Nome"].ToString(),
+                    Nome = dr["Nome"].ToString()!,
                     Descricao = dr["Descricao"]?.ToString(),
-                    Cor = dr["Cor"].ToString(),
+                    Cor = dr["Cor"].ToString()!,
                     Ordem = Convert.ToInt32(dr["Ordem"]),
                     Ativo = Convert.ToBoolean(dr["Ativo"])
                 };
@@ -120,9 +120,9 @@ namespace API.DB.DAOs
                 prioridade = new Prioridade
                 {
                     Id = Convert.ToInt32(dr["Id"]),
-                    Nome = dr["Nome"].ToString(),
+                    Nome = dr["Nome"].ToString()!,
                     Descricao = dr["Descricao"]?.ToString(),
-                    Cor = dr["Cor"].ToString(),
+                    Cor = dr["Cor"].ToString()!,
                     Ordem = Convert.ToInt32(dr["Ordem"]),
                     Ativo = Convert.ToBoolean(dr["Ativo"])
                 };
