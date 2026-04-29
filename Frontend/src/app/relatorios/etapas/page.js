@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useMemo, useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { FileSpreadsheet, FileText, Filter, ListChecks, Workflow } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import * as XLSX from 'xlsx';
+import XLSX from '@/shared/utils/exceljs-compat';
 import { getEtapas } from '../../cadastros/etapas/api/etapas';
 import { configuracoesPadrao, useConfiguracoesSistema } from '../../../shared/configuracoes-sistema/api';
 import { obterRodapeRelatorio, obterLogotipo } from '../../../shared/configuracoes-sistema/reportBranding';
@@ -210,7 +210,7 @@ export default function EtapasReportPage() {
 
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Etapas');
-    XLSX.writeFile(workbook, 'relatorio-etapas.xlsx');
+    await XLSX.writeFile(workbook, 'relatorio-etapas.xlsx');
   };
 
   const iniciarTour = useCallback(() => {

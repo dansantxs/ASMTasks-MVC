@@ -15,7 +15,7 @@ namespace API.DB.DAOs
             ";
 
             cmd.Parameters.AddWithValue("@Nome", etapa.Nome);
-            cmd.Parameters.AddWithValue("@Descricao", (object)etapa.Descricao ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@Descricao", (object?)etapa.Descricao ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Ativo", etapa.Ativo);
             cmd.Parameters.AddWithValue("@Ordem", etapa.Ordem);
             cmd.Parameters.AddWithValue("@EhEtapaFinal", etapa.EhEtapaFinal);
@@ -35,7 +35,7 @@ namespace API.DB.DAOs
                                 WHERE Id = @Id";
             cmd.Parameters.AddWithValue("@Id", etapa.Id);
             cmd.Parameters.AddWithValue("@Nome", etapa.Nome);
-            cmd.Parameters.AddWithValue("@Descricao", (object)etapa.Descricao ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@Descricao", (object?)etapa.Descricao ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Ordem", etapa.Ordem);
             cmd.Parameters.AddWithValue("@EhEtapaFinal", etapa.EhEtapaFinal);
 
@@ -48,7 +48,7 @@ namespace API.DB.DAOs
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
             cmd.CommandText = "UPDATE Etapa SET EhEtapaFinal = 0 WHERE EhEtapaFinal = 1 AND (@ExcluirId IS NULL OR Id <> @ExcluirId)";
-            cmd.Parameters.AddWithValue("@ExcluirId", (object)excluirId ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@ExcluirId", (object?)excluirId ?? DBNull.Value);
             await cmd.ExecuteNonQueryAsync();
         }
 
@@ -81,7 +81,7 @@ namespace API.DB.DAOs
             cmd.CommandText = @"SELECT COUNT(1) FROM Etapa 
                                 WHERE Nome = @Nome AND (@Id IS NULL OR Id <> @Id)";
             cmd.Parameters.AddWithValue("@Nome", nome);
-            cmd.Parameters.AddWithValue("@Id", (object)id ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@Id", (object?)id ?? DBNull.Value);
 
             var result = await cmd.ExecuteScalarAsync();
             int count = Convert.ToInt32(result);
@@ -103,7 +103,7 @@ namespace API.DB.DAOs
                 var etapa = new Etapa
                 {
                     Id = Convert.ToInt32(dr["Id"]),
-                    Nome = dr["Nome"].ToString(),
+                    Nome = dr["Nome"].ToString()!,
                     Descricao = dr["Descricao"]?.ToString(),
                     Ativo = Convert.ToBoolean(dr["Ativo"]),
                     Ordem = Convert.ToInt32(dr["Ordem"]),
@@ -130,7 +130,7 @@ namespace API.DB.DAOs
                 etapa = new Etapa
                 {
                     Id = Convert.ToInt32(dr["Id"]),
-                    Nome = dr["Nome"].ToString(),
+                    Nome = dr["Nome"].ToString()!,
                     Descricao = dr["Descricao"]?.ToString(),
                     Ativo = Convert.ToBoolean(dr["Ativo"]),
                     Ordem = Convert.ToInt32(dr["Ordem"]),

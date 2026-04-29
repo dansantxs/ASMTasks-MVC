@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { FileSpreadsheet, FileText, Filter, ListChecks, Building2 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import * as XLSX from 'xlsx';
+import XLSX from '@/shared/utils/exceljs-compat';
 import { getSetores } from '../../cadastros/setores/api/setores';
 import { configuracoesPadrao, useConfiguracoesSistema } from '../../../shared/configuracoes-sistema/api';
 import { obterRodapeRelatorio, obterLogotipo } from '../../../shared/configuracoes-sistema/reportBranding';
@@ -213,7 +213,7 @@ export default function SetoresReportPage() {
 
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Setores');
-    XLSX.writeFile(workbook, 'relatorio-setores.xlsx');
+    await XLSX.writeFile(workbook, 'relatorio-setores.xlsx');
   };
 
   const iniciarTour = useCallback(() => {

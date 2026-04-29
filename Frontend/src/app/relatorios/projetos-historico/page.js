@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useMemo, useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { FileSpreadsheet, FileText, Filter, History, ListChecks } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import * as XLSX from 'xlsx';
+import XLSX from '@/shared/utils/exceljs-compat';
 import { configuracoesPadrao, useConfiguracoesSistema } from '../../../shared/configuracoes-sistema/api';
 import { obterRodapeRelatorio, obterLogotipo } from '../../../shared/configuracoes-sistema/reportBranding';
 import TourGuia from '../../../shared/components/TourGuia';
@@ -313,7 +313,7 @@ export default function HistoricoTarefasReportPage() {
 
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Histórico');
-    XLSX.writeFile(workbook, 'relatorio-historico-tarefas.xlsx');
+    await XLSX.writeFile(workbook, 'relatorio-historico-tarefas.xlsx');
   };
 
   const iniciarTour = useCallback(() => {

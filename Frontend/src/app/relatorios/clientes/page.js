@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useMemo, useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { FileSpreadsheet, FileText, Filter, ListChecks, Handshake } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import * as XLSX from 'xlsx';
+import XLSX from '@/shared/utils/exceljs-compat';
 import { getClientes } from '../../cadastros/clientes/api/cliente';
 import { configuracoesPadrao, useConfiguracoesSistema } from '../../../shared/configuracoes-sistema/api';
 import { obterRodapeRelatorio, obterLogotipo } from '../../../shared/configuracoes-sistema/reportBranding';
@@ -244,7 +244,7 @@ export default function ClientesReportPage() {
 
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Clientes');
-    XLSX.writeFile(workbook, 'relatorio-clientes.xlsx');
+    await XLSX.writeFile(workbook, 'relatorio-clientes.xlsx');
   };
 
   const iniciarTour = useCallback(() => {

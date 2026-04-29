@@ -15,7 +15,7 @@ namespace API.DB.DAOs
             ";
 
             cmd.Parameters.AddWithValue("@Nome", cargo.Nome);
-            cmd.Parameters.AddWithValue("@Descricao", (object)cargo.Descricao ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@Descricao", (object?)cargo.Descricao ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Ativo", cargo.Ativo);
 
             var result = await cmd.ExecuteScalarAsync();
@@ -36,7 +36,7 @@ namespace API.DB.DAOs
 
             cmd.Parameters.AddWithValue("@Id", cargo.Id);
             cmd.Parameters.AddWithValue("@Nome", cargo.Nome);
-            cmd.Parameters.AddWithValue("@Descricao", (object)cargo.Descricao ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@Descricao", (object?)cargo.Descricao ?? DBNull.Value);
 
             int linhas = await cmd.ExecuteNonQueryAsync();
             return linhas > 0;
@@ -121,7 +121,7 @@ namespace API.DB.DAOs
             ";
 
             cmd.Parameters.AddWithValue("@Nome", nome);
-            cmd.Parameters.AddWithValue("@Id", (object)id ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@Id", (object?)id ?? DBNull.Value);
 
             var resultado = await cmd.ExecuteScalarAsync();
             int total = Convert.ToInt32(resultado);

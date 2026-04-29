@@ -15,7 +15,7 @@ namespace API.DB.DAOs
             ";
 
             cmd.Parameters.AddWithValue("@Nome", setor.Nome);
-            cmd.Parameters.AddWithValue("@Descricao", (object)setor.Descricao ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@Descricao", (object?)setor.Descricao ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Ativo", setor.Ativo);
             var result = await cmd.ExecuteScalarAsync();
             setor.Id = Convert.ToInt32(result);
@@ -32,7 +32,7 @@ namespace API.DB.DAOs
                                 WHERE Id = @Id";
             cmd.Parameters.AddWithValue("@Id", setor.Id);
             cmd.Parameters.AddWithValue("@Nome", setor.Nome);
-            cmd.Parameters.AddWithValue("@Descricao", (object)setor.Descricao ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@Descricao", (object?)setor.Descricao ?? DBNull.Value);
             int linhas = await cmd.ExecuteNonQueryAsync();
             return linhas > 0;
         }
@@ -73,7 +73,7 @@ namespace API.DB.DAOs
                 var setor = new Setor
                 {
                     Id = Convert.ToInt32(dr["Id"]),
-                    Nome = dr["Nome"].ToString(),
+                    Nome = dr["Nome"].ToString()!,
                     Descricao = dr["Descricao"]?.ToString(),
                     Ativo = Convert.ToBoolean(dr["Ativo"])
                 };
@@ -98,7 +98,7 @@ namespace API.DB.DAOs
                 setor = new Setor
                 {
                     Id = Convert.ToInt32(dr["Id"]),
-                    Nome = dr["Nome"].ToString(),
+                    Nome = dr["Nome"].ToString()!,
                     Descricao = dr["Descricao"]?.ToString(),
                     Ativo = Convert.ToBoolean(dr["Ativo"])
                 };
@@ -114,7 +114,7 @@ namespace API.DB.DAOs
             cmd.CommandText = @"SELECT COUNT(1) FROM Setor 
                                 WHERE Nome = @Nome AND (@Id IS NULL OR Id <> @Id)";
             cmd.Parameters.AddWithValue("@Nome", nome);
-            cmd.Parameters.AddWithValue("@Id", (object)id ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@Id", (object?)id ?? DBNull.Value);
 
             var result = await cmd.ExecuteScalarAsync();
             int count = Convert.ToInt32(result);
