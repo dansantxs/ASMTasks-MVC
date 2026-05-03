@@ -16,15 +16,9 @@ namespace API.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-    public class EtapasController : ControllerBase
+    public class EtapasController(DBContext dbContext) : ControllerBase
     {
-        private readonly DBContext _dbContext;
         private static readonly EtapasDAO _etapasDAO = new EtapasDAO();
-
-        public EtapasController(DBContext dbContext)
-        {
-            _dbContext = dbContext;
-        }
 
         /// <summary>
         /// Cria uma nova etapa de desenvolvimento.
@@ -53,7 +47,7 @@ namespace API.Controllers
                     EhEtapaFinal = request.EhEtapaFinal
                 };
 
-                var id = await etapa.CriarAsync(_dbContext);
+                var id = await etapa.CriarAsync(dbContext);
                 return CreatedAtAction(nameof(ObterPorId), new { id }, new { id, mensagem = "Etapa criada com sucesso." });
             }
             catch (ValidationException ex)
@@ -87,7 +81,7 @@ namespace API.Controllers
 
             try
             {
-                var etapa = await Etapa.ObterPorIdAsync(_dbContext, id);
+                var etapa = await Etapa.ObterPorIdAsync(dbContext, id);
                 if (etapa == null)
                     return NotFound(new { erro = "Etapa não encontrada." });
 
@@ -96,7 +90,7 @@ namespace API.Controllers
                 etapa.Ordem = request.Ordem;
                 etapa.EhEtapaFinal = request.EhEtapaFinal;
 
-                await etapa.AtualizarAsync(_dbContext);
+                await etapa.AtualizarAsync(dbContext);
                 return NoContent();
             }
             catch (ValidationException ex)
@@ -124,11 +118,11 @@ namespace API.Controllers
         {
             try
             {
-                var etapa = await Etapa.ObterPorIdAsync(_dbContext, id);
+                var etapa = await Etapa.ObterPorIdAsync(dbContext, id);
                 if (etapa == null)
                     return NotFound(new { erro = "Etapa não encontrada." });
 
-                await etapa.InativarAsync(_dbContext);
+                await etapa.InativarAsync(dbContext);
                 return NoContent();
             }
             catch (ValidationException ex)
@@ -156,11 +150,11 @@ namespace API.Controllers
         {
             try
             {
-                var etapa = await Etapa.ObterPorIdAsync(_dbContext, id);
+                var etapa = await Etapa.ObterPorIdAsync(dbContext, id);
                 if (etapa == null)
                     return NotFound(new { erro = "Etapa não encontrada." });
 
-                await etapa.ReativarAsync(_dbContext);
+                await etapa.ReativarAsync(dbContext);
                 return NoContent();
             }
             catch (Exception)
@@ -180,7 +174,7 @@ namespace API.Controllers
             try
             {
                 var itens = request.Select(r => (r.Id, r.Ordem));
-                await _etapasDAO.ReordenarAsync(_dbContext, itens);
+                await _etapasDAO.ReordenarAsync(dbContext, itens);
                 return NoContent();
             }
             catch (Exception)
@@ -200,7 +194,7 @@ namespace API.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> ObterTodos()
         {
-            var etapas = await Etapa.ObterTodosAsync(_dbContext);
+            var etapas = await Etapa.ObterTodosAsync(dbContext);
             if (etapas == null || !etapas.Any())
                 return NoContent();
 
@@ -230,7 +224,7 @@ namespace API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> ObterPorId(int id)
         {
-            var etapa = await Etapa.ObterPorIdAsync(_dbContext, id);
+            var etapa = await Etapa.ObterPorIdAsync(dbContext, id);
             if (etapa == null)
                 return NotFound(new { erro = "Etapa não encontrada." });
 

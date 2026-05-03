@@ -11,14 +11,8 @@ namespace API.Controllers
     [Route("api/[controller]")]
     [Produces("application/json")]
     [Authorize]
-    public class DashboardController : ControllerBase
+    public class DashboardController(DBContext dbContext) : ControllerBase
     {
-        private readonly DBContext _dbContext;
-
-        public DashboardController(DBContext dbContext)
-        {
-            _dbContext = dbContext;
-        }
 
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -35,7 +29,7 @@ namespace API.Controllers
                     colaboradorId = null;
 
                 var dao = new DashboardDAO();
-                var dashboard = await dao.ObterDashboardAsync(_dbContext, colaboradorIdLogado, ehAdministrador, colaboradorId);
+                var dashboard = await dao.ObterDashboardAsync(dbContext, colaboradorIdLogado, ehAdministrador, colaboradorId);
 
                 return Ok(dashboard);
             }

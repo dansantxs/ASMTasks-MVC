@@ -11,6 +11,7 @@ import {
   registrarAtividadeSessao,
 } from "../shared/auth/session";
 import { obterRotaPadrao, obterPermissaoPorRota, temPermissao } from "../shared/auth/permissions";
+import { logout } from "./login/api/auth";
 import { useConfiguracoesSistema } from "../shared/configuracoes-sistema/api";
 
 export default function LayoutPrincipal({ children }) {
@@ -40,7 +41,8 @@ export default function LayoutPrincipal({ children }) {
     router.push(caminho);
   };
 
-  const handleSair = () => {
+  const handleSair = async () => {
+    try { await logout(); } catch {}
     limparSessao();
     router.replace("/login");
   };

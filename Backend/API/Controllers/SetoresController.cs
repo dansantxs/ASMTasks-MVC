@@ -14,14 +14,8 @@ namespace API.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-    public class SetoresController : ControllerBase
+    public class SetoresController(DBContext dbContext) : ControllerBase
     {
-        private readonly DBContext _dbContext;
-
-        public SetoresController(DBContext dbContext)
-        {
-            _dbContext = dbContext;
-        }
 
         /// <summary>
         /// Cria um novo setor.
@@ -48,7 +42,7 @@ namespace API.Controllers
                     Descricao = request.Descricao
                 };
 
-                var id = await setor.CriarAsync(_dbContext);
+                var id = await setor.CriarAsync(dbContext);
                 return CreatedAtAction(nameof(ObterPorId), new { id }, new { id, mensagem = "Setor criado com sucesso." });
             }
             catch (ValidationException ex)
@@ -82,14 +76,14 @@ namespace API.Controllers
 
             try
             {
-                var setor = await Setor.ObterPorIdAsync(_dbContext, id);
+                var setor = await Setor.ObterPorIdAsync(dbContext, id);
                 if (setor == null)
                     return NotFound(new { erro = "Setor não encontrado." });
 
                 setor.Nome = request.Nome;
                 setor.Descricao = request.Descricao;
 
-                await setor.AtualizarAsync(_dbContext);
+                await setor.AtualizarAsync(dbContext);
                 return NoContent();
             }
             catch (ValidationException ex)
@@ -117,11 +111,11 @@ namespace API.Controllers
         {
             try
             {
-                var setor = await Setor.ObterPorIdAsync(_dbContext, id);
+                var setor = await Setor.ObterPorIdAsync(dbContext, id);
                 if (setor == null)
                     return NotFound(new { erro = "Setor não encontrado." });
 
-                await setor.InativarAsync(_dbContext);
+                await setor.InativarAsync(dbContext);
                 return NoContent();
             }
             catch (ValidationException ex)
@@ -149,11 +143,11 @@ namespace API.Controllers
         {
             try
             {
-                var setor = await Setor.ObterPorIdAsync(_dbContext, id);
+                var setor = await Setor.ObterPorIdAsync(dbContext, id);
                 if (setor == null)
                     return NotFound(new { erro = "Setor não encontrado." });
 
-                await setor.ReativarAsync(_dbContext);
+                await setor.ReativarAsync(dbContext);
                 return NoContent();
             }
             catch (Exception ex)
@@ -173,7 +167,7 @@ namespace API.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> ObterTodos()
         {
-            var setores = await Setor.ObterTodosAsync(_dbContext);
+            var setores = await Setor.ObterTodosAsync(dbContext);
             if (setores == null || !setores.Any())
                 return NoContent();
 
@@ -183,7 +177,7 @@ namespace API.Controllers
                 Nome = setor.Nome,
                 Descricao = setor.Descricao,
                 Ativo = setor.Ativo,
-                PossuiFuncionariosAtivos = Setor.VerificarColaboradoresAtivosAsync(_dbContext, setor.Id).Result,
+                PossuiFuncionariosAtivos = Setor.VerificarColaboradoresAtivosAsync(dbContext, setor.Id).Result,
                 PossuiTarefasAtivas = false
             });
 
@@ -202,7 +196,7 @@ namespace API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> ObterPorId(int id)
         {
-            var setor = await Setor.ObterPorIdAsync(_dbContext, id);
+            var setor = await Setor.ObterPorIdAsync(dbContext, id);
             if (setor == null)
                 return NotFound(new { erro = "Setor não encontrado." });
 
@@ -212,7 +206,7 @@ namespace API.Controllers
                 Nome = setor.Nome,
                 Descricao = setor.Descricao,
                 Ativo = setor.Ativo,
-                PossuiFuncionariosAtivos = await Setor.VerificarColaboradoresAtivosAsync(_dbContext, setor.Id),
+                PossuiFuncionariosAtivos = await Setor.VerificarColaboradoresAtivosAsync(dbContext, setor.Id),
                 PossuiTarefasAtivas = false
             };
 

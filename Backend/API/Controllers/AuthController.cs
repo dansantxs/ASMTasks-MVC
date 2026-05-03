@@ -14,16 +14,8 @@ namespace API.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-    public class AuthController : ControllerBase
+    public class AuthController(DBContext dbContext, IConfiguration configuration) : ControllerBase
     {
-        private readonly DBContext _dbContext;
-        private readonly IConfiguration _configuration;
-
-        public AuthController(DBContext dbContext, IConfiguration configuration)
-        {
-            _dbContext = dbContext;
-            _configuration = configuration;
-        }
 
         [HttpPost("login")]
         [AllowAnonymous]
@@ -31,21 +23,29 @@ namespace API.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            var usuario = await Usuario.AutenticarAsync(_dbContext, request.Login, request.Senha);
+            var usuario = await Usuario.AutenticarAsync(dbContext, request.Login, request.Senha);
             if (usuario == null)
                 return Unauthorized(new { erro = "Login ou senha invalidos." });
 
-            var jwtKey = _configuration["Jwt:Key"] ?? "***REMOVED***";
-            var jwtIssuer = _configuration["Jwt:Issuer"] ?? "ASMTasks";
-            var jwtAudience = _configuration["Jwt:Audience"] ?? "ASMTasks.Frontend";
-            var expirationMinutes = int.TryParse(_configuration["Jwt:ExpirationMinutes"], out var parsedExp) ? parsedExp : 120;
+            var jwtKey = configuration["Jwt:Key"] ?? "***REMOVED***";
+            var jwtIssuer = configuration["Jwt:Issuer"] ?? "ASMTasks";
+            var jwtAudience = configuration["Jwt:Audience"] ?? "ASMTasks.Frontend";
+            var expirationMinutes = int.TryParse(configuration["Jwt:ExpirationMinutes"], out var parsedExp) ? parsedExp : 120;
 
             var expiresAt = DateTime.UtcNow.AddMinutes(expirationMinutes);
             var token = GerarToken(usuario, jwtKey, jwtIssuer, jwtAudience, expiresAt);
 
+            Response.Cookies.Append("asm_jwt", token, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = new DateTimeOffset(expiresAt),
+                Path = "/"
+            });
+
             return Ok(new LoginResponse
             {
-                Token = token,
                 ExpiraEm = expiresAt,
                 UsuarioId = usuario.Id,
                 ColaboradorId = usuario.ColaboradorId,
@@ -54,6 +54,21 @@ namespace API.Controllers
                 Permissoes = usuario.Permissoes,
                 EhAdministrador = usuario.EhAdministrador
             });
+        }
+
+        [HttpPost("logout")]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public IActionResult Logout()
+        {
+            Response.Cookies.Delete("asm_jwt", new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Path = "/"
+            });
+            return NoContent();
         }
 
         [HttpGet("me")]
@@ -66,7 +81,7 @@ namespace API.Controllers
             if (!int.TryParse(usuarioIdClaim, out var usuarioId))
                 return Unauthorized(new { erro = "Token invalido." });
 
-            var usuario = await Usuario.ObterPorIdAsync(_dbContext, usuarioId);
+            var usuario = await Usuario.ObterPorIdAsync(dbContext, usuarioId);
             if (usuario == null || !usuario.Ativo)
                 return Unauthorized(new { erro = "Usuario invalido." });
 
@@ -95,7 +110,7 @@ namespace API.Controllers
 
             try
             {
-                await Usuario.AlterarSenhaAsync(_dbContext, usuarioId, request.SenhaAtual, request.NovaSenha);
+                await Usuario.AlterarSenhaAsync(dbContext, usuarioId, request.SenhaAtual, request.NovaSenha);
                 return NoContent();
             }
             catch (ValidationException ex)
@@ -117,7 +132,7 @@ namespace API.Controllers
 
             try
             {
-                await Usuario.AlterarLoginAsync(_dbContext, usuarioId, request.NovoLogin);
+                await Usuario.AlterarLoginAsync(dbContext, usuarioId, request.NovoLogin);
                 return NoContent();
             }
             catch (ValidationException ex)

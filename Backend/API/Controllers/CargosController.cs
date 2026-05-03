@@ -14,14 +14,8 @@ namespace API.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-    public class CargosController : ControllerBase
+    public class CargosController(DBContext dbContext) : ControllerBase
     {
-        private readonly DBContext _dbContext;
-
-        public CargosController(DBContext dbContext)
-        {
-            _dbContext = dbContext;
-        }
 
         /// <summary>
         /// Cria um novo cargo.
@@ -48,7 +42,7 @@ namespace API.Controllers
                     Descricao = request.Descricao
                 };
 
-                var id = await cargo.CriarAsync(_dbContext);
+                var id = await cargo.CriarAsync(dbContext);
                 return CreatedAtAction(nameof(ObterPorId), new { id }, new { id, mensagem = "Cargo criado com sucesso." });
             }
             catch (ValidationException ex)
@@ -82,14 +76,14 @@ namespace API.Controllers
 
             try
             {
-                var cargo = await Cargo.ObterPorIdAsync(_dbContext, id);
+                var cargo = await Cargo.ObterPorIdAsync(dbContext, id);
                 if (cargo == null)
                     return NotFound(new { erro = "Cargo não encontrado." });
 
                 cargo.Nome = request.Nome;
                 cargo.Descricao = request.Descricao;
 
-                await cargo.AtualizarAsync(_dbContext);
+                await cargo.AtualizarAsync(dbContext);
                 return NoContent();
             }
             catch (ValidationException ex)
@@ -117,11 +111,11 @@ namespace API.Controllers
         {
             try
             {
-                var cargo = await Cargo.ObterPorIdAsync(_dbContext, id);
+                var cargo = await Cargo.ObterPorIdAsync(dbContext, id);
                 if (cargo == null)
                     return NotFound(new { erro = "Cargo não encontrado." });
 
-                await cargo.InativarAsync(_dbContext);
+                await cargo.InativarAsync(dbContext);
                 return NoContent();
             }
             catch (ValidationException ex)
@@ -149,11 +143,11 @@ namespace API.Controllers
         {
             try
             {
-                var cargo = await Cargo.ObterPorIdAsync(_dbContext, id);
+                var cargo = await Cargo.ObterPorIdAsync(dbContext, id);
                 if (cargo == null)
                     return NotFound(new { erro = "Cargo não encontrado." });
 
-                await cargo.ReativarAsync(_dbContext);
+                await cargo.ReativarAsync(dbContext);
                 return NoContent();
             }
             catch (Exception ex)
@@ -173,7 +167,7 @@ namespace API.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> ObterTodos()
         {
-            var cargos = await Cargo.ObterTodosAsync(_dbContext);
+            var cargos = await Cargo.ObterTodosAsync(dbContext);
             if (cargos == null || !cargos.Any())
                 return NoContent();
 
@@ -183,7 +177,7 @@ namespace API.Controllers
                 Nome = cargo.Nome,
                 Descricao = cargo.Descricao,
                 Ativo = cargo.Ativo,
-                PossuiColaboradoresAtivos = Cargo.VerificarColaboradoresAtivosAsync(_dbContext, cargo.Id).Result,
+                PossuiColaboradoresAtivos = Cargo.VerificarColaboradoresAtivosAsync(dbContext, cargo.Id).Result,
                 PossuiTarefasAtivas = false
             });
 
@@ -202,7 +196,7 @@ namespace API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> ObterPorId(int id)
         {
-            var cargo = await Cargo.ObterPorIdAsync(_dbContext, id);
+            var cargo = await Cargo.ObterPorIdAsync(dbContext, id);
             if (cargo == null)
                 return NotFound(new { erro = "Cargo não encontrado." });
 
@@ -212,7 +206,7 @@ namespace API.Controllers
                 Nome = cargo.Nome,
                 Descricao = cargo.Descricao,
                 Ativo = cargo.Ativo,
-                PossuiColaboradoresAtivos = await Cargo.VerificarColaboradoresAtivosAsync(_dbContext, cargo.Id),
+                PossuiColaboradoresAtivos = await Cargo.VerificarColaboradoresAtivosAsync(dbContext, cargo.Id),
                 PossuiTarefasAtivas = false
             };
 

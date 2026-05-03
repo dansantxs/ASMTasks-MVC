@@ -11,14 +11,8 @@ namespace API.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-    public class ClientesController : ControllerBase
+    public class ClientesController(DBContext dbContext) : ControllerBase
     {
-        private readonly DBContext _dbContext;
-
-        public ClientesController(DBContext dbContext)
-        {
-            _dbContext = dbContext;
-        }
 
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
@@ -47,7 +41,7 @@ namespace API.Controllers
                     DataReferencia = request.DataReferencia
                 };
 
-                var id = await cliente.CriarAsync(_dbContext);
+                var id = await cliente.CriarAsync(dbContext);
                 return CreatedAtAction(nameof(ObterPorId), new { id }, new { id, mensagem = "Cliente criado com sucesso." });
             }
             catch (ValidationException ex)
@@ -69,7 +63,7 @@ namespace API.Controllers
         {
             try
             {
-                var cliente = await Cliente.ObterPorIdAsync(_dbContext, id);
+                var cliente = await Cliente.ObterPorIdAsync(dbContext, id);
                 if (cliente == null)
                     return NotFound(new { erro = "Cliente não encontrado." });
 
@@ -89,7 +83,7 @@ namespace API.Controllers
                 cliente.Site = request.Site;
                 cliente.DataReferencia = request.DataReferencia;
 
-                await cliente.AtualizarAsync(_dbContext);
+                await cliente.AtualizarAsync(dbContext);
                 return NoContent();
             }
             catch (ValidationException ex)
@@ -110,11 +104,11 @@ namespace API.Controllers
         {
             try
             {
-                var cliente = await Cliente.ObterPorIdAsync(_dbContext, id);
+                var cliente = await Cliente.ObterPorIdAsync(dbContext, id);
                 if (cliente == null)
                     return NotFound(new { erro = "Cliente não encontrado." });
 
-                await cliente.InativarAsync(_dbContext);
+                await cliente.InativarAsync(dbContext);
                 return NoContent();
             }
             catch (ValidationException ex)
@@ -135,11 +129,11 @@ namespace API.Controllers
         {
             try
             {
-                var cliente = await Cliente.ObterPorIdAsync(_dbContext, id);
+                var cliente = await Cliente.ObterPorIdAsync(dbContext, id);
                 if (cliente == null)
                     return NotFound(new { erro = "Cliente não encontrado." });
 
-                await cliente.ReativarAsync(_dbContext);
+                await cliente.ReativarAsync(dbContext);
                 return NoContent();
             }
             catch (Exception)
@@ -153,7 +147,7 @@ namespace API.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> ObterTodos()
         {
-            var clientes = await Cliente.ObterTodosAsync(_dbContext);
+            var clientes = await Cliente.ObterTodosAsync(dbContext);
             if (clientes == null || !clientes.Any())
                 return NoContent();
 
@@ -187,7 +181,7 @@ namespace API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> ObterPorId(int id)
         {
-            var c = await Cliente.ObterPorIdAsync(_dbContext, id);
+            var c = await Cliente.ObterPorIdAsync(dbContext, id);
             if (c == null)
                 return NotFound(new { erro = "Cliente não encontrado." });
 

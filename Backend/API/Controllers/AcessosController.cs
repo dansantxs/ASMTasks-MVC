@@ -13,14 +13,8 @@ namespace API.Controllers
     [Route("api/[controller]")]
     [Authorize]
     [Produces("application/json")]
-    public class AcessosController : ControllerBase
+    public class AcessosController(DBContext dbContext) : ControllerBase
     {
-        private readonly DBContext _dbContext;
-
-        public AcessosController(DBContext dbContext)
-        {
-            _dbContext = dbContext;
-        }
 
         [HttpGet("permissoes-disponiveis")]
         public async Task<IActionResult> ObterPermissoesDisponiveis()
@@ -59,7 +53,7 @@ namespace API.Controllers
             if (!await TemAcessoAdministrativoAsync())
                 return Forbid();
 
-            var niveis = await NivelAcesso.ObterTodosAsync(_dbContext);
+            var niveis = await NivelAcesso.ObterTodosAsync(dbContext);
             return Ok(niveis.Select(n => new NivelAcessoResponse
             {
                 Id = n.Id,
@@ -87,7 +81,7 @@ namespace API.Controllers
                     Permissoes = request.Permissoes ?? new List<string>()
                 };
 
-                var id = await nivel.CriarAsync(_dbContext);
+                var id = await nivel.CriarAsync(dbContext);
                 return CreatedAtAction(nameof(ObterNiveis), new { id }, new { id, mensagem = "Nivel de acesso criado com sucesso." });
             }
             catch (ValidationException ex)
@@ -104,7 +98,7 @@ namespace API.Controllers
 
             try
             {
-                var nivel = await NivelAcesso.ObterPorIdAsync(_dbContext, id);
+                var nivel = await NivelAcesso.ObterPorIdAsync(dbContext, id);
                 if (nivel == null)
                     return NotFound(new { erro = "Nivel de acesso nao encontrado." });
 
@@ -114,7 +108,7 @@ namespace API.Controllers
                 nivel.EhAdministrador = request.EhAdministrador;
                 nivel.Permissoes = request.Permissoes ?? new List<string>();
 
-                await nivel.AtualizarAsync(_dbContext, nomeAnterior);
+                await nivel.AtualizarAsync(dbContext, nomeAnterior);
                 return NoContent();
             }
             catch (ValidationException ex)
@@ -131,11 +125,11 @@ namespace API.Controllers
 
             try
             {
-                var nivel = await NivelAcesso.ObterPorIdAsync(_dbContext, id);
+                var nivel = await NivelAcesso.ObterPorIdAsync(dbContext, id);
                 if (nivel == null)
                     return NotFound(new { erro = "Nivel de acesso nao encontrado." });
 
-                await nivel.InativarAsync(_dbContext);
+                await nivel.InativarAsync(dbContext);
                 return NoContent();
             }
             catch (ValidationException ex)
@@ -152,11 +146,11 @@ namespace API.Controllers
 
             try
             {
-                var nivel = await NivelAcesso.ObterPorIdAsync(_dbContext, id);
+                var nivel = await NivelAcesso.ObterPorIdAsync(dbContext, id);
                 if (nivel == null)
                     return NotFound(new { erro = "Nivel de acesso nao encontrado." });
 
-                await nivel.ReativarAsync(_dbContext);
+                await nivel.ReativarAsync(dbContext);
                 return NoContent();
             }
             catch (ValidationException ex)
@@ -171,7 +165,7 @@ namespace API.Controllers
             if (!await TemAcessoAdministrativoAsync())
                 return Forbid();
 
-            var usuarios = await Usuario.ObterTodosParaAdministracaoAsync(_dbContext);
+            var usuarios = await Usuario.ObterTodosParaAdministracaoAsync(dbContext);
             return Ok(usuarios.Select(u => new UsuarioAdminResponse
             {
                 Id = u.Id,
@@ -192,7 +186,7 @@ namespace API.Controllers
 
             try
             {
-                await Usuario.AtualizarNivelAcessoAsync(_dbContext, id, request.NivelAcesso);
+                await Usuario.AtualizarNivelAcessoAsync(dbContext, id, request.NivelAcesso);
                 return NoContent();
             }
             catch (ValidationException ex)
@@ -209,7 +203,7 @@ namespace API.Controllers
 
             try
             {
-                await Usuario.AtualizarDadosAdministrativosAsync(_dbContext, id, request.NovoLogin, request.NovaSenha);
+                await Usuario.AtualizarDadosAdministrativosAsync(dbContext, id, request.NovoLogin, request.NovaSenha);
                 return NoContent();
             }
             catch (ValidationException ex)
@@ -226,7 +220,7 @@ namespace API.Controllers
 
             try
             {
-                await Usuario.InativarAsync(_dbContext, id);
+                await Usuario.InativarAsync(dbContext, id);
                 return NoContent();
             }
             catch (ValidationException ex)
@@ -243,7 +237,7 @@ namespace API.Controllers
 
             try
             {
-                await Usuario.ReativarAsync(_dbContext, id);
+                await Usuario.ReativarAsync(dbContext, id);
                 return NoContent();
             }
             catch (ValidationException ex)
@@ -254,7 +248,7 @@ namespace API.Controllers
 
         private async Task<bool> TemAcessoAdministrativoAsync()
         {
-            return await AcessoAdminHelper.UsuarioTemPermissaoAsync(User, _dbContext, TelaPermissoes.ConfiguracoesAcessos);
+            return await AcessoAdminHelper.UsuarioTemPermissaoAsync(User, dbContext, TelaPermissoes.ConfiguracoesAcessos);
         }
     }
 }

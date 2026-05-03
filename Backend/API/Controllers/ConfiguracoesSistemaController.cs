@@ -13,26 +13,20 @@ namespace API.Controllers
     [Route("api/[controller]")]
     [Authorize]
     [Produces("application/json")]
-    public class ConfiguracoesSistemaController : ControllerBase
+    public class ConfiguracoesSistemaController(DBContext dbContext) : ControllerBase
     {
-        private readonly DBContext _dbContext;
-
-        public ConfiguracoesSistemaController(DBContext dbContext)
-        {
-            _dbContext = dbContext;
-        }
 
         [HttpGet]
         public async Task<IActionResult> Obter()
         {
-            var configuracao = await ConfiguracaoSistema.ObterAsync(_dbContext);
+            var configuracao = await ConfiguracaoSistema.ObterAsync(dbContext);
             return Ok(Mapear(configuracao));
         }
 
         [HttpPut]
         public async Task<IActionResult> Salvar([FromBody] ConfiguracaoSistemaRequest request)
         {
-            if (!await ConfiguracaoSistemaHelper.UsuarioPodeEditarAsync(User, _dbContext))
+            if (!await ConfiguracaoSistemaHelper.UsuarioPodeEditarAsync(User, dbContext))
                 return Forbid();
 
             try
@@ -66,7 +60,7 @@ namespace API.Controllers
                     AnexoLimiteExcelMB = request.AnexoLimiteExcelMB
                 };
 
-                await configuracao.SalvarAsync(_dbContext);
+                await configuracao.SalvarAsync(dbContext);
                 return Ok(Mapear(configuracao));
             }
             catch (ValidationException ex)
