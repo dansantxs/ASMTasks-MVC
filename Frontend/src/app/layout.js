@@ -2,6 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "../styles/globals.css";
 import Providers from "./providers";
 import LayoutPrincipal from "./LayoutPrincipal";
+import { SwRegistrar } from "./SwRegistrar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,9 +14,26 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+export const viewport = {
+  themeColor: '#1e3a8a',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+};
+
 export const metadata = {
   title: "ASM Tasks",
   description: "Sistema de Gestão de Setores",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "ASM Tasks",
+  },
+  icons: {
+    icon: '/icon.svg',
+    apple: '/icon.svg',
+  },
 };
 
 export default function RootLayout({ children }) {
@@ -25,6 +43,7 @@ export default function RootLayout({ children }) {
         <Providers>
           <LayoutPrincipal>{children}</LayoutPrincipal>
         </Providers>
+        <SwRegistrar />
       </body>
     </html>
   );

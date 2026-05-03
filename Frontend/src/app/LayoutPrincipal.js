@@ -3,6 +3,7 @@
 import { BarraLateral } from "../shared/components/BarraLateral";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { Menu } from "lucide-react";
 import {
   limparSessao,
   obterLimiteInatividadeMs,
@@ -18,6 +19,7 @@ export default function LayoutPrincipal({ children }) {
   const pathname = usePathname();
   const router = useRouter();
   const [barraLateralRecolhida, setBarraLateralRecolhida] = useState(false);
+  const [mobileAberta, setMobileAberta] = useState(false);
   const [autenticacaoVerificada, setAutenticacaoVerificada] = useState(false);
   const paginaLogin = pathname === "/login";
 
@@ -33,11 +35,12 @@ export default function LayoutPrincipal({ children }) {
       document.head.appendChild(link);
     }
     link.href = logo;
-  }, [configuracoes?.logoBase64]);
+  }, [configuracoes?.logoBase64, pathname]);
 
   const sessao = useMemo(() => obterSessaoArmazenada(), [pathname]);
 
   const handleNavegar = (caminho) => {
+    setMobileAberta(false);
     router.push(caminho);
   };
 
@@ -94,6 +97,10 @@ export default function LayoutPrincipal({ children }) {
     };
   }, [paginaLogin, autenticacaoVerificada]);
 
+  useEffect(() => {
+    setMobileAberta(false);
+  }, [pathname]);
+
   if (!autenticacaoVerificada) return null;
 
   if (paginaLogin) {
@@ -102,6 +109,14 @@ export default function LayoutPrincipal({ children }) {
 
   return (
     <div className="flex bg-background text-foreground min-h-screen">
+      {mobileAberta && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          onClick={() => setMobileAberta(false)}
+          aria-hidden="true"
+        />
+      )}
+
       <BarraLateral
         caminhoAtual={pathname}
         aoNavegar={handleNavegar}
@@ -109,13 +124,25 @@ export default function LayoutPrincipal({ children }) {
         colaboradorNome={sessao?.colaboradorNome ?? ""}
         permissoes={sessao?.permissoes ?? []}
         aoSair={handleSair}
+        mobileAberta={mobileAberta}
+        aoFecharMobile={() => setMobileAberta(false)}
       />
 
       <main
         className={`flex-1 overflow-y-auto transition-all duration-300 ${
-          barraLateralRecolhida ? "ml-20" : "ml-64"
+          barraLateralRecolhida ? "lg:ml-20" : "lg:ml-64"
         }`}
       >
+        <div className="sticky top-0 z-20 flex items-center h-14 px-4 bg-[#0f172a] border-b border-gray-800 lg:hidden">
+          <button
+            onClick={() => setMobileAberta(true)}
+            className="p-2 rounded-lg text-white hover:bg-gray-800 transition-colors"
+            aria-label="Abrir menu"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+          <span className="ml-3 text-white font-medium text-sm">ASM Tasks</span>
+        </div>
         {children}
       </main>
     </div>

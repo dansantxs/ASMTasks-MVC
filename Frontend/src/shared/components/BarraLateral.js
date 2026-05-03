@@ -21,6 +21,7 @@ import {
   Bell,
   Check,
   Folder,
+  Download,
 } from 'lucide-react';
 import { cn } from '../../ui/form/utils';
 import { Button } from '../../ui/base/button';
@@ -32,10 +33,8 @@ import { toast } from 'sonner';
 
 function formatarDataHora(valor) {
   if (!valor) return '-';
-
   const data = new Date(valor);
   if (Number.isNaN(data.getTime())) return '-';
-
   return data.toLocaleString('pt-BR', {
     day: '2-digit',
     month: '2-digit',
@@ -45,7 +44,7 @@ function formatarDataHora(valor) {
   });
 }
 
-export function BarraLateral({ caminhoAtual, aoNavegar, aoAlternarRecolhimento, colaboradorNome, permissoes, aoSair }) {
+export function BarraLateral({ caminhoAtual, aoNavegar, aoAlternarRecolhimento, colaboradorNome, permissoes, aoSair, mobileAberta = false, aoFecharMobile }) {
   const [recolhido, setRecolhido] = useState(false);
   const [cadastrosExpandido, setCadastrosExpandido] = useState(false);
   const [relatoriosExpandido, setRelatoriosExpandido] = useState(false);
@@ -54,10 +53,65 @@ export function BarraLateral({ caminhoAtual, aoNavegar, aoAlternarRecolhimento, 
   const [notificacoesAbertas, setNotificacoesAbertas] = useState(false);
   const [idNotificacaoSendoMarcada, setIdNotificacaoSendoMarcada] = useState(null);
   const [montado, setMontado] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const idsNaoLidasNotificadasRef = useRef(new Set());
   const rastreadorInicializadoRef = useRef(false);
 
+  // PWA install state
+  const [promptEvento, setPromptEvento] = useState(null);
+  const [pwaInstalado, setPwaInstalado] = useState(false);
+  const [ehIos, setEhIos] = useState(false);
+  const [mostrarDicaIos, setMostrarDicaIos] = useState(false);
+
   useEffect(() => { setMontado(true); }, []);
+
+  useEffect(() => {
+    const verificar = () => setIsMobile(window.innerWidth < 1024);
+    verificar();
+    window.addEventListener('resize', verificar);
+    return () => window.removeEventListener('resize', verificar);
+  }, []);
+
+  useEffect(() => {
+    const ios = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
+    const emStandalone =
+      window.navigator.standalone === true ||
+      window.matchMedia('(display-mode: standalone)').matches;
+
+    if (emStandalone) {
+      setPwaInstalado(true);
+      return;
+    }
+
+    setEhIos(ios);
+
+    const handler = (e) => {
+      e.preventDefault();
+      setPromptEvento(e);
+    };
+
+    window.addEventListener('beforeinstallprompt', handler);
+    window.addEventListener('appinstalled', () => {
+      setPwaInstalado(true);
+      setPromptEvento(null);
+    });
+
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstalar = async () => {
+    if (ehIos) {
+      setMostrarDicaIos(true);
+      return;
+    }
+    if (!promptEvento) return;
+    promptEvento.prompt();
+    const { outcome } = await promptEvento.userChoice;
+    if (outcome === 'accepted') setPwaInstalado(true);
+    setPromptEvento(null);
+  };
+
+  const mostraInstalar = !pwaInstalado && (!!promptEvento || ehIos);
 
   const queryClient = useQueryClient();
 
@@ -93,7 +147,6 @@ export function BarraLateral({ caminhoAtual, aoNavegar, aoAlternarRecolhimento, 
 
     naoLidas.forEach((item) => {
       if (jaRastreadas.has(item.id)) return;
-
       jaRastreadas.add(item.id);
       toast(item.titulo || 'Lembrete de atendimento', {
         description: item.mensagem || 'Você recebeu uma nova notificação.',
@@ -130,6 +183,10 @@ export function BarraLateral({ caminhoAtual, aoNavegar, aoAlternarRecolhimento, 
   };
 
   const alternarBarraLateral = () => {
+    if (window.innerWidth < 1024) {
+      aoFecharMobile?.();
+      return;
+    }
     const novoEstado = !recolhido;
     definirEstadoRecolhido(novoEstado);
     setCadastrosExpandido(false);
@@ -148,11 +205,21 @@ export function BarraLateral({ caminhoAtual, aoNavegar, aoAlternarRecolhimento, 
   const isProjetos = secaoAtual === 'projetos';
   const isConfiguracoes = secaoAtual === 'configuracoes';
 
+  const estiloPopupNotificacoes = isMobile
+    ? { position: 'fixed', left: '0.75rem', right: '0.75rem', bottom: '1rem', zIndex: 9999 }
+    : {
+        position: 'fixed',
+        left: recolhido ? 'calc(5rem + 0.75rem)' : 'calc(16rem + 0.75rem)',
+        bottom: '1rem',
+        zIndex: 9999,
+      };
+
   return (
     <div
       className={cn(
-        'fixed top-0 left-0 bg-[#0f172a] text-white h-screen flex flex-col border-r border-gray-800 transition-all duration-300',
-        recolhido ? 'w-20' : 'w-64'
+        'fixed top-0 left-0 bg-[#0f172a] text-white h-screen flex flex-col border-r border-gray-800 transition-all duration-300 z-40',
+        recolhido ? 'w-20' : 'w-64',
+        !mobileAberta && 'max-lg:-translate-x-full'
       )}
     >
       <div className="p-4 border-b border-gray-800 flex items-center justify-between gap-2">
@@ -476,7 +543,7 @@ export function BarraLateral({ caminhoAtual, aoNavegar, aoAlternarRecolhimento, 
         )}
       </nav>
 
-      <div className="relative p-4 border-t border-gray-800">
+      <div className="relative p-4 border-t border-gray-800 space-y-1">
         <button
           type="button"
           onClick={() => setNotificacoesAbertas((prev) => !prev)}
@@ -502,13 +569,8 @@ export function BarraLateral({ caminhoAtual, aoNavegar, aoAlternarRecolhimento, 
 
         {notificacoesAbertas && montado && createPortal(
           <div
-            className="w-[430px] max-w-[calc(100vw-6rem)] rounded-xl border border-gray-200 bg-white text-slate-900 shadow-2xl overflow-hidden"
-            style={{
-              position: 'fixed',
-              left: recolhido ? 'calc(5rem + 0.75rem)' : 'calc(16rem + 0.75rem)',
-              bottom: '1rem',
-              zIndex: 9999,
-            }}
+            className="w-[430px] max-w-[calc(100vw-1.5rem)] rounded-xl border border-gray-200 bg-white text-slate-900 shadow-2xl overflow-hidden"
+            style={estiloPopupNotificacoes}
           >
             <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
               <h3 className="font-medium">Notificações</h3>
@@ -568,6 +630,40 @@ export function BarraLateral({ caminhoAtual, aoNavegar, aoAlternarRecolhimento, 
           </div>,
           document.body
         )}
+
+        {mostraInstalar && (
+          <div className="relative">
+            <button
+              type="button"
+              onClick={handleInstalar}
+              className={cn(
+                'w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-gray-300 hover:bg-gray-800 hover:text-white',
+                recolhido && 'justify-center px-2'
+              )}
+              title={recolhido ? 'Instalar App' : undefined}
+            >
+              <Download className="h-5 w-5 flex-shrink-0" />
+              {!recolhido && <span className="flex-1 text-left">Instalar App</span>}
+            </button>
+
+            {mostrarDicaIos && (
+              <div className="absolute bottom-full left-0 right-0 mb-2 p-3 bg-white text-slate-900 rounded-lg shadow-xl text-sm border border-gray-200">
+                <p className="font-medium mb-1">Instalar no iPhone / iPad</p>
+                <p className="text-gray-600 text-xs leading-relaxed">
+                  Toque em <strong>Compartilhar</strong> (ícone de caixa com seta) e depois em{' '}
+                  <strong>"Adicionar à Tela de Início"</strong>.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setMostrarDicaIos(false)}
+                  className="mt-2 text-xs text-blue-600 hover:underline"
+                >
+                  Fechar
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {!recolhido && (
@@ -598,4 +694,6 @@ BarraLateral.propTypes = {
   colaboradorNome: PropTypes.string,
   permissoes: PropTypes.arrayOf(PropTypes.string),
   aoSair: PropTypes.func.isRequired,
+  mobileAberta: PropTypes.bool,
+  aoFecharMobile: PropTypes.func,
 };
