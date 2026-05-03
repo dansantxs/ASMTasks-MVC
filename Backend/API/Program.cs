@@ -2,10 +2,12 @@ using API.DB;
 using API.DB.DAOs;
 using API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 using System.Text;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -81,6 +83,18 @@ Esta API gerencia entidades internas do sistema.
     var caminhoXml = Path.Combine(AppContext.BaseDirectory, nomeArquivoXml);
     if (File.Exists(caminhoXml))
         c.IncludeXmlComments(caminhoXml, includeControllerXmlComments: true);
+});
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("login", limiterOptions =>
+    {
+        limiterOptions.Window = TimeSpan.FromMinutes(1);
+        limiterOptions.PermitLimit = 10;
+        limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        limiterOptions.QueueLimit = 0;
+    });
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 });
 
 builder.Services.AddControllers();
@@ -170,6 +184,7 @@ app.UseSwaggerUI(c =>
 
 app.UseCors("PermitirFrontend");
 
+app.UseRateLimiter();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
