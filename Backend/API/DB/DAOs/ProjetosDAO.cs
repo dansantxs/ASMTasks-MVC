@@ -1087,6 +1087,24 @@ namespace API.DB.DAOs
             return Convert.ToInt32(result) > 0;
         }
 
+        public async Task<bool> AnexoAcessivelParaColaboradorAsync(DBContext dbContext, int anexoId, int colaboradorId)
+        {
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = @"
+                SELECT COUNT(1)
+                FROM ProjetoTarefaAnexo a
+                JOIN ProjetoTarefa t ON a.TarefaId = t.Id
+                WHERE a.Id = @AnexoId
+                AND (a.EnviadoPorColaboradorId = @ColaboradorId OR t.ColaboradorResponsavelId = @ColaboradorId);
+            ";
+            cmd.Parameters.AddWithValue("@AnexoId", anexoId);
+            cmd.Parameters.AddWithValue("@ColaboradorId", colaboradorId);
+
+            var result = await cmd.ExecuteScalarAsync();
+            return Convert.ToInt32(result) > 0;
+        }
+
         public async Task<ProjetoDocumentoResponse?> ObterDocumentoAsync(DBContext dbContext, int projetoId)
         {
             ProjetoDocumentoResponse? doc = null;

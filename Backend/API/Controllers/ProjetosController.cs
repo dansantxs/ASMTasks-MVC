@@ -834,6 +834,7 @@ namespace API.Controllers
 
         [HttpGet("tarefas/anexos/{anexoId}/arquivo")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> ObterArquivoAnexo(int anexoId)
@@ -843,6 +844,15 @@ namespace API.Controllers
                 var anexo = await _projetosDAO.ObterAnexoPorIdAsync(_dbContext, anexoId);
                 if (anexo == null)
                     return NotFound(new { erro = "Anexo não encontrado." });
+
+                var ehAdmin = string.Equals(User.FindFirstValue("ehAdministrador"), "true", StringComparison.OrdinalIgnoreCase);
+                if (!ehAdmin)
+                {
+                    var colaboradorId = ObterColaboradorIdLogado();
+                    var temAcesso = await _projetosDAO.AnexoAcessivelParaColaboradorAsync(_dbContext, anexoId, colaboradorId);
+                    if (!temAcesso)
+                        return Forbid();
+                }
 
                 var caminho = Path.Combine(ObterPastaAnexos(), anexo.NomeArquivo);
                 if (!System.IO.File.Exists(caminho))
@@ -859,6 +869,7 @@ namespace API.Controllers
 
         [HttpDelete("tarefas/anexos/{anexoId}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> DeletarAnexo(int anexoId)
@@ -868,6 +879,15 @@ namespace API.Controllers
                 var anexo = await _projetosDAO.ObterAnexoPorIdAsync(_dbContext, anexoId);
                 if (anexo == null)
                     return NotFound(new { erro = "Anexo não encontrado." });
+
+                var ehAdmin = string.Equals(User.FindFirstValue("ehAdministrador"), "true", StringComparison.OrdinalIgnoreCase);
+                if (!ehAdmin)
+                {
+                    var colaboradorId = ObterColaboradorIdLogado();
+                    var temAcesso = await _projetosDAO.AnexoAcessivelParaColaboradorAsync(_dbContext, anexoId, colaboradorId);
+                    if (!temAcesso)
+                        return Forbid();
+                }
 
                 var deletado = await _projetosDAO.DeletarAnexoAsync(_dbContext, anexoId);
                 if (!deletado)
