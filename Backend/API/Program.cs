@@ -9,11 +9,15 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var corsOrigens = builder.Configuration["CorsOrigens"]
+    ?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+    ?? ["http://localhost:3000"];
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("PermitirFrontend", politica =>
     {
-        politica.WithOrigins("http://localhost:3000")
+        politica.WithOrigins(corsOrigens)
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -112,6 +116,16 @@ builder.Services
             IssuerSigningKey = new SymmetricSecurityKey(chaveBytes),
             ClockSkew = TimeSpan.Zero
         };
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var cookie = context.Request.Cookies["asm_jwt"];
+                if (!string.IsNullOrEmpty(cookie))
+                    context.Token = cookie;
+                return Task.CompletedTask;
+            }
+        };
     });
 
 DBContext dbContext = new DBContext();
@@ -132,6 +146,19 @@ builder.Services.AddScoped<AtendimentoNotificacaoProcessor>();
 builder.Services.AddHostedService<AtendimentoNotificacaoBackgroundService>();
 
 var app = builder.Build();
+
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Append("X-Frame-Options", "DENY");
+    context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+    context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
+    context.Response.Headers.Append("X-Permitted-Cross-Domain-Policies", "none");
+    context.Response.Headers.Append("Content-Security-Policy",
+        "default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'");
+    if (!app.Environment.IsDevelopment())
+        context.Response.Headers.Append("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+    await next();
+});
 
 app.UseSwagger();
 app.UseSwaggerUI(c =>

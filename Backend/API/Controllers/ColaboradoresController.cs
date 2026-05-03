@@ -14,14 +14,8 @@ namespace API.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-    public class ColaboradoresController : ControllerBase
+    public class ColaboradoresController(DBContext dbContext) : ControllerBase
     {
-        private readonly DBContext _dbContext;
-
-        public ColaboradoresController(DBContext dbContext)
-        {
-            _dbContext = dbContext;
-        }
 
         /// <summary>
         /// Cria um novo colaborador.
@@ -60,8 +54,8 @@ namespace API.Controllers
                     CargoId = request.CargoId
                 };
 
-                var id = await colaborador.CriarAsync(_dbContext);
-                var usuarioCriado = await Usuario.ObterPorColaboradorIdAsync(_dbContext, id);
+                var id = await colaborador.CriarAsync(dbContext);
+                var usuarioCriado = await Usuario.ObterPorColaboradorIdAsync(dbContext, id);
 
                 var response = new ColaboradorCriarResponse
                 {
@@ -103,7 +97,7 @@ namespace API.Controllers
 
             try
             {
-                var colaborador = await Colaborador.ObterPorIdAsync(_dbContext, id);
+                var colaborador = await Colaborador.ObterPorIdAsync(dbContext, id);
                 if (colaborador == null)
                     return NotFound(new { erro = "Colaborador não encontrado." });
 
@@ -122,7 +116,7 @@ namespace API.Controllers
                 colaborador.SetorId = request.SetorId;
                 colaborador.CargoId = request.CargoId;
 
-                await colaborador.AtualizarAsync(_dbContext);
+                await colaborador.AtualizarAsync(dbContext);
                 return NoContent();
             }
             catch (ValidationException ex)
@@ -150,11 +144,11 @@ namespace API.Controllers
         {
             try
             {
-                var colaborador = await Colaborador.ObterPorIdAsync(_dbContext, id);
+                var colaborador = await Colaborador.ObterPorIdAsync(dbContext, id);
                 if (colaborador == null)
                     return NotFound(new { erro = "Colaborador não encontrado." });
 
-                await colaborador.InativarAsync(_dbContext);
+                await colaborador.InativarAsync(dbContext);
                 return NoContent();
             }
             catch (ValidationException ex)
@@ -182,11 +176,11 @@ namespace API.Controllers
         {
             try
             {
-                var colaborador = await Colaborador.ObterPorIdAsync(_dbContext, id);
+                var colaborador = await Colaborador.ObterPorIdAsync(dbContext, id);
                 if (colaborador == null)
                     return NotFound(new { erro = "Colaborador não encontrado." });
 
-                await colaborador.ReativarAsync(_dbContext);
+                await colaborador.ReativarAsync(dbContext);
                 return NoContent();
             }
             catch (Exception)
@@ -206,7 +200,7 @@ namespace API.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> ObterTodos()
         {
-            var colaboradores = await Colaborador.ObterTodosAsync(_dbContext);
+            var colaboradores = await Colaborador.ObterTodosAsync(dbContext);
             if (colaboradores == null || !colaboradores.Any())
                 return NoContent();
 
@@ -246,7 +240,7 @@ namespace API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> ObterPorId(int id)
         {
-            var colaborador = await Colaborador.ObterPorIdAsync(_dbContext, id);
+            var colaborador = await Colaborador.ObterPorIdAsync(dbContext, id);
             if (colaborador == null)
                 return NotFound(new { erro = "Colaborador não encontrado." });
 

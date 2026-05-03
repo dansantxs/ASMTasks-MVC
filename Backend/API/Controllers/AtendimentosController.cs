@@ -13,14 +13,8 @@ namespace API.Controllers
     [Route("api/[controller]")]
     [Produces("application/json")]
     [Authorize]
-    public class AtendimentosController : ControllerBase
+    public class AtendimentosController(DBContext dbContext) : ControllerBase
     {
-        private readonly DBContext _dbContext;
-
-        public AtendimentosController(DBContext dbContext)
-        {
-            _dbContext = dbContext;
-        }
 
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
@@ -42,7 +36,7 @@ namespace API.Controllers
                     NotificacoesMinutosAntecedencia = request.NotificacoesMinutosAntecedencia
                 };
 
-                var id = await atendimento.CriarAsync(_dbContext);
+                var id = await atendimento.CriarAsync(dbContext);
                 return CreatedAtAction(nameof(ObterPorId), new { id }, new { id, mensagem = "Atendimento criado com sucesso." });
             }
             catch (ValidationException ex)
@@ -64,7 +58,7 @@ namespace API.Controllers
         {
             try
             {
-                var atendimento = await Atendimento.ObterPorIdAsync(_dbContext, id, aplicarAutoFinalizacao: false);
+                var atendimento = await Atendimento.ObterPorIdAsync(dbContext, id, aplicarAutoFinalizacao: false);
                 if (atendimento == null)
                     return NotFound(new { erro = "Atendimento nao encontrado." });
 
@@ -76,7 +70,7 @@ namespace API.Controllers
                 atendimento.ColaboradoresIds = request.ColaboradoresIds;
                 atendimento.NotificacoesMinutosAntecedencia = request.NotificacoesMinutosAntecedencia;
 
-                await atendimento.AtualizarAsync(_dbContext);
+                await atendimento.AtualizarAsync(dbContext);
                 return NoContent();
             }
             catch (ValidationException ex)
@@ -97,11 +91,11 @@ namespace API.Controllers
         {
             try
             {
-                var atendimento = await Atendimento.ObterPorIdAsync(_dbContext, id);
+                var atendimento = await Atendimento.ObterPorIdAsync(dbContext, id);
                 if (atendimento == null)
                     return NotFound(new { erro = "Atendimento nao encontrado." });
 
-                await atendimento.ExcluirAsync(_dbContext);
+                await atendimento.ExcluirAsync(dbContext);
                 return NoContent();
             }
             catch (ValidationException ex)
@@ -124,12 +118,12 @@ namespace API.Controllers
         {
             try
             {
-                var atendimento = await Atendimento.ObterPorIdAsync(_dbContext, id);
+                var atendimento = await Atendimento.ObterPorIdAsync(dbContext, id);
                 if (atendimento == null)
                     return NotFound(new { erro = "Atendimento nao encontrado." });
 
                 await atendimento.MarcarComoRealizadoAsync(
-                    _dbContext,
+                    dbContext,
                     ObterColaboradorIdLogado(),
                     request?.ObservacaoConclusao);
                 return NoContent();
@@ -161,12 +155,12 @@ namespace API.Controllers
         {
             try
             {
-                var atendimento = await Atendimento.ObterPorIdAsync(_dbContext, id);
+                var atendimento = await Atendimento.ObterPorIdAsync(dbContext, id);
                 if (atendimento == null)
                     return NotFound(new { erro = "Atendimento nao encontrado." });
 
                 await atendimento.MarcarComoAgendadoAsync(
-                    _dbContext,
+                    dbContext,
                     ObterColaboradorIdLogado());
                 return NoContent();
             }
@@ -185,7 +179,7 @@ namespace API.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> ObterTodos([FromQuery] DateTime? dataInicio = null, [FromQuery] DateTime? dataFim = null)
         {
-            var atendimentos = await Atendimento.ObterTodosAsync(_dbContext, dataInicio, dataFim);
+            var atendimentos = await Atendimento.ObterTodosAsync(dbContext, dataInicio, dataFim);
             if (atendimentos == null || !atendimentos.Any())
                 return NoContent();
 
@@ -234,7 +228,7 @@ namespace API.Controllers
             }
 
             var historico = await Atendimento.ObterHistoricoStatusRelatorioAsync(
-                _dbContext,
+                dbContext,
                 dataInicio,
                 dataFim,
                 tipoChar,
@@ -268,7 +262,7 @@ namespace API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> ObterPorId(int id)
         {
-            var a = await Atendimento.ObterPorIdAsync(_dbContext, id);
+            var a = await Atendimento.ObterPorIdAsync(dbContext, id);
             if (a == null)
                 return NotFound(new { erro = "Atendimento nao encontrado." });
 

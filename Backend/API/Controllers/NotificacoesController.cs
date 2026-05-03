@@ -12,14 +12,8 @@ namespace API.Controllers
     [Route("api/[controller]")]
     [Authorize]
     [Produces("application/json")]
-    public class NotificacoesController : ControllerBase
+    public class NotificacoesController(DBContext dbContext) : ControllerBase
     {
-        private readonly DBContext _dbContext;
-
-        public NotificacoesController(DBContext dbContext)
-        {
-            _dbContext = dbContext;
-        }
 
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -29,8 +23,8 @@ namespace API.Controllers
             try
             {
                 var colaboradorId = ObterColaboradorIdLogado();
-                var notificacoes = await NotificacaoSistema.ObterPorColaboradorAsync(_dbContext, colaboradorId, limite);
-                var quantidadeNaoLidas = await NotificacaoSistema.ObterQuantidadeNaoLidasAsync(_dbContext, colaboradorId);
+                var notificacoes = await NotificacaoSistema.ObterPorColaboradorAsync(dbContext, colaboradorId, limite);
+                var quantidadeNaoLidas = await NotificacaoSistema.ObterQuantidadeNaoLidasAsync(dbContext, colaboradorId);
 
                 var response = new NotificacaoSistemaListaResponse
                 {
@@ -55,7 +49,7 @@ namespace API.Controllers
             try
             {
                 var colaboradorId = ObterColaboradorIdLogado();
-                var marcada = await NotificacaoSistema.MarcarComoLidaAsync(_dbContext, id, colaboradorId);
+                var marcada = await NotificacaoSistema.MarcarComoLidaAsync(dbContext, id, colaboradorId);
                 if (!marcada)
                     return NotFound(new { erro = "Notificacao nao encontrada." });
 

@@ -53,3 +53,7 @@ export async function obterUsuarioLogado() {
   const res = await requisicaoApi('/auth/me', { cache: 'no-store' });
   return tratarResposta(res);
 }
+
+export async function logout() {
+  await requisicaoApi('/auth/logout', { method: 'POST' });
+}

@@ -14,14 +14,8 @@ namespace API.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-    public class PrioridadesController : ControllerBase
+    public class PrioridadesController(DBContext dbContext) : ControllerBase
     {
-        private readonly DBContext _dbContext;
-
-        public PrioridadesController(DBContext dbContext)
-        {
-            _dbContext = dbContext;
-        }
 
         /// <summary>
         /// Cria uma nova prioridade.
@@ -50,7 +44,7 @@ namespace API.Controllers
                     Ordem = request.Ordem
                 };
 
-                var id = await prioridade.CriarAsync(_dbContext);
+                var id = await prioridade.CriarAsync(dbContext);
                 return CreatedAtAction(nameof(ObterPorId), new { id }, new { id, mensagem = "Prioridade criada com sucesso." });
             }
             catch (ValidationException ex)
@@ -84,7 +78,7 @@ namespace API.Controllers
 
             try
             {
-                var prioridade = await Prioridade.ObterPorIdAsync(_dbContext, id);
+                var prioridade = await Prioridade.ObterPorIdAsync(dbContext, id);
                 if (prioridade == null)
                     return NotFound(new { erro = "Prioridade não encontrada." });
 
@@ -93,7 +87,7 @@ namespace API.Controllers
                 prioridade.Cor = request.Cor;
                 prioridade.Ordem = request.Ordem;
 
-                await prioridade.AtualizarAsync(_dbContext);
+                await prioridade.AtualizarAsync(dbContext);
                 return NoContent();
             }
             catch (ValidationException ex)
@@ -121,11 +115,11 @@ namespace API.Controllers
         {
             try
             {
-                var prioridade = await Prioridade.ObterPorIdAsync(_dbContext, id);
+                var prioridade = await Prioridade.ObterPorIdAsync(dbContext, id);
                 if (prioridade == null)
                     return NotFound(new { erro = "Prioridade não encontrada." });
 
-                await prioridade.InativarAsync(_dbContext);
+                await prioridade.InativarAsync(dbContext);
                 return NoContent();
             }
             catch (ValidationException ex)
@@ -153,11 +147,11 @@ namespace API.Controllers
         {
             try
             {
-                var prioridade = await Prioridade.ObterPorIdAsync(_dbContext, id);
+                var prioridade = await Prioridade.ObterPorIdAsync(dbContext, id);
                 if (prioridade == null)
                     return NotFound(new { erro = "Prioridade não encontrada." });
 
-                await prioridade.ReativarAsync(_dbContext);
+                await prioridade.ReativarAsync(dbContext);
                 return NoContent();
             }
             catch (Exception)
@@ -177,7 +171,7 @@ namespace API.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> ObterTodos()
         {
-            var prioridades = await Prioridade.ObterTodosAsync(_dbContext);
+            var prioridades = await Prioridade.ObterTodosAsync(dbContext);
             if (prioridades == null || !prioridades.Any())
                 return NoContent();
 
@@ -207,7 +201,7 @@ namespace API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> ObterPorId(int id)
         {
-            var prioridade = await Prioridade.ObterPorIdAsync(_dbContext, id);
+            var prioridade = await Prioridade.ObterPorIdAsync(dbContext, id);
             if (prioridade == null)
                 return NotFound(new { erro = "Prioridade não encontrada." });
 
