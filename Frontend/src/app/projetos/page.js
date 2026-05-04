@@ -11,7 +11,7 @@ import FormularioProjeto from './components/FormularioProjeto';
 import ListaProjetos from './components/ListaProjetos';
 import DialogoVisualizarProjeto from './components/DialogoVisualizarProjeto';
 import DialogoDuplicarProjeto from './components/DialogoDuplicarProjeto';
-import { obterSessaoArmazenada } from '../../shared/auth/session';
+import { useUsuarioAtual } from '../../shared/auth/useUsuarioAtual';
 import {
   atualizarProjeto,
   criarProjeto,
@@ -38,8 +38,8 @@ export default function ProjetosPage() {
   const [duplicatingProject, setDuplicatingProject] = useState(null);
   const [modoVisualizacao, setModoVisualizacao] = useState('cards');
   const queryClient = useQueryClient();
-  const session = obterSessaoArmazenada();
-  const colaboradorLogadoNome = session?.colaboradorNome ?? '';
+  const { usuario } = useUsuarioAtual();
+  const colaboradorLogadoNome = usuario?.colaboradorNome ?? '';
 
   const { data: projetos = [], isLoading: isLoadingProjetos } = useQuery({
     queryKey: ['projetos'],

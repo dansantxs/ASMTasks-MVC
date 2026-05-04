@@ -108,7 +108,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao criar o projeto.", detalhe = ex.Message });
+                return StatusCode(500, new { erro = "Erro ao criar o projeto." });
             }
         }
 
@@ -133,7 +133,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao inativar o projeto.", detalhe = ex.Message });
+                return StatusCode(500, new { erro = "Erro ao inativar o projeto." });
             }
         }
 
@@ -174,7 +174,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao atualizar o projeto.", detalhe = ex.Message });
+                return StatusCode(500, new { erro = "Erro ao atualizar o projeto." });
             }
         }
 
@@ -199,7 +199,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao reativar o projeto.", detalhe = ex.Message });
+                return StatusCode(500, new { erro = "Erro ao reativar o projeto." });
             }
         }
 
@@ -230,7 +230,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao desmarcar conclusão do projeto.", detalhe = ex.Message });
+                return StatusCode(500, new { erro = "Erro ao desmarcar conclusão do projeto." });
             }
         }
 
@@ -274,7 +274,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao obter documento do projeto.", detalhe = ex.Message });
+                return StatusCode(500, new { erro = "Erro ao obter documento do projeto." });
             }
         }
 
@@ -330,7 +330,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao duplicar o projeto.", detalhe = ex.Message });
+                return StatusCode(500, new { erro = "Erro ao duplicar o projeto." });
             }
         }
 
@@ -357,7 +357,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao obter tarefas do kanban.", detalhe = ex.Message });
+                return StatusCode(500, new { erro = "Erro ao obter tarefas do kanban." });
             }
         }
 
@@ -467,7 +467,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao mover tarefa de etapa.", detalhe = ex.Message });
+                return StatusCode(500, new { erro = "Erro ao mover tarefa de etapa." });
             }
         }
 
@@ -537,7 +537,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao trocar responsável.", detalhe = ex.Message });
+                return StatusCode(500, new { erro = "Erro ao trocar responsável." });
             }
         }
 
@@ -584,7 +584,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao iniciar tarefa.", detalhe = ex.Message });
+                return StatusCode(500, new { erro = "Erro ao iniciar tarefa." });
             }
         }
 
@@ -625,7 +625,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao pausar tarefa.", detalhe = ex.Message });
+                return StatusCode(500, new { erro = "Erro ao pausar tarefa." });
             }
         }
 
@@ -658,7 +658,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao obter relatório de histórico de projetos.", detalhe = ex.Message });
+                return StatusCode(500, new { erro = "Erro ao obter relatório de histórico de projetos." });
             }
         }
 
@@ -673,7 +673,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao obter histórico do projeto.", detalhe = ex.Message });
+                return StatusCode(500, new { erro = "Erro ao obter histórico do projeto." });
             }
         }
 
@@ -689,7 +689,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao obter histórico da tarefa.", detalhe = ex.Message });
+                return StatusCode(500, new { erro = "Erro ao obter histórico da tarefa." });
             }
         }
 
@@ -722,7 +722,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao obter relatório de histórico.", detalhe = ex.Message });
+                return StatusCode(500, new { erro = "Erro ao obter relatório de histórico." });
             }
         }
 
@@ -799,7 +799,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao fazer upload do anexo.", detalhe = ex.Message });
+                return StatusCode(500, new { erro = "Erro ao fazer upload do anexo." });
             }
         }
 
@@ -828,7 +828,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao obter anexos.", detalhe = ex.Message });
+                return StatusCode(500, new { erro = "Erro ao obter anexos." });
             }
         }
 
@@ -863,7 +863,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao obter arquivo.", detalhe = ex.Message });
+                return StatusCode(500, new { erro = "Erro ao obter arquivo." });
             }
         }
 
@@ -901,7 +901,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao deletar anexo.", detalhe = ex.Message });
+                return StatusCode(500, new { erro = "Erro ao deletar anexo." });
             }
         }
 

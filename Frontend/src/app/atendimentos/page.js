@@ -20,7 +20,7 @@ import {
   marcarAtendimentoComoAgendado,
   marcarAtendimentoComoRealizado,
 } from './api/atendimentos';
-import { obterSessaoArmazenada } from '../../shared/auth/session';
+import { useUsuarioAtual } from '../../shared/auth/useUsuarioAtual';
 import { configuracoesPadrao, useConfiguracoesSistema } from '../../shared/configuracoes-sistema/api';
 
 function inicioDaSemana(data) {
@@ -57,9 +57,9 @@ export default function AgendaAtendimentosPage() {
   const [idsColaboradoresFiltrados, setIdsColaboradoresFiltrados] = useState([]);
   const [painelFiltroAberto, setPainelFiltroAberto] = useState(false);
   const queryClient = useQueryClient();
-  const sessao = obterSessaoArmazenada();
-  const colaboradorLogadoId = Number(sessao?.colaboradorId ?? 0);
-  const colaboradorLogadoNome = sessao?.colaboradorNome ?? '';
+  const { usuario } = useUsuarioAtual();
+  const colaboradorLogadoId = Number(usuario?.colaboradorId ?? 0);
+  const colaboradorLogadoNome = usuario?.colaboradorNome ?? '';
   const { data: configuracoes = configuracoesPadrao } = useConfiguracoesSistema();
 
   const fimSemana = useMemo(() => fimDaSemana(inicioSemana), [inicioSemana]);

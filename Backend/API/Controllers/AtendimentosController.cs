@@ -45,7 +45,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao criar o atendimento.", detalhe = ex.Message });
+                return StatusCode(500, new { erro = "Erro ao criar o atendimento." });
             }
         }
 
@@ -79,7 +79,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao atualizar o atendimento.", detalhe = ex.Message });
+                return StatusCode(500, new { erro = "Erro ao atualizar o atendimento." });
             }
         }
 
@@ -104,7 +104,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao excluir o atendimento.", detalhe = ex.Message });
+                return StatusCode(500, new { erro = "Erro ao excluir o atendimento." });
             }
         }
 
@@ -134,7 +134,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao atualizar status do atendimento.", detalhe = ex.Message });
+                return StatusCode(500, new { erro = "Erro ao atualizar status do atendimento." });
             }
         }
 
@@ -170,7 +170,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao atualizar status do atendimento.", detalhe = ex.Message });
+                return StatusCode(500, new { erro = "Erro ao atualizar status do atendimento." });
             }
         }
 

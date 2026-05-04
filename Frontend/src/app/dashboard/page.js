@@ -21,7 +21,7 @@ import {
   UserX,
 } from 'lucide-react';
 import { getDashboard } from './api/dashboard';
-import { obterSessaoArmazenada } from '../../shared/auth/session';
+import { useUsuarioAtual } from '../../shared/auth/useUsuarioAtual';
 import TourGuia from '../../shared/components/TourGuia';
 
 function CardKPI({ icone: Icone, titulo, valor, corIcone, corFundo, destaque, sufixo }) {
@@ -209,9 +209,9 @@ function RankingColaboradores({ titulo, itens, corBadge }) {
 }
 
 export default function DashboardPage() {
-  const sessao = obterSessaoArmazenada();
-  const ehAdministrador = sessao?.ehAdministrador ?? false;
-  const nomeUsuario = sessao?.colaboradorNome ?? '';
+  const { usuario } = useUsuarioAtual();
+  const ehAdministrador = usuario?.ehAdministrador ?? false;
+  const nomeUsuario = usuario?.colaboradorNome ?? '';
 
   const [filtroColaboradorId, setFiltroColaboradorId] = useState('');
 

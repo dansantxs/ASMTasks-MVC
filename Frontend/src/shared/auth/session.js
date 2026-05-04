@@ -16,17 +16,12 @@ export function obterSessaoArmazenada() {
   }
 }
 
+// Armazena apenas metadados de tempo — dados do usuário ficam em memória via useUsuarioAtual.
 export function salvarSessao(respostaLogin) {
   if (typeof window === 'undefined') return;
 
   const sessao = {
     expiraEm: respostaLogin.expiraEm,
-    usuarioId: respostaLogin.usuarioId,
-    colaboradorId: respostaLogin.colaboradorId,
-    colaboradorNome: respostaLogin.colaboradorNome ?? '',
-    nivelAcesso: respostaLogin.nivelAcesso ?? 0,
-    permissoes: respostaLogin.permissoes ?? [],
-    ehAdministrador: respostaLogin.ehAdministrador ?? false,
     ultimoAcessoEm: Date.now(),
   };
 
@@ -40,7 +35,7 @@ export function limparSessao() {
 
 export function isSessaoValida() {
   const sessao = obterSessaoArmazenada();
-  if (!sessao?.usuarioId || !sessao?.expiraEm) return false;
+  if (!sessao?.expiraEm) return false;
 
   const expiraEm = new Date(sessao.expiraEm).getTime();
   if (Number.isNaN(expiraEm) || expiraEm <= Date.now()) {

@@ -2,7 +2,7 @@
 
 import { BarraLateral } from "../shared/components/BarraLateral";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Menu } from "lucide-react";
 import {
   limparSessao,
@@ -11,6 +11,7 @@ import {
   isSessaoValida,
   registrarAtividadeSessao,
 } from "../shared/auth/session";
+import { useUsuarioAtual } from "../shared/auth/useUsuarioAtual";
 import { obterRotaPadrao, obterPermissaoPorRota, temPermissao } from "../shared/auth/permissions";
 import { logout } from "./login/api/auth";
 import { useConfiguracoesSistema } from "../shared/configuracoes-sistema/api";
@@ -24,6 +25,7 @@ export default function LayoutPrincipal({ children }) {
   const paginaLogin = pathname === "/login";
 
   const { data: configuracoes } = useConfiguracoesSistema({ enabled: !paginaLogin });
+  const { usuario, carregando: carregandoUsuario } = useUsuarioAtual({ enabled: !paginaLogin || isSessaoValida() });
 
   useEffect(() => {
     const logo = configuracoes?.logoBase64;
@@ -36,8 +38,6 @@ export default function LayoutPrincipal({ children }) {
     }
     link.href = logo;
   }, [configuracoes?.logoBase64, pathname]);
-
-  const sessao = useMemo(() => obterSessaoArmazenada(), [pathname]);
 
   const handleNavegar = (caminho) => {
     setMobileAberta(false);
@@ -52,11 +52,12 @@ export default function LayoutPrincipal({ children }) {
 
   useEffect(() => {
     if (paginaLogin) {
-      if (isSessaoValida()) {
-        router.replace(obterRotaPadrao(obterSessaoArmazenada()));
+      if (!isSessaoValida()) {
+        setAutenticacaoVerificada(true);
         return;
       }
-      setAutenticacaoVerificada(true);
+      if (carregandoUsuario) return;
+      router.replace(obterRotaPadrao(usuario));
       return;
     }
 
@@ -66,15 +67,22 @@ export default function LayoutPrincipal({ children }) {
       return;
     }
 
-    const sessaoAtual = obterSessaoArmazenada();
+    if (carregandoUsuario) return;
+
+    if (!usuario) {
+      limparSessao();
+      router.replace("/login");
+      return;
+    }
+
     const permissaoNecessaria = obterPermissaoPorRota(pathname);
-    if (permissaoNecessaria && !temPermissao(sessaoAtual, permissaoNecessaria)) {
-      router.replace(obterRotaPadrao(sessaoAtual));
+    if (permissaoNecessaria && !temPermissao(usuario, permissaoNecessaria)) {
+      router.replace(obterRotaPadrao(usuario));
       return;
     }
 
     setAutenticacaoVerificada(true);
-  }, [paginaLogin, pathname, router]);
+  }, [paginaLogin, pathname, router, usuario, carregandoUsuario]);
 
   useEffect(() => {
     if (paginaLogin || !autenticacaoVerificada) return;
@@ -121,8 +129,8 @@ export default function LayoutPrincipal({ children }) {
         caminhoAtual={pathname}
         aoNavegar={handleNavegar}
         aoAlternarRecolhimento={setBarraLateralRecolhida}
-        colaboradorNome={sessao?.colaboradorNome ?? ""}
-        permissoes={sessao?.permissoes ?? []}
+        colaboradorNome={usuario?.colaboradorNome ?? ""}
+        permissoes={usuario?.permissoes ?? []}
         aoSair={handleSair}
         mobileAberta={mobileAberta}
         aoFecharMobile={() => setMobileAberta(false)}

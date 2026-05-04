@@ -38,11 +38,20 @@ namespace API.Controllers
             var expiresAt = DateTime.UtcNow.AddMinutes(expirationMinutes);
             var token = GerarToken(usuario, jwtKey, jwtIssuer, jwtAudience, expiresAt);
 
+            // SameSite=None é necessário quando frontend e backend estão em origens distintas (dev).
+            // Em produção, com mesmo domínio, defina Jwt:SameSite=Strict no appsettings.
+            var sameSiteConfig = configuration["Jwt:SameSite"] ?? "None";
+            var sameSiteMode = sameSiteConfig.Equals("Strict", StringComparison.OrdinalIgnoreCase)
+                ? SameSiteMode.Strict
+                : sameSiteConfig.Equals("Lax", StringComparison.OrdinalIgnoreCase)
+                    ? SameSiteMode.Lax
+                    : SameSiteMode.None;
+
             Response.Cookies.Append("asm_jwt", token, new CookieOptions
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.None,
+                SameSite = sameSiteMode,
                 Expires = new DateTimeOffset(expiresAt),
                 Path = "/"
             });
@@ -64,11 +73,18 @@ namespace API.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public IActionResult Logout()
         {
+            var sameSiteConfig = configuration["Jwt:SameSite"] ?? "None";
+            var sameSiteMode = sameSiteConfig.Equals("Strict", StringComparison.OrdinalIgnoreCase)
+                ? SameSiteMode.Strict
+                : sameSiteConfig.Equals("Lax", StringComparison.OrdinalIgnoreCase)
+                    ? SameSiteMode.Lax
+                    : SameSiteMode.None;
+
             Response.Cookies.Delete("asm_jwt", new CookieOptions
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.None,
+                SameSite = sameSiteMode,
                 Path = "/"
             });
             return NoContent();
@@ -102,9 +118,11 @@ namespace API.Controllers
 
         [HttpPut("alterar-senha")]
         [Authorize]
+        [EnableRateLimiting("alterar-credenciais")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
         public async Task<IActionResult> AlterarSenha([FromBody] AlterarSenhaRequest request)
         {
             var usuarioIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -124,9 +142,11 @@ namespace API.Controllers
 
         [HttpPut("alterar-login")]
         [Authorize]
+        [EnableRateLimiting("alterar-credenciais")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
         public async Task<IActionResult> AlterarLogin([FromBody] AlterarLoginRequest request)
         {
             var usuarioIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
