@@ -51,7 +51,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Ocorreu um erro ao criar o cargo.", detalhe = ex.Message });
+                return StatusCode(500, new { erro = "Ocorreu um erro ao criar o cargo." });
             }
         }
 
@@ -92,7 +92,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Ocorreu um erro ao atualizar o cargo.", detalhe = ex.Message });
+                return StatusCode(500, new { erro = "Ocorreu um erro ao atualizar o cargo." });
             }
         }
 
@@ -124,7 +124,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Ocorreu um erro ao inativar o cargo.", detalhe = ex.Message });
+                return StatusCode(500, new { erro = "Ocorreu um erro ao inativar o cargo." });
             }
         }
 
@@ -152,7 +152,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Ocorreu um erro ao reativar o cargo.", detalhe = ex.Message });
+                return StatusCode(500, new { erro = "Ocorreu um erro ao reativar o cargo." });
             }
         }
 

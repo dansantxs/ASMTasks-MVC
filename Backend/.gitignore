@@ -51,9 +51,8 @@ publish/
 
 # ==========================================
 # Configurações sensíveis / ambiente específico
-# ATENÇÃO: appsettings.json e appsettings.Development.json
-# contêm credenciais hardcoded — migrar para variáveis de
-# ambiente antes de usar em produção.
+# Use appsettings.Example.json como referência para produção.
+# Segredos devem ser fornecidos via variáveis de ambiente ou dotnet user-secrets.
 # ==========================================
 appsettings.Production.json
 appsettings.Staging.json

@@ -51,7 +51,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Ocorreu um erro ao criar o setor.", detalhe = ex.Message });
+                return StatusCode(500, new { erro = "Ocorreu um erro ao criar o setor." });
             }
         }
 
@@ -92,7 +92,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Ocorreu um erro ao atualizar o setor.", detalhe = ex.Message });
+                return StatusCode(500, new { erro = "Ocorreu um erro ao atualizar o setor." });
             }
         }
 
@@ -124,7 +124,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Ocorreu um erro ao inativar o setor.", detalhe = ex.Message });
+                return StatusCode(500, new { erro = "Ocorreu um erro ao inativar o setor." });
             }
         }
 
@@ -152,7 +152,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Ocorreu um erro ao reativar o setor.", detalhe = ex.Message });
+                return StatusCode(500, new { erro = "Ocorreu um erro ao reativar o setor." });
             }
         }
 

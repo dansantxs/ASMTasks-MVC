@@ -4,7 +4,7 @@ import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Kanban } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
-import { obterSessaoArmazenada } from '../../../shared/auth/session';
+import { useUsuarioAtual } from '../../../shared/auth/useUsuarioAtual';
 import {
   getTarefasKanban,
   moverTarefaEtapa,
@@ -23,9 +23,9 @@ import TourGuia from '../../../shared/components/TourGuia';
 import DialogoVisualizarTarefa from './components/DialogoVisualizarTarefa';
 
 export default function KanbanPage() {
-  const session = obterSessaoArmazenada();
-  const colaboradorLogadoId = session?.colaboradorId ?? null;
-  const ehAdmin = session?.ehAdministrador ?? false;
+  const { usuario } = useUsuarioAtual();
+  const colaboradorLogadoId = usuario?.colaboradorId ?? null;
+  const ehAdmin = usuario?.ehAdministrador ?? false;
 
   const [filtros, setFiltros] = useState({
     colaboradorIds: colaboradorLogadoId ? [colaboradorLogadoId] : [],
