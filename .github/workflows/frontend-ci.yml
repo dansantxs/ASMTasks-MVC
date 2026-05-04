@@ -1,0 +1,38 @@
+name: Frontend CI
+
+on:
+  push:
+    paths:
+      - 'Frontend/**'
+      - '.github/workflows/frontend-ci.yml'
+  pull_request:
+    paths:
+      - 'Frontend/**'
+      - '.github/workflows/frontend-ci.yml'
+
+jobs:
+  build:
+    name: Install & Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: Frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: Frontend
+
+      - name: Create .env.local
+        run: cp .env.local.example .env.local
+        working-directory: Frontend
+
+      - name: Build
+        run: npm run build
+        working-directory: Frontend

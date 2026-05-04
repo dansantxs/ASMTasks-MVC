@@ -1,0 +1,30 @@
+name: Backend CI
+
+on:
+  push:
+    paths:
+      - 'Backend/**'
+      - '.github/workflows/backend-ci.yml'
+  pull_request:
+    paths:
+      - 'Backend/**'
+      - '.github/workflows/backend-ci.yml'
+
+jobs:
+  build:
+    name: Build & Restore
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore Backend/ASMTasks-Backend.sln
+
+      - name: Build
+        run: dotnet build Backend/ASMTasks-Backend.sln --no-restore --configuration Release

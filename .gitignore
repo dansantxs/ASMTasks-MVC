@@ -34,3 +34,10 @@ logs/
 .env.local
 .env.production
 .env.staging
+
+# ==========================================
+# Backend — configuração local e uploads
+# ==========================================
+Backend/API/appsettings.Development.json
+Backend/API/uploads/tarefas/*
+!Backend/API/uploads/tarefas/.gitkeep

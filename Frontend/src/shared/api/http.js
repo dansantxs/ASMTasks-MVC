@@ -2,7 +2,7 @@
 
 import { limparSessao } from '../auth/session';
 
-export const URL_BASE_API = 'https://localhost:7199/api';
+export const URL_BASE_API = process.env.NEXT_PUBLIC_API_URL ?? 'https://localhost:7199/api';
 
 export async function requisicaoApi(caminho, opcoes = {}) {
   const cabecalhos = { ...(opcoes.headers ?? {}) };
