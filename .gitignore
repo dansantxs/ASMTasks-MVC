@@ -17,6 +17,7 @@ $RECYCLE.BIN/
 # ==========================================
 .vscode/
 .idea/
+.dotnet/
 *.swp
 *.swo
 *~
@@ -34,6 +35,8 @@ logs/
 .env.local
 .env.production
 .env.staging
+.env.dev
+.env.prod
 
 # ==========================================
 # Backend — configuração local e uploads

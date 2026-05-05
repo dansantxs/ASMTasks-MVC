@@ -1,0 +1,13 @@
+services:
+  backend:
+    ports:
+      - "5000:8080"
+    restart: unless-stopped
+
+  frontend:
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+  sqlserver:
+    restart: unless-stopped

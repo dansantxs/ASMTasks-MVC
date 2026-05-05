@@ -1,0 +1,12 @@
+services:
+  sqlserver:
+    ports:
+      - "1433:1433"
+
+  backend:
+    ports:
+      - "5000:8080"
+
+  frontend:
+    ports:
+      - "3000:3000"

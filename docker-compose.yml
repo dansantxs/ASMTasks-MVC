@@ -1,0 +1,56 @@
+name: asmtasks
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      SA_PASSWORD: ${DB_PASSWORD}
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Express
+    volumes:
+      - sqldata:/var/opt/mssql
+    networks:
+      - asmtasks
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$SA_PASSWORD\" -Q 'SELECT 1' -No"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      StringConexao: "Server=sqlserver,1433;Database=${DB_NAME};User Id=sa;Password=${DB_PASSWORD};TrustServerCertificate=True;"
+      Jwt__Key: ${JWT_KEY}
+      Jwt__Issuer: ASMTasks
+      Jwt__Audience: ASMTasks.Frontend
+      Jwt__ExpirationMinutes: "120"
+      Jwt__SameSite: ${JWT_SAMESITE:-Strict}
+      CorsOrigens: ${CORS_ORIGINS}
+    networks:
+      - asmtasks
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    networks:
+      - asmtasks
+    depends_on:
+      - backend
+
+networks:
+  asmtasks:
+    driver: bridge
+
+volumes:
+  sqldata:
