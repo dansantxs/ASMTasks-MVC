@@ -50,7 +50,7 @@ namespace API.Controllers
             Response.Cookies.Append("asm_jwt", token, new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true,
+                Secure = Request.IsHttps,
                 SameSite = sameSiteMode,
                 Expires = new DateTimeOffset(expiresAt),
                 Path = "/"
@@ -83,7 +83,7 @@ namespace API.Controllers
             Response.Cookies.Delete("asm_jwt", new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true,
+                Secure = Request.IsHttps,
                 SameSite = sameSiteMode,
                 Path = "/"
             });
