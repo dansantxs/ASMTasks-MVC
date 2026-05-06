@@ -12,6 +12,7 @@ self.addEventListener('activate', (e) => {
 
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
+  if (e.request.mode === 'navigate') return;
   const { pathname, origin } = new URL(e.request.url);
   if (origin !== location.origin) return;
   if (pathname.startsWith('/_next/static/') || pathname.startsWith('/api/')) return;
