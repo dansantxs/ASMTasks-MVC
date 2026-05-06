@@ -38,7 +38,6 @@ const ABAS = [
 export default function ListaProjetos({
   projetos,
   clientesById,
-  setoresById,
   etapasById,
   aoSelecionarProjeto,
   modoVisualizacao,
@@ -76,16 +75,14 @@ export default function ListaProjetos({
 
     return base.filter((project) => {
       const clienteNome = normalizarTexto(clientesById.get(project.clienteId));
-      const setorNome = normalizarTexto(setoresById.get(project.setorId));
       const titulo = normalizarTexto(project.titulo);
       const descricao = normalizarTexto(project.descricao);
-      return titulo.includes(term) || descricao.includes(term) || clienteNome.includes(term) || setorNome.includes(term);
+      return titulo.includes(term) || descricao.includes(term) || clienteNome.includes(term);
     });
-  }, [abaAtiva, searchTerm, projetosAtivos, projetosConcluidos, projetosInativos, clientesById, setoresById]);
+  }, [abaAtiva, searchTerm, projetosAtivos, projetosConcluidos, projetosInativos, clientesById]);
 
   const renderProjectCard = (project) => {
     const clienteNome = clientesById.get(project.clienteId) ?? `Cliente #${project.clienteId}`;
-    const setorNome = setoresById.get(project.setorId) ?? `Setor #${project.setorId}`;
     const status = !project.ativo ? 'Inativo' : project.concluido ? 'Concluido' : 'Ativo';
 
     return (
@@ -107,7 +104,7 @@ export default function ListaProjetos({
             <div>
               <CardTitle className="text-lg">{project.titulo}</CardTitle>
               <p className="text-sm text-muted-foreground mt-1">
-                Cliente: {clienteNome} | Setor: {setorNome}
+                Cliente: {clienteNome}
               </p>
             </div>
             <Badge
@@ -135,14 +132,12 @@ export default function ListaProjetos({
 
   const renderProjectRow = (project) => {
     const clienteNome = clientesById.get(project.clienteId) ?? `Cliente #${project.clienteId}`;
-    const setorNome = setoresById.get(project.setorId) ?? `Setor #${project.setorId}`;
     const status = !project.ativo ? 'Inativo' : project.concluido ? 'Concluido' : 'Ativo';
 
     return (
       <TableRow key={project.id} className="hover:bg-muted/50">
         <TableCell className="font-medium">{project.titulo}</TableCell>
         <TableCell>{clienteNome}</TableCell>
-        <TableCell>{setorNome}</TableCell>
         <TableCell>{project.tarefas?.length ?? 0}</TableCell>
         <TableCell>
           <Badge
@@ -198,7 +193,7 @@ export default function ListaProjetos({
           className="pl-10"
           value={searchTerm}
           onChange={(event) => setSearchTerm(event.target.value)}
-          placeholder="Buscar por título, cliente ou setor..."
+          placeholder="Buscar por título ou cliente..."
         />
       </div>
 
@@ -227,7 +222,6 @@ export default function ListaProjetos({
               <TableRow className="bg-muted/30">
                 <TableHead>Projeto</TableHead>
                 <TableHead>Cliente</TableHead>
-                <TableHead>Setor</TableHead>
                 <TableHead>Tarefas</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Cadastro</TableHead>

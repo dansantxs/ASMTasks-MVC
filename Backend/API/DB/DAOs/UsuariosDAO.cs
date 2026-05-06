@@ -42,7 +42,7 @@ namespace API.DB.DAOs
             await using var cmd = con.CreateCommand();
             cmd.CommandText = @"
                 SELECT u.Id, u.ColaboradorId, u.Login, u.SenhaHash, u.Ativo, u.NivelAcesso, u.DataCadastro,
-                       c.Nome AS NomeColaborador, c.Ativo AS ColaboradorAtivo
+                       c.Nome AS NomeColaborador, c.Ativo AS ColaboradorAtivo, c.SetorId
                 FROM Usuario u
                 INNER JOIN Colaborador c ON c.Id = u.ColaboradorId
                 WHERE u.Login = @Login
@@ -65,7 +65,8 @@ namespace API.DB.DAOs
                 NivelAcesso = Convert.ToInt32(dr["NivelAcesso"]),
                 DataCadastro = Convert.ToDateTime(dr["DataCadastro"]),
                 NomeColaborador = dr["NomeColaborador"].ToString() ?? string.Empty,
-                ColaboradorAtivo = Convert.ToBoolean(dr["ColaboradorAtivo"])
+                ColaboradorAtivo = Convert.ToBoolean(dr["ColaboradorAtivo"]),
+                SetorId = dr["SetorId"] == DBNull.Value ? null : (int?)Convert.ToInt32(dr["SetorId"])
             };
         }
 
@@ -75,7 +76,7 @@ namespace API.DB.DAOs
             await using var cmd = con.CreateCommand();
             cmd.CommandText = @"
                 SELECT u.Id, u.ColaboradorId, u.Login, u.SenhaHash, u.Ativo, u.NivelAcesso, u.DataCadastro,
-                       c.Nome AS NomeColaborador, c.Ativo AS ColaboradorAtivo
+                       c.Nome AS NomeColaborador, c.Ativo AS ColaboradorAtivo, c.SetorId
                 FROM Usuario u
                 INNER JOIN Colaborador c ON c.Id = u.ColaboradorId
                 WHERE u.Id = @Id;
@@ -96,7 +97,8 @@ namespace API.DB.DAOs
                 NivelAcesso = Convert.ToInt32(dr["NivelAcesso"]),
                 DataCadastro = Convert.ToDateTime(dr["DataCadastro"]),
                 NomeColaborador = dr["NomeColaborador"].ToString() ?? string.Empty,
-                ColaboradorAtivo = Convert.ToBoolean(dr["ColaboradorAtivo"])
+                ColaboradorAtivo = Convert.ToBoolean(dr["ColaboradorAtivo"]),
+                SetorId = dr["SetorId"] == DBNull.Value ? null : (int?)Convert.ToInt32(dr["SetorId"])
             };
         }
 

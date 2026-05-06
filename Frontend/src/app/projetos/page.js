@@ -40,6 +40,7 @@ export default function ProjetosPage() {
   const queryClient = useQueryClient();
   const { usuario } = useUsuarioAtual();
   const colaboradorLogadoNome = usuario?.colaboradorNome ?? '';
+  const setorLogadoId = usuario?.setorId ?? null;
 
   const { data: projetos = [], isLoading: isLoadingProjetos } = useQuery({
     queryKey: ['projetos'],
@@ -447,7 +448,6 @@ export default function ProjetosPage() {
         <ListaProjetos
           projetos={projetos}
           clientesById={clientesById}
-          setoresById={setoresById}
           etapasById={etapasById}
           aoSelecionarProjeto={handleSelectProject}
           modoVisualizacao={modoVisualizacao}
@@ -484,6 +484,7 @@ export default function ProjetosPage() {
           setores={setores}
           prioridades={prioridades}
           colaboradorLogadoNome={colaboradorLogadoNome}
+          setorLogadoId={setorLogadoId}
           dadosIniciais={editingProject}
         />
 

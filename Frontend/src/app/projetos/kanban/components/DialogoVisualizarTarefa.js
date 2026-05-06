@@ -63,6 +63,7 @@ export default function DialogoVisualizarTarefa({
   const [historicoVisiveis, setHistoricoVisiveis] = useState(HISTORICO_PAGINA);
   const [novoColaboradorId, setNovoColaboradorId] = useState(null);
   const [trocandoResponsavel, setTrocandoResponsavel] = useState(false);
+  const [mostrarTodosSetores, setMostrarTodosSetores] = useState(false);
 
   const { data: historicoTarefa = [] } = useQuery({
     queryKey: ['tarefa-historico', tarefa?.id],
@@ -111,6 +112,7 @@ export default function DialogoVisualizarTarefa({
 
   const handleAbrirTrocaResponsavel = () => {
     setNovoColaboradorId(tarefa?.colaboradorResponsavelId ?? null);
+    setMostrarTodosSetores(false);
     setTrocandoResponsavel(true);
   };
 
@@ -236,6 +238,18 @@ export default function DialogoVisualizarTarefa({
                     <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Responsável</p>
                   </div>
                   {trocandoResponsavel ? (
+                    <div>
+                      {tarefa?.setorId && (
+                        <label className="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer select-none mb-1.5">
+                          <input
+                            type="checkbox"
+                            checked={mostrarTodosSetores}
+                            onChange={(e) => setMostrarTodosSetores(e.target.checked)}
+                            className="rounded"
+                          />
+                          Mostrar todos os setores
+                        </label>
+                      )}
                     <div className="flex items-center gap-2">
                       <select
                         value={novoColaboradorId ?? ''}
@@ -243,8 +257,43 @@ export default function DialogoVisualizarTarefa({
                         className="flex-1 rounded-md border border-input bg-background px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent"
                       >
                         <option value="">Sem responsável</option>
-                        {colaboradores.map((col) => (
-                          <option key={col.id} value={col.id}>{col.nome}</option>
+                        {tarefa?.setorId && !mostrarTodosSetores ? (
+                          colaboradores
+                            .filter((c) => c.setorId === tarefa.setorId)
+                            .map((col) => (
+                              <option key={col.id} value={col.id}>
+                                {col.nome}{col.cargoNome ? ` — ${col.cargoNome}` : ''}
+                              </option>
+                            ))
+                        ) : tarefa?.setorId ? (() => {
+                          const doSetor = colaboradores.filter((c) => c.setorId === tarefa.setorId);
+                          const outros = colaboradores.filter((c) => c.setorId !== tarefa.setorId);
+                          return (
+                            <>
+                              {doSetor.length > 0 && (
+                                <optgroup label="Setor da tarefa">
+                                  {doSetor.map((col) => (
+                                    <option key={col.id} value={col.id}>
+                                      {col.nome}{col.cargoNome ? ` — ${col.cargoNome}` : ''}
+                                    </option>
+                                  ))}
+                                </optgroup>
+                              )}
+                              {outros.length > 0 && (
+                                <optgroup label="Outros setores">
+                                  {outros.map((col) => (
+                                    <option key={col.id} value={col.id}>
+                                      {col.nome}{col.cargoNome ? ` — ${col.cargoNome}` : ''}
+                                    </option>
+                                  ))}
+                                </optgroup>
+                              )}
+                            </>
+                          );
+                        })() : colaboradores.map((col) => (
+                          <option key={col.id} value={col.id}>
+                            {col.nome}{col.cargoNome ? ` — ${col.cargoNome}` : ''}
+                          </option>
                         ))}
                       </select>
                       <Button
@@ -264,6 +313,7 @@ export default function DialogoVisualizarTarefa({
                       >
                         Cancelar
                       </Button>
+                    </div>
                     </div>
                   ) : (
                     <div className="flex items-center justify-between">

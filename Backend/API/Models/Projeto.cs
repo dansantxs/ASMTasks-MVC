@@ -16,7 +16,6 @@ namespace API.Models
         public DateTime DataCadastro { get; set; }
         public bool Ativo { get; set; } = true;
         public bool Concluido { get; set; } = false;
-        public int SetorId { get; set; }
         public List<ProjetoTarefa> Tarefas { get; set; } = new List<ProjetoTarefa>();
 
         private void ValidarDados()
@@ -29,9 +28,6 @@ namespace API.Models
 
             if (CadastradoPorColaboradorId <= 0)
                 throw new ValidationException("O colaborador que esta cadastrando e obrigatorio.");
-
-            if (SetorId <= 0)
-                throw new ValidationException("O setor do projeto e obrigatorio.");
 
             if (Tarefas == null || !Tarefas.Any())
                 throw new ValidationException("Informe ao menos uma tarefa para o projeto.");
@@ -49,10 +45,6 @@ namespace API.Models
             var colaboradorCadastro = await Colaborador.ObterPorIdAsync(dbContext, CadastradoPorColaboradorId);
             if (colaboradorCadastro == null || !colaboradorCadastro.Ativo)
                 throw new ValidationException("O colaborador que esta cadastrando nao existe ou esta inativo.");
-
-            var setor = await Setor.ObterPorIdAsync(dbContext, SetorId);
-            if (setor == null || !setor.Ativo)
-                throw new ValidationException("O setor informado nao existe ou esta inativo.");
 
             foreach (var tarefa in Tarefas)
             {
@@ -73,6 +65,10 @@ namespace API.Models
                     if (etapa == null || !etapa.Ativo)
                         throw new ValidationException($"A etapa da tarefa '{tarefa.Titulo}' e invalida ou esta inativa.");
                 }
+
+                var setor = await Setor.ObterPorIdAsync(dbContext, tarefa.SetorId);
+                if (setor == null || !setor.Ativo)
+                    throw new ValidationException($"O setor da tarefa '{tarefa.Titulo}' e invalido ou esta inativo.");
             }
         }
 

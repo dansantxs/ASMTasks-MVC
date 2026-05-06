@@ -17,9 +17,9 @@ namespace API.DB.DAOs
                 cmd.Transaction = transaction;
                 cmd.CommandText = @"
                     INSERT INTO Projeto
-                    (Titulo, Descricao, ClienteId, CadastradoPorColaboradorId, DataCadastro, Ativo, Concluido, SetorId)
+                    (Titulo, Descricao, ClienteId, CadastradoPorColaboradorId, DataCadastro, Ativo, Concluido)
                     VALUES
-                    (@Titulo, @Descricao, @ClienteId, @CadastradoPorColaboradorId, @DataCadastro, @Ativo, 0, @SetorId);
+                    (@Titulo, @Descricao, @ClienteId, @CadastradoPorColaboradorId, @DataCadastro, @Ativo, 0);
                     SELECT CAST(SCOPE_IDENTITY() AS int);
                 ";
 
@@ -29,7 +29,6 @@ namespace API.DB.DAOs
                 cmd.Parameters.AddWithValue("@CadastradoPorColaboradorId", projeto.CadastradoPorColaboradorId);
                 cmd.Parameters.AddWithValue("@DataCadastro", projeto.DataCadastro);
                 cmd.Parameters.AddWithValue("@Ativo", projeto.Ativo);
-                cmd.Parameters.AddWithValue("@SetorId", projeto.SetorId);
 
                 var result = await cmd.ExecuteScalarAsync();
                 projeto.Id = Convert.ToInt32(result);
@@ -71,8 +70,7 @@ namespace API.DB.DAOs
                         UPDATE Projeto SET
                             Titulo = @Titulo,
                             Descricao = @Descricao,
-                            ClienteId = @ClienteId,
-                            SetorId = @SetorId
+                            ClienteId = @ClienteId
                         WHERE Id = @Id;
                     ";
 
@@ -80,7 +78,6 @@ namespace API.DB.DAOs
                     cmd.Parameters.AddWithValue("@Titulo", projeto.Titulo);
                     cmd.Parameters.AddWithValue("@Descricao", (object?)projeto.Descricao ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@ClienteId", projeto.ClienteId);
-                    cmd.Parameters.AddWithValue("@SetorId", projeto.SetorId);
 
                     var linhasProjeto = await cmd.ExecuteNonQueryAsync();
                     if (linhasProjeto == 0)
@@ -126,7 +123,8 @@ namespace API.DB.DAOs
                         UPDATE ProjetoTarefa SET
                             Titulo = @Titulo,
                             Descricao = @Descricao,
-                            PrioridadeId = @PrioridadeId
+                            PrioridadeId = @PrioridadeId,
+                            SetorId = @SetorId
                         WHERE Id = @Id AND ProjetoId = @ProjetoId;
                     ";
                     updateCmd.Parameters.AddWithValue("@Id", tarefa.Id);
@@ -134,6 +132,7 @@ namespace API.DB.DAOs
                     updateCmd.Parameters.AddWithValue("@Titulo", tarefa.Titulo);
                     updateCmd.Parameters.AddWithValue("@Descricao", (object?)tarefa.Descricao ?? DBNull.Value);
                     updateCmd.Parameters.AddWithValue("@PrioridadeId", tarefa.PrioridadeId);
+                    updateCmd.Parameters.AddWithValue("@SetorId", (object?)tarefa.SetorId ?? DBNull.Value);
                     await updateCmd.ExecuteNonQueryAsync();
                 }
 
@@ -170,7 +169,7 @@ namespace API.DB.DAOs
             await using (var cmd = con.CreateCommand())
             {
                 cmd.CommandText = @"
-                    SELECT Id, Titulo, Descricao, ClienteId, CadastradoPorColaboradorId, DataCadastro, Ativo, Concluido, SetorId
+                    SELECT Id, Titulo, Descricao, ClienteId, CadastradoPorColaboradorId, DataCadastro, Ativo, Concluido
                     FROM Projeto
                     ORDER BY DataCadastro DESC, Id DESC;
                 ";
@@ -187,8 +186,7 @@ namespace API.DB.DAOs
                         CadastradoPorColaboradorId = Convert.ToInt32(dr["CadastradoPorColaboradorId"]),
                         DataCadastro = Convert.ToDateTime(dr["DataCadastro"]),
                         Ativo = Convert.ToBoolean(dr["Ativo"]),
-                        Concluido = Convert.ToBoolean(dr["Concluido"]),
-                        SetorId = Convert.ToInt32(dr["SetorId"])
+                        Concluido = Convert.ToBoolean(dr["Concluido"])
                     });
                 }
             }
@@ -207,7 +205,7 @@ namespace API.DB.DAOs
             await using (var cmd = con.CreateCommand())
             {
                 cmd.CommandText = @"
-                    SELECT Id, Titulo, Descricao, ClienteId, CadastradoPorColaboradorId, DataCadastro, Ativo, Concluido, SetorId
+                    SELECT Id, Titulo, Descricao, ClienteId, CadastradoPorColaboradorId, DataCadastro, Ativo, Concluido
                     FROM Projeto
                     WHERE Id = @Id;
                 ";
@@ -225,8 +223,7 @@ namespace API.DB.DAOs
                         CadastradoPorColaboradorId = Convert.ToInt32(dr["CadastradoPorColaboradorId"]),
                         DataCadastro = Convert.ToDateTime(dr["DataCadastro"]),
                         Ativo = Convert.ToBoolean(dr["Ativo"]),
-                        Concluido = Convert.ToBoolean(dr["Concluido"]),
-                        SetorId = Convert.ToInt32(dr["SetorId"])
+                        Concluido = Convert.ToBoolean(dr["Concluido"])
                     };
                 }
             }
@@ -660,7 +657,8 @@ namespace API.DB.DAOs
                     col.Nome AS ColaboradorResponsavelNome,
                     pt.DataHoraAtribuicao,
                     pt.EtapaId,
-                    pt.DataHoraInicio
+                    pt.DataHoraInicio,
+                    pt.SetorId
                 FROM ProjetoTarefa pt
                 INNER JOIN Projeto p ON pt.ProjetoId = p.Id
                 INNER JOIN Cliente c ON p.ClienteId = c.Id
@@ -730,7 +728,8 @@ namespace API.DB.DAOs
                         : Convert.ToInt32(dr["EtapaId"]),
                     DataHoraInicio = dr["DataHoraInicio"] == DBNull.Value
                         ? null
-                        : Convert.ToDateTime(dr["DataHoraInicio"])
+                        : Convert.ToDateTime(dr["DataHoraInicio"]),
+                    SetorId = Convert.ToInt32(dr["SetorId"])
                 });
             }
 
@@ -921,9 +920,9 @@ namespace API.DB.DAOs
                 cmd.Transaction = transaction;
                 cmd.CommandText = @"
                     INSERT INTO ProjetoTarefa
-                    (ProjetoId, Titulo, Descricao, PrioridadeId, ColaboradorResponsavelId, DataHoraAtribuicao, EtapaId)
+                    (ProjetoId, Titulo, Descricao, PrioridadeId, ColaboradorResponsavelId, DataHoraAtribuicao, EtapaId, SetorId)
                     VALUES
-                    (@ProjetoId, @Titulo, @Descricao, @PrioridadeId, @ColaboradorResponsavelId, @DataHoraAtribuicao, @EtapaId);
+                    (@ProjetoId, @Titulo, @Descricao, @PrioridadeId, @ColaboradorResponsavelId, @DataHoraAtribuicao, @EtapaId, @SetorId);
                     SELECT CAST(SCOPE_IDENTITY() AS int);
                 ";
 
@@ -934,6 +933,7 @@ namespace API.DB.DAOs
                 cmd.Parameters.AddWithValue("@ColaboradorResponsavelId", (object?)tarefa.ColaboradorResponsavelId ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@DataHoraAtribuicao", (object?)tarefa.DataHoraAtribuicao ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@EtapaId", (object?)tarefa.EtapaId ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@SetorId", (object?)tarefa.SetorId ?? DBNull.Value);
 
                 var result = await cmd.ExecuteScalarAsync();
                 tarefa.Id = Convert.ToInt32(result);
@@ -947,7 +947,7 @@ namespace API.DB.DAOs
 
             await using var cmd = connection.CreateCommand();
             cmd.CommandText = @"
-                SELECT Id, ProjetoId, Titulo, Descricao, PrioridadeId, ColaboradorResponsavelId, DataHoraAtribuicao, EtapaId, DataHoraInicio
+                SELECT Id, ProjetoId, Titulo, Descricao, PrioridadeId, ColaboradorResponsavelId, DataHoraAtribuicao, EtapaId, DataHoraInicio, SetorId
                 FROM ProjetoTarefa
                 WHERE ProjetoId = @ProjetoId
                 ORDER BY Id;
@@ -975,7 +975,8 @@ namespace API.DB.DAOs
                         : Convert.ToInt32(dr["EtapaId"]),
                     DataHoraInicio = dr["DataHoraInicio"] == DBNull.Value
                         ? null
-                        : Convert.ToDateTime(dr["DataHoraInicio"])
+                        : Convert.ToDateTime(dr["DataHoraInicio"]),
+                    SetorId = Convert.ToInt32(dr["SetorId"])
                 });
             }
 
@@ -1121,7 +1122,6 @@ namespace API.DB.DAOs
                         p.DataCadastro,
                         p.Ativo,
                         p.Concluido,
-                        s.Nome  AS SetorNome,
                         col.Nome AS CadastradoPorNome,
                         c.Id    AS ClienteId,
                         c.Nome  AS ClienteNome,
@@ -1136,7 +1136,6 @@ namespace API.DB.DAOs
                         c.Numero AS ClienteNumero,
                         c.CEP AS ClienteCep
                     FROM Projeto p
-                    INNER JOIN Setor s ON p.SetorId = s.Id
                     INNER JOIN Colaborador col ON p.CadastradoPorColaboradorId = col.Id
                     INNER JOIN Cliente c ON p.ClienteId = c.Id
                     WHERE p.Id = @ProjetoId;
@@ -1154,7 +1153,6 @@ namespace API.DB.DAOs
                         DataCadastro = Convert.ToDateTime(dr["DataCadastro"]),
                         Ativo = Convert.ToBoolean(dr["Ativo"]),
                         Concluido = Convert.ToBoolean(dr["Concluido"]),
-                        SetorNome = dr["SetorNome"]?.ToString() ?? string.Empty,
                         CadastradoPorNome = dr["CadastradoPorNome"]?.ToString() ?? string.Empty,
                         ClienteId = Convert.ToInt32(dr["ClienteId"]),
                         ClienteNome = dr["ClienteNome"]?.ToString() ?? string.Empty,
@@ -1184,11 +1182,13 @@ namespace API.DB.DAOs
                         pr.Nome AS PrioridadeNome,
                         pr.Cor  AS PrioridadeCor,
                         col.Nome AS ColaboradorResponsavelNome,
-                        e.Nome AS EtapaNome
+                        e.Nome AS EtapaNome,
+                        s.Nome AS SetorNome
                     FROM ProjetoTarefa pt
                     INNER JOIN Prioridade pr ON pt.PrioridadeId = pr.Id
                     LEFT JOIN Colaborador col ON pt.ColaboradorResponsavelId = col.Id
                     LEFT JOIN Etapa e ON pt.EtapaId = e.Id
+                    LEFT JOIN Setor s ON pt.SetorId = s.Id
                     WHERE pt.ProjetoId = @ProjetoId
                     ORDER BY pr.Ordem, pt.Id;
                 ";
@@ -1206,6 +1206,7 @@ namespace API.DB.DAOs
                         PrioridadeCor = dr["PrioridadeCor"] == DBNull.Value ? null : dr["PrioridadeCor"].ToString(),
                         ColaboradorResponsavelNome = dr["ColaboradorResponsavelNome"] == DBNull.Value ? null : dr["ColaboradorResponsavelNome"].ToString(),
                         EtapaNome = dr["EtapaNome"] == DBNull.Value ? null : dr["EtapaNome"].ToString(),
+                        SetorNome = dr["SetorNome"] == DBNull.Value ? null : dr["SetorNome"].ToString(),
                     });
                 }
             }

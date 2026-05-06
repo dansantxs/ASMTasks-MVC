@@ -222,6 +222,7 @@ namespace API.Controllers
                 Ativo = c.Ativo,
                 SetorId = c.SetorId,
                 CargoId = c.CargoId,
+                CargoNome = c.CargoNome,
                 PossuiTarefasAtivas = false
             });
 

@@ -13,6 +13,7 @@ namespace API.Models
         public DateTime? DataHoraAtribuicao { get; set; }
         public int? EtapaId { get; set; }
         public DateTime? DataHoraInicio { get; set; }
+        public int SetorId { get; set; }
 
         public void ValidarDados()
         {
@@ -21,6 +22,9 @@ namespace API.Models
 
             if (PrioridadeId <= 0)
                 throw new ValidationException("A prioridade da tarefa e obrigatoria.");
+
+            if (SetorId <= 0)
+                throw new ValidationException("O setor da tarefa e obrigatorio.");
 
             if (ColaboradorResponsavelId.HasValue && ColaboradorResponsavelId.Value <= 0)
                 throw new ValidationException("O colaborador responsavel da tarefa e invalido.");

@@ -109,6 +109,7 @@ namespace API.Controllers
                 usuarioId = usuario.Id,
                 colaboradorId = usuario.ColaboradorId,
                 colaboradorNome = usuario.NomeColaborador,
+                setorId = usuario.SetorId,
                 login = usuario.Login,
                 nivelAcesso = usuario.NivelAcesso,
                 permissoes = usuario.Permissoes,

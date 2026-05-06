@@ -18,5 +18,6 @@ namespace API.DTOs.Projetos
         public DateTime? DataHoraAtribuicao { get; set; }
         public int? EtapaId { get; set; }
         public DateTime? DataHoraInicio { get; set; }
+        public int? SetorId { get; set; }
     }
 }

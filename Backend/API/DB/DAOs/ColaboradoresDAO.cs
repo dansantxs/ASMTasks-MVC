@@ -95,7 +95,12 @@ namespace API.DB.DAOs
             var lista = new List<Colaborador>();
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = "SELECT * FROM Colaborador";
+            cmd.CommandText = @"
+                SELECT col.Id, col.Nome, col.CPF, col.Email, col.Telefone, col.CEP, col.Cidade, col.UF,
+                       col.Logradouro, col.Bairro, col.Numero, col.DataNascimento, col.DataAdmissao,
+                       col.Ativo, col.SetorId, col.CargoId, c.Nome AS CargoNome
+                FROM Colaborador col
+                LEFT JOIN Cargo c ON col.CargoId = c.Id";
 
             await using var dr = await cmd.ExecuteReaderAsync();
             while (await dr.ReadAsync())
@@ -117,7 +122,8 @@ namespace API.DB.DAOs
                     DataAdmissao = Convert.ToDateTime(dr["DataAdmissao"]),
                     Ativo = Convert.ToBoolean(dr["Ativo"]),
                     SetorId = Convert.ToInt32(dr["SetorId"]),
-                    CargoId = Convert.ToInt32(dr["CargoId"])
+                    CargoId = Convert.ToInt32(dr["CargoId"]),
+                    CargoNome = dr["CargoNome"] == DBNull.Value ? null : dr["CargoNome"].ToString()
                 });
             }
 
@@ -128,7 +134,13 @@ namespace API.DB.DAOs
         {
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = "SELECT * FROM Colaborador WHERE Id = @Id";
+            cmd.CommandText = @"
+                SELECT col.Id, col.Nome, col.CPF, col.Email, col.Telefone, col.CEP, col.Cidade, col.UF,
+                       col.Logradouro, col.Bairro, col.Numero, col.DataNascimento, col.DataAdmissao,
+                       col.Ativo, col.SetorId, col.CargoId, c.Nome AS CargoNome
+                FROM Colaborador col
+                LEFT JOIN Cargo c ON col.CargoId = c.Id
+                WHERE col.Id = @Id";
             cmd.Parameters.AddWithValue("@Id", id);
 
             await using var dr = await cmd.ExecuteReaderAsync();
@@ -151,7 +163,8 @@ namespace API.DB.DAOs
                     DataAdmissao = Convert.ToDateTime(dr["DataAdmissao"]),
                     Ativo = Convert.ToBoolean(dr["Ativo"]),
                     SetorId = Convert.ToInt32(dr["SetorId"]),
-                    CargoId = Convert.ToInt32(dr["CargoId"])
+                    CargoId = Convert.ToInt32(dr["CargoId"]),
+                    CargoNome = dr["CargoNome"] == DBNull.Value ? null : dr["CargoNome"].ToString()
                 };
             }
 

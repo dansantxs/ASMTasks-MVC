@@ -17,5 +17,8 @@ namespace API.DTOs.Projetos
         public int? ColaboradorResponsavelId { get; set; }
         public DateTime? DataHoraAtribuicao { get; set; }
         public int? EtapaId { get; set; }
+        [Required]
+        [Range(1, int.MaxValue)]
+        public int SetorId { get; set; }
     }
 }

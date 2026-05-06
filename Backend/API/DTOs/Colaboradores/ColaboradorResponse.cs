@@ -19,5 +19,6 @@ namespace API.DTOs.Colaboradores
         public bool PossuiTarefasAtivas { get; set; } = false;
         public int SetorId { get; set; }
         public int CargoId { get; set; }
+        public string? CargoNome { get; set; }
     }
 }

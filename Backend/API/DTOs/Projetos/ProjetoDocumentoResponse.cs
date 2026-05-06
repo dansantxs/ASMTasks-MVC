@@ -10,9 +10,6 @@ namespace API.DTOs.Projetos
         public bool Ativo { get; set; }
         public bool Concluido { get; set; }
 
-        // Setor
-        public string SetorNome { get; set; } = string.Empty;
-
         // Responsável pelo cadastro
         public string CadastradoPorNome { get; set; } = string.Empty;
 

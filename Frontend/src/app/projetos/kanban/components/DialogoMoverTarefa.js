@@ -6,15 +6,16 @@ import { Button } from '../../../../ui/base/button';
 import { Label } from '../../../../ui/form/label';
 import { cn } from '../../../../ui/form/utils';
 
-export default function DialogoMoverTarefa({ open, onOpenChange, tarefa, etapaDestino, colaboradores, onConfirmar, isMovendo }) {
+export default function DialogoMoverTarefa({ open, onOpenChange, tarefa, etapaDestino, colaboradores = [], onConfirmar, isMovendo }) {
   const [colaboradorId, setColaboradorId] = useState(null);
+  const [mostrarTodosSetores, setMostrarTodosSetores] = useState(false);
 
   const moverParaBacklog = etapaDestino?.id == null;
 
   useEffect(() => {
     if (open) {
-      // Ao mover para o backlog, limpa o responsável automaticamente
       setColaboradorId(moverParaBacklog ? null : (tarefa?.colaboradorResponsavelId ?? null));
+      setMostrarTodosSetores(false);
     }
   }, [open, tarefa, moverParaBacklog]);
 
@@ -46,7 +47,20 @@ export default function DialogoMoverTarefa({ open, onOpenChange, tarefa, etapaDe
               </p>
             ) : (
               <div>
-                <Label className="mb-1.5 block">Responsável</Label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <Label>Responsável</Label>
+                  {tarefa?.setorId && (
+                    <label className="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={mostrarTodosSetores}
+                        onChange={(e) => setMostrarTodosSetores(e.target.checked)}
+                        className="rounded"
+                      />
+                      Mostrar todos os setores
+                    </label>
+                  )}
+                </div>
                 <select
                   value={colaboradorId ?? ''}
                   onChange={(e) => setColaboradorId(e.target.value ? Number(e.target.value) : null)}
@@ -56,9 +70,42 @@ export default function DialogoMoverTarefa({ open, onOpenChange, tarefa, etapaDe
                   )}
                 >
                   <option value="">Sem responsável</option>
-                  {colaboradores.map((col) => (
+                  {tarefa?.setorId && !mostrarTodosSetores ? (
+                    colaboradores
+                      .filter((c) => c.setorId === tarefa.setorId)
+                      .map((col) => (
+                        <option key={col.id} value={col.id}>
+                          {col.nome}{col.cargoNome ? ` — ${col.cargoNome}` : ''}
+                        </option>
+                      ))
+                  ) : tarefa?.setorId ? (() => {
+                    const doSetor = colaboradores.filter((c) => c.setorId === tarefa.setorId);
+                    const outrosSetores = colaboradores.filter((c) => c.setorId !== tarefa.setorId);
+                    return (
+                      <>
+                        {doSetor.length > 0 && (
+                          <optgroup label="Setor da tarefa">
+                            {doSetor.map((col) => (
+                              <option key={col.id} value={col.id}>
+                                {col.nome}{col.cargoNome ? ` — ${col.cargoNome}` : ''}
+                              </option>
+                            ))}
+                          </optgroup>
+                        )}
+                        {outrosSetores.length > 0 && (
+                          <optgroup label="Outros setores">
+                            {outrosSetores.map((col) => (
+                              <option key={col.id} value={col.id}>
+                                {col.nome}{col.cargoNome ? ` — ${col.cargoNome}` : ''}
+                              </option>
+                            ))}
+                          </optgroup>
+                        )}
+                      </>
+                    );
+                  })() : colaboradores.map((col) => (
                     <option key={col.id} value={col.id}>
-                      {col.nome}
+                      {col.nome}{col.cargoNome ? ` — ${col.cargoNome}` : ''}
                     </option>
                   ))}
                 </select>

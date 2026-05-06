@@ -165,8 +165,7 @@ async function gerarDocumentoPDF(projetoId, systemSettings) {
   campo('Data de Cadastro', formatarData(doc.dataCadastro), col3, cursorY, largCol3);
   cursorY += Math.max(alturaCampo1, 9) + 2;
 
-  const alturaTitulo = campo('Título', doc.titulo, col1, cursorY, larguraUtil * 0.62);
-  campo('Setor', doc.setorNome, col3, cursorY, largCol3);
+  const alturaTitulo = campo('Título', doc.titulo, col1, cursorY, larguraUtil);
   cursorY += Math.max(alturaTitulo, 9) + 2;
 
   campo('Lançado por', doc.cadastradoPorNome, col1, cursorY, larguraUtil * 0.62);
@@ -335,7 +334,6 @@ export default function DialogoVisualizarProjeto({
   if (!projeto) return null;
 
   const clienteNome = clientesById.get(projeto.clienteId) ?? `Cliente #${projeto.clienteId}`;
-  const setorNome = setoresById.get(projeto.setorId) ?? `Setor #${projeto.setorId}`;
   const colaboradorCadastroNome =
     colaboradoresById.get(projeto.cadastradoPorColaboradorId) ??
     `Colaborador #${projeto.cadastradoPorColaboradorId}`;
@@ -412,14 +410,10 @@ export default function DialogoVisualizarProjeto({
             {projeto.descricao && (
               <p className="text-sm text-muted-foreground mb-3">{projeto.descricao}</p>
             )}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
               <div>
                 <p className="text-xs text-muted-foreground">Cliente</p>
                 <p className="font-medium">{clienteNome}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Setor</p>
-                <p className="font-medium">{setorNome}</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Data de cadastro</p>
@@ -453,6 +447,7 @@ export default function DialogoVisualizarProjeto({
                   const etapaConcluida = task.etapaId
                     ? normalizarTexto(etapasById.get(task.etapaId) ?? '').includes('conclu')
                     : false;
+                  const tarefaSetorNome = task.setorId ? setoresById.get(task.setorId) : null;
 
                   return (
                     <div
@@ -468,6 +463,9 @@ export default function DialogoVisualizarProjeto({
                       </div>
                       {task.descricao && (
                         <p className="text-xs text-muted-foreground leading-snug">{task.descricao}</p>
+                      )}
+                      {tarefaSetorNome && (
+                        <p className="text-xs text-muted-foreground">Setor: {tarefaSetorNome}</p>
                       )}
                       <div className="mt-auto pt-1 flex items-center justify-between gap-2">
                         {prioridadeNome ? (

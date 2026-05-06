@@ -10,5 +10,6 @@ namespace API.DTOs.Projetos
         public int? ColaboradorResponsavelId { get; set; }
         public DateTime? DataHoraAtribuicao { get; set; }
         public int? EtapaId { get; set; }
+        public int? SetorId { get; set; }
     }
 }

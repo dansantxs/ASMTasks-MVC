@@ -21,6 +21,7 @@ namespace API.Models
         public DateTime DataCadastro { get; set; }
         public string NomeColaborador { get; set; } = string.Empty;
         public bool ColaboradorAtivo { get; set; } = true;
+        public int? SetorId { get; set; }
         public List<string> Permissoes { get; set; } = new();
         public bool EhAdministrador { get; set; }
 

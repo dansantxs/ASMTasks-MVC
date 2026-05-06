@@ -9,5 +9,6 @@ namespace API.DTOs.Projetos
         public string? PrioridadeCor { get; set; }
         public string? ColaboradorResponsavelNome { get; set; }
         public string? EtapaNome { get; set; }
+        public string? SetorNome { get; set; }
     }
 }

@@ -29,6 +29,7 @@ namespace API.Models
         public Setor? Setor { get; set; }
         public int CargoId { get; set; }
         public Cargo? Cargo { get; set; }
+        public string? CargoNome { get; set; }
 
         private static string ApenasDigitos(string? valor)
         {

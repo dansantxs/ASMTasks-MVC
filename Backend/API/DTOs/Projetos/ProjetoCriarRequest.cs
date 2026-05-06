@@ -14,9 +14,6 @@ namespace API.DTOs.Projetos
         [Range(1, int.MaxValue)]
         public int ClienteId { get; set; }
 
-        [Range(1, int.MaxValue)]
-        public int SetorId { get; set; }
-
         public List<ProjetoTarefaCriarRequest> Tarefas { get; set; } = new List<ProjetoTarefaCriarRequest>();
     }
 }

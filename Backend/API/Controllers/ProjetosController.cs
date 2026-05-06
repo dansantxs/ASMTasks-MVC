@@ -86,7 +86,6 @@ namespace API.Controllers
                     Titulo = request.Titulo,
                     Descricao = request.Descricao,
                     ClienteId = request.ClienteId,
-                    SetorId = request.SetorId,
                     CadastradoPorColaboradorId = ObterColaboradorIdLogado(),
                     Tarefas = [.. request.Tarefas.Select(t => new ProjetoTarefa
                     {
@@ -95,7 +94,8 @@ namespace API.Controllers
                         PrioridadeId = t.PrioridadeId,
                         ColaboradorResponsavelId = t.ColaboradorResponsavelId,
                         DataHoraAtribuicao = t.DataHoraAtribuicao,
-                        EtapaId = t.EtapaId
+                        EtapaId = t.EtapaId,
+                        SetorId = t.SetorId
                     })]
                 };
 
@@ -156,13 +156,13 @@ namespace API.Controllers
                 projeto.Titulo = request.Titulo;
                 projeto.Descricao = request.Descricao;
                 projeto.ClienteId = request.ClienteId;
-                projeto.SetorId = request.SetorId;
                 projeto.Tarefas = [.. request.Tarefas.Select(t => new ProjetoTarefa
                 {
                     Id = t.Id ?? 0,
                     Titulo = t.Titulo,
                     Descricao = t.Descricao,
                     PrioridadeId = t.PrioridadeId,
+                    SetorId = t.SetorId
                 })];
 
                 await projeto.AtualizarAsync(_dbContext);
@@ -304,13 +304,13 @@ namespace API.Controllers
                         Titulo = original.Titulo,
                         Descricao = original.Descricao,
                         ClienteId = clienteId,
-                        SetorId = original.SetorId,
                         CadastradoPorColaboradorId = colaboradorId,
                         Tarefas = [.. original.Tarefas.Select(t => new ProjetoTarefa
                         {
                             Titulo = t.Titulo,
                             Descricao = t.Descricao,
                             PrioridadeId = t.PrioridadeId,
+                            SetorId = t.SetorId,
                             ColaboradorResponsavelId = null,
                             DataHoraAtribuicao = null,
                             EtapaId = null,
@@ -926,7 +926,6 @@ namespace API.Controllers
                 DataCadastro = projeto.DataCadastro,
                 Ativo = projeto.Ativo,
                 Concluido = projeto.Concluido,
-                SetorId = projeto.SetorId,
                 Tarefas = [.. projeto.Tarefas.Select(t => new ProjetoTarefaResponse
                 {
                     Id = t.Id,
@@ -934,6 +933,7 @@ namespace API.Controllers
                     Titulo = t.Titulo,
                     Descricao = t.Descricao,
                     PrioridadeId = t.PrioridadeId,
+                    SetorId = t.SetorId,
                     ColaboradorResponsavelId = t.ColaboradorResponsavelId,
                     DataHoraAtribuicao = t.DataHoraAtribuicao,
                     EtapaId = t.EtapaId

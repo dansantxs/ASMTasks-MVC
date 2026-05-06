@@ -22,8 +22,8 @@ function gerarTempId() {
     : Math.random().toString(36).slice(2);
 }
 
-function criarTarefaInicial() {
-  return { _tempId: gerarTempId(), titulo: '', descricao: '', prioridadeId: '' };
+function criarTarefaInicial(setorId = '') {
+  return { _tempId: gerarTempId(), titulo: '', descricao: '', prioridadeId: '', setorId: setorId ? String(setorId) : '' };
 }
 
 function criarTarefaDoProjeto(tarefa) {
@@ -33,14 +33,15 @@ function criarTarefaDoProjeto(tarefa) {
     titulo: tarefa?.titulo ?? '',
     descricao: tarefa?.descricao ?? '',
     prioridadeId: tarefa?.prioridadeId ? String(tarefa.prioridadeId) : '',
+    setorId: tarefa?.setorId ? String(tarefa.setorId) : '',
   };
 }
 
 function criarFormularioInicial() {
-  return { titulo: '', descricao: '', clienteId: '', setorId: '', tarefas: [criarTarefaInicial()] };
+  return { titulo: '', descricao: '', clienteId: '', tarefas: [criarTarefaInicial()] };
 }
 
-function CartaoTarefa({ tarefa, index, prioridadesAtivas, errors, onChange, onRemove, totalTarefas, onAbrirCriarPrioridade, onAbrirAnexos, arquivosPendentes = [], onAdicionarArquivos, onRemoverArquivo }) {
+function CartaoTarefa({ tarefa, index, prioridadesAtivas, setoresAtivos, errors, onChange, onRemove, totalTarefas, onAbrirCriarPrioridade, onAbrirAnexos, arquivosPendentes = [], onAdicionarArquivos, onRemoverArquivo }) {
   const [showDesc, setShowDesc] = useState(Boolean(tarefa.descricao));
   const inputArquivoRef = useRef(null);
   const prioridadeSelecionada = prioridadesAtivas.find((p) => String(p.id) === tarefa.prioridadeId);
@@ -99,6 +100,22 @@ function CartaoTarefa({ tarefa, index, prioridadesAtivas, errors, onChange, onRe
             </Button>
           </div>
 
+          <Select
+            value={tarefa.setorId || undefined}
+            onValueChange={(v) => onChange(index, 'setorId', v)}
+          >
+            <SelectTrigger className={`h-8 text-sm ${errors?.setorId ? 'border-destructive' : ''}`}>
+              <SelectValue placeholder="Setor responsável *" />
+            </SelectTrigger>
+            <SelectContent>
+              {setoresAtivos.map((s) => (
+                <SelectItem key={s.id} value={String(s.id)}>
+                  {s.nome}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
           {showDesc ? (
             <Textarea
               value={tarefa.descricao}
@@ -117,10 +134,11 @@ function CartaoTarefa({ tarefa, index, prioridadesAtivas, errors, onChange, onRe
             </button>
           )}
 
-          {(errors?.titulo || errors?.prioridadeId) && (
+          {(errors?.titulo || errors?.prioridadeId || errors?.setorId) && (
             <div className="space-y-0.5">
               {errors.titulo && <p className="text-xs text-destructive">{errors.titulo}</p>}
               {errors.prioridadeId && <p className="text-xs text-destructive">{errors.prioridadeId}</p>}
+              {errors.setorId && <p className="text-xs text-destructive">{errors.setorId}</p>}
             </div>
           )}
 
@@ -196,13 +214,16 @@ export default function FormularioProjeto({
   aoSalvar,
   salvando,
   clientes,
-  setores,
+  setores = [],
   prioridades,
   colaboradorLogadoNome,
+  setorLogadoId = null,
   dadosIniciais = null,
 }) {
   const [formData, setFormData] = useState(criarFormularioInicial);
   const [errors, setErrors] = useState({});
+  const [sincronizarTitulo, setSincronizarTitulo] = useState(true);
+  const [sincronizarDescricao, setSincronizarDescricao] = useState(true);
   const [pendingFiles, setPendingFiles] = useState({}); // { [_tempId]: File[] }
   const tarefasContainerRef = useRef(null);
   const [showModalCliente, setShowModalCliente] = useState(false);
@@ -219,16 +240,17 @@ export default function FormularioProjeto({
           titulo: dadosIniciais.titulo ?? '',
           descricao: dadosIniciais.descricao ?? '',
           clienteId: dadosIniciais.clienteId ? String(dadosIniciais.clienteId) : '',
-          setorId: dadosIniciais.setorId ? String(dadosIniciais.setorId) : '',
           tarefas: (dadosIniciais.tarefas ?? []).length
             ? dadosIniciais.tarefas.map(criarTarefaDoProjeto)
-            : [criarTarefaInicial()],
+            : [criarTarefaInicial(setorLogadoId)],
         });
       } else {
-        setFormData(criarFormularioInicial());
+        setFormData({ titulo: '', descricao: '', clienteId: '', tarefas: [criarTarefaInicial(setorLogadoId)] });
       }
       setPendingFiles({});
       setErrors({});
+      setSincronizarTitulo(!isEditMode);
+      setSincronizarDescricao(!isEditMode);
       setShowModalCliente(false);
       setShowModalSetor(false);
       setIndicePrioridadeTarefa(null);
@@ -240,14 +262,17 @@ export default function FormularioProjeto({
   const prioridadesAtivas = useMemo(() => prioridades.filter((item) => item.ativo), [prioridades]);
 
   const atualizarTarefa = (index, field, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      tarefas: prev.tarefas.map((tarefa, i) => (i === index ? { ...tarefa, [field]: value } : tarefa)),
-    }));
+    setFormData((prev) => {
+      const novasTarefas = prev.tarefas.map((tarefa, i) => (i === index ? { ...tarefa, [field]: value } : tarefa));
+      const novoFormData = { ...prev, tarefas: novasTarefas };
+      if (index === 0 && field === 'titulo' && sincronizarTitulo) novoFormData.titulo = value;
+      if (index === 0 && field === 'descricao' && sincronizarDescricao) novoFormData.descricao = value;
+      return novoFormData;
+    });
   };
 
   const adicionarTarefa = () => {
-    setFormData((prev) => ({ ...prev, tarefas: [...prev.tarefas, criarTarefaInicial()] }));
+    setFormData((prev) => ({ ...prev, tarefas: [...prev.tarefas, criarTarefaInicial(setorLogadoId)] }));
     setTimeout(() => {
       if (tarefasContainerRef.current) {
         tarefasContainerRef.current.scrollTop = tarefasContainerRef.current.scrollHeight;
@@ -330,13 +355,13 @@ export default function FormularioProjeto({
 
     if (!formData.titulo.trim()) nextErrors.titulo = 'Título do projeto é obrigatório.';
     if (!formData.clienteId) nextErrors.clienteId = 'Cliente é obrigatório.';
-    if (!formData.setorId) nextErrors.setorId = 'Setor é obrigatório.';
     if (!formData.tarefas.length) nextErrors.tarefas = 'Informe ao menos uma tarefa.';
 
     formData.tarefas.forEach((tarefa, index) => {
       const tarefaError = {};
       if (!tarefa.titulo.trim()) tarefaError.titulo = `Título da tarefa ${index + 1} é obrigatório.`;
       if (!tarefa.prioridadeId) tarefaError.prioridadeId = `Prioridade da tarefa ${index + 1} é obrigatória.`;
+      if (!tarefa.setorId) tarefaError.setorId = `Setor da tarefa ${index + 1} é obrigatório.`;
       tarefasErrors[index] = tarefaError;
     });
 
@@ -367,12 +392,12 @@ export default function FormularioProjeto({
         titulo: formData.titulo.trim(),
         descricao: formData.descricao.trim() || null,
         clienteId: Number(formData.clienteId),
-        setorId: Number(formData.setorId),
         tarefas: formData.tarefas.map((tarefa) => ({
           id: tarefa.id ?? null,
           titulo: tarefa.titulo.trim(),
           descricao: tarefa.descricao.trim() || null,
           prioridadeId: Number(tarefa.prioridadeId),
+          setorId: tarefa.setorId ? Number(tarefa.setorId) : null,
         })),
       },
       pendingFilesByIndex,
@@ -406,10 +431,16 @@ export default function FormularioProjeto({
                   <Input
                     id="titulo"
                     value={formData.titulo}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, titulo: e.target.value }))}
+                    onChange={(e) => {
+                      setSincronizarTitulo(false);
+                      setFormData((prev) => ({ ...prev, titulo: e.target.value }));
+                    }}
                     placeholder="Ex.: Implantação do módulo comercial"
                     className={errors.titulo ? 'border-destructive' : ''}
                   />
+                  {sincronizarTitulo && !isEditMode && (
+                    <p className="text-xs text-muted-foreground">Sincronizado com o título da tarefa</p>
+                  )}
                   {errors.titulo && <p className="text-xs text-destructive">{errors.titulo}</p>}
                 </div>
 
@@ -418,11 +449,17 @@ export default function FormularioProjeto({
                   <Textarea
                     id="descricao"
                     value={formData.descricao}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, descricao: e.target.value }))}
+                    onChange={(e) => {
+                      setSincronizarDescricao(false);
+                      setFormData((prev) => ({ ...prev, descricao: e.target.value }));
+                    }}
                     placeholder="Detalhes gerais do projeto"
                     rows={3}
                     className="resize-none"
                   />
+                  {sincronizarDescricao && !isEditMode && (
+                    <p className="text-xs text-muted-foreground">Sincronizado com a descrição da tarefa</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -461,41 +498,6 @@ export default function FormularioProjeto({
                 </div>
 
                 <div className="space-y-2">
-                  <Label>
-                    Setor <span className="text-destructive">*</span>
-                  </Label>
-                  <div className="flex gap-1">
-                    <Select
-                      value={formData.setorId || undefined}
-                      onValueChange={(value) => setFormData((prev) => ({ ...prev, setorId: value }))}
-                    >
-                      <SelectTrigger className={`flex-1 ${errors.setorId ? 'border-destructive' : ''}`}>
-                        <SelectValue placeholder="Selecione o setor" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {setoresAtivos.map((setor) => (
-                          <SelectItem key={setor.id} value={String(setor.id)}>
-                            {setor.nome}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      className="shrink-0"
-                      onClick={() => setShowModalSetor(true)}
-                      title="Cadastrar novo setor"
-                      tabIndex={-1}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  {errors.setorId && <p className="text-xs text-destructive">{errors.setorId}</p>}
-                </div>
-
-                <div className="space-y-2">
                   <Label>Cadastrando por</Label>
                   <Input value={colaboradorLogadoNome || 'Colaborador logado'} readOnly disabled />
                 </div>
@@ -521,6 +523,7 @@ export default function FormularioProjeto({
                       tarefa={tarefa}
                       index={index}
                       prioridadesAtivas={prioridadesAtivas}
+                      setoresAtivos={setoresAtivos}
                       errors={errors.tarefasDetalhes?.[index]}
                       onChange={atualizarTarefa}
                       onRemove={removerTarefa}
