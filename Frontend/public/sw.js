@@ -26,6 +26,9 @@ self.addEventListener('fetch', (e) => {
         }
         return r;
       })
-      .catch(() => caches.match(e.request))
+      .catch(async () => {
+        const cached = await caches.match(e.request);
+        return cached ?? Response.error();
+      })
   );
 });
