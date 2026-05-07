@@ -22,6 +22,12 @@ VALUES (N'Administrador', N'Cargo do administrador', 1);
 SET @CargoId = SCOPE_IDENTITY();
 
 -- =============================================
+-- Configuração do Sistema
+-- =============================================
+INSERT INTO ConfiguracaoSistema (HoraInicioAgenda, HoraFimAgenda, Email, Telefone, RazaoSocial, NomeFantasia, Cnpj, InscricaoEstadual, Cep, Logradouro, Numero, Bairro, Cidade, Uf, SmtpServidor, SmtpPorta, SmtpUsaSsl, SmtpUsarSslTls, AnexoTamanhoMaximoMB, AnexoLimiteImagemMB, AnexoLimitePdfMB, AnexoLimiteExcelMB)
+VALUES (N'00:00:00', N'23:59:00', N'asm.testes@gmail.com', N'(14) 3478-1993', N'ALVARO SHIOJI MATSUDA', N'ALWAYS SYSTEM MANAGER', N'06.186.222/0001-27', N'207.068.580.112', N'17690-037', N'Rua Presidente Vargas', N'520', N'Centro', N'Bastos', N'SP', N'smtp.gmail.com', 587, 1, 1, 25, NULL, NULL, NULL);
+
+-- =============================================
 -- NivelAcesso: ADMINISTRADOR (todas as permissoes)
 -- =============================================
 INSERT INTO NivelAcesso (Nome, Descricao, Ativo, EhAdministrador)
