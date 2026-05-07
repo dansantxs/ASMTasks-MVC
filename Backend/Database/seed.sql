@@ -8,6 +8,24 @@ DECLARE @NivelPadraoId INT;
 DECLARE @ColabId       INT;
 
 -- =============================================
+-- Etapas
+-- =============================================
+INSERT INTO Etapa (Nome, Descricao, Ativo, Ordem, EhEtapaFinal)
+VALUES (N'Análise & Requisitos', N'Refinamento técnico e detalhamento de regras de negócio.', 1, 1, 0);
+INSERT INTO Etapa (Nome, Descricao, Ativo, Ordem, EhEtapaFinal)
+VALUES (N'Design / UI-UX', N'Criação de protótipos, fluxogramas e interface visual.', 1, 2, 0);
+INSERT INTO Etapa (Nome, Descricao, Ativo, Ordem, EhEtapaFinal)
+VALUES (N'Em Desenvolvimento', N'Codificação ativa da funcionalidade ou correção de bug.', 1, 3, 0);
+INSERT INTO Etapa (Nome, Descricao, Ativo, Ordem, EhEtapaFinal)
+VALUES (N'QA / Testes', N'Validação funcional em ambiente de homologação pela equipe de QA.', 1, 4, 0);
+INSERT INTO Etapa (Nome, Descricao, Ativo, Ordem, EhEtapaFinal)
+VALUES (N'Homologação', N'Validação final feita pelo cliente ou Product Owner (PO).', 1, 5, 0);
+INSERT INTO Etapa (Nome, Descricao, Ativo, Ordem, EhEtapaFinal)
+VALUES (N'Aguardando Deploy', N'Item aprovado e aguardando a janela de publicação em produção.', 1, 6, 0);
+INSERT INTO Etapa (Nome, Descricao, Ativo, Ordem, EhEtapaFinal)
+VALUES (N'Produção', N'Funcionalidade entregue e operando em ambiente real.', 1, 7, 1);
+
+-- =============================================
 -- Setor
 -- =============================================
 INSERT INTO Setor (Nome, Descricao, Ativo)
@@ -25,7 +43,7 @@ SET @CargoId = SCOPE_IDENTITY();
 -- Configuração do Sistema
 -- =============================================
 INSERT INTO ConfiguracaoSistema (HoraInicioAgenda, HoraFimAgenda, Email, Telefone, RazaoSocial, NomeFantasia, Cnpj, InscricaoEstadual, Cep, Logradouro, Numero, Bairro, Cidade, Uf, SmtpServidor, SmtpPorta, SmtpUsaSsl, SmtpUsarSslTls, AnexoTamanhoMaximoMB, AnexoLimiteImagemMB, AnexoLimitePdfMB, AnexoLimiteExcelMB)
-VALUES (N'00:00:00', N'23:59:00', N'asm.testes@gmail.com', N'(14) 3478-1993', N'ALVARO SHIOJI MATSUDA', N'ALWAYS SYSTEM MANAGER', N'06.186.222/0001-27', N'207.068.580.112', N'17690-037', N'Rua Presidente Vargas', N'520', N'Centro', N'Bastos', N'SP', N'smtp.gmail.com', 587, 1, 1, 25, NULL, NULL, NULL);
+VALUES (N'00:00:00', N'23:59:00', N'always.system@gmail.com', N'(14) 3478-1993', N'ALVARO SHIOJI MATSUDA', N'ALWAYS SYSTEM MANAGER', N'06.186.222/0001-27', N'207.068.580.112', N'17690-037', N'Rua Presidente Vargas', N'520', N'Centro', N'Bastos', N'SP', N'smtp.gmail.com', 587, 1, 1, 25, NULL, NULL, NULL);
 
 -- =============================================
 -- NivelAcesso: ADMINISTRADOR (todas as permissoes)
