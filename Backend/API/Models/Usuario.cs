@@ -30,8 +30,6 @@ namespace API.Models
             if (string.IsNullOrWhiteSpace(login) || string.IsNullOrWhiteSpace(senha))
                 return null;
 
-            await NivelAcessoModel.SincronizarPadroesAsync(dbContext);
-
             var usuario = await _usuariosDAO.ObterParaLoginAsync(dbContext, login.Trim().ToLowerInvariant());
             if (usuario == null)
             {
@@ -52,7 +50,6 @@ namespace API.Models
 
         public static async Task<Usuario?> ObterPorIdAsync(DBContext dbContext, int id)
         {
-            await NivelAcessoModel.SincronizarPadroesAsync(dbContext);
             var usuario = await _usuariosDAO.ObterPorIdAsync(dbContext, id);
             if (usuario != null)
                 usuario.Permissoes = await CarregarPermissoesAsync(dbContext, usuario);
@@ -61,7 +58,6 @@ namespace API.Models
 
         public static async Task<Usuario?> ObterPorColaboradorIdAsync(DBContext dbContext, int colaboradorId)
         {
-            await NivelAcessoModel.SincronizarPadroesAsync(dbContext);
             var usuario = await _usuariosDAO.ObterPorColaboradorIdAsync(dbContext, colaboradorId);
             if (usuario != null)
                 usuario.Permissoes = await CarregarPermissoesAsync(dbContext, usuario);
@@ -196,14 +192,11 @@ namespace API.Models
 
         public static async Task<IEnumerable<Usuario>> ObterTodosParaAdministracaoAsync(DBContext dbContext)
         {
-            await NivelAcessoModel.SincronizarPadroesAsync(dbContext);
             return await _usuariosDAO.ObterTodosParaAdministracaoAsync(dbContext);
         }
 
         public static async Task AtualizarNivelAcessoAsync(DBContext dbContext, int usuarioId, int nivelAcessoId)
         {
-            await NivelAcessoModel.SincronizarPadroesAsync(dbContext);
-
             var usuario = await _usuariosDAO.ObterPorIdAsync(dbContext, usuarioId);
             if (usuario == null)
                 throw new ValidationException("Usuario nao encontrado.");

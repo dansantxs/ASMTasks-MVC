@@ -1,5 +1,6 @@
 using API.DB;
 using API.DB.DAOs;
+using API.Models;
 using API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
@@ -173,6 +174,8 @@ builder.Services.AddScoped<AtendimentoNotificacaoProcessor>();
 builder.Services.AddHostedService<AtendimentoNotificacaoBackgroundService>();
 
 var app = builder.Build();
+
+await NivelAcesso.SincronizarPadroesAsync(dbContext);
 
 app.Use(async (context, next) =>
 {

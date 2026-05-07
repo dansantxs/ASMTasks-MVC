@@ -83,6 +83,14 @@ INSERT INTO NivelAcessoPermissao (NivelAcessoId, TelaChave) VALUES (@NivelPadrao
 INSERT INTO NivelAcessoPermissao (NivelAcessoId, TelaChave) VALUES (@NivelPadraoId, 'relatorios.setores');
 
 -- =============================================
+-- Prioridades
+-- =============================================
+INSERT INTO Prioridade (Nome, Descricao, Cor, Ativo, Ordem) VALUES (N'Crítica', N'Erros impeditivos ou falhas de segurança.', N'#FF0000', 1, 1);
+INSERT INTO Prioridade (Nome, Descricao, Cor, Ativo, Ordem) VALUES (N'Alta', N'Funcionalidades principais afetadas com prazo curto.', N'#E67E22', 1, 2);
+INSERT INTO Prioridade (Nome, Descricao, Cor, Ativo, Ordem) VALUES (N'Média', N'Demandas importantes, mas sem impacto imediato.', N'#F1C40F', 1, 3);
+INSERT INTO Prioridade (Nome, Descricao, Cor, Ativo, Ordem) VALUES (N'Baixa', N'Melhorias cosméticas ou sugestões de UX.', N'#2ECC71', 1, 4);
+
+-- =============================================
 -- Colaborador admin
 -- =============================================
 INSERT INTO Colaborador (Nome, CPF, Email, Telefone, CEP, Cidade, UF, Logradouro, Bairro, Numero, DataNascimento, DataAdmissao, Ativo, SetorId, CargoId)
