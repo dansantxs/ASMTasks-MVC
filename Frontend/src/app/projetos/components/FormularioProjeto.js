@@ -8,7 +8,7 @@ import { Input } from '../../../ui/form/input';
 import { Label } from '../../../ui/form/label';
 import { Textarea } from '../../../ui/form/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../ui/form/select';
-import { Plus, Trash2, Paperclip, X as XIcon, FileText } from 'lucide-react';
+import { Plus, Trash2, Paperclip, X as XIcon, FileText, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { criarCliente, criarPrioridade, criarSetor } from '../api/projetos';
 import FormularioCliente from '../../cadastros/clientes/components/FormularioCliente';
@@ -212,10 +212,12 @@ export default function FormularioProjeto({
   open,
   onOpenChange,
   aoSalvar,
+  aoMesclar,
   salvando,
   clientes,
   setores = [],
   prioridades,
+  projetos = [],
   colaboradorLogadoNome,
   setorLogadoId = null,
   dadosIniciais = null,
@@ -230,6 +232,10 @@ export default function FormularioProjeto({
   const [showModalSetor, setShowModalSetor] = useState(false);
   const [indicePrioridadeTarefa, setIndicePrioridadeTarefa] = useState(null);
   const [tarefaAnexosAberta, setTarefaAnexosAberta] = useState(null);
+  const [showMergeDialog, setShowMergeDialog] = useState(false);
+  const [projetosParaMesclar, setProjetosParaMesclar] = useState([]);
+  const [projetoMesclarId, setProjetoMesclarId] = useState(null);
+  const [pendingClienteId, setPendingClienteId] = useState(null);
   const queryClient = useQueryClient();
   const isEditMode = Boolean(dadosIniciais?.id);
 
@@ -254,12 +260,32 @@ export default function FormularioProjeto({
       setShowModalCliente(false);
       setShowModalSetor(false);
       setIndicePrioridadeTarefa(null);
+      setShowMergeDialog(false);
+      setProjetosParaMesclar([]);
+      setProjetoMesclarId(null);
+      setPendingClienteId(null);
     }
   }, [open, isEditMode, dadosIniciais]);
 
   const clientesAtivos = useMemo(() => clientes.filter((item) => item.ativo), [clientes]);
+
+  // Em edição, garante que o cliente atual apareça mesmo que inativo
+  const clientesParaSelecao = useMemo(() => {
+    if (!isEditMode || !dadosIniciais?.clienteId) return clientesAtivos;
+    const jaIncluso = clientesAtivos.some((c) => c.id === dadosIniciais.clienteId);
+    if (jaIncluso) return clientesAtivos;
+    const clienteAtual = clientes.find((c) => c.id === dadosIniciais.clienteId);
+    return clienteAtual ? [...clientesAtivos, clienteAtual] : clientesAtivos;
+  }, [isEditMode, clientesAtivos, clientes, dadosIniciais?.clienteId]);
   const setoresAtivos = useMemo(() => setores.filter((item) => item.ativo), [setores]);
   const prioridadesAtivas = useMemo(() => prioridades.filter((item) => item.ativo), [prioridades]);
+
+  const projetosAtivosDoCliente = useMemo(() => {
+    if (isEditMode || !formData.clienteId) return [];
+    return projetos.filter(
+      (p) => p.ativo && !p.concluido && String(p.clienteId) === String(formData.clienteId),
+    );
+  }, [isEditMode, formData.clienteId, projetos]);
 
   const atualizarTarefa = (index, field, value) => {
     setFormData((prev) => {
@@ -308,6 +334,52 @@ export default function FormularioProjeto({
       [tempId]: (pf[tempId] ?? []).filter((_, i) => i !== fileIndex),
     }));
   }, []);
+
+  const handleClienteChange = (value) => {
+    if (!isEditMode) {
+      const projetosAtivos = projetos.filter(
+        (p) => p.ativo && !p.concluido && String(p.clienteId) === String(value),
+      );
+      const temTarefas = formData.tarefas.some((t) => t.titulo.trim());
+      if (projetosAtivos.length > 0 && temTarefas) {
+        setPendingClienteId(value);
+        setProjetosParaMesclar(projetosAtivos);
+        setProjetoMesclarId(String(projetosAtivos[0].id));
+        setShowMergeDialog(true);
+        return;
+      }
+    }
+    setFormData((prev) => ({ ...prev, clienteId: value }));
+  };
+
+  const handleMesclar = () => {
+    if (!projetoMesclarId) return;
+    const arquivos = {};
+    formData.tarefas.forEach((tarefa, i) => {
+      const files = pendingFiles[tarefa._tempId] ?? [];
+      if (files.length > 0) arquivos[i] = files;
+    });
+    aoMesclar?.(
+      Number(projetoMesclarId),
+      formData.tarefas.map((t) => ({
+        titulo: t.titulo.trim(),
+        descricao: t.descricao.trim() || null,
+        prioridadeId: t.prioridadeId ? Number(t.prioridadeId) : null,
+        setorId: t.setorId ? Number(t.setorId) : null,
+      })),
+      arquivos,
+    );
+    setShowMergeDialog(false);
+    setPendingClienteId(null);
+    setProjetosParaMesclar([]);
+  };
+
+  const handleCriarNovoProjeto = () => {
+    setFormData((prev) => ({ ...prev, clienteId: pendingClienteId ?? prev.clienteId }));
+    setShowMergeDialog(false);
+    setPendingClienteId(null);
+    setProjetosParaMesclar([]);
+  };
 
   const handleSalvarNovoCliente = async (dados) => {
     try {
@@ -469,13 +541,13 @@ export default function FormularioProjeto({
                   <div className="flex gap-1">
                     <Select
                       value={formData.clienteId || undefined}
-                      onValueChange={(value) => setFormData((prev) => ({ ...prev, clienteId: value }))}
+                      onValueChange={handleClienteChange}
                     >
                       <SelectTrigger className={`flex-1 ${errors.clienteId ? 'border-destructive' : ''}`}>
                         <SelectValue placeholder="Selecione o cliente" />
                       </SelectTrigger>
                       <SelectContent>
-                        {clientesAtivos.map((cliente) => (
+                        {clientesParaSelecao.map((cliente) => (
                           <SelectItem key={cliente.id} value={String(cliente.id)}>
                             {cliente.nome}
                           </SelectItem>
@@ -495,6 +567,22 @@ export default function FormularioProjeto({
                     </Button>
                   </div>
                   {errors.clienteId && <p className="text-xs text-destructive">{errors.clienteId}</p>}
+                  {projetosAtivosDoCliente.length > 0 && (
+                    <div className="flex gap-2 rounded-md border border-amber-200 bg-amber-50 p-2.5">
+                      <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" />
+                      <div className="text-xs text-amber-800 space-y-1">
+                        <p className="font-medium">
+                          Este cliente já possui {projetosAtivosDoCliente.length === 1 ? '1 projeto ativo' : `${projetosAtivosDoCliente.length} projetos ativos`} em aberto:
+                        </p>
+                        <ul className="list-disc ml-3 space-y-0.5">
+                          {projetosAtivosDoCliente.map((p) => (
+                            <li key={p.id}>{p.titulo}</li>
+                          ))}
+                        </ul>
+                        <p>Considere adicionar as tarefas ao projeto existente ou confirme a criação de um novo projeto.</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -596,6 +684,53 @@ export default function FormularioProjeto({
         tarefaId={tarefaAnexosAberta?.id ?? null}
         tarefaTitulo={tarefaAnexosAberta?.titulo ?? ''}
       />
+
+      {/* Diálogo de mesclagem de tarefas com projeto existente */}
+      <Dialog open={showMergeDialog} onOpenChange={(next) => { if (!next) handleCriarNovoProjeto(); }}>
+        <DialogContent className="sm:max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle>Cliente com projeto ativo</DialogTitle>
+            <DialogDescription>
+              {projetosParaMesclar.length === 1
+                ? `Este cliente já tem o projeto "${projetosParaMesclar[0]?.titulo}" em andamento. O que deseja fazer com as tarefas que você preencheu?`
+                : `Este cliente já tem ${projetosParaMesclar.length} projetos ativos. Deseja adicionar as tarefas a um deles ou criar um novo projeto?`}
+            </DialogDescription>
+          </DialogHeader>
+
+          {projetosParaMesclar.length > 1 && (
+            <div className="space-y-2 py-2">
+              <Label>Adicionar ao projeto</Label>
+              <Select value={projetoMesclarId || undefined} onValueChange={setProjetoMesclarId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Escolha o projeto de destino" />
+                </SelectTrigger>
+                <SelectContent>
+                  {projetosParaMesclar.map((p) => (
+                    <SelectItem key={p.id} value={String(p.id)}>{p.titulo}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          <div className="flex flex-col gap-2 pt-2">
+            <Button
+              onClick={handleMesclar}
+              className="bg-brand-blue hover:bg-brand-blue-dark"
+              disabled={!projetoMesclarId || salvando}
+            >
+              {salvando
+                ? 'Adicionando...'
+                : projetosParaMesclar.length === 1
+                  ? `Adicionar ao projeto "${projetosParaMesclar[0]?.titulo}"`
+                  : 'Adicionar ao projeto selecionado'}
+            </Button>
+            <Button variant="outline" onClick={handleCriarNovoProjeto} disabled={salvando}>
+              Criar como novo projeto
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

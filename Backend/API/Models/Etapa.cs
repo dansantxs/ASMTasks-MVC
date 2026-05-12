@@ -49,9 +49,6 @@ namespace API.Models
 
         public async Task InativarAsync(DBContext dbContext)
         {
-            if (await _etapasDAO.VerificarTarefasAtivasAsync(dbContext, Id))
-                throw new ValidationException("Não é possível inativar a etapa pois existem tarefas ativas de projetos utilizando-a.");
-
             var inativado = await _etapasDAO.InativarAsync(dbContext, Id);
             if (!inativado)
                 throw new ValidationException("Etapa não encontrada.");

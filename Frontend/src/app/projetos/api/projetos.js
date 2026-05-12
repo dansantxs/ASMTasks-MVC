@@ -25,11 +25,8 @@ async function handleResponse(res) {
         const flat = Object.values(data.errors).flat();
         if (flat.length) msg = flat.join('\n');
       }
-      if (data.detalhe && data.detalhe !== msg) {
-        msg += `\nDetalhe: ${data.detalhe}`;
-      }
     } else {
-      msg = `${res.status} ${res.statusText}`;
+      msg = 'Ocorreu um erro. Tente novamente.';
     }
 
     const error = new Error(msg);

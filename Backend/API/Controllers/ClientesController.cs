@@ -151,6 +151,8 @@ namespace API.Controllers
             if (clientes == null || !clientes.Any())
                 return NoContent();
 
+            var idsComAtivos = await Cliente.ObterIdsComRegistrosAtivosAsync(dbContext);
+
             var response = clientes.Select(c => new ClienteResponse
             {
                 Id = c.Id,
@@ -170,7 +172,7 @@ namespace API.Controllers
                 Site = c.Site,
                 DataReferencia = c.DataReferencia,
                 Ativo = c.Ativo,
-                PossuiTarefasAtivas = false
+                PossuiTarefasAtivas = idsComAtivos.Contains(c.Id)
             });
 
             return Ok(response);

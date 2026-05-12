@@ -41,9 +41,6 @@ namespace API.Models
 
         public async Task InativarAsync(DBContext dbContext)
         {
-            if (await _cargosDAO.VerificarColaboradoresAtivosAsync(dbContext, Id))
-                throw new ValidationException("Não é possível inativar o cargo pois existem colaboradores ativos vinculados a ele.");
-
             var inativado = await _cargosDAO.InativarAsync(dbContext, Id);
             if (!inativado)
                 throw new ValidationException("Cargo não encontrado.");

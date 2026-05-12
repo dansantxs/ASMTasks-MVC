@@ -43,9 +43,6 @@ namespace API.Models
 
         public async Task InativarAsync(DBContext dbContext)
         {
-            if (await _prioridadesDAO.VerificarTarefasAtivasAsync(dbContext, Id))
-                throw new ValidationException("Não é possível inativar a prioridade pois existem tarefas ativas de projetos utilizando-a.");
-
             var inativado = await _prioridadesDAO.InativarAsync(dbContext, Id);
             if (!inativado)
                 throw new ValidationException("Prioridade não encontrada.");

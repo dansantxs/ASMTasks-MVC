@@ -13,7 +13,7 @@ async function tratarResposta(res) {
     let msg = 'Erro inesperado.';
     if (dados?.erro) msg = dados.erro;
     else if (dados?.message) msg = dados.message;
-    else msg = `${res.status} ${res.statusText}`;
+    else msg = 'Ocorreu um erro. Tente novamente.';
     const erro = new Error(msg);
     erro.status = res.status;
     throw erro;

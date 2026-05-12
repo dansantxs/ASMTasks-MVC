@@ -180,6 +180,43 @@ export default function ProjetosPage() {
     onError: (error) => toast.error(error?.message ?? 'Erro ao desmarcar conclusão do projeto.'),
   });
 
+  const mesclar = useMutation({
+    mutationFn: async ({ projetoId, novasTarefas, pendingFilesByIndex }) => {
+      const projetoExistente = await getProjeto(projetoId);
+      const tarefasExistentes = projetoExistente.tarefas.map((t) => ({
+        id: t.id,
+        titulo: t.titulo,
+        descricao: t.descricao ?? null,
+        prioridadeId: t.prioridadeId,
+        setorId: t.setorId ?? null,
+      }));
+
+      await atualizarProjeto(projetoId, {
+        titulo: projetoExistente.titulo,
+        descricao: projetoExistente.descricao ?? null,
+        clienteId: projetoExistente.clienteId,
+        tarefas: [...tarefasExistentes, ...novasTarefas],
+      });
+
+      if (Object.keys(pendingFilesByIndex).length > 0) {
+        const projetoAtualizado = await getProjeto(projetoId);
+        const offset = tarefasExistentes.length;
+        for (const [indexStr, files] of Object.entries(pendingFilesByIndex)) {
+          const tarefaId = projetoAtualizado.tarefas[offset + Number(indexStr)]?.id;
+          if (tarefaId) {
+            for (const file of files) await uploadAnexoTarefa(tarefaId, file);
+          }
+        }
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projetos'] });
+      setIsFormOpen(false);
+      toast.success('Tarefas adicionadas ao projeto com sucesso.');
+    },
+    onError: (error) => toast.error(error?.message ?? 'Erro ao adicionar tarefas ao projeto.'),
+  });
+
   const duplicar = useMutation({
     mutationFn: ({ id, clienteIds }) => duplicarProjeto(id, clienteIds),
     onSuccess: (data) => {
@@ -210,6 +247,10 @@ export default function ProjetosPage() {
   const handleAbrirDuplicar = (project) => {
     setDuplicatingProject(project);
     setIsDuplicarOpen(true);
+  };
+
+  const handleMesclarProjeto = (projetoId, novasTarefas, pendingFilesByIndex) => {
+    mesclar.mutate({ projetoId, novasTarefas, pendingFilesByIndex });
   };
 
   const handleSalvarProjeto = (payload, pendingFilesByIndex = {}) => {
@@ -479,10 +520,12 @@ export default function ProjetosPage() {
             if (!nextOpen) setEditingProject(null);
           }}
           aoSalvar={handleSalvarProjeto}
-          salvando={criar.isPending || atualizar.isPending}
+          aoMesclar={handleMesclarProjeto}
+          salvando={criar.isPending || atualizar.isPending || mesclar.isPending}
           clientes={clientes}
           setores={setores}
           prioridades={prioridades}
+          projetos={projetos}
           colaboradorLogadoNome={colaboradorLogadoNome}
           setorLogadoId={setorLogadoId}
           dadosIniciais={editingProject}

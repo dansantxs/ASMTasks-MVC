@@ -191,12 +191,6 @@ namespace API.Models
 
         public async Task InativarAsync(DBContext dbContext)
         {
-            if (await _colaboradoresDAO.VerificarAtendimentosAtivosAsync(dbContext, Id))
-                throw new ValidationException("Não é possível inativar o colaborador pois existem atendimentos em aberto atribuídos a ele.");
-
-            if (await _colaboradoresDAO.VerificarTarefasAtivasAsync(dbContext, Id))
-                throw new ValidationException("Não é possível inativar o colaborador pois existem tarefas ativas de projetos atribuídas a ele.");
-
             var inativado = await _colaboradoresDAO.InativarAsync(dbContext, Id);
             if (!inativado)
                 throw new ValidationException("Colaborador não encontrado.");

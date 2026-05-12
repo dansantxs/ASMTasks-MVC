@@ -10,7 +10,7 @@ async function handleResponse(res) {
   } catch {}
 
   if (!res.ok) {
-    const msg = data?.erro ?? data?.message ?? `${res.status} ${res.statusText}`;
+    const msg = data?.erro ?? data?.message ?? 'Ocorreu um erro. Tente novamente.';
     const error = new Error(msg);
     error.status = res.status;
     error.data = data;

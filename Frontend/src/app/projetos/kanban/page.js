@@ -67,13 +67,19 @@ export default function KanbanPage() {
     [projetosRaw]
   );
 
-  // Apenas clientes de projetos ativos
+  // Clientes que possuem ao menos um projeto ativo — independente de estarem ativos ou não
   const clientesFiltrados = useMemo(() => {
     const clienteIdsComProjeto = new Set(projetosAtivos.map((p) => p.clienteId));
-    return clientesRaw.filter((c) => c.ativo !== false && clienteIdsComProjeto.has(c.id));
+    return clientesRaw.filter((c) => clienteIdsComProjeto.has(c.id));
   }, [clientesRaw, projetosAtivos]);
 
   const colaboradoresAtivos = useMemo(() => colaboradores.filter((c) => c.ativo !== false), [colaboradores]);
+
+  // Colaboradores para o filtro: ativos + inativos que ainda têm tarefas no quadro
+  const colaboradoresParaFiltro = useMemo(() => {
+    const idsComTarefas = new Set(tarefas.map((t) => t.colaboradorResponsavelId).filter(Boolean));
+    return colaboradores.filter((c) => c.ativo !== false || idsComTarefas.has(c.id));
+  }, [colaboradores, tarefas]);
 
   const mover = useMutation({
     mutationFn: ({ tarefaId, etapaId, colaboradorResponsavelId }) =>
@@ -310,7 +316,7 @@ export default function KanbanPage() {
             filtros={filtros}
             aoAlterarFiltros={setFiltros}
             colaboradorLogadoId={colaboradorLogadoId}
-            colaboradores={colaboradoresAtivos}
+            colaboradores={colaboradoresParaFiltro}
             projetos={projetosAtivos}
             clientes={clientesFiltrados}
             ehAdmin={ehAdmin}

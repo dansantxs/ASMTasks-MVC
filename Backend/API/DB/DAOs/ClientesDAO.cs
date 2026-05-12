@@ -208,5 +208,21 @@ namespace API.DB.DAOs
             var result = await cmd.ExecuteScalarAsync();
             return Convert.ToInt32(result) > 0;
         }
+
+        public async Task<HashSet<int>> ObterClienteIdsComRegistrosAtivosAsync(DBContext dbContext)
+        {
+            var ids = new HashSet<int>();
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = @"
+                SELECT DISTINCT ClienteId FROM Projeto WHERE Ativo = 1
+                UNION
+                SELECT DISTINCT ClienteId FROM Atendimento WHERE Status <> 'C'
+            ";
+            await using var dr = await cmd.ExecuteReaderAsync();
+            while (await dr.ReadAsync())
+                ids.Add(Convert.ToInt32(dr[0]));
+            return ids;
+        }
     }
 }

@@ -16,11 +16,8 @@ async function tratarResposta(res) {
         const linhas = Object.values(dados.errors).flat();
         if (linhas.length) msg = linhas.join("\n");
       }
-      if (dados.detalhe && dados.detalhe !== msg) {
-        msg += `\nDetalhe: ${dados.detalhe}`;
-      }
     } else {
-      msg = `${res.status} ${res.statusText}`;
+      msg = 'Ocorreu um erro. Tente novamente.';
     }
     const erro = new Error(msg);
     erro.status = res.status;

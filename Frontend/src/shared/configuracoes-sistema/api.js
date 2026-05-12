@@ -40,7 +40,7 @@ async function tratarResposta(res) {
   } catch {}
 
   if (!res.ok) {
-    const msg = dados?.erro ?? dados?.message ?? `${res.status} ${res.statusText}`;
+    const msg = dados?.erro ?? dados?.message ?? 'Ocorreu um erro. Tente novamente.';
     const erro = new Error(msg);
     erro.status = res.status;
     erro.data = dados;

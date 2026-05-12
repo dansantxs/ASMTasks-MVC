@@ -40,9 +40,6 @@ namespace API.Models
 
         public async Task InativarAsync(DBContext dbContext)
         {
-            if (await _setoresDAO.VerificarColaboradoresAtivosAsync(dbContext, Id))
-                throw new ValidationException("Não é possível inativar o setor pois existem colaboradores ativos vinculados a ele.");
-
             var inativado = await _setoresDAO.InativarAsync(dbContext, Id);
             if (!inativado)
                 throw new ValidationException("Setor não encontrado.");

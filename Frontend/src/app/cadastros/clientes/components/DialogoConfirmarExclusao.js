@@ -23,79 +23,44 @@ export function DialogoConfirmarExclusao({
 }) {
   if (!cliente) return null;
 
-  const hasBlockingItems = !!(possuiTarefasAtivas);
-
-  const handleConfirm = () => {
-    if (!hasBlockingItems) {
-      aoConfirmar();
-    }
-  };
-
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>
-            {hasBlockingItems
-              ? 'Não é possível inativar o cliente'
-              : 'Confirmar inativação'}
-          </AlertDialogTitle>
+          <AlertDialogTitle>Confirmar inativação</AlertDialogTitle>
 
           <AlertDialogDescription asChild>
-            {hasBlockingItems ? (
-              <div className="space-y-4">
-                <div>
-                  O cliente <strong>"{cliente.name}"</strong> não pode ser inativado porque possui:
-                </div>
+            <div className="space-y-4">
+              <div>
+                Tem certeza que deseja inativar o cliente <strong>"{cliente.name}"</strong>?
+              </div>
 
-                <ul className="ml-4 list-disc space-y-1">
-                  {possuiTarefasAtivas && (
-                    <li>
-                      <strong>Tarefas em andamento</strong>
-                    </li>
-                  )}
-                </ul>
-
+              {possuiTarefasAtivas && (
                 <Alert className="border-amber-200 bg-amber-50">
                   <AlertTriangle className="h-4 w-4 text-amber-600" />
                   <AlertDescription className="text-amber-800">
-                    Para inativar este cliente, primeiro finalize ou transfira os projetos
-                    e tarefas em andamento para outro cliente ativo.
+                    Este cliente possui projetos ou atendimentos ativos. Eles não serão
+                    afetados — o cliente ficará inativo, mas todo o histórico é preservado.
                   </AlertDescription>
                 </Alert>
+              )}
 
-                <div className="text-sm text-muted-foreground">
-                  Esta validação garante que o histórico de projetos e tarefas sejam preservados
-                  e que não haja registros órfãos no sistema.
-                </div>
+              <div className="text-sm text-muted-foreground">
+                O cliente não aparecerá mais nas listagens ativas, mas poderá ser reativado
+                a qualquer momento.
               </div>
-            ) : (
-              <div className="space-y-4">
-                <div>
-                  Tem certeza que deseja inativar o cliente <strong>"{cliente.name}"</strong>?
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  Esta ação irá inativar o cliente, preservando o histórico de projetos e tarefas associados.
-                  Ele não aparecerá mais nas listagens ativas, mas poderá ser reativado posteriormente.
-                </div>
-              </div>
-            )}
+            </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
 
         <AlertDialogFooter>
-          <AlertDialogCancel>
-            {hasBlockingItems ? 'Entendi' : 'Cancelar'}
-          </AlertDialogCancel>
-
-          {!hasBlockingItems && (
-            <AlertDialogAction
-              onClick={handleConfirm}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Confirmar Inativação
-            </AlertDialogAction>
-          )}
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={aoConfirmar}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
+            Confirmar Inativação
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

@@ -19,7 +19,7 @@ async function handleResponse(res) {
         if (flat.length) msg = flat.join('\n');
       }
     } else {
-      msg = `${res.status} ${res.statusText}`;
+      msg = 'Ocorreu um erro. Tente novamente.';
     }
     const error = new Error(msg);
     error.status = res.status;

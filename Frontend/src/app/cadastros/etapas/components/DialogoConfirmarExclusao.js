@@ -23,64 +23,44 @@ export function DialogoConfirmarExclusao({
 }) {
   if (!etapa) return null;
 
-  const handleConfirm = () => {
-    if (!possuiTarefasAtivas) {
-      aoConfirmar();
-    }
-  };
-
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>
-            {possuiTarefasAtivas ? 'Não é possível excluir a etapa' : 'Confirmar exclusão'}
-          </AlertDialogTitle>
-          <AlertDialogDescription asChild>
-            {possuiTarefasAtivas ? (
-              <div className="space-y-4">
-                <div>
-                  A etapa <strong>"{etapa.name}"</strong> não pode ser excluída porque possui tarefas em andamento.
-                </div>
+          <AlertDialogTitle>Confirmar inativação</AlertDialogTitle>
 
+          <AlertDialogDescription asChild>
+            <div className="space-y-4">
+              <div>
+                Tem certeza que deseja inativar a etapa <strong>"{etapa.name}"</strong>?
+              </div>
+
+              {possuiTarefasAtivas && (
                 <Alert className="border-amber-200 bg-amber-50">
                   <AlertTriangle className="h-4 w-4 text-amber-600" />
                   <AlertDescription className="text-amber-800">
-                    Para excluir esta etapa, primeiro você deve realocar todas as tarefas em andamento
-                    para outras etapas ou finalizá-las.
+                    Esta etapa possui tarefas ativas. Elas não serão afetadas — a etapa ficará
+                    inativa, mas todo o histórico é preservado.
                   </AlertDescription>
                 </Alert>
+              )}
 
-                <div className="text-sm text-muted-foreground">
-                  Esta validação garante que o histórico de tarefas seja preservado e que não haja
-                  tarefas órfãs no sistema.
-                </div>
+              <div className="text-sm text-muted-foreground">
+                A etapa não aparecerá mais nas listagens ativas, mas poderá ser reativada
+                a qualquer momento.
               </div>
-            ) : (
-              <div className="space-y-4">
-                <div>
-                  Tem certeza que deseja excluir a etapa <strong>"{etapa.name}"</strong>?
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  Esta ação irá inativar a etapa, preservando o histórico de tarefas associadas.
-                  A etapa não aparecerá mais nas listagens ativas, mas poderá ser reativada posteriormente.
-                </div>
-              </div>
-            )}
+            </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
+
         <AlertDialogFooter>
-          <AlertDialogCancel>
-            {possuiTarefasAtivas ? 'Entendi' : 'Cancelar'}
-          </AlertDialogCancel>
-          {!possuiTarefasAtivas && (
-            <AlertDialogAction
-              onClick={handleConfirm}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Confirmar Exclusão
-            </AlertDialogAction>
-          )}
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={aoConfirmar}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
+            Confirmar Inativação
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
