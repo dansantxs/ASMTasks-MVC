@@ -3,6 +3,7 @@ using API.DB.DAOs;
 using API.Models;
 using API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -175,6 +176,16 @@ builder.Services.AddHostedService<AtendimentoNotificacaoBackgroundService>();
 
 var app = builder.Build();
 
+// Necessário para que Request.IsHttps e RemoteIpAddress reflitam os valores originais
+// quando o backend está atrás de um proxy reverso (Cloudflare → Next.js → backend).
+var forwardedOptions = new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+};
+forwardedOptions.KnownNetworks.Clear();
+forwardedOptions.KnownProxies.Clear();
+app.UseForwardedHeaders(forwardedOptions);
+
 await NivelAcesso.SincronizarPadroesAsync(dbContext);
 
 app.Use(async (context, next) =>
@@ -204,7 +215,6 @@ if (app.Environment.IsDevelopment())
 app.UseCors("PermitirFrontend");
 
 app.UseRateLimiter();
-app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
