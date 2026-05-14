@@ -109,6 +109,11 @@ export default function ConfiguracoesAcessosPage() {
     [niveis]
   );
 
+  const totalAdminsAtivos = useMemo(
+    () => usuarios.filter((u) => u.ativo && niveis.find((n) => n.id === u.nivelAcesso)?.ehAdministrador).length,
+    [usuarios, niveis]
+  );
+
   const permissoesAgrupadas = useMemo(() => {
     const grupos = permissoesDisponiveis.reduce((acc, permissao) => {
       const grupo = obterGrupoPermissao(permissao);
@@ -587,7 +592,12 @@ export default function ConfiguracoesAcessosPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {usuarios.map((usuario) => (
+                  {usuarios.map((usuario) => {
+                    const ehAdminAtivo = usuario.ativo && niveis.find((n) => n.id === usuario.nivelAcesso)?.ehAdministrador;
+                    const ehUltimoAdmin = ehAdminAtivo && totalAdminsAtivos <= 1;
+                    const avisoUltimoAdmin = 'Este é o único administrador ativo. Cadastre outro administrador antes de alterar este usuário.';
+
+                    return (
                     <TableRow key={usuario.id}>
                       <TableCell className="font-medium">{usuario.colaboradorNome}</TableCell>
                       <TableCell className="min-w-[220px]">
@@ -625,22 +635,24 @@ export default function ConfiguracoesAcessosPage() {
                         </div>
                       </TableCell>
                       <TableCell className="min-w-[220px]">
-                        <Select
-                          value={String(usuario.nivelAcesso)}
-                          onValueChange={(value) => atualizarUsuario.mutate({ id: usuario.id, nivelAcesso: parseInt(value, 10) })}
-                          disabled={!usuario.ativo || atualizarUsuario.isPending}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {niveisAtivos.map((nivel) => (
-                              <SelectItem key={nivel.id} value={String(nivel.id)}>
-                                {nivel.nome}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <span title={ehUltimoAdmin ? avisoUltimoAdmin : undefined}>
+                          <Select
+                            value={String(usuario.nivelAcesso)}
+                            onValueChange={(value) => atualizarUsuario.mutate({ id: usuario.id, nivelAcesso: parseInt(value, 10) })}
+                            disabled={!usuario.ativo || atualizarUsuario.isPending || ehUltimoAdmin}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {niveisAtivos.map((nivel) => (
+                                <SelectItem key={nivel.id} value={String(nivel.id)}>
+                                  {nivel.nome}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </span>
                       </TableCell>
                       <TableCell>{usuario.ativo ? 'Ativo' : 'Inativo'}</TableCell>
                       <TableCell className="text-right whitespace-normal">
@@ -658,16 +670,18 @@ export default function ConfiguracoesAcessosPage() {
                             </Button>
                           )}
                           {usuario.ativo ? (
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="outline"
-                              onClick={() => excluirUsuario.mutate(usuario.id)}
-                              disabled={excluirUsuario.isPending}
-                            >
-                              <Trash2 className="h-4 w-4 mr-1" />
-                              Inativar usuário
-                            </Button>
+                            <span title={ehUltimoAdmin ? avisoUltimoAdmin : undefined}>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                onClick={() => excluirUsuario.mutate(usuario.id)}
+                                disabled={excluirUsuario.isPending || ehUltimoAdmin}
+                              >
+                                <Trash2 className="h-4 w-4 mr-1" />
+                                Inativar usuário
+                              </Button>
+                            </span>
                           ) : (
                             <Button
                               type="button"
@@ -683,7 +697,8 @@ export default function ConfiguracoesAcessosPage() {
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))}
+                    );
+                  })}
                 </TableBody>
               </Table>
           </CardContent>

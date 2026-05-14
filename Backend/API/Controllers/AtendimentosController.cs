@@ -1,6 +1,7 @@
 using API.DB;
 using API.DTOs.Atendimentos;
 using API.Models;
+using API.Security;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -62,6 +63,9 @@ namespace API.Controllers
                 if (atendimento == null)
                     return NotFound(new { erro = "Atendimento nao encontrado." });
 
+                if (!await UsuarioTemAcessoAoAtendimentoAsync(atendimento))
+                    return StatusCode(StatusCodes.Status403Forbidden, new { erro = "Voce nao tem permissao para alterar este atendimento." });
+
                 atendimento.Titulo = request.Titulo;
                 atendimento.Descricao = request.Descricao;
                 atendimento.ClienteId = request.ClienteId;
@@ -95,6 +99,9 @@ namespace API.Controllers
                 if (atendimento == null)
                     return NotFound(new { erro = "Atendimento nao encontrado." });
 
+                if (!await UsuarioTemAcessoAoAtendimentoAsync(atendimento))
+                    return StatusCode(StatusCodes.Status403Forbidden, new { erro = "Voce nao tem permissao para excluir este atendimento." });
+
                 await atendimento.ExcluirAsync(dbContext);
                 return NoContent();
             }
@@ -122,6 +129,9 @@ namespace API.Controllers
                 if (atendimento == null)
                     return NotFound(new { erro = "Atendimento nao encontrado." });
 
+                if (!await UsuarioTemAcessoAoAtendimentoAsync(atendimento))
+                    return StatusCode(StatusCodes.Status403Forbidden, new { erro = "Voce nao tem permissao para concluir este atendimento." });
+
                 await atendimento.MarcarComoRealizadoAsync(
                     dbContext,
                     ObterColaboradorIdLogado(),
@@ -147,6 +157,16 @@ namespace API.Controllers
             return colaboradorId;
         }
 
+        private async Task<bool> UsuarioTemAcessoAoAtendimentoAsync(Atendimento atendimento)
+        {
+            if (await AcessoAdminHelper.UsuarioTemPermissaoAsync(User, dbContext, TelaPermissoes.ConfiguracoesAcessos))
+                return true;
+
+            var colaboradorId = ObterColaboradorIdLogado();
+            return atendimento.CadastradoPorColaboradorId == colaboradorId
+                || atendimento.ColaboradoresIds.Contains(colaboradorId);
+        }
+
         [HttpPut("{id}/agendar")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -158,6 +178,9 @@ namespace API.Controllers
                 var atendimento = await Atendimento.ObterPorIdAsync(dbContext, id);
                 if (atendimento == null)
                     return NotFound(new { erro = "Atendimento nao encontrado." });
+
+                if (!await UsuarioTemAcessoAoAtendimentoAsync(atendimento))
+                    return StatusCode(StatusCodes.Status403Forbidden, new { erro = "Voce nao tem permissao para reabrir este atendimento." });
 
                 await atendimento.MarcarComoAgendadoAsync(
                     dbContext,

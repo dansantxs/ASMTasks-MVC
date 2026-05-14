@@ -85,15 +85,22 @@ export function BarraLateral({ caminhoAtual, aoNavegar, aoAlternarRecolhimento, 
 
     setEhIos(ios);
 
+    // Recupera evento capturado pelo script global antes do React montar
+    if (window.__pwaInstallPrompt) {
+      setPromptEvento(window.__pwaInstallPrompt);
+    }
+
     const handler = (e) => {
       e.preventDefault();
       setPromptEvento(e);
+      window.__pwaInstallPrompt = e;
     };
 
     window.addEventListener('beforeinstallprompt', handler);
     window.addEventListener('appinstalled', () => {
       setPwaInstalado(true);
       setPromptEvento(null);
+      window.__pwaInstallPrompt = null;
     });
 
     return () => window.removeEventListener('beforeinstallprompt', handler);
