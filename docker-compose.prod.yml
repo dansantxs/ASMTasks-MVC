@@ -1,12 +1,12 @@
 services:
   backend:
     ports:
-      - "5000:8080"
+      - "${PORT_BACKEND:-5000}:8080"
     restart: unless-stopped
 
   frontend:
     ports:
-      - "3000:3000"
+      - "${PORT_FRONTEND:-3000}:3000"
     restart: unless-stopped
 
   sqlserver:
@@ -16,9 +16,11 @@ services:
     image: cloudflare/cloudflared:latest
     command: tunnel --no-autoupdate --protocol http2 run
     environment:
-      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:-}
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
     networks:
       - asmtasks
     depends_on:
       - frontend
     restart: unless-stopped
+    profiles:
+      - cloudflare
