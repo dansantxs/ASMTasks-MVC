@@ -1,6 +1,6 @@
 'use client';
 
-import { requisicaoApi } from '../../../shared/api/http';
+import { requisicaoApi } from '../../../api/http';
 
 const PROJETOS_API_URL = '/projetos';
 const CLIENTES_API_URL = '/clientes';

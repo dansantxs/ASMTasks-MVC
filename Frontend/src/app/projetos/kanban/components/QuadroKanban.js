@@ -14,7 +14,7 @@ import {
   AlertDialogFooter,
   AlertDialogCancel,
   AlertDialogAction,
-} from '../../../../ui/feedback/alert/alert-dialog';
+} from '../../../../components/ui/feedback/alert/alert-dialog';
 
 const COLUNA_BACKLOG = { id: null, nome: 'Backlog', ordem: -1 };
 

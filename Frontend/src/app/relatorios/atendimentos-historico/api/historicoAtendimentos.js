@@ -1,4 +1,4 @@
-import { requisicaoApi } from '../../../../shared/api/http';
+import { requisicaoApi } from '../../../../api/http';
 
 const HISTORICO_API_URL = '/atendimentos/historico-acoes';
 

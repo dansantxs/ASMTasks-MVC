@@ -1,15 +1,15 @@
 'use client';
 import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from '../../../ui/base/button';
+import { Button } from '../../../components/ui/base/button';
 import { Plus, Workflow } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
 import { DialogoConfirmarExclusao } from './components/DialogoConfirmarExclusao';
 import FormularioEtapa from './components/FormularioEtapa';
 import ListaEtapas from './components/ListaEtapas';
 import DialogoVisualizarEtapa from './components/DialogoVisualizarEtapa';
-import AlternarVisualizacao from '../../../shared/components/AlternarVisualizacao';
-import TourGuia from '../../../shared/components/TourGuia';
+import AlternarVisualizacao from '../../../components/AlternarVisualizacao';
+import TourGuia from '../../../components/TourGuia';
 import { getEtapas, criarEtapa, atualizarEtapa, inativarEtapa, reativarEtapa } from './api/etapas';
 
 export default function EtapasPage() {

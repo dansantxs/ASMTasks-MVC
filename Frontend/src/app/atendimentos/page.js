@@ -2,12 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Button } from '../../ui/base/button';
+import { Button } from '../../components/ui/base/button';
 import { ChevronLeft, ChevronRight, Plus, CalendarDays } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
 import CalendarioAtendimentos from './components/CalendarioAtendimentos';
 import FormularioAtendimento from './components/FormularioAtendimento';
-import TourGuia from '../../shared/components/TourGuia';
+import TourGuia from '../../components/TourGuia';
 import DialogoVisualizarAtendimento from './components/DialogoVisualizarAtendimento';
 import DialogoConcluirAtendimento from './components/DialogoConcluirAtendimento';
 import {
@@ -20,8 +20,8 @@ import {
   marcarAtendimentoComoAgendado,
   marcarAtendimentoComoRealizado,
 } from './api/atendimentos';
-import { useUsuarioAtual } from '../../shared/auth/useUsuarioAtual';
-import { configuracoesPadrao, useConfiguracoesSistema } from '../../shared/configuracoes-sistema/api';
+import { useUsuarioAtual } from '../../hooks/useUsuarioAtual';
+import { configuracoesPadrao, useConfiguracoesSistema } from '../../services/configuracoes/api';
 
 function inicioDaSemana(data) {
   const d = new Date(data);

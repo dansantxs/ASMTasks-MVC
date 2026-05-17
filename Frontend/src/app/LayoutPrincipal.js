@@ -1,6 +1,6 @@
 'use client';
 
-import { BarraLateral } from "../shared/components/BarraLateral";
+import { BarraLateral } from "../components/BarraLateral";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Menu } from "lucide-react";
@@ -10,11 +10,11 @@ import {
   obterSessaoArmazenada,
   isSessaoValida,
   registrarAtividadeSessao,
-} from "../shared/auth/session";
-import { useUsuarioAtual } from "../shared/auth/useUsuarioAtual";
-import { obterRotaPadrao, obterPermissaoPorRota, temPermissao } from "../shared/auth/permissions";
+} from "../services/auth/session";
+import { useUsuarioAtual } from "../hooks/useUsuarioAtual";
+import { obterRotaPadrao, obterPermissaoPorRota, temPermissao } from "../services/auth/permissions";
 import { logout } from "./login/api/auth";
-import { useConfiguracoesSistema } from "../shared/configuracoes-sistema/api";
+import { useConfiguracoesSistema } from "../services/configuracoes/api";
 
 export default function LayoutPrincipal({ children }) {
   const pathname = usePathname();

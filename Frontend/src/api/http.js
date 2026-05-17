@@ -1,6 +1,6 @@
 'use client';
 
-import { limparSessao } from '../auth/session';
+import { limparSessao } from '../services/auth/session';
 
 export const URL_BASE_API = process.env.NEXT_PUBLIC_API_URL ?? 'https://localhost:7199/api';
 

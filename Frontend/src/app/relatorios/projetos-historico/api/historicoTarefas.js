@@ -1,4 +1,4 @@
-import { requisicaoApi } from '../../../../shared/api/http';
+import { requisicaoApi } from '../../../../api/http';
 
 async function handleResponse(res) {
   const text = await res.text();

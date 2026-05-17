@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { requisicaoApi } from '../api/http';
+import { requisicaoApi } from '../../api/http';
 
 export const configuracoesPadrao = {
   horaInicioAgenda: '08:00',

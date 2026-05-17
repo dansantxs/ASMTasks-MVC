@@ -1,15 +1,15 @@
 'use client';
 import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from '../../../ui/base/button';
+import { Button } from '../../../components/ui/base/button';
 import { Plus, Users } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
 import FormularioColaborador from './components/FormularioColaborador';
 import ListaColaboradores from './components/ListaColaboradores';
 import DialogoVisualizarColaborador from './components/DialogoVisualizarColaborador';
 import { DialogoConfirmarExclusao } from './components/DialogoConfirmarExclusao';
-import AlternarVisualizacao from '../../../shared/components/AlternarVisualizacao';
-import TourGuia from '../../../shared/components/TourGuia';
+import AlternarVisualizacao from '../../../components/AlternarVisualizacao';
+import TourGuia from '../../../components/TourGuia';
 import { getColaboradores, criarColaborador, atualizarColaborador, inativarColaborador, reativarColaborador } from './api/colaboradores';
 import { getSetores } from '../setores/api/setores';
 import { getCargos } from '../cargos/api/cargos';

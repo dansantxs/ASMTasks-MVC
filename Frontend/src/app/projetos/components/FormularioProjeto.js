@@ -2,12 +2,12 @@
 
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../../../ui/base/dialog';
-import { Button } from '../../../ui/base/button';
-import { Input } from '../../../ui/form/input';
-import { Label } from '../../../ui/form/label';
-import { Textarea } from '../../../ui/form/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../ui/form/select';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../../../components/ui/base/dialog';
+import { Button } from '../../../components/ui/base/button';
+import { Input } from '../../../components/ui/form/input';
+import { Label } from '../../../components/ui/form/label';
+import { Textarea } from '../../../components/ui/form/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/form/select';
 import { Plus, Trash2, Paperclip, X as XIcon, FileText, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { criarCliente, criarPrioridade, criarSetor } from '../api/projetos';
@@ -73,7 +73,7 @@ function CartaoTarefa({ tarefa, index, prioridadesAtivas, setoresAtivos, errors,
 
           <div className="flex items-center gap-1">
             <Select
-              value={tarefa.prioridadeId || undefined}
+              value={tarefa.prioridadeId || ''}
               onValueChange={(v) => onChange(index, 'prioridadeId', v)}
             >
               <SelectTrigger className={`flex-1 h-8 text-sm ${errors?.prioridadeId ? 'border-destructive' : ''}`}>
@@ -101,7 +101,7 @@ function CartaoTarefa({ tarefa, index, prioridadesAtivas, setoresAtivos, errors,
           </div>
 
           <Select
-            value={tarefa.setorId || undefined}
+            value={tarefa.setorId || ''}
             onValueChange={(v) => onChange(index, 'setorId', v)}
           >
             <SelectTrigger className={`h-8 text-sm ${errors?.setorId ? 'border-destructive' : ''}`}>
@@ -540,7 +540,7 @@ export default function FormularioProjeto({
                   </Label>
                   <div className="flex gap-1">
                     <Select
-                      value={formData.clienteId || undefined}
+                      value={formData.clienteId || ''}
                       onValueChange={handleClienteChange}
                     >
                       <SelectTrigger className={`flex-1 ${errors.clienteId ? 'border-destructive' : ''}`}>
@@ -700,7 +700,7 @@ export default function FormularioProjeto({
           {projetosParaMesclar.length > 1 && (
             <div className="space-y-2 py-2">
               <Label>Adicionar ao projeto</Label>
-              <Select value={projetoMesclarId || undefined} onValueChange={setProjetoMesclarId}>
+              <Select value={projetoMesclarId || ''} onValueChange={setProjetoMesclarId}>
                 <SelectTrigger>
                   <SelectValue placeholder="Escolha o projeto de destino" />
                 </SelectTrigger>

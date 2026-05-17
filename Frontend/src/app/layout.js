@@ -1,6 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "../styles/globals.css";
-import Providers from "./providers";
+import Providers from "../context/providers";
 import LayoutPrincipal from "./LayoutPrincipal";
 import { SwRegistrar } from "./SwRegistrar";
 

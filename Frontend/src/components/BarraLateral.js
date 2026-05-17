@@ -23,12 +23,12 @@ import {
   Folder,
   Download,
 } from 'lucide-react';
-import { cn } from '../../ui/form/utils';
-import { Button } from '../../ui/base/button';
-import { cadastroItems, relatorioItems } from '../config/menuItems';
-import { temPermissao, permissoesTelas } from '../auth/permissions';
-import { respostaPadraoNotificacoes, buscarNotificacoes, marcarNotificacaoLida } from '../notificacoes/api';
-import { useConfiguracoesSistema } from '../configuracoes-sistema/api';
+import { cn } from './ui/form/utils';
+import { Button } from './ui/base/button';
+import { cadastroItems, relatorioItems } from '../utils/menuItems';
+import { temPermissao, permissoesTelas } from '../services/auth/permissions';
+import { respostaPadraoNotificacoes, buscarNotificacoes, marcarNotificacaoLida } from '../services/notificacoes/api';
+import { useConfiguracoesSistema } from '../services/configuracoes/api';
 import { toast } from 'sonner';
 
 function formatarDataHora(valor) {

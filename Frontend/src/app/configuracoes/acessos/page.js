@@ -4,20 +4,20 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ShieldCheck, Users, Plus, Save, Trash2, RefreshCw, Eye, EyeOff } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
-import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/layout/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../ui/layout/table';
-import { Input } from '../../../ui/form/input';
-import { Label } from '../../../ui/form/label';
-import { Button } from '../../../ui/base/button';
-import { Textarea } from '../../../ui/form/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/layout/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../components/ui/layout/table';
+import { Input } from '../../../components/ui/form/input';
+import { Label } from '../../../components/ui/form/label';
+import { Button } from '../../../components/ui/base/button';
+import { Textarea } from '../../../components/ui/form/textarea';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../../../ui/form/select';
-import TourGuia from '../../../shared/components/TourGuia';
+} from '../../../components/ui/form/select';
+import TourGuia from '../../../components/TourGuia';
 import {
   criarNivelAcesso,
   getNiveisAcesso,

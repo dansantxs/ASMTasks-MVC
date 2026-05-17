@@ -21,8 +21,8 @@ import {
   UserX,
 } from 'lucide-react';
 import { getDashboard } from './api/dashboard';
-import { useUsuarioAtual } from '../../shared/auth/useUsuarioAtual';
-import TourGuia from '../../shared/components/TourGuia';
+import { useUsuarioAtual } from '../../hooks/useUsuarioAtual';
+import TourGuia from '../../components/TourGuia';
 
 function CardKPI({ icone: Icone, titulo, valor, corIcone, corFundo, destaque, sufixo }) {
   return (

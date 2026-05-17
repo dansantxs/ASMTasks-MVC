@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { Button } from '../../../../ui/base/button';
-import { Label } from '../../../../ui/form/label';
-import { cn } from '../../../../ui/form/utils';
+import { Button } from '../../../../components/ui/base/button';
+import { Label } from '../../../../components/ui/form/label';
+import { cn } from '../../../../components/ui/form/utils';
 
 export default function DialogoMoverTarefa({ open, onOpenChange, tarefa, etapaDestino, colaboradores = [], onConfirmar, isMovendo }) {
   const [colaboradorId, setColaboradorId] = useState(null);

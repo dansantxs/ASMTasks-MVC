@@ -1,11 +1,11 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Badge } from '../../../ui/base/badge';
-import { Button } from '../../../ui/base/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/layout/card';
-import { Input } from '../../../ui/form/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../ui/layout/table';
+import { Badge } from '../../../components/ui/base/badge';
+import { Button } from '../../../components/ui/base/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/layout/card';
+import { Input } from '../../../components/ui/form/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../components/ui/layout/table';
 import { Eye, FolderKanban, Search } from 'lucide-react';
 
 function formatarDataHora(value) {

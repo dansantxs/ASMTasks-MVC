@@ -6,9 +6,9 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '../../../ui/base/dialog';
-import { Button } from '../../../ui/base/button';
-import { Badge } from '../../../ui/base/badge';
+} from '../../../components/ui/base/dialog';
+import { Button } from '../../../components/ui/base/button';
+import { Badge } from '../../../components/ui/base/badge';
 
 function formatarDataHora(data) {
   if (!data) return '-';

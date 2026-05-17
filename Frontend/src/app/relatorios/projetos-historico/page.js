@@ -1,20 +1,20 @@
-﻿'use client';
+'use client';
 
 import { useMemo, useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/layout/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../ui/layout/table';
-import { Input } from '../../../ui/form/input';
-import { Label } from '../../../ui/form/label';
-import { Button } from '../../../ui/base/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../ui/form/select';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/layout/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../components/ui/layout/table';
+import { Input } from '../../../components/ui/form/input';
+import { Label } from '../../../components/ui/form/label';
+import { Button } from '../../../components/ui/base/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/form/select';
 import { FileSpreadsheet, FileText, Filter, History, ListChecks } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import XLSX from '@/shared/utils/exceljs-compat';
-import { configuracoesPadrao, useConfiguracoesSistema } from '../../../shared/configuracoes-sistema/api';
-import { obterRodapeRelatorio, obterLogotipo } from '../../../shared/configuracoes-sistema/reportBranding';
-import TourGuia from '../../../shared/components/TourGuia';
+import XLSX from '@/utils/exceljs-compat';
+import { configuracoesPadrao, useConfiguracoesSistema } from '../../../services/configuracoes/api';
+import { obterRodapeRelatorio, obterLogotipo } from '../../../services/configuracoes/reportBranding';
+import TourGuia from '../../../components/TourGuia';
 import { getHistoricoTarefas, getHistoricoProjetosRelatorio } from './api/historicoTarefas';
 import { getColaboradoresKanban, getProjetosKanban, getClientesKanban } from '../../projetos/kanban/api/kanban';
 

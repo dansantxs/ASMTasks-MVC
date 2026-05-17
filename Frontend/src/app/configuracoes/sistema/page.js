@@ -4,14 +4,14 @@ import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Building2, ImagePlus, Save, Clock3, Mail, Phone, Server, Eye, EyeOff, Paperclip } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
-import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/layout/card';
-import { Input } from '../../../ui/form/input';
-import { Label } from '../../../ui/form/label';
-import { Switch } from '../../../ui/form/switch';
-import { Button } from '../../../ui/base/button';
-import { configuracoesPadrao, atualizarConfiguracoesSistema, useConfiguracoesSistema } from '../../../shared/configuracoes-sistema/api';
-import { buscarEnderecoPorCep } from '../../../shared/api/viacep';
-import TourGuia from '../../../shared/components/TourGuia';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/layout/card';
+import { Input } from '../../../components/ui/form/input';
+import { Label } from '../../../components/ui/form/label';
+import { Switch } from '../../../components/ui/form/switch';
+import { Button } from '../../../components/ui/base/button';
+import { configuracoesPadrao, atualizarConfiguracoesSistema, useConfiguracoesSistema } from '../../../services/configuracoes/api';
+import { buscarEnderecoPorCep } from '../../../api/viacep';
+import TourGuia from '../../../components/TourGuia';
 
 const PASSOS_TOUR = [
   {

@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { X, Folder, Building2, User, Tag, Play, Pause, Clock, History, UserCog, Paperclip } from 'lucide-react';
-import { Button } from '../../../../ui/base/button';
+import { Button } from '../../../../components/ui/base/button';
 import { useQuery } from '@tanstack/react-query';
 import { getHistoricoTarefa, getHistoricoProjeto } from '../api/kanban';
 import DialogoPausarTarefa from './DialogoPausarTarefa';

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { X, Pause } from 'lucide-react';
-import { Button } from '../../../../ui/base/button';
+import { Button } from '../../../../components/ui/base/button';
 
 export default function DialogoPausarTarefa({ open, onOpenChange, tarefa, onConfirmar, isConfirmando }) {
   const [observacao, setObservacao] = useState('');

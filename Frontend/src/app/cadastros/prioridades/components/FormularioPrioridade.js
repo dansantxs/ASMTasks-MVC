@@ -7,11 +7,11 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription
-} from '../../../../ui/base/dialog';
-import { Button } from '../../../../ui/base/button';
-import { Input } from '../../../../ui/form/input';
-import { Label } from '../../../../ui/form/label';
-import { Textarea } from '../../../../ui/form/textarea';
+} from '../../../../components/ui/base/dialog';
+import { Button } from '../../../../components/ui/base/button';
+import { Input } from '../../../../components/ui/form/input';
+import { Label } from '../../../../components/ui/form/label';
+import { Textarea } from '../../../../components/ui/form/textarea';
 import { toast } from 'sonner';
 
 export default function FormularioPrioridade({

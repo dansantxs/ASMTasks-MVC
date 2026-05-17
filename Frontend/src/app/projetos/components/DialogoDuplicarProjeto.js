@@ -2,9 +2,9 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { Check, Copy, Search, X } from 'lucide-react';
-import { Button } from '../../../ui/base/button';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../../../ui/base/dialog';
-import { Input } from '../../../ui/form/input';
+import { Button } from '../../../components/ui/base/button';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../../../components/ui/base/dialog';
+import { Input } from '../../../components/ui/form/input';
 
 function normalizarTexto(value) {
   return (value ?? '')
@@ -67,7 +67,7 @@ export default function DialogoDuplicarProjeto({ open, onOpenChange, projeto, cl
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[460px]">
+      <DialogContent className="sm:max-w-[460px]" aria-describedby={undefined}>
         <DialogHeader>
           <div className="flex items-center gap-2">
             <Copy className="h-5 w-5 text-brand-blue shrink-0" />

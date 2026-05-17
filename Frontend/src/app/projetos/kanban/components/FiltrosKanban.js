@@ -2,8 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Filter, ChevronDown, X, Check } from 'lucide-react';
-import { Button } from '../../../../ui/base/button';
-import { cn } from '../../../../ui/form/utils';
+import { Button } from '../../../../components/ui/base/button';
+import { cn } from '../../../../components/ui/form/utils';
 
 function MultiSelectDropdown({ label, items, selectedIds, onChange, emptyLabel }) {
   const [open, setOpen] = useState(false);

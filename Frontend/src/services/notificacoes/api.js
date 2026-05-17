@@ -1,6 +1,6 @@
 'use client';
 
-import { requisicaoApi } from '../api/http';
+import { requisicaoApi } from '../../api/http';
 
 const URL_NOTIFICACOES = '/Notificacoes';
 

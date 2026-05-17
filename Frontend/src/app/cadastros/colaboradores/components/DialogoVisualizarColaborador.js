@@ -6,10 +6,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription
-} from '../../../../ui/base/dialog';
-import { Badge } from '../../../../ui/base/badge';
-import { Button } from '../../../../ui/base/button';
-import { Separator } from '../../../../ui/layout/separator';
+} from '../../../../components/ui/base/dialog';
+import { Badge } from '../../../../components/ui/base/badge';
+import { Button } from '../../../../components/ui/base/button';
+import { Separator } from '../../../../components/ui/layout/separator';
 import {
   User,
   Briefcase,

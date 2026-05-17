@@ -3,7 +3,7 @@
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, CheckCircle2 } from 'lucide-react';
-import { cn } from '../../../../ui/form/utils';
+import { cn } from '../../../../components/ui/form/utils';
 import CartaoTarefa from './CartaoTarefa';
 
 export default function ColunaKanban({ etapaId, titulo, tarefas, ehAdmin, colaboradorLogadoId, isBacklog, isEtapaFinal, onVisualizarTarefa }) {

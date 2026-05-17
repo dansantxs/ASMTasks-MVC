@@ -4,14 +4,14 @@ import { useMemo, useState, useCallback } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { FolderKanban, Plus } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
-import { Button } from '../../ui/base/button';
-import AlternarVisualizacao from '../../shared/components/AlternarVisualizacao';
-import TourGuia from '../../shared/components/TourGuia';
+import { Button } from '../../components/ui/base/button';
+import AlternarVisualizacao from '../../components/AlternarVisualizacao';
+import TourGuia from '../../components/TourGuia';
 import FormularioProjeto from './components/FormularioProjeto';
 import ListaProjetos from './components/ListaProjetos';
 import DialogoVisualizarProjeto from './components/DialogoVisualizarProjeto';
 import DialogoDuplicarProjeto from './components/DialogoDuplicarProjeto';
-import { useUsuarioAtual } from '../../shared/auth/useUsuarioAtual';
+import { useUsuarioAtual } from '../../hooks/useUsuarioAtual';
 import {
   atualizarProjeto,
   criarProjeto,

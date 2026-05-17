@@ -10,8 +10,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '../../../../ui/feedback/alert/alert-dialog';
-import { Alert, AlertDescription } from '../../../../ui/feedback/alert/alert';
+} from '../../../../components/ui/feedback/alert/alert-dialog';
+import { Alert, AlertDescription } from '../../../../components/ui/feedback/alert/alert';
 import { AlertTriangle } from 'lucide-react';
 
 export function DialogoConfirmarExclusao({

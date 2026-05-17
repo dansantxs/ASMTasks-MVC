@@ -3,12 +3,12 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Kanban, AlertCircle, Loader2 } from 'lucide-react';
-import { Input } from '../../ui/form/input';
-import { Label } from '../../ui/form/label';
-import { Button } from '../../ui/base/button';
+import { Input } from '../../components/ui/form/input';
+import { Label } from '../../components/ui/form/label';
+import { Button } from '../../components/ui/base/button';
 import { login } from './api/auth';
-import { salvarSessao } from '../../shared/auth/session';
-import { obterRotaPadrao } from '../../shared/auth/permissions';
+import { salvarSessao } from '../../services/auth/session';
+import { obterRotaPadrao } from '../../services/auth/permissions';
 
 export default function LoginPage() {
   const router = useRouter();

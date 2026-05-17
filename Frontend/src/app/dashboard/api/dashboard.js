@@ -1,4 +1,4 @@
-import { requisicaoApi } from '../../../shared/api/http';
+import { requisicaoApi } from '../../../api/http';
 
 export async function getDashboard(colaboradorId = null) {
   const params = colaboradorId ? `?colaboradorId=${colaboradorId}` : '';

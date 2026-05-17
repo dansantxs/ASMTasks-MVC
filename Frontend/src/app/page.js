@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { isSessaoValida } from '../shared/auth/session';
+import { isSessaoValida } from '../services/auth/session';
 
 export default function Home() {
   const router = useRouter();

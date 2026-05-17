@@ -3,7 +3,7 @@
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, User, Folder, Building2, Eye } from 'lucide-react';
-import { cn } from '../../../../ui/form/utils';
+import { cn } from '../../../../components/ui/form/utils';
 
 export default function CartaoTarefa({ tarefa, podeMover, onVisualizar }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({

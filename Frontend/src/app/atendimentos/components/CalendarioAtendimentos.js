@@ -1,8 +1,8 @@
 'use client';
 
-import { Badge } from '../../../ui/base/badge';
+import { Badge } from '../../../components/ui/base/badge';
 import { CalendarDays, Clock3 } from 'lucide-react';
-import { converterHoraParaMinutos } from '../../../shared/configuracoes-sistema/utils';
+import { converterHoraParaMinutos } from '../../../services/configuracoes/utils';
 
 const PIXELS_POR_MINUTO = 1.2;
 const MINUTOS_MIN_ATENDIMENTO = 60;

@@ -1,4 +1,4 @@
-import { requisicaoApi } from '../../../shared/api/http';
+import { requisicaoApi } from '../../../api/http';
 
 const ATENDIMENTOS_API_URL = `/atendimentos`;
 const CLIENTES_API_URL = `/clientes`;

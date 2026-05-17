@@ -6,7 +6,7 @@ import { X, Upload, Trash2, ZoomIn, Paperclip, FileText, Table2 } from 'lucide-r
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { getAnexosTarefa, uploadAnexoTarefa, deletarAnexoTarefa, fetchAnexoComoBlob } from '../kanban/api/kanban';
-import { useConfiguracoesSistema } from '../../../shared/configuracoes-sistema/api';
+import { useConfiguracoesSistema } from '../../../services/configuracoes/api';
 
 const TIPOS_ACEITOS = [
   'image/jpeg',

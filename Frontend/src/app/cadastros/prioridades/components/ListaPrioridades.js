@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Button } from '../../../../ui/base/button';
-import { Input } from '../../../../ui/form/input';
-import { Badge } from '../../../../ui/base/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '../../../../ui/layout/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../../ui/layout/table';
+import { Button } from '../../../../components/ui/base/button';
+import { Input } from '../../../../components/ui/form/input';
+import { Badge } from '../../../../components/ui/base/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../../components/ui/layout/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../../components/ui/layout/table';
 import { Search, Edit, Trash2, Eye, RefreshCw } from 'lucide-react';
 
 function useClientOnly() {

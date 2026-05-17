@@ -1,10 +1,10 @@
 'use client';
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../../../../ui/base/dialog';
-import { Badge } from '../../../../ui/base/badge';
-import { Button } from '../../../../ui/base/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../../../../ui/layout/card';
-import { Separator } from '../../../../ui/layout/separator';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../../../../components/ui/base/dialog';
+import { Badge } from '../../../../components/ui/base/badge';
+import { Button } from '../../../../components/ui/base/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../../components/ui/layout/card';
+import { Separator } from '../../../../components/ui/layout/separator';
 import { Briefcase, RefreshCw } from 'lucide-react';
 
 export default function DialogoVisualizarCargo({ open, onOpenChange, cargo, aoReativar }) {

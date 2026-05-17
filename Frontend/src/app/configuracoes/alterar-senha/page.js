@@ -2,15 +2,15 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/layout/card';
-import { Input } from '../../../ui/form/input';
-import { Label } from '../../../ui/form/label';
-import { Button } from '../../../ui/base/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/layout/card';
+import { Input } from '../../../components/ui/form/input';
+import { Label } from '../../../components/ui/form/label';
+import { Button } from '../../../components/ui/base/button';
 import { KeyRound, Eye, EyeOff } from 'lucide-react';
 import { alterarLogin, alterarSenha } from '../../login/api/auth';
-import { limparSessao } from '../../../shared/auth/session';
+import { limparSessao } from '../../../services/auth/session';
 import { toast, Toaster } from 'sonner';
-import TourGuia from '../../../shared/components/TourGuia';
+import TourGuia from '../../../components/TourGuia';
 
 const PASSOS_TOUR = [
   {

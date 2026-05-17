@@ -4,7 +4,7 @@ import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Kanban } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
-import { useUsuarioAtual } from '../../../shared/auth/useUsuarioAtual';
+import { useUsuarioAtual } from '../../../hooks/useUsuarioAtual';
 import {
   getTarefasKanban,
   moverTarefaEtapa,
@@ -19,7 +19,7 @@ import {
 } from './api/kanban';
 import FiltrosKanban from './components/FiltrosKanban';
 import QuadroKanban from './components/QuadroKanban';
-import TourGuia from '../../../shared/components/TourGuia';
+import TourGuia from '../../../components/TourGuia';
 import DialogoVisualizarTarefa from './components/DialogoVisualizarTarefa';
 
 export default function KanbanPage() {

@@ -1,14 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { Badge } from '../../../ui/base/badge';
-import { Button } from '../../../ui/base/button';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../../../ui/base/dialog';
+import { Badge } from '../../../components/ui/base/badge';
+import { Button } from '../../../components/ui/base/button';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../../../components/ui/base/dialog';
 import { Copy, FileText, FolderKanban, Loader2, Pencil, RefreshCw, RotateCcw, Trash2 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { configuracoesPadrao, useConfiguracoesSistema } from '../../../shared/configuracoes-sistema/api';
-import { obterLogotipo, obterRodapeRelatorio } from '../../../shared/configuracoes-sistema/reportBranding';
+import { configuracoesPadrao, useConfiguracoesSistema } from '../../../services/configuracoes/api';
+import { obterLogotipo, obterRodapeRelatorio } from '../../../services/configuracoes/reportBranding';
 import { getProjetoDocumento } from '../api/projetos';
 
 // ─── helpers ───────────────────────────────────────────────────────────────
@@ -382,7 +382,7 @@ export default function DialogoVisualizarProjeto({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full sm:max-w-[900px] max-h-[90vh] flex flex-col p-0 gap-0 overflow-hidden">
+      <DialogContent className="w-full sm:max-w-[900px] max-h-[90vh] flex flex-col p-0 gap-0 overflow-hidden" aria-describedby={undefined}>
         <DialogHeader className="px-6 pt-5 pb-4 border-b shrink-0">
           <div className="flex items-start justify-between gap-4 pr-8">
             <div className="flex items-center gap-2">

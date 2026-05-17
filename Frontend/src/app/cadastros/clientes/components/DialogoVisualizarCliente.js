@@ -6,10 +6,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription
-} from '../../../../ui/base/dialog';
-import { Badge } from '../../../../ui/base/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '../../../../ui/layout/card';
-import { Separator } from '../../../../ui/layout/separator';
+} from '../../../../components/ui/base/dialog';
+import { Badge } from '../../../../components/ui/base/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../../components/ui/layout/card';
+import { Separator } from '../../../../components/ui/layout/separator';
 import { Handshake, MapPin, Mail, Phone, IdCard, Briefcase, Globe } from 'lucide-react';
 
 const formatDate = (value) => (value ? new Date(value).toLocaleDateString('pt-BR') : ' ');

@@ -1,5 +1,5 @@
 import { Briefcase, Building2, Flag, Handshake, History, Users, Workflow } from "lucide-react";
-import { permissoesTelas } from "../auth/permissions";
+import { permissoesTelas } from "../services/auth/permissions";
 
 export const cadastroItems = [
   { key: "cargos", label: "Cargos", icon: Briefcase, permission: permissoesTelas.cadastrosCargos },
