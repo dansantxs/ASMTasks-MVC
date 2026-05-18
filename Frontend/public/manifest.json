@@ -1,7 +1,7 @@
 {
   "name": "ASM Tasks",
   "short_name": "ASM Tasks",
-  "description": "Sistema de Gestão de Setores",
+  "description": "Sistema de Gestão de Tarefas",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

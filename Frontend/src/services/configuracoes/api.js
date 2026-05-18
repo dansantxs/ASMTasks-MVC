@@ -118,6 +118,7 @@ export function useConfiguracoesSistema({ enabled = true } = {}) {
     queryKey: ['configuracoes-sistema'],
     queryFn: buscarConfiguracoesSistema,
     staleTime: 5 * 60 * 1000,
+    retry: false,
     enabled,
   });
 }
