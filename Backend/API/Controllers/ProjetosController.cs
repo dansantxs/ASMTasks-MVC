@@ -13,10 +13,9 @@ namespace API.Controllers
     [Route("api/[controller]")]
     [Authorize]
     [Produces("application/json")]
-    public class ProjetosController(DBContext dbContext, IWebHostEnvironment env) : ControllerBase
+    public class ProjetosController(DBContext dbContext) : ControllerBase
     {
         private readonly DBContext _dbContext = dbContext;
-        private readonly IWebHostEnvironment _env = env;
         private static readonly ProjetosDAO _projetosDAO = new();
 
         private static readonly string[] _tiposArquivoPermitidos =
@@ -63,14 +62,7 @@ namespace API.Controllers
             return mb * 1024L * 1024L;
         }
 
-        private string ObterPastaAnexos()
-        {
-            var pasta = Path.Combine(_env.ContentRootPath, "uploads", "tarefas");
-            Directory.CreateDirectory(pasta);
-            return pasta;
-        }
-
-        [HttpPost]
+[HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -299,13 +291,14 @@ namespace API.Controllers
 
                 foreach (var clienteId in request.ClienteIds)
                 {
+                    var tarefasOriginais = original.Tarefas.ToList();
                     var copia = new Projeto
                     {
                         Titulo = original.Titulo,
                         Descricao = original.Descricao,
                         ClienteId = clienteId,
                         CadastradoPorColaboradorId = colaboradorId,
-                        Tarefas = [.. original.Tarefas.Select(t => new ProjetoTarefa
+                        Tarefas = [.. tarefasOriginais.Select(t => new ProjetoTarefa
                         {
                             Titulo = t.Titulo,
                             Descricao = t.Descricao,
@@ -319,6 +312,10 @@ namespace API.Controllers
                     };
 
                     var novoId = await copia.CriarAsync(_dbContext);
+
+                    foreach (var (tarefaOriginal, tarefaCopia) in tarefasOriginais.Zip(copia.Tarefas))
+                        await _projetosDAO.CopiarAnexosTarefaAsync(_dbContext, tarefaOriginal.Id, tarefaCopia.Id);
+
                     idsGerados.Add(novoId);
                 }
 
@@ -765,23 +762,16 @@ namespace API.Controllers
                 if (!existe)
                     return NotFound(new { erro = "Tarefa não encontrada." });
 
-                var extensao = Path.GetExtension(arquivo.FileName);
-                var nomeArquivo = $"{Guid.NewGuid()}{extensao}";
-                var caminho = Path.Combine(ObterPastaAnexos(), nomeArquivo);
-
                 memStream.Position = 0;
-                await using (var fileStream = System.IO.File.Create(caminho))
-                    await memStream.CopyToAsync(fileStream);
-
                 var anexo = new ProjetoTarefaAnexo
                 {
                     TarefaId = id,
                     NomeOriginal = arquivo.FileName,
-                    NomeArquivo = nomeArquivo,
                     ContentType = contentType,
                     Tamanho = arquivo.Length,
                     DataUpload = DateTime.Now,
-                    EnviadoPorColaboradorId = ObterColaboradorIdLogado()
+                    EnviadoPorColaboradorId = ObterColaboradorIdLogado(),
+                    Conteudo = memStream.ToArray()
                 };
 
                 var novoId = await _projetosDAO.InserirAnexoAsync(_dbContext, anexo);
@@ -854,11 +844,10 @@ namespace API.Controllers
                         return Forbid();
                 }
 
-                var caminho = Path.Combine(ObterPastaAnexos(), anexo.NomeArquivo);
-                if (!System.IO.File.Exists(caminho))
-                    return NotFound(new { erro = "Arquivo não encontrado no servidor." });
+                var bytes = await _projetosDAO.ObterConteudoAnexoAsync(_dbContext, anexoId);
+                if (bytes == null)
+                    return NotFound(new { erro = "Arquivo não encontrado." });
 
-                var bytes = await System.IO.File.ReadAllBytesAsync(caminho);
                 return File(bytes, anexo.ContentType, anexo.NomeOriginal);
             }
             catch (Exception ex)
@@ -892,10 +881,6 @@ namespace API.Controllers
                 var deletado = await _projetosDAO.DeletarAnexoAsync(_dbContext, anexoId);
                 if (!deletado)
                     return NotFound(new { erro = "Anexo não encontrado." });
-
-                var caminho = Path.Combine(ObterPastaAnexos(), anexo.NomeArquivo);
-                if (System.IO.File.Exists(caminho))
-                    System.IO.File.Delete(caminho);
 
                 return NoContent();
             }

@@ -989,18 +989,18 @@ namespace API.DB.DAOs
             await using var cmd = con.CreateCommand();
             cmd.CommandText = @"
                 INSERT INTO ProjetoTarefaAnexo
-                (TarefaId, NomeOriginal, NomeArquivo, ContentType, Tamanho, DataUpload, EnviadoPorColaboradorId)
+                (TarefaId, NomeOriginal, ContentType, Tamanho, DataUpload, EnviadoPorColaboradorId, Conteudo)
                 VALUES
-                (@TarefaId, @NomeOriginal, @NomeArquivo, @ContentType, @Tamanho, @DataUpload, @EnviadoPorColaboradorId);
+                (@TarefaId, @NomeOriginal, @ContentType, @Tamanho, @DataUpload, @EnviadoPorColaboradorId, @Conteudo);
                 SELECT CAST(SCOPE_IDENTITY() AS int);
             ";
             cmd.Parameters.AddWithValue("@TarefaId", anexo.TarefaId);
             cmd.Parameters.AddWithValue("@NomeOriginal", anexo.NomeOriginal);
-            cmd.Parameters.AddWithValue("@NomeArquivo", anexo.NomeArquivo);
             cmd.Parameters.AddWithValue("@ContentType", anexo.ContentType);
             cmd.Parameters.AddWithValue("@Tamanho", anexo.Tamanho);
             cmd.Parameters.AddWithValue("@DataUpload", anexo.DataUpload);
             cmd.Parameters.AddWithValue("@EnviadoPorColaboradorId", anexo.EnviadoPorColaboradorId);
+            cmd.Parameters.AddWithValue("@Conteudo", anexo.Conteudo);
 
             var result = await cmd.ExecuteScalarAsync();
             return Convert.ToInt32(result);
@@ -1013,7 +1013,7 @@ namespace API.DB.DAOs
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
             cmd.CommandText = @"
-                SELECT Id, TarefaId, NomeOriginal, NomeArquivo, ContentType, Tamanho, DataUpload, EnviadoPorColaboradorId
+                SELECT Id, TarefaId, NomeOriginal, ContentType, Tamanho, DataUpload, EnviadoPorColaboradorId
                 FROM ProjetoTarefaAnexo
                 WHERE TarefaId = @TarefaId
                 ORDER BY DataUpload ASC;
@@ -1028,7 +1028,6 @@ namespace API.DB.DAOs
                     Id = Convert.ToInt32(dr["Id"]),
                     TarefaId = Convert.ToInt32(dr["TarefaId"]),
                     NomeOriginal = dr["NomeOriginal"].ToString()!,
-                    NomeArquivo = dr["NomeArquivo"].ToString()!,
                     ContentType = dr["ContentType"].ToString()!,
                     Tamanho = Convert.ToInt64(dr["Tamanho"]),
                     DataUpload = Convert.ToDateTime(dr["DataUpload"]),
@@ -1044,7 +1043,7 @@ namespace API.DB.DAOs
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
             cmd.CommandText = @"
-                SELECT Id, TarefaId, NomeOriginal, NomeArquivo, ContentType, Tamanho, DataUpload, EnviadoPorColaboradorId
+                SELECT Id, TarefaId, NomeOriginal, ContentType, Tamanho, DataUpload, EnviadoPorColaboradorId
                 FROM ProjetoTarefaAnexo
                 WHERE Id = @Id;
             ";
@@ -1058,12 +1057,38 @@ namespace API.DB.DAOs
                 Id = Convert.ToInt32(dr["Id"]),
                 TarefaId = Convert.ToInt32(dr["TarefaId"]),
                 NomeOriginal = dr["NomeOriginal"].ToString()!,
-                NomeArquivo = dr["NomeArquivo"].ToString()!,
                 ContentType = dr["ContentType"].ToString()!,
                 Tamanho = Convert.ToInt64(dr["Tamanho"]),
                 DataUpload = Convert.ToDateTime(dr["DataUpload"]),
                 EnviadoPorColaboradorId = Convert.ToInt32(dr["EnviadoPorColaboradorId"])
             };
+        }
+
+        public async Task<byte[]?> ObterConteudoAnexoAsync(DBContext dbContext, int anexoId)
+        {
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = "SELECT Conteudo FROM ProjetoTarefaAnexo WHERE Id = @Id;";
+            cmd.Parameters.AddWithValue("@Id", anexoId);
+
+            var result = await cmd.ExecuteScalarAsync();
+            return result is DBNull || result is null ? null : (byte[])result;
+        }
+
+        public async Task CopiarAnexosTarefaAsync(DBContext dbContext, int tarefaIdOriginal, int novaTarefaId)
+        {
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = @"
+                INSERT INTO ProjetoTarefaAnexo
+                (TarefaId, NomeOriginal, ContentType, Tamanho, DataUpload, EnviadoPorColaboradorId, Conteudo)
+                SELECT @NovaTarefaId, NomeOriginal, ContentType, Tamanho, DataUpload, EnviadoPorColaboradorId, Conteudo
+                FROM ProjetoTarefaAnexo
+                WHERE TarefaId = @TarefaIdOriginal;
+            ";
+            cmd.Parameters.AddWithValue("@NovaTarefaId", novaTarefaId);
+            cmd.Parameters.AddWithValue("@TarefaIdOriginal", tarefaIdOriginal);
+            await cmd.ExecuteNonQueryAsync();
         }
 
         public async Task<bool> DeletarAnexoAsync(DBContext dbContext, int anexoId)
