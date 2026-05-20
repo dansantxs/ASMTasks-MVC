@@ -15,7 +15,8 @@ namespace API.DB.DAOs
                        Email, Telefone, RazaoSocial, NomeFantasia, Cnpj, InscricaoEstadual,
                        Cep, Logradouro, Numero, Bairro, Cidade, Uf,
                        SmtpServidor, SmtpPorta, SmtpUsuario, SmtpSenha, SmtpUsarSslTls,
-                       AnexoTamanhoMaximoMB, AnexoLimiteImagemMB, AnexoLimitePdfMB, AnexoLimiteExcelMB
+                       AnexoTamanhoMaximoMB, AnexoLimiteImagemMB, AnexoLimitePdfMB, AnexoLimiteExcelMB,
+                       ExibicaoNomeCliente
                 FROM ConfiguracaoSistema
                 WHERE Id = 1;";
 
@@ -49,7 +50,8 @@ namespace API.DB.DAOs
                     AnexoTamanhoMaximoMB = dr["AnexoTamanhoMaximoMB"] == DBNull.Value ? 20 : Convert.ToInt32(dr["AnexoTamanhoMaximoMB"]),
                     AnexoLimiteImagemMB = dr["AnexoLimiteImagemMB"] == DBNull.Value ? null : Convert.ToInt32(dr["AnexoLimiteImagemMB"]),
                     AnexoLimitePdfMB = dr["AnexoLimitePdfMB"] == DBNull.Value ? null : Convert.ToInt32(dr["AnexoLimitePdfMB"]),
-                    AnexoLimiteExcelMB = dr["AnexoLimiteExcelMB"] == DBNull.Value ? null : Convert.ToInt32(dr["AnexoLimiteExcelMB"])
+                    AnexoLimiteExcelMB = dr["AnexoLimiteExcelMB"] == DBNull.Value ? null : Convert.ToInt32(dr["AnexoLimiteExcelMB"]),
+                    ExibicaoNomeCliente = dr["ExibicaoNomeCliente"] == DBNull.Value ? "razaoSocial" : (dr["ExibicaoNomeCliente"].ToString() ?? "razaoSocial")
                 };
             }
 
@@ -90,10 +92,11 @@ namespace API.DB.DAOs
                                AnexoTamanhoMaximoMB = @AnexoTamanhoMaximoMB,
                                AnexoLimiteImagemMB = @AnexoLimiteImagemMB,
                                AnexoLimitePdfMB = @AnexoLimitePdfMB,
-                               AnexoLimiteExcelMB = @AnexoLimiteExcelMB
+                               AnexoLimiteExcelMB = @AnexoLimiteExcelMB,
+                               ExibicaoNomeCliente = @ExibicaoNomeCliente
                 WHEN NOT MATCHED THEN
-                    INSERT (Id, HoraInicioAgenda, HoraFimAgenda, LogoBase64, LogoDocumentosBase64, Email, Telefone, RazaoSocial, NomeFantasia, Cnpj, InscricaoEstadual, Cep, Logradouro, Numero, Bairro, Cidade, Uf, SmtpServidor, SmtpPorta, SmtpUsuario, SmtpSenha, SmtpUsarSslTls, AnexoTamanhoMaximoMB, AnexoLimiteImagemMB, AnexoLimitePdfMB, AnexoLimiteExcelMB)
-                    VALUES (1, @HoraInicioAgenda, @HoraFimAgenda, @LogoBase64, @LogoDocumentosBase64, @Email, @Telefone, @RazaoSocial, @NomeFantasia, @Cnpj, @InscricaoEstadual, @Cep, @Logradouro, @Numero, @Bairro, @Cidade, @Uf, @SmtpServidor, @SmtpPorta, @SmtpUsuario, @SmtpSenha, @SmtpUsarSslTls, @AnexoTamanhoMaximoMB, @AnexoLimiteImagemMB, @AnexoLimitePdfMB, @AnexoLimiteExcelMB);";
+                    INSERT (Id, HoraInicioAgenda, HoraFimAgenda, LogoBase64, LogoDocumentosBase64, Email, Telefone, RazaoSocial, NomeFantasia, Cnpj, InscricaoEstadual, Cep, Logradouro, Numero, Bairro, Cidade, Uf, SmtpServidor, SmtpPorta, SmtpUsuario, SmtpSenha, SmtpUsarSslTls, AnexoTamanhoMaximoMB, AnexoLimiteImagemMB, AnexoLimitePdfMB, AnexoLimiteExcelMB, ExibicaoNomeCliente)
+                    VALUES (1, @HoraInicioAgenda, @HoraFimAgenda, @LogoBase64, @LogoDocumentosBase64, @Email, @Telefone, @RazaoSocial, @NomeFantasia, @Cnpj, @InscricaoEstadual, @Cep, @Logradouro, @Numero, @Bairro, @Cidade, @Uf, @SmtpServidor, @SmtpPorta, @SmtpUsuario, @SmtpSenha, @SmtpUsarSslTls, @AnexoTamanhoMaximoMB, @AnexoLimiteImagemMB, @AnexoLimitePdfMB, @AnexoLimiteExcelMB, @ExibicaoNomeCliente);";
 
             cmd.Parameters.AddWithValue("@HoraInicioAgenda", configuracao.HoraInicioAgenda);
             cmd.Parameters.AddWithValue("@HoraFimAgenda", configuracao.HoraFimAgenda);
@@ -120,6 +123,7 @@ namespace API.DB.DAOs
             cmd.Parameters.AddWithValue("@AnexoLimiteImagemMB", (object?)configuracao.AnexoLimiteImagemMB ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@AnexoLimitePdfMB", (object?)configuracao.AnexoLimitePdfMB ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@AnexoLimiteExcelMB", (object?)configuracao.AnexoLimiteExcelMB ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@ExibicaoNomeCliente", configuracao.ExibicaoNomeCliente ?? "razaoSocial");
 
             await cmd.ExecuteNonQueryAsync();
         }

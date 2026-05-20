@@ -19,8 +19,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../../components/ui/form/select';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Search } from 'lucide-react';
 import { converterHoraParaMinutos } from '../../../services/configuracoes/utils';
+import ModalBuscaCliente from '../../../components/clientes/ModalBuscaCliente';
+import { useConfiguracoesSistema, configuracoesPadrao } from '../../../services/configuracoes/api';
 
 function paraValorDatetimeLocal(data) {
   const local = new Date(data);
@@ -76,6 +78,8 @@ export default function FormularioAtendimento({
   });
   const [erros, setErros] = useState({});
   const [configsNotificacao, setConfigsNotificacao] = useState([]);
+  const [showModalBuscaCliente, setShowModalBuscaCliente] = useState(false);
+  const { data: config = configuracoesPadrao } = useConfiguracoesSistema();
 
   const colaboradoresAtivos = useMemo(
     () =>
@@ -86,9 +90,14 @@ export default function FormularioAtendimento({
   );
 
   const clientesAtivos = useMemo(
-    () => clientes.filter((c) => c.ativo),
+    () => clientes.filter((c) => c.ativo && c.matrizId == null),
     [clientes]
   );
+
+  const resolverNomeCliente = (c) => {
+    if (config.exibicaoNomeCliente === 'nomeFantasia' && c.nomeFantasia) return c.nomeFantasia;
+    return c.nome;
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -231,6 +240,7 @@ export default function FormularioAtendimento({
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[760px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -268,21 +278,34 @@ export default function FormularioAtendimento({
 
             <div id="tour-form-cliente">
               <Label>Cliente <span className="text-destructive">*</span></Label>
-              <Select
-                value={dadosFormulario.clienteId}
-                onValueChange={(value) => setDadosFormulario((prev) => ({ ...prev, clienteId: value }))}
-              >
-                <SelectTrigger className={erros.clienteId ? 'border-destructive' : ''}>
-                  <SelectValue placeholder="Selecione o cliente" />
-                </SelectTrigger>
-                <SelectContent>
-                  {clientesAtivos.map((cliente) => (
-                    <SelectItem key={cliente.id} value={String(cliente.id)}>
-                      {cliente.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex gap-1">
+                <Select
+                  value={dadosFormulario.clienteId}
+                  onValueChange={(value) => setDadosFormulario((prev) => ({ ...prev, clienteId: value }))}
+                >
+                  <SelectTrigger className={`flex-1 ${erros.clienteId ? 'border-destructive' : ''}`}>
+                    <SelectValue placeholder="Selecione o cliente" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clientesAtivos.map((cliente) => (
+                      <SelectItem key={cliente.id} value={String(cliente.id)}>
+                        {resolverNomeCliente(cliente)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="shrink-0"
+                  onClick={() => setShowModalBuscaCliente(true)}
+                  title="Buscar cliente"
+                  tabIndex={-1}
+                >
+                  <Search className="h-4 w-4" />
+                </Button>
+              </div>
               {erros.clienteId && <p className="text-sm text-destructive">{erros.clienteId}</p>}
             </div>
 
@@ -415,5 +438,13 @@ export default function FormularioAtendimento({
         </form>
       </DialogContent>
     </Dialog>
+
+    <ModalBuscaCliente
+      open={showModalBuscaCliente}
+      onOpenChange={setShowModalBuscaCliente}
+      exibicaoNomeCliente={config.exibicaoNomeCliente}
+      onSelect={(c) => setDadosFormulario((prev) => ({ ...prev, clienteId: String(c.id) }))}
+    />
+  </>
   );
 }

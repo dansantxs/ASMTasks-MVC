@@ -27,6 +27,9 @@ namespace API.Models
         public string? Site { get; set; }
         public DateTime? DataReferencia { get; set; }
         public bool Ativo { get; set; } = true;
+        public string? NomeFantasia { get; set; }
+        public int? MatrizId { get; set; }
+        public string? NomeMatriz { get; set; }
 
         private bool ValidarCPF(string cpf)
         {
@@ -142,6 +145,9 @@ namespace API.Models
             if (await _clientesDAO.VerificarExistenciaPorDocumentoAsync(dbContext, Documento))
                 throw new ValidationException("Já existe um cliente com esse documento.");
 
+            if (MatrizId.HasValue)
+                await ValidarMatrizAsync(dbContext, MatrizId.Value, Id);
+
             return await _clientesDAO.CriarAsync(dbContext, this);
         }
 
@@ -152,9 +158,28 @@ namespace API.Models
             if (await _clientesDAO.VerificarExistenciaPorDocumentoAsync(dbContext, Documento, Id))
                 throw new ValidationException("Já existe outro cliente com esse documento.");
 
+            if (MatrizId.HasValue)
+                await ValidarMatrizAsync(dbContext, MatrizId.Value, Id);
+
             var ok = await _clientesDAO.AtualizarAsync(dbContext, this);
             if (!ok)
                 throw new ValidationException("Cliente não encontrado.");
+        }
+
+        private async Task ValidarMatrizAsync(DBContext dbContext, int matrizId, int clienteId)
+        {
+            if (matrizId == clienteId)
+                throw new ValidationException("Um cliente não pode ser sua própria matriz.");
+
+            var matriz = await _clientesDAO.ObterPorIdAsync(dbContext, matrizId);
+            if (matriz == null)
+                throw new ValidationException("A matriz informada não existe.");
+
+            if (!matriz.Ativo)
+                throw new ValidationException("A matriz informada está inativa.");
+
+            if (matriz.MatrizId.HasValue)
+                throw new ValidationException("A matriz informada já é filial de outro cliente. Hierarquias de mais de dois níveis não são permitidas.");
         }
 
         public async Task InativarAsync(DBContext dbContext)
@@ -179,5 +204,8 @@ namespace API.Models
 
         public static async Task<Cliente?> ObterPorIdAsync(DBContext dbContext, int id)
             => await _clientesDAO.ObterPorIdAsync(dbContext, id);
+
+        public static async Task<IEnumerable<Cliente>> ObterMatrizesAsync(DBContext dbContext)
+            => await _clientesDAO.ObterMatrizesAsync(dbContext);
     }
 }

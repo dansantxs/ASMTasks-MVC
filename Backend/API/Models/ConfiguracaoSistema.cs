@@ -39,6 +39,8 @@ namespace API.Models
         public int? AnexoLimitePdfMB { get; set; }
         public int? AnexoLimiteExcelMB { get; set; }
 
+        public string ExibicaoNomeCliente { get; set; } = "razaoSocial";
+
         public async Task SalvarAsync(DBContext dbContext)
         {
             Normalizar();

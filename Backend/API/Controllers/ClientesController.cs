@@ -38,7 +38,9 @@ namespace API.Controllers
                     Bairro = request.Bairro,
                     Numero = request.Numero,
                     Site = request.Site,
-                    DataReferencia = request.DataReferencia
+                    DataReferencia = request.DataReferencia,
+                    NomeFantasia = request.NomeFantasia,
+                    MatrizId = request.MatrizId
                 };
 
                 var id = await cliente.CriarAsync(dbContext);
@@ -82,6 +84,8 @@ namespace API.Controllers
                 cliente.Numero = request.Numero;
                 cliente.Site = request.Site;
                 cliente.DataReferencia = request.DataReferencia;
+                cliente.NomeFantasia = request.NomeFantasia;
+                cliente.MatrizId = request.MatrizId;
 
                 await cliente.AtualizarAsync(dbContext);
                 return NoContent();
@@ -142,6 +146,29 @@ namespace API.Controllers
             }
         }
 
+        [HttpGet("matrizes")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public async Task<IActionResult> ObterMatrizes()
+        {
+            var matrizes = await Cliente.ObterMatrizesAsync(dbContext);
+            if (!matrizes.Any())
+                return NoContent();
+
+            var response = matrizes.Select(c => new
+            {
+                id = c.Id,
+                nome = c.Nome,
+                nomeFantasia = c.NomeFantasia,
+                documento = c.Documento,
+                tipoPessoa = c.TipoPessoa,
+                cidade = c.Cidade,
+                uf = c.UF
+            });
+
+            return Ok(response);
+        }
+
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -172,7 +199,10 @@ namespace API.Controllers
                 Site = c.Site,
                 DataReferencia = c.DataReferencia,
                 Ativo = c.Ativo,
-                PossuiTarefasAtivas = idsComAtivos.Contains(c.Id)
+                PossuiTarefasAtivas = idsComAtivos.Contains(c.Id),
+                NomeFantasia = c.NomeFantasia,
+                MatrizId = c.MatrizId,
+                NomeMatriz = c.NomeMatriz
             });
 
             return Ok(response);
@@ -206,7 +236,10 @@ namespace API.Controllers
                 Site = c.Site,
                 DataReferencia = c.DataReferencia,
                 Ativo = c.Ativo,
-                PossuiTarefasAtivas = false
+                PossuiTarefasAtivas = false,
+                NomeFantasia = c.NomeFantasia,
+                MatrizId = c.MatrizId,
+                NomeMatriz = c.NomeMatriz
             };
 
             return Ok(response);

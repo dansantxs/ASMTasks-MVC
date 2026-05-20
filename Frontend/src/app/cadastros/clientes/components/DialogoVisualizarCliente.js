@@ -36,8 +36,16 @@ export default function DialogoVisualizarCliente({ open, onOpenChange, cliente }
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="text-xl">{cliente.name}</CardTitle>
+                  {cliente.tipoPessoa === 'J' && cliente.nomeFantasia && (
+                    <p className="text-muted-foreground text-sm">Nome Fantasia: {cliente.nomeFantasia}</p>
+                  )}
                   <p className="text-muted-foreground text-sm">
                     {cliente.tipoPessoa === 'J' ? 'Pessoa Jurídica' : 'Pessoa Física'}
+                    {cliente.nomeMatriz && (
+                      <span className="ml-2 text-xs bg-muted rounded px-1.5 py-0.5">
+                        Filial de {cliente.nomeMatriz}
+                      </span>
+                    )}
                   </p>
                 </div>
                 <Badge

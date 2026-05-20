@@ -8,10 +8,12 @@ import { Input } from '../../../components/ui/form/input';
 import { Label } from '../../../components/ui/form/label';
 import { Textarea } from '../../../components/ui/form/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/form/select';
-import { Plus, Trash2, Paperclip, X as XIcon, FileText, AlertTriangle } from 'lucide-react';
+import { Plus, Trash2, Paperclip, X as XIcon, FileText, AlertTriangle, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { criarCliente, criarPrioridade, criarSetor } from '../api/projetos';
 import FormularioCliente from '../../cadastros/clientes/components/FormularioCliente';
+import ModalBuscaCliente from '../../../components/clientes/ModalBuscaCliente';
+import { useConfiguracoesSistema, configuracoesPadrao } from '../../../services/configuracoes/api';
 import FormularioPrioridade from '../../cadastros/prioridades/components/FormularioPrioridade';
 import FormularioSetor from '../../cadastros/setores/components/FormularioSetor';
 import DialogoAnexosTarefa from './DialogoAnexosTarefa';
@@ -236,8 +238,10 @@ export default function FormularioProjeto({
   const [projetosParaMesclar, setProjetosParaMesclar] = useState([]);
   const [projetoMesclarId, setProjetoMesclarId] = useState(null);
   const [pendingClienteId, setPendingClienteId] = useState(null);
+  const [showModalBuscaCliente, setShowModalBuscaCliente] = useState(false);
   const queryClient = useQueryClient();
   const isEditMode = Boolean(dadosIniciais?.id);
+  const { data: config = configuracoesPadrao } = useConfiguracoesSistema();
 
   useEffect(() => {
     if (open) {
@@ -267,16 +271,24 @@ export default function FormularioProjeto({
     }
   }, [open, isEditMode, dadosIniciais]);
 
-  const clientesAtivos = useMemo(() => clientes.filter((item) => item.ativo), [clientes]);
+  const resolverNomeCliente = useCallback((c) => {
+    if (config.exibicaoNomeCliente === 'nomeFantasia' && c.nomeFantasia) return c.nomeFantasia;
+    return c.nome;
+  }, [config.exibicaoNomeCliente]);
 
-  // Em edição, garante que o cliente atual apareça mesmo que inativo
+  const clientesMatrizes = useMemo(
+    () => clientes.filter((c) => c.ativo && c.matrizId == null),
+    [clientes]
+  );
+
+  // Em edição, garante que o cliente atual apareça mesmo que inativo ou filial
   const clientesParaSelecao = useMemo(() => {
-    if (!isEditMode || !dadosIniciais?.clienteId) return clientesAtivos;
-    const jaIncluso = clientesAtivos.some((c) => c.id === dadosIniciais.clienteId);
-    if (jaIncluso) return clientesAtivos;
-    const clienteAtual = clientes.find((c) => c.id === dadosIniciais.clienteId);
-    return clienteAtual ? [...clientesAtivos, clienteAtual] : clientesAtivos;
-  }, [isEditMode, clientesAtivos, clientes, dadosIniciais?.clienteId]);
+    if (!isEditMode || !dadosIniciais?.clienteId) return clientesMatrizes;
+    const jaIncluso = clientesMatrizes.some((c) => String(c.id) === String(dadosIniciais.clienteId));
+    if (jaIncluso) return clientesMatrizes;
+    const clienteAtual = clientes.find((c) => String(c.id) === String(dadosIniciais.clienteId));
+    return clienteAtual ? [...clientesMatrizes, clienteAtual] : clientesMatrizes;
+  }, [isEditMode, clientesMatrizes, clientes, dadosIniciais?.clienteId]);
   const setoresAtivos = useMemo(() => setores.filter((item) => item.ativo), [setores]);
   const prioridadesAtivas = useMemo(() => prioridades.filter((item) => item.ativo), [prioridades]);
 
@@ -549,11 +561,22 @@ export default function FormularioProjeto({
                       <SelectContent>
                         {clientesParaSelecao.map((cliente) => (
                           <SelectItem key={cliente.id} value={String(cliente.id)}>
-                            {cliente.nome}
+                            {resolverNomeCliente(cliente)}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="shrink-0"
+                      onClick={() => setShowModalBuscaCliente(true)}
+                      title="Buscar cliente"
+                      tabIndex={-1}
+                    >
+                      <Search className="h-4 w-4" />
+                    </Button>
                     <Button
                       type="button"
                       variant="outline"
@@ -655,6 +678,14 @@ export default function FormularioProjeto({
         onOpenChange={setShowModalCliente}
         cliente={null}
         aoSalvar={handleSalvarNovoCliente}
+      />
+
+      {/* Modal de busca de cliente */}
+      <ModalBuscaCliente
+        open={showModalBuscaCliente}
+        onOpenChange={setShowModalBuscaCliente}
+        exibicaoNomeCliente={config.exibicaoNomeCliente}
+        onSelect={(c) => handleClienteChange(String(c.id))}
       />
 
       {/* Modal de cadastro de setor */}

@@ -29,6 +29,7 @@ export default function ClientesPage() {
   const clientes = clientesApi.map(c => ({
     id: c.id.toString(),
     name: c.nome,
+    nomeFantasia: c.nomeFantasia,
     documento: c.documento,
     tipoPessoa: c.tipoPessoa,
     rg: c.rg,
@@ -45,6 +46,8 @@ export default function ClientesPage() {
     site: c.site,
     dataReferencia: c.dataReferencia,
     hasActiveTasks: c.possuiTarefasAtivas ?? false,
+    matrizId: c.matrizId ?? null,
+    nomeMatriz: c.nomeMatriz ?? null,
   }));
 
   const criar = useMutation({
@@ -89,6 +92,7 @@ export default function ClientesPage() {
   const handleSalvarCliente = (clientData) => {
     const dataAPI = {
       nome: clientData.nome,
+      nomeFantasia: clientData.nomeFantasia,
       documento: clientData.documento,
       tipoPessoa: clientData.tipoPessoa,
       rg: clientData.rg,
@@ -103,6 +107,7 @@ export default function ClientesPage() {
       logradouro: clientData.logradouro,
       bairro: clientData.bairro,
       numero: clientData.numero,
+      matrizId: clientData.matrizId,
     };
     if (clienteSelecionado) atualizar.mutate({ id: clienteSelecionado.id, data: dataAPI });
     else criar.mutate(dataAPI);

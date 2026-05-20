@@ -10,9 +10,9 @@ namespace API.DB.DAOs
             await using var cmd = con.CreateCommand();
             cmd.CommandText = @"
                 INSERT INTO Cliente
-                (Nome, Documento, TipoPessoa, RG, InscricaoEstadual, Email, Telefone, CEP, Cidade, UF, Logradouro, Bairro, Numero, Site, DataReferencia, Ativo)
+                (Nome, Documento, TipoPessoa, RG, InscricaoEstadual, Email, Telefone, CEP, Cidade, UF, Logradouro, Bairro, Numero, Site, DataReferencia, Ativo, NomeFantasia, MatrizId)
                 VALUES
-                (@Nome, @Documento, @TipoPessoa, @RG, @InscricaoEstadual, @Email, @Telefone, @CEP, @Cidade, @UF, @Logradouro, @Bairro, @Numero, @Site, @DataReferencia, @Ativo);
+                (@Nome, @Documento, @TipoPessoa, @RG, @InscricaoEstadual, @Email, @Telefone, @CEP, @Cidade, @UF, @Logradouro, @Bairro, @Numero, @Site, @DataReferencia, @Ativo, @NomeFantasia, @MatrizId);
                 SELECT CAST(SCOPE_IDENTITY() AS int);
             ";
 
@@ -32,6 +32,8 @@ namespace API.DB.DAOs
             cmd.Parameters.AddWithValue("@Site", (object?)cliente.Site ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@DataReferencia", (object?)cliente.DataReferencia ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Ativo", cliente.Ativo);
+            cmd.Parameters.AddWithValue("@NomeFantasia", (object?)cliente.NomeFantasia ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@MatrizId", (object?)cliente.MatrizId ?? DBNull.Value);
 
             var result = await cmd.ExecuteScalarAsync();
             cliente.Id = Convert.ToInt32(result);
@@ -58,7 +60,9 @@ namespace API.DB.DAOs
                     Bairro = @Bairro,
                     Numero = @Numero,
                     Site = @Site,
-                    DataReferencia = @DataReferencia
+                    DataReferencia = @DataReferencia,
+                    NomeFantasia = @NomeFantasia,
+                    MatrizId = @MatrizId
                 WHERE Id = @Id;
             ";
 
@@ -78,6 +82,8 @@ namespace API.DB.DAOs
             cmd.Parameters.AddWithValue("@Numero", (object?)cliente.Numero ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Site", (object?)cliente.Site ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@DataReferencia", (object?)cliente.DataReferencia ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@NomeFantasia", (object?)cliente.NomeFantasia ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@MatrizId", (object?)cliente.MatrizId ?? DBNull.Value);
 
             int linhas = await cmd.ExecuteNonQueryAsync();
             return linhas > 0;
@@ -110,32 +116,16 @@ namespace API.DB.DAOs
             var lista = new List<Cliente>();
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = "SELECT * FROM Cliente";
+            cmd.CommandText = @"
+                SELECT c.*, m.Nome AS NomeMatriz
+                FROM Cliente c
+                LEFT JOIN Cliente m ON m.Id = c.MatrizId
+                ORDER BY c.Nome;
+            ";
 
             await using var dr = await cmd.ExecuteReaderAsync();
             while (await dr.ReadAsync())
-            {
-                lista.Add(new Cliente
-                {
-                    Id = Convert.ToInt32(dr["Id"]),
-                    Nome = dr["Nome"].ToString() ?? string.Empty,
-                    Documento = dr["Documento"].ToString() ?? string.Empty,
-                    TipoPessoa = Convert.ToChar(dr["TipoPessoa"]),
-                    RG = dr["RG"]?.ToString(),
-                    InscricaoEstadual = dr["InscricaoEstadual"]?.ToString(),
-                    Email = dr["Email"]?.ToString(),
-                    Telefone = dr["Telefone"]?.ToString(),
-                    CEP = dr["CEP"]?.ToString(),
-                    Cidade = dr["Cidade"]?.ToString(),
-                    UF = dr["UF"]?.ToString(),
-                    Logradouro = dr["Logradouro"]?.ToString(),
-                    Bairro = dr["Bairro"]?.ToString(),
-                    Numero = dr["Numero"] as int?,
-                    Site = dr["Site"]?.ToString(),
-                    DataReferencia = dr["DataReferencia"] == DBNull.Value ? null : Convert.ToDateTime(dr["DataReferencia"]),
-                    Ativo = Convert.ToBoolean(dr["Ativo"])
-                });
-            }
+                lista.Add(MapearCliente(dr));
 
             return lista;
         }
@@ -144,35 +134,77 @@ namespace API.DB.DAOs
         {
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = "SELECT * FROM Cliente WHERE Id = @Id";
+            cmd.CommandText = @"
+                SELECT c.*, m.Nome AS NomeMatriz
+                FROM Cliente c
+                LEFT JOIN Cliente m ON m.Id = c.MatrizId
+                WHERE c.Id = @Id;
+            ";
             cmd.Parameters.AddWithValue("@Id", id);
 
             await using var dr = await cmd.ExecuteReaderAsync();
             if (await dr.ReadAsync())
+                return MapearCliente(dr);
+
+            return null;
+        }
+
+        public async Task<IEnumerable<Cliente>> ObterMatrizesAsync(DBContext dbContext)
+        {
+            var lista = new List<Cliente>();
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = @"
+                SELECT Id, Nome, NomeFantasia, Documento, TipoPessoa, Cidade, UF, Ativo
+                FROM Cliente
+                WHERE MatrizId IS NULL AND Ativo = 1
+                ORDER BY Nome;
+            ";
+
+            await using var dr = await cmd.ExecuteReaderAsync();
+            while (await dr.ReadAsync())
             {
-                return new Cliente
+                lista.Add(new Cliente
                 {
                     Id = Convert.ToInt32(dr["Id"]),
                     Nome = dr["Nome"].ToString() ?? string.Empty,
+                    NomeFantasia = dr["NomeFantasia"] == DBNull.Value ? null : dr["NomeFantasia"].ToString(),
                     Documento = dr["Documento"].ToString() ?? string.Empty,
                     TipoPessoa = Convert.ToChar(dr["TipoPessoa"]),
-                    RG = dr["RG"]?.ToString(),
-                    InscricaoEstadual = dr["InscricaoEstadual"]?.ToString(),
-                    Email = dr["Email"]?.ToString(),
-                    Telefone = dr["Telefone"]?.ToString(),
-                    CEP = dr["CEP"]?.ToString(),
-                    Cidade = dr["Cidade"]?.ToString(),
-                    UF = dr["UF"]?.ToString(),
-                    Logradouro = dr["Logradouro"]?.ToString(),
-                    Bairro = dr["Bairro"]?.ToString(),
-                    Numero = dr["Numero"] as int?,
-                    Site = dr["Site"]?.ToString(),
-                    DataReferencia = dr["DataReferencia"] == DBNull.Value ? null : Convert.ToDateTime(dr["DataReferencia"]),
+                    Cidade = dr["Cidade"] == DBNull.Value ? null : dr["Cidade"].ToString(),
+                    UF = dr["UF"] == DBNull.Value ? null : dr["UF"].ToString(),
                     Ativo = Convert.ToBoolean(dr["Ativo"])
-                };
+                });
             }
 
-            return null;
+            return lista;
+        }
+
+        private static Cliente MapearCliente(System.Data.Common.DbDataReader dr)
+        {
+            return new Cliente
+            {
+                Id = Convert.ToInt32(dr["Id"]),
+                Nome = dr["Nome"].ToString() ?? string.Empty,
+                Documento = dr["Documento"].ToString() ?? string.Empty,
+                TipoPessoa = Convert.ToChar(dr["TipoPessoa"]),
+                RG = dr["RG"] == DBNull.Value ? null : dr["RG"].ToString(),
+                InscricaoEstadual = dr["InscricaoEstadual"] == DBNull.Value ? null : dr["InscricaoEstadual"].ToString(),
+                Email = dr["Email"] == DBNull.Value ? null : dr["Email"].ToString(),
+                Telefone = dr["Telefone"] == DBNull.Value ? null : dr["Telefone"].ToString(),
+                CEP = dr["CEP"] == DBNull.Value ? null : dr["CEP"].ToString(),
+                Cidade = dr["Cidade"] == DBNull.Value ? null : dr["Cidade"].ToString(),
+                UF = dr["UF"] == DBNull.Value ? null : dr["UF"].ToString(),
+                Logradouro = dr["Logradouro"] == DBNull.Value ? null : dr["Logradouro"].ToString(),
+                Bairro = dr["Bairro"] == DBNull.Value ? null : dr["Bairro"].ToString(),
+                Numero = dr["Numero"] == DBNull.Value ? null : (int?)Convert.ToInt32(dr["Numero"]),
+                Site = dr["Site"] == DBNull.Value ? null : dr["Site"].ToString(),
+                DataReferencia = dr["DataReferencia"] == DBNull.Value ? null : Convert.ToDateTime(dr["DataReferencia"]),
+                Ativo = Convert.ToBoolean(dr["Ativo"]),
+                NomeFantasia = dr["NomeFantasia"] == DBNull.Value ? null : dr["NomeFantasia"].ToString(),
+                MatrizId = dr["MatrizId"] == DBNull.Value ? null : (int?)Convert.ToInt32(dr["MatrizId"]),
+                NomeMatriz = dr["NomeMatriz"] == DBNull.Value ? null : dr["NomeMatriz"].ToString()
+            };
         }
 
         public async Task<bool> VerificarExistenciaPorDocumentoAsync(DBContext dbContext, string documento, int? id = null)

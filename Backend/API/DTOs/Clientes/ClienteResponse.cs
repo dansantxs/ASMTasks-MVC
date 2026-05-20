@@ -20,5 +20,8 @@
         public DateTime? DataReferencia { get; set; }
         public bool Ativo { get; set; }
         public bool PossuiTarefasAtivas { get; set; }
+        public string? NomeFantasia { get; set; }
+        public int? MatrizId { get; set; }
+        public string? NomeMatriz { get; set; }
     }
 }

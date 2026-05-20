@@ -35,6 +35,13 @@ export async function getClientes() {
   return Array.isArray(dados) ? dados : [];
 }
 
+export async function getClientesMatrizes() {
+  const res = await requisicaoApi('/clientes/matrizes', { cache: "no-store" });
+  if (res.status === 204) return [];
+  const dados = await tratarResposta(res);
+  return Array.isArray(dados) ? dados : [];
+}
+
 export async function getClienteById(id) {
   const res = await requisicaoApi(`/clientes/${id}`, { cache: "no-store" });
   return tratarResposta(res);

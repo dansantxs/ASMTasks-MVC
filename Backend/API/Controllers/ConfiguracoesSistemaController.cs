@@ -57,7 +57,8 @@ namespace API.Controllers
                     AnexoTamanhoMaximoMB = request.AnexoTamanhoMaximoMB > 0 ? request.AnexoTamanhoMaximoMB : 20,
                     AnexoLimiteImagemMB = request.AnexoLimiteImagemMB,
                     AnexoLimitePdfMB = request.AnexoLimitePdfMB,
-                    AnexoLimiteExcelMB = request.AnexoLimiteExcelMB
+                    AnexoLimiteExcelMB = request.AnexoLimiteExcelMB,
+                    ExibicaoNomeCliente = request.ExibicaoNomeCliente == "nomeFantasia" ? "nomeFantasia" : "razaoSocial"
                 };
 
                 await configuracao.SalvarAsync(dbContext);
@@ -108,7 +109,8 @@ namespace API.Controllers
                 AnexoTamanhoMaximoMB = configuracao.AnexoTamanhoMaximoMB,
                 AnexoLimiteImagemMB = configuracao.AnexoLimiteImagemMB,
                 AnexoLimitePdfMB = configuracao.AnexoLimitePdfMB,
-                AnexoLimiteExcelMB = configuracao.AnexoLimiteExcelMB
+                AnexoLimiteExcelMB = configuracao.AnexoLimiteExcelMB,
+                ExibicaoNomeCliente = configuracao.ExibicaoNomeCliente
             };
         }
     }

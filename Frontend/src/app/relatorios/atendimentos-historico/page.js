@@ -82,10 +82,20 @@ export default function HistoricoAtendimentosReportPage() {
     queryFn: () => getHistoricoAtendimentos(historicoQueryParams),
   });
 
-  const { data: clientes = [] } = useQuery({
+  const { data: clientesApi = [] } = useQuery({
     queryKey: ['relatorio-historico-clientes'],
     queryFn: getClientes,
   });
+
+  const clientes = useMemo(
+    () => clientesApi.filter((c) => c.ativo && c.matrizId == null),
+    [clientesApi]
+  );
+
+  const resolverNomeCliente = (c) => {
+    if (systemSettings.exibicaoNomeCliente === 'nomeFantasia' && c.nomeFantasia) return c.nomeFantasia;
+    return c.nome;
+  };
 
   const { data: colaboradores = [] } = useQuery({
     queryKey: ['relatorio-historico-colaboradores'],
@@ -391,7 +401,7 @@ export default function HistoricoAtendimentosReportPage() {
                     <SelectContent>
                       <SelectItem value="todos">Todos</SelectItem>
                       {clientes.map((cliente) => (
-                        <SelectItem key={cliente.id} value={String(cliente.id)}>{cliente.nome}</SelectItem>
+                        <SelectItem key={cliente.id} value={String(cliente.id)}>{resolverNomeCliente(cliente)}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>

@@ -32,7 +32,17 @@ export default function ListaClientes({
     <Card className="hover:shadow-md transition-shadow border-l-4 border-l-brand-blue">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">{cliente.name}</CardTitle>
+          <div>
+            <CardTitle className="text-lg">{cliente.name}</CardTitle>
+            {cliente.nomeFantasia && (
+              <p className="text-xs text-muted-foreground mt-0.5">{cliente.nomeFantasia}</p>
+            )}
+            {cliente.nomeMatriz && (
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Filial de <span className="font-medium">{cliente.nomeMatriz}</span>
+              </p>
+            )}
+          </div>
           <Badge
             variant={cliente.active ? 'default' : 'secondary'}
             className={cliente.active ? 'bg-brand-blue hover:bg-brand-blue-dark' : ''}
@@ -119,7 +129,11 @@ export default function ListaClientes({
 
   const ClienteRow = ({ cliente }) => (
     <TableRow className="hover:bg-muted/50">
-      <TableCell className="font-medium">{cliente.name}</TableCell>
+      <TableCell className="font-medium">
+        <div>{cliente.name}</div>
+        {cliente.nomeFantasia && <div className="text-xs text-muted-foreground">{cliente.nomeFantasia}</div>}
+        {cliente.nomeMatriz && <div className="text-xs text-muted-foreground">Filial de {cliente.nomeMatriz}</div>}
+      </TableCell>
       <TableCell>{cliente.documento}</TableCell>
       <TableCell>{cliente.tipoPessoa === 'J' ? 'Jurídica' : 'Física'}</TableCell>
       <TableCell>

@@ -27,5 +27,6 @@ namespace API.DTOs.ConfiguracoesSistema
         public int? AnexoLimiteImagemMB { get; set; }
         public int? AnexoLimitePdfMB { get; set; }
         public int? AnexoLimiteExcelMB { get; set; }
+        public string ExibicaoNomeCliente { get; set; } = "razaoSocial";
     }
 }

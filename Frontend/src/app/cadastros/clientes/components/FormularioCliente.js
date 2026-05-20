@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Search } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -19,6 +21,8 @@ import {
   SelectValue
 } from '../../../../components/ui/form/select';
 import { buscarEnderecoPorCep } from '../../../../api/viacep';
+import { getClientesMatrizes } from '../api/cliente';
+import ModalBuscaMatriz from './ModalBuscaMatriz';
 
 const validarCPF = (cpf) => {
   cpf = cpf.replace(/\D/g, '');
@@ -114,6 +118,7 @@ export default function FormularioCliente({
 }) {
   const [formData, setFormData] = useState({
     nome: '',
+    nomeFantasia: '',
     tipoPessoa: 'F',
     documento: '',
     rg: '',
@@ -128,11 +133,21 @@ export default function FormularioCliente({
     numero: '',
     site: '',
     dataReferencia: '',
-    ativo: true
+    ativo: true,
+    matrizId: null,
+    nomeMatrizSelecionada: ''
   });
 
   const [errors, setErrors] = useState({});
   const [buscandoCep, setBuscandoCep] = useState(false);
+  const [modalMatrizAberto, setModalMatrizAberto] = useState(false);
+
+  const { data: matrizes = [] } = useQuery({
+    queryKey: ['clientes-matrizes'],
+    queryFn: getClientesMatrizes,
+    enabled: open,
+    staleTime: 2 * 60 * 1000,
+  });
 
   const documentoRef = useRef(null);
   const rgRef = useRef(null);
@@ -185,6 +200,7 @@ export default function FormularioCliente({
     if (cliente) {
       setFormData({
         nome: cliente.name || '',
+        nomeFantasia: cliente.nomeFantasia || '',
         tipoPessoa: cliente.tipoPessoa || 'F',
         documento:
           (cliente.tipoPessoa === 'J' ? mascararCNPJ : mascararCPF)(cliente.documento || ''),
@@ -204,11 +220,14 @@ export default function FormularioCliente({
         dataReferencia: cliente.dataReferencia
           ? cliente.dataReferencia.split('T')[0]
           : '',
-        ativo: cliente.active ?? true
+        ativo: cliente.active ?? true,
+        matrizId: cliente.matrizId ?? null,
+        nomeMatrizSelecionada: cliente.nomeMatriz || ''
       });
     } else {
       setFormData({
         nome: '',
+        nomeFantasia: '',
         tipoPessoa: 'F',
         documento: '',
         rg: '',
@@ -223,7 +242,9 @@ export default function FormularioCliente({
         numero: '',
         site: '',
         dataReferencia: '',
-        ativo: true
+        ativo: true,
+        matrizId: null,
+        nomeMatrizSelecionada: ''
       });
     }
     setErrors({});
@@ -311,6 +332,7 @@ export default function FormularioCliente({
 
     const dataToSave = {
       nome: formData.nome,
+      nomeFantasia: formData.tipoPessoa === 'J' ? (formData.nomeFantasia || null) : null,
       tipoPessoa: formData.tipoPessoa,
       documento: formData.documento.replace(/\D/g, ''),
       rg:
@@ -330,7 +352,8 @@ export default function FormularioCliente({
       bairro: formData.bairro || null,
       numero: parseInt(formData.numero) || null,
       site: formData.site || null,
-      dataReferencia: formData.dataReferencia || null
+      dataReferencia: formData.dataReferencia || null,
+      matrizId: formData.matrizId || null
     };
 
     aoSalvar(dataToSave);
@@ -355,16 +378,31 @@ export default function FormularioCliente({
             <h3 className="text-base font-semibold mb-3">Identificação</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
-                <Label htmlFor="nome">Nome/Razão Social <span className="text-destructive">*</span></Label>
+                <Label htmlFor="nome">
+                  {formData.tipoPessoa === 'J' ? 'Razão Social' : 'Nome'} <span className="text-destructive">*</span>
+                </Label>
                 <Input
                   id="nome"
                   value={formData.nome}
                   onChange={(e) => setFormData(prev => ({ ...prev, nome: e.target.value }))}
-                  placeholder="Ex.: Maria Souza ou Empresa XYZ LTDA"
+                  placeholder={formData.tipoPessoa === 'J' ? 'Ex.: Empresa XYZ LTDA' : 'Ex.: Maria Souza'}
                   className={errors.nome ? 'border-destructive' : ''}
                 />
                 {errors.nome && <p className="text-sm text-destructive">{errors.nome}</p>}
               </div>
+
+              {formData.tipoPessoa === 'J' && (
+                <div className="md:col-span-2">
+                  <Label htmlFor="nomeFantasia">Nome Fantasia</Label>
+                  <Input
+                    id="nomeFantasia"
+                    value={formData.nomeFantasia}
+                    onChange={(e) => setFormData(prev => ({ ...prev, nomeFantasia: e.target.value }))}
+                    placeholder="Nome comercial (opcional)"
+                    maxLength={100}
+                  />
+                </div>
+              )}
 
               <div>
                 <Label>Tipo de Pessoa <span className="text-destructive">*</span></Label>
@@ -461,8 +499,51 @@ export default function FormularioCliente({
                   )}
                 </div>
               )}
+              <div className="md:col-span-2">
+                <Label htmlFor="matrizSelecionada">Matriz (filial de)</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="matrizSelecionada"
+                    readOnly
+                    value={formData.nomeMatrizSelecionada}
+                    placeholder="Nenhuma matriz selecionada (cliente independente)"
+                    className="flex-1 bg-muted cursor-pointer"
+                    onClick={() => setModalMatrizAberto(true)}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setModalMatrizAberto(true)}
+                    title="Buscar matriz"
+                  >
+                    <Search className="h-4 w-4" />
+                  </Button>
+                  {formData.matrizId && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setFormData(prev => ({ ...prev, matrizId: null, nomeMatrizSelecionada: '' }))}
+                    >
+                      Remover
+                    </Button>
+                  )}
+                </div>
+              </div>
             </div>
           </section>
+
+          <ModalBuscaMatriz
+            open={modalMatrizAberto}
+            onOpenChange={setModalMatrizAberto}
+            clienteIdAtual={cliente?.id ? Number(cliente.id) : null}
+            matrizes={matrizes}
+            onSelect={(m) => setFormData(prev => ({
+              ...prev,
+              matrizId: m.id,
+              nomeMatrizSelecionada: m.nomeFantasia || m.nome
+            }))}
+          />
 
           <section id="tour-cli-form-contato">
             <h3 className="text-base font-semibold mb-3">Contato</h3>

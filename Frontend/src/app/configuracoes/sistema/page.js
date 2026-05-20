@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Building2, ImagePlus, Save, Clock3, Mail, Phone, Server, Eye, EyeOff, Paperclip } from 'lucide-react';
+import { Building2, ImagePlus, Save, Clock3, Mail, Phone, Server, Eye, EyeOff, Paperclip, Users } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/layout/card';
 import { Input } from '../../../components/ui/form/input';
@@ -625,6 +625,44 @@ export default function ConfiguracoesSistemaPage() {
                     onChange={(e) => setForm((prev) => ({ ...prev, anexoLimiteExcelMB: e.target.value === '' ? null : Number(e.target.value) }))}
                   />
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Exibição de clientes
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Define qual nome é exibido nas seleções de cliente espalhadas pelo sistema (projetos, atendimentos, relatórios). Se optar por Nome Fantasia e o cliente não tiver um cadastrado, o sistema usa a Razão Social como alternativa.
+              </p>
+              <div className="flex flex-col gap-3 sm:flex-row sm:gap-6">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="exibicaoNomeCliente"
+                    value="razaoSocial"
+                    checked={form.exibicaoNomeCliente !== 'nomeFantasia'}
+                    onChange={() => setForm((prev) => ({ ...prev, exibicaoNomeCliente: 'razaoSocial' }))}
+                    className="accent-brand-blue"
+                  />
+                  <span>Razão Social</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="exibicaoNomeCliente"
+                    value="nomeFantasia"
+                    checked={form.exibicaoNomeCliente === 'nomeFantasia'}
+                    onChange={() => setForm((prev) => ({ ...prev, exibicaoNomeCliente: 'nomeFantasia' }))}
+                    className="accent-brand-blue"
+                  />
+                  <span>Nome Fantasia <span className="text-muted-foreground text-xs">(usa Razão Social quando não preenchido)</span></span>
+                </label>
               </div>
             </CardContent>
           </Card>

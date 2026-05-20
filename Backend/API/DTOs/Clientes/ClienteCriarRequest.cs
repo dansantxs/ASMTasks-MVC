@@ -48,5 +48,10 @@ namespace API.DTOs.Clientes
         public string? Site { get; set; }
 
         public DateTime? DataReferencia { get; set; }
+
+        [StringLength(100)]
+        public string? NomeFantasia { get; set; }
+
+        public int? MatrizId { get; set; }
     }
 }
