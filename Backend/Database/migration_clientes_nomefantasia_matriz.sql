@@ -1,6 +1,6 @@
 -- Migration: NomeFantasia e MatrizId em Cliente, ExibicaoNomeCliente em ConfiguracaoSistema
 
--- 1. Adiciona NomeFantasia ao Cliente (somente se não existir)
+-- 1. Adiciona NomeFantasia ao Cliente (somente se nao existir)
 IF NOT EXISTS (
     SELECT 1 FROM sys.columns
     WHERE object_id = OBJECT_ID(N'[dbo].[Cliente]') AND name = 'NomeFantasia'
@@ -8,7 +8,7 @@ IF NOT EXISTS (
     ALTER TABLE [dbo].[Cliente] ADD [NomeFantasia] [nvarchar](100) NULL;
 GO
 
--- 2. Adiciona MatrizId ao Cliente — self-reference opcional
+-- 2. Adiciona MatrizId ao Cliente -- self-reference opcional
 IF NOT EXISTS (
     SELECT 1 FROM sys.columns
     WHERE object_id = OBJECT_ID(N'[dbo].[Cliente]') AND name = 'MatrizId'
@@ -16,7 +16,7 @@ IF NOT EXISTS (
     ALTER TABLE [dbo].[Cliente] ADD [MatrizId] [int] NULL;
 GO
 
--- 3. Cria FK MatrizId -> Cliente(Id) se ainda não existe
+-- 3. Cria FK MatrizId -> Cliente(Id) se ainda nao existe
 IF NOT EXISTS (
     SELECT 1 FROM sys.foreign_keys
     WHERE name = 'FK_Cliente_Matriz'
@@ -28,10 +28,1725 @@ BEGIN
 END
 GO
 
--- 4. Adiciona ExibicaoNomeCliente à ConfiguracaoSistema
+-- 4. Adiciona ExibicaoNomeCliente a ConfiguracaoSistema
 IF NOT EXISTS (
     SELECT 1 FROM sys.columns
     WHERE object_id = OBJECT_ID(N'[dbo].[ConfiguracaoSistema]') AND name = 'ExibicaoNomeCliente'
 )
     ALTER TABLE [dbo].[ConfiguracaoSistema] ADD [ExibicaoNomeCliente] [nvarchar](20) NULL;
 GO
+
+-- =============================================
+-- 5. Populacao do NomeFantasia em clientes ja existentes (match por Documento)
+-- =============================================
+UPDATE Cliente SET NomeFantasia = N'PASSO A PASSO CALÇADOS' WHERE Documento = N'74.573.825/0001-31' AND NomeFantasia IS NULL; -- CLI_CODCLI=101
+UPDATE Cliente SET NomeFantasia = N'CASA KOMODA' WHERE Documento = N'44.929.313/0001-02' AND NomeFantasia IS NULL; -- CLI_CODCLI=102
+UPDATE Cliente SET NomeFantasia = N'LOJA ECONÔMICA' WHERE Documento = N'44.567.469/0001-82' AND NomeFantasia IS NULL; -- CLI_CODCLI=103
+UPDATE Cliente SET NomeFantasia = N'CONFEITARIA TAKAHASHI' WHERE Documento = N'57.645.947/0001-77' AND NomeFantasia IS NULL; -- CLI_CODCLI=104
+UPDATE Cliente SET NomeFantasia = N'DROGARIA DROGALIDER' WHERE Documento = N'01.692.337/0001-70' AND NomeFantasia IS NULL; -- CLI_CODCLI=105
+UPDATE Cliente SET NomeFantasia = N'SHOUBAI' WHERE Documento = N'00.879.499/0001-59' AND NomeFantasia IS NULL; -- CLI_CODCLI=106
+UPDATE Cliente SET NomeFantasia = N'GRANJA SHIDA - PARAPUA' WHERE Documento = N'07.921.855/0005-28' AND NomeFantasia IS NULL; -- CLI_CODCLI=107
+UPDATE Cliente SET NomeFantasia = N'SUA CASA MOVEIS' WHERE Documento = N'06.998.525/0001-44' AND NomeFantasia IS NULL; -- CLI_CODCLI=108
+UPDATE Cliente SET NomeFantasia = N'PAPELARIA KAWASAKI' WHERE Documento = N'06.058.735/0001-52' AND NomeFantasia IS NULL; -- CLI_CODCLI=109
+UPDATE Cliente SET NomeFantasia = N'LOJA PELUCY' WHERE Documento = N'44.567.840/0001-06' AND NomeFantasia IS NULL; -- CLI_CODCLI=110
+UPDATE Cliente SET NomeFantasia = N'ELIO YAMAUCHI' WHERE Documento = N'56.533.243/0001-40' AND NomeFantasia IS NULL; -- CLI_CODCLI=111
+UPDATE Cliente SET NomeFantasia = N'CAB - COOP AVICOLA' WHERE Documento = N'44.929.982/0001-76' AND NomeFantasia IS NULL; -- CLI_CODCLI=112
+UPDATE Cliente SET NomeFantasia = N'TRANS EGG' WHERE Documento = N'06.225.690/0001-63' AND NomeFantasia IS NULL; -- CLI_CODCLI=113
+UPDATE Cliente SET NomeFantasia = N'MED WORK' WHERE Documento = N'01.842.838/0001-95' AND NomeFantasia IS NULL; -- CLI_CODCLI=114
+UPDATE Cliente SET NomeFantasia = N'FORT MILK - BASFORT RACOES' WHERE Documento = N'26.750.152/0001-03' AND NomeFantasia IS NULL; -- CLI_CODCLI=115
+UPDATE Cliente SET NomeFantasia = N'BETTER BEFF' WHERE Documento = N'05.826.986/0002-58' AND NomeFantasia IS NULL; -- CLI_CODCLI=116
+UPDATE Cliente SET NomeFantasia = N'LABOR MED - TUPÃ' WHERE Documento = N'10.218.613/0001-53' AND NomeFantasia IS NULL; -- CLI_CODCLI=117
+UPDATE Cliente SET NomeFantasia = N'SUPERMERCADO MAINITI' WHERE Documento = N'58.454.398/0001-16' AND NomeFantasia IS NULL; -- CLI_CODCLI=118
+UPDATE Cliente SET NomeFantasia = N'GINO AVES' WHERE Documento = N'09.432.194/0001-79' AND NomeFantasia IS NULL; -- CLI_CODCLI=119
+UPDATE Cliente SET NomeFantasia = N'PRIME' WHERE Documento = N'17.708.390/0001-51' AND NomeFantasia IS NULL; -- CLI_CODCLI=120
+UPDATE Cliente SET NomeFantasia = N'AGUA NA BOCA' WHERE Documento = N'53.908.349/0001-92' AND NomeFantasia IS NULL; -- CLI_CODCLI=121
+UPDATE Cliente SET NomeFantasia = N'ARMARINHO ANDRADE' WHERE Documento = N'06.020.781/0001-62' AND NomeFantasia IS NULL; -- CLI_CODCLI=122
+UPDATE Cliente SET NomeFantasia = N'GAS SHINITI' WHERE Documento = N'08.885.036/0001-01' AND NomeFantasia IS NULL; -- CLI_CODCLI=123
+UPDATE Cliente SET NomeFantasia = N'MERCADO ANDREGUETTE' WHERE Documento = N'44.929.727/0001-23' AND NomeFantasia IS NULL; -- CLI_CODCLI=124
+UPDATE Cliente SET NomeFantasia = N'CHB' WHERE Documento = N'03.174.378/0001-08' AND NomeFantasia IS NULL; -- CLI_CODCLI=125
+UPDATE Cliente SET NomeFantasia = N'MERCADO BELA VISTA' WHERE Documento = N'45.206.679/0001-08' AND NomeFantasia IS NULL; -- CLI_CODCLI=126
+UPDATE Cliente SET NomeFantasia = N'TIM GUASTALLI' WHERE Documento = N'08.927.465/0001-02' AND NomeFantasia IS NULL; -- CLI_CODCLI=127
+UPDATE Cliente SET NomeFantasia = N'MERCADO NASCIMENTO' WHERE Documento = N'04.280.375/0001-03' AND NomeFantasia IS NULL; -- CLI_CODCLI=128
+UPDATE Cliente SET NomeFantasia = N'ACAPULCO CALÇADOS' WHERE Documento = N'57.959.603/0001-32' AND NomeFantasia IS NULL; -- CLI_CODCLI=129
+UPDATE Cliente SET NomeFantasia = N'OFICINA SCALA' WHERE Documento = N'66.179.540/0001-92' AND NomeFantasia IS NULL; -- CLI_CODCLI=130
+UPDATE Cliente SET NomeFantasia = N'POSTO LARANJEIRAS' WHERE Documento = N'54.119.847/0001-19' AND NomeFantasia IS NULL; -- CLI_CODCLI=131
+UPDATE Cliente SET NomeFantasia = N'SINDICATO RURAL' WHERE Documento = N'44.930.816/0001-90' AND NomeFantasia IS NULL; -- CLI_CODCLI=132
+UPDATE Cliente SET NomeFantasia = N'BASER COMERCIO' WHERE Documento = N'01.606.384/0001-53' AND NomeFantasia IS NULL; -- CLI_CODCLI=133
+UPDATE Cliente SET NomeFantasia = N'NUTRIBASTOS' WHERE Documento = N'44.567.493/0001-11' AND NomeFantasia IS NULL; -- CLI_CODCLI=134
+UPDATE Cliente SET NomeFantasia = N'GRANSETE' WHERE Documento = N'07.434.227/0001-94' AND NomeFantasia IS NULL; -- CLI_CODCLI=135
+UPDATE Cliente SET NomeFantasia = N'SOCAB' WHERE Documento = N'44.929.628/0001-41' AND NomeFantasia IS NULL; -- CLI_CODCLI=136
+UPDATE Cliente SET NomeFantasia = N'TRANS SEGURA' WHERE Documento = N'04.135.712/0001-79' AND NomeFantasia IS NULL; -- CLI_CODCLI=137
+UPDATE Cliente SET NomeFantasia = N'PREF.BASTOS - COMPRA' WHERE Documento = N'45.547.403/0001-93' AND NomeFantasia IS NULL; -- CLI_CODCLI=139
+UPDATE Cliente SET NomeFantasia = N'TRANS SALU - SALUS' WHERE Documento = N'10.357.097/0001-48' AND NomeFantasia IS NULL; -- CLI_CODCLI=140
+UPDATE Cliente SET NomeFantasia = N'GRANJA DOURADO' WHERE Documento = N'08.452.290/0001-16' AND NomeFantasia IS NULL; -- CLI_CODCLI=141
+UPDATE Cliente SET NomeFantasia = N'GRANJA UEYAMA' WHERE Documento = N'08.216.683/0005-54' AND NomeFantasia IS NULL; -- CLI_CODCLI=142
+UPDATE Cliente SET NomeFantasia = N'GRANJA KOGA' WHERE Documento = N'07.988.317/0001-27' AND NomeFantasia IS NULL; -- CLI_CODCLI=143
+UPDATE Cliente SET NomeFantasia = N'GRANJA MORISHITA -  INCORBAL' WHERE Documento = N'07.939.399/0004-62' AND NomeFantasia IS NULL; -- CLI_CODCLI=144
+UPDATE Cliente SET NomeFantasia = N'GRANJA YABUTA' WHERE Documento = N'07.938.348/0002-54' AND NomeFantasia IS NULL; -- CLI_CODCLI=145
+UPDATE Cliente SET NomeFantasia = N'FAZENDA YABUTA' WHERE Documento = N'07.988.552/0009-56' AND NomeFantasia IS NULL; -- CLI_CODCLI=146
+UPDATE Cliente SET NomeFantasia = N'GRANJA PRIMAVERA' WHERE Documento = N'075.818.448-46' AND NomeFantasia IS NULL; -- CLI_CODCLI=147
+UPDATE Cliente SET NomeFantasia = N'GRJ YABUTA - QUEIROZ' WHERE Documento = N'07.938.348/0003-35' AND NomeFantasia IS NULL; -- CLI_CODCLI=148
+UPDATE Cliente SET NomeFantasia = N'GRANJA HIRO MIYAKUBO' WHERE Documento = N'07.949.691/0001-13' AND NomeFantasia IS NULL; -- CLI_CODCLI=149
+UPDATE Cliente SET NomeFantasia = N'GRANJA RECREIO (TEREZA TERUI)' WHERE Documento = N'07.927.200/0004-86' AND NomeFantasia IS NULL; -- CLI_CODCLI=150
+UPDATE Cliente SET NomeFantasia = N'GRANJA MASANORI UEMURA' WHERE Documento = N'07.921.719/0001-04' AND NomeFantasia IS NULL; -- CLI_CODCLI=151
+UPDATE Cliente SET NomeFantasia = N'GRANJA KATSUHIDE MAKI' WHERE Documento = N'07.894.015/0001-90' AND NomeFantasia IS NULL; -- CLI_CODCLI=152
+UPDATE Cliente SET NomeFantasia = N'GRANJA MARCIO GOHARA' WHERE Documento = N'010.541.028-48' AND NomeFantasia IS NULL; -- CLI_CODCLI=153
+UPDATE Cliente SET NomeFantasia = N'GRANJA CARLOS IKEDA' WHERE Documento = N'07.937.843/0001-68' AND NomeFantasia IS NULL; -- CLI_CODCLI=154
+UPDATE Cliente SET NomeFantasia = N'GRANJA HIGASHI' WHERE Documento = N'12.147.764/0001-93' AND NomeFantasia IS NULL; -- CLI_CODCLI=155
+UPDATE Cliente SET NomeFantasia = N'GRANJA MATSUDA' WHERE Documento = N'133.446.338-72' AND NomeFantasia IS NULL; -- CLI_CODCLI=156
+UPDATE Cliente SET NomeFantasia = N'GRANJA PEDRO GOHARA' WHERE Documento = N'14.106.560/0001-30' AND NomeFantasia IS NULL; -- CLI_CODCLI=157
+UPDATE Cliente SET NomeFantasia = N'GRANJA KAZAMA' WHERE Documento = N'07.937.777/0001-26' AND NomeFantasia IS NULL; -- CLI_CODCLI=158
+UPDATE Cliente SET NomeFantasia = N'GRANJA MARCELO MAKI' WHERE Documento = N'08.206.445/0002-15' AND NomeFantasia IS NULL; -- CLI_CODCLI=159
+UPDATE Cliente SET NomeFantasia = N'GRANJA BRASIL' WHERE Documento = N'07.937.846/0001-00' AND NomeFantasia IS NULL; -- CLI_CODCLI=160
+UPDATE Cliente SET NomeFantasia = N'GRANJA MURAKAMI - CPF' WHERE Documento = N'152.062.978-87' AND NomeFantasia IS NULL; -- CLI_CODCLI=161
+UPDATE Cliente SET NomeFantasia = N'GRANJA NAKANISHI' WHERE Documento = N'798.751.068-87' AND NomeFantasia IS NULL; -- CLI_CODCLI=162
+UPDATE Cliente SET NomeFantasia = N'GRANJA RANCHO DA LUA' WHERE Documento = N'004.000.926-20' AND NomeFantasia IS NULL; -- CLI_CODCLI=163
+UPDATE Cliente SET NomeFantasia = N'GRANJA YOROZUYA' WHERE Documento = N'07.937.810/0001-18' AND NomeFantasia IS NULL; -- CLI_CODCLI=164
+UPDATE Cliente SET NomeFantasia = N'GRANJA SHIDA' WHERE Documento = N'07.921.855/0001-02' AND NomeFantasia IS NULL; -- CLI_CODCLI=165
+UPDATE Cliente SET NomeFantasia = N'GRANJA MIZOHATA' WHERE Documento = N'07.943.154/0001-66' AND NomeFantasia IS NULL; -- CLI_CODCLI=166
+UPDATE Cliente SET NomeFantasia = N'GRANJA ELZA ONO' WHERE Documento = N'100.505.628-51' AND NomeFantasia IS NULL; -- CLI_CODCLI=167
+UPDATE Cliente SET NomeFantasia = N'GRANJA SHINODA' WHERE Documento = N'07.916.070/0001-33' AND NomeFantasia IS NULL; -- CLI_CODCLI=168
+UPDATE Cliente SET NomeFantasia = N'GRANJA SHINODA PRAT.' WHERE Documento = N'07.916.070/0002-14' AND NomeFantasia IS NULL; -- CLI_CODCLI=169
+UPDATE Cliente SET NomeFantasia = N'GRANJA PAULISTA - NFE' WHERE Documento = N'09.610.514/0001-33' AND NomeFantasia IS NULL; -- CLI_CODCLI=170
+UPDATE Cliente SET NomeFantasia = N'GRANJA VITTA' WHERE Documento = N'33.358.938/0001-37' AND NomeFantasia IS NULL; -- CLI_CODCLI=171
+UPDATE Cliente SET NomeFantasia = N'GRANJA NAGANO' WHERE Documento = N'07.916.057/0002-65' AND NomeFantasia IS NULL; -- CLI_CODCLI=172
+UPDATE Cliente SET NomeFantasia = N'CONTEX' WHERE Documento = N'01.750.685/0001-56' AND NomeFantasia IS NULL; -- CLI_CODCLI=173
+UPDATE Cliente SET NomeFantasia = N'GRANJA ONO' WHERE Documento = N'07.949.713/0001-45' AND NomeFantasia IS NULL; -- CLI_CODCLI=174
+UPDATE Cliente SET NomeFantasia = N'HOTEL AVENIDA' WHERE Documento = N'79.326.229/0001-70' AND NomeFantasia IS NULL; -- CLI_CODCLI=175
+UPDATE Cliente SET NomeFantasia = N'GRJ COD. KAWAMURA' WHERE Documento = N'07.991.823/0001-75' AND NomeFantasia IS NULL; -- CLI_CODCLI=176
+UPDATE Cliente SET NomeFantasia = N'GRANJA SANTA MONICA - CONSULT' WHERE Documento = N'16.965.664/0001-25' AND NomeFantasia IS NULL; -- CLI_CODCLI=177
+UPDATE Cliente SET NomeFantasia = N'GRANJA TSUBOI' WHERE Documento = N'08.158.179/0002-00' AND NomeFantasia IS NULL; -- CLI_CODCLI=178
+UPDATE Cliente SET NomeFantasia = N'GRANJA ZIPPY' WHERE Documento = N'65.083.669/0002-10' AND NomeFantasia IS NULL; -- CLI_CODCLI=179
+UPDATE Cliente SET NomeFantasia = N'GRANJA SATO' WHERE Documento = N'08.643.874/0001-79' AND NomeFantasia IS NULL; -- CLI_CODCLI=180
+UPDATE Cliente SET NomeFantasia = N'GRANJA LOYOLA' WHERE Documento = N'03.766.078/0001-00' AND NomeFantasia IS NULL; -- CLI_CODCLI=181
+UPDATE Cliente SET NomeFantasia = N'GRANJA SETIMO CEU' WHERE Documento = N'37.410.687/0001-43' AND NomeFantasia IS NULL; -- CLI_CODCLI=182
+UPDATE Cliente SET NomeFantasia = N'ADUBOS TAKA - LETICIA' WHERE Documento = N'15.131.025/0001-00' AND NomeFantasia IS NULL; -- CLI_CODCLI=183
+UPDATE Cliente SET NomeFantasia = N'GRANJA SAO JOSE - DISTR.' WHERE Documento = N'13.453.316/0001-80' AND NomeFantasia IS NULL; -- CLI_CODCLI=184
+UPDATE Cliente SET NomeFantasia = N'EMPRESARIAL CERTA - GMS' WHERE Documento = N'14.914.101/0001-82' AND NomeFantasia IS NULL; -- CLI_CODCLI=185
+UPDATE Cliente SET NomeFantasia = N'GRANJA MARCELO MAKI - 3M' WHERE Documento = N'08.206.445/0001-34' AND NomeFantasia IS NULL; -- CLI_CODCLI=186
+UPDATE Cliente SET NomeFantasia = N'DIM ALIMENTOS - LU' WHERE Documento = N'19.536.258/0001-35' AND NomeFantasia IS NULL; -- CLI_CODCLI=187
+UPDATE Cliente SET NomeFantasia = N'MUSICAL MASTER' WHERE Documento = N'08.932.969/0001-02' AND NomeFantasia IS NULL; -- CLI_CODCLI=188
+UPDATE Cliente SET NomeFantasia = N'GINO AVES - TRANS MARQUES' WHERE Documento = N'09.517.596/0001-76' AND NomeFantasia IS NULL; -- CLI_CODCLI=189
+UPDATE Cliente SET NomeFantasia = N'GRANJA UMAKAKEBA' WHERE Documento = N'07.938.302/0001-54' AND NomeFantasia IS NULL; -- CLI_CODCLI=190
+UPDATE Cliente SET NomeFantasia = N'GRANJA SHINDI UEMURA-COMERCIO' WHERE Documento = N'09.138.187/0001-69' AND NomeFantasia IS NULL; -- CLI_CODCLI=191
+UPDATE Cliente SET NomeFantasia = N'SHOPPING DOS PRESENTES' WHERE Documento = N'03.532.717/0001-72' AND NomeFantasia IS NULL; -- CLI_CODCLI=192
+UPDATE Cliente SET NomeFantasia = N'PREF.BASTOS - LISITA' WHERE Documento = N'45.547.403/0001-93' AND NomeFantasia IS NULL; -- CLI_CODCLI=193
+UPDATE Cliente SET NomeFantasia = N'PREF.BASTOS - SAUDE' WHERE Documento = N'45.547.403/0001-93' AND NomeFantasia IS NULL; -- CLI_CODCLI=194
+UPDATE Cliente SET NomeFantasia = N'GRANJA SHINTAKU' WHERE Documento = N'08.091.012/0001-80' AND NomeFantasia IS NULL; -- CLI_CODCLI=195
+UPDATE Cliente SET NomeFantasia = N'MAG VEICULOS' WHERE Documento = N'04.459.255/0001-78' AND NomeFantasia IS NULL; -- CLI_CODCLI=196
+UPDATE Cliente SET NomeFantasia = N'GRANJA SANTA CLARA' WHERE Documento = N'119.184.036-00' AND NomeFantasia IS NULL; -- CLI_CODCLI=197
+UPDATE Cliente SET NomeFantasia = N'OVOS SÃO FRANCISCO' WHERE Documento = N'03.437.507/0001-03' AND NomeFantasia IS NULL; -- CLI_CODCLI=198
+UPDATE Cliente SET NomeFantasia = N'JOTA BOM HORTIFRUTI' WHERE Documento = N'22.639.859/0001-88' AND NomeFantasia IS NULL; -- CLI_CODCLI=199
+UPDATE Cliente SET NomeFantasia = N'ÓTICA VIP' WHERE Documento = N'74.658.865/0001-86' AND NomeFantasia IS NULL; -- CLI_CODCLI=200
+UPDATE Cliente SET NomeFantasia = N'MAKE - PERFUMARIA' WHERE Documento = N'11.309.951/0001-63' AND NomeFantasia IS NULL; -- CLI_CODCLI=202
+UPDATE Cliente SET NomeFantasia = N'GRANJA LOUREIRO - BH' WHERE Documento = N'07.580.055/0001-67' AND NomeFantasia IS NULL; -- CLI_CODCLI=203
+UPDATE Cliente SET NomeFantasia = N'TOYOART & TOYOTEC' WHERE Documento = N'28.765.760/0001-09' AND NomeFantasia IS NULL; -- CLI_CODCLI=204
+UPDATE Cliente SET NomeFantasia = N'CENTER BOX' WHERE Documento = N'03.285.548/0001-13' AND NomeFantasia IS NULL; -- CLI_CODCLI=205
+UPDATE Cliente SET NomeFantasia = N'KI ARTE DOCERIA' WHERE Documento = N'09.154.835/0001-70' AND NomeFantasia IS NULL; -- CLI_CODCLI=206
+UPDATE Cliente SET NomeFantasia = N'GRANJA CAGERI - GERMANO-F' WHERE Documento = N'240.669.230-20' AND NomeFantasia IS NULL; -- CLI_CODCLI=432
+UPDATE Cliente SET NomeFantasia = N'PSCICULTURA - ZIPPY' WHERE Documento = N'07.948.387/0004-02' AND NomeFantasia IS NULL; -- CLI_CODCLI=208
+UPDATE Cliente SET NomeFantasia = N'PARIGI BOUTIQUE' WHERE Documento = N'07.184.600/0001-04' AND NomeFantasia IS NULL; -- CLI_CODCLI=209
+UPDATE Cliente SET NomeFantasia = N'OVOS TAK' WHERE Documento = N'96.560.412/0001-55' AND NomeFantasia IS NULL; -- CLI_CODCLI=210
+UPDATE Cliente SET NomeFantasia = N'GRANJA GUARA' WHERE Documento = N'08.031.793/0001-18' AND NomeFantasia IS NULL; -- CLI_CODCLI=211
+UPDATE Cliente SET NomeFantasia = N'GRANJA MIZUMA' WHERE Documento = N'07.963.237/0001-17' AND NomeFantasia IS NULL; -- CLI_CODCLI=212
+UPDATE Cliente SET NomeFantasia = N'REI DO OVO' WHERE Documento = N'23.550.885/0001-06' AND NomeFantasia IS NULL; -- CLI_CODCLI=213
+UPDATE Cliente SET NomeFantasia = N'GRANJA TINOCO' WHERE Documento = N'07.928.137/0001-50' AND NomeFantasia IS NULL; -- CLI_CODCLI=214
+UPDATE Cliente SET NomeFantasia = N'TICH ALIMENTOS - RAFAEL' WHERE Documento = N'24.307.683/0001-92' AND NomeFantasia IS NULL; -- CLI_CODCLI=215
+UPDATE Cliente SET NomeFantasia = N'PEÇAS ELDORADO' WHERE Documento = N'08.588.672/0001-71' AND NomeFantasia IS NULL; -- CLI_CODCLI=216
+UPDATE Cliente SET NomeFantasia = N'WOLRD TAPE' WHERE Documento = N'09.212.780/0001-08' AND NomeFantasia IS NULL; -- CLI_CODCLI=217
+UPDATE Cliente SET NomeFantasia = N'MARCELO VEICULO' WHERE Documento = N'06.186.223/0001-71' AND NomeFantasia IS NULL; -- CLI_CODCLI=218
+UPDATE Cliente SET NomeFantasia = N'SAVIO DOCES' WHERE Documento = N'12.074.033/0001-65' AND NomeFantasia IS NULL; -- CLI_CODCLI=219
+UPDATE Cliente SET NomeFantasia = N'ABEIA VEICULOS' WHERE Documento = N'08.344.284/0001-45' AND NomeFantasia IS NULL; -- CLI_CODCLI=220
+UPDATE Cliente SET NomeFantasia = N'MZ - VEICULOS' WHERE Documento = N'11.630.210/0001-80' AND NomeFantasia IS NULL; -- CLI_CODCLI=221
+UPDATE Cliente SET NomeFantasia = N'NUTRIGRANJA' WHERE Documento = N'01.711.792/0001-75' AND NomeFantasia IS NULL; -- CLI_CODCLI=222
+UPDATE Cliente SET NomeFantasia = N'MARMORARIA HONDA' WHERE Documento = N'09.104.116/0001-45' AND NomeFantasia IS NULL; -- CLI_CODCLI=223
+UPDATE Cliente SET NomeFantasia = N'MSU' WHERE Documento = N'06.345.082/0001-92' AND NomeFantasia IS NULL; -- CLI_CODCLI=224
+UPDATE Cliente SET NomeFantasia = N'RODOPEÇAS' WHERE Documento = N'59.149.468/0001-95' AND NomeFantasia IS NULL; -- CLI_CODCLI=225
+UPDATE Cliente SET NomeFantasia = N'GRANJA FILADELFIA' WHERE Documento = N'22.619.773/0001-93' AND NomeFantasia IS NULL; -- CLI_CODCLI=226
+UPDATE Cliente SET NomeFantasia = N'SACOLÃO DE ECONOMIA' WHERE Documento = N'33.531.006/0001-44' AND NomeFantasia IS NULL; -- CLI_CODCLI=227
+UPDATE Cliente SET NomeFantasia = N'OVOS GUATAPARA' WHERE Documento = N'53.560.033/0001-52' AND NomeFantasia IS NULL; -- CLI_CODCLI=228
+UPDATE Cliente SET NomeFantasia = N'MULTICASA' WHERE Documento = N'07.983.037/0001-26' AND NomeFantasia IS NULL; -- CLI_CODCLI=229
+UPDATE Cliente SET NomeFantasia = N'AUTO ELETRICA TONINHO' WHERE Documento = N'55.836.514/0001-73' AND NomeFantasia IS NULL; -- CLI_CODCLI=230
+UPDATE Cliente SET NomeFantasia = N'GRANJA LOUREIRO - SP' WHERE Documento = N'07.580.055/0003-29' AND NomeFantasia IS NULL; -- CLI_CODCLI=232
+UPDATE Cliente SET NomeFantasia = N'IMOBIL.INTERNACIONAL' WHERE Documento = N'260.981.958-70' AND NomeFantasia IS NULL; -- CLI_CODCLI=233
+UPDATE Cliente SET NomeFantasia = N'MADEIREIRA PARAISO' WHERE Documento = N'07.663.113/0001-16' AND NomeFantasia IS NULL; -- CLI_CODCLI=234
+UPDATE Cliente SET NomeFantasia = N'TRANS CAQUI' WHERE Documento = N'01.138.945/0001-37' AND NomeFantasia IS NULL; -- CLI_CODCLI=235
+UPDATE Cliente SET NomeFantasia = N'GRANJA PAVAO - SANTOS' WHERE Documento = N'06.019.519/0001-06' AND NomeFantasia IS NULL; -- CLI_CODCLI=236
+UPDATE Cliente SET NomeFantasia = N'ADUBOS TAKA' WHERE Documento = N'01.810.714/0001-28' AND NomeFantasia IS NULL; -- CLI_CODCLI=237
+UPDATE Cliente SET NomeFantasia = N'GRJ FILADELPHIA-BTS' WHERE Documento = N'12.385.889/0001-51' AND NomeFantasia IS NULL; -- CLI_CODCLI=238
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVO FORTE' WHERE Documento = N'10.232.496/0001-82' AND NomeFantasia IS NULL; -- CLI_CODCLI=239
+UPDATE Cliente SET NomeFantasia = N'VESTUA BOUTIQUE' WHERE Documento = N'29.484.028/0001-23' AND NomeFantasia IS NULL; -- CLI_CODCLI=240
+UPDATE Cliente SET NomeFantasia = N'AUTO ELETRICA DRAGÃO' WHERE Documento = N'55.637.680/0001-40' AND NomeFantasia IS NULL; -- CLI_CODCLI=241
+UPDATE Cliente SET NomeFantasia = N'JORPLAND DISTR. ALIM' WHERE Documento = N'08.577.034/0001-55' AND NomeFantasia IS NULL; -- CLI_CODCLI=242
+UPDATE Cliente SET NomeFantasia = N'ADUBOS TAKA - NEUSA' WHERE Documento = N'05.251.371/0001-60' AND NomeFantasia IS NULL; -- CLI_CODCLI=243
+UPDATE Cliente SET NomeFantasia = N'COSTELÃO - RESTAURANTE' WHERE Documento = N'68.429.281/0001-36' AND NomeFantasia IS NULL; -- CLI_CODCLI=244
+UPDATE Cliente SET NomeFantasia = N'GRANJA VITORIA' WHERE Documento = N'201.222.842-91' AND NomeFantasia IS NULL; -- CLI_CODCLI=245
+UPDATE Cliente SET NomeFantasia = N'OVOS BASTOS' WHERE Documento = N'11.184.403/0001-54' AND NomeFantasia IS NULL; -- CLI_CODCLI=246
+UPDATE Cliente SET NomeFantasia = N'COOP AGR SUL BRASIL' WHERE Documento = N'44.930.725/0001-54' AND NomeFantasia IS NULL; -- CLI_CODCLI=247
+UPDATE Cliente SET NomeFantasia = N'LABOR MED - BASTOS' WHERE Documento = N'13.817.231/0001-34' AND NomeFantasia IS NULL; -- CLI_CODCLI=248
+UPDATE Cliente SET NomeFantasia = N'GRANJA JF OVONOVO' WHERE Documento = N'07.312.421/0001-05' AND NomeFantasia IS NULL; -- CLI_CODCLI=249
+UPDATE Cliente SET NomeFantasia = N'TRANS UEMURA' WHERE Documento = N'15.754.030/0001-60' AND NomeFantasia IS NULL; -- CLI_CODCLI=250
+UPDATE Cliente SET NomeFantasia = N'GRANJA LOUREIRO - MG' WHERE Documento = N'07.580.055/0002-48' AND NomeFantasia IS NULL; -- CLI_CODCLI=251
+UPDATE Cliente SET NomeFantasia = N'TRANS SANTOS & MESQUITA' WHERE Documento = N'24.166.015/0001-92' AND NomeFantasia IS NULL; -- CLI_CODCLI=252
+UPDATE Cliente SET NomeFantasia = N'METALTEC - FILIAL' WHERE Documento = N'05.398.653/0001-94' AND NomeFantasia IS NULL; -- CLI_CODCLI=253
+UPDATE Cliente SET NomeFantasia = N'ANDRESATO EMBALAGENS' WHERE Documento = N'03.933.924/0001-39' AND NomeFantasia IS NULL; -- CLI_CODCLI=255
+UPDATE Cliente SET NomeFantasia = N'LNS - HORTIFRUTIGRANJEIRO' WHERE Documento = N'15.106.779/0001-00' AND NomeFantasia IS NULL; -- CLI_CODCLI=256
+UPDATE Cliente SET NomeFantasia = N'TRANS FELIPPE - BRASIL' WHERE Documento = N'13.116.111/0001-00' AND NomeFantasia IS NULL; -- CLI_CODCLI=257
+UPDATE Cliente SET NomeFantasia = N'GRANJA NAKANISHI CODORNA' WHERE Documento = N'07.948.849/0002-11' AND NomeFantasia IS NULL; -- CLI_CODCLI=258
+UPDATE Cliente SET NomeFantasia = N'GINO AVES - WESLEY' WHERE Documento = N'23.250.983/0001-10' AND NomeFantasia IS NULL; -- CLI_CODCLI=259
+UPDATE Cliente SET NomeFantasia = N'GRANJA VICAMI' WHERE Documento = N'08.329.833/0001-02' AND NomeFantasia IS NULL; -- CLI_CODCLI=260
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOS MOMBUCA' WHERE Documento = N'08.023.912/0001-90' AND NomeFantasia IS NULL; -- CLI_CODCLI=261
+UPDATE Cliente SET NomeFantasia = N'GRANJA YOSHIKAWA - 01' WHERE Documento = N'07.921.706/0001-35' AND NomeFantasia IS NULL; -- CLI_CODCLI=262
+UPDATE Cliente SET NomeFantasia = N'GRANJA HIDEKI IKEDA' WHERE Documento = N'07.916.187/0002-06' AND NomeFantasia IS NULL; -- CLI_CODCLI=263
+UPDATE Cliente SET NomeFantasia = N'NCAVES - 02' WHERE Documento = N'22.729.899/0002-00' AND NomeFantasia IS NULL; -- CLI_CODCLI=264
+UPDATE Cliente SET NomeFantasia = N'ADUBOS TAKA - DECIO' WHERE Documento = N'24.672.130/0001-39' AND NomeFantasia IS NULL; -- CLI_CODCLI=265
+UPDATE Cliente SET NomeFantasia = N'DIRCEU BONONI' WHERE Documento = N'11.783.089/0001-26' AND NomeFantasia IS NULL; -- CLI_CODCLI=266
+UPDATE Cliente SET NomeFantasia = N'J. A. CORTICA AUTOMAÇÃO' WHERE Documento = N'06.009.678/0001-11' AND NomeFantasia IS NULL; -- CLI_CODCLI=268
+UPDATE Cliente SET NomeFantasia = N'NONUS D.O.BRASIL' WHERE Documento = N'06.159.294/0001-85' AND NomeFantasia IS NULL; -- CLI_CODCLI=269
+UPDATE Cliente SET NomeFantasia = N'GRANJA LOUREIRO - RJ' WHERE Documento = N'07.580.055/0004-00' AND NomeFantasia IS NULL; -- CLI_CODCLI=270
+UPDATE Cliente SET NomeFantasia = N'ESCOLA SÃO JOSE' WHERE Documento = N'04.033.424/0001-03' AND NomeFantasia IS NULL; -- CLI_CODCLI=271
+UPDATE Cliente SET NomeFantasia = N'UNIMED DE TUPA' WHERE Documento = N'56.762.172/0001-57' AND NomeFantasia IS NULL; -- CLI_CODCLI=272
+UPDATE Cliente SET NomeFantasia = N'PSI TECNOLOGIA LTDA' WHERE Documento = N'45.795.796/0001-54' AND NomeFantasia IS NULL; -- CLI_CODCLI=273
+UPDATE Cliente SET NomeFantasia = N'ANDRADE SUPERMERCADO' WHERE Documento = N'11.966.262/0001-21' AND NomeFantasia IS NULL; -- CLI_CODCLI=274
+UPDATE Cliente SET NomeFantasia = N'NADIEL COM ELET LTDA' WHERE Documento = N'08.957.311/0001-55' AND NomeFantasia IS NULL; -- CLI_CODCLI=275
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOS LUCELIA' WHERE Documento = N'07.968.661/0002-35' AND NomeFantasia IS NULL; -- CLI_CODCLI=276
+UPDATE Cliente SET NomeFantasia = N'GRANJA MIYAKUBO' WHERE Documento = N'07.949.363/0001-17' AND NomeFantasia IS NULL; -- CLI_CODCLI=277
+UPDATE Cliente SET NomeFantasia = N'GRANJA YAJIMA' WHERE Documento = N'07.927.967/0001-62' AND NomeFantasia IS NULL; -- CLI_CODCLI=278
+UPDATE Cliente SET NomeFantasia = N'GRANJA LOYOLA - 02' WHERE Documento = N'03.766.078/0002-90' AND NomeFantasia IS NULL; -- CLI_CODCLI=279
+UPDATE Cliente SET NomeFantasia = N'GRANJA CODORNA NAKANINHI' WHERE Documento = N'06.016.840/0001-29' AND NomeFantasia IS NULL; -- CLI_CODCLI=280
+UPDATE Cliente SET NomeFantasia = N'GRANJA KAKIMOTO' WHERE Documento = N'07.942.023/0002-45' AND NomeFantasia IS NULL; -- CLI_CODCLI=281
+UPDATE Cliente SET NomeFantasia = N'GRANJA TAKANO' WHERE Documento = N'08.477.927/0001-29' AND NomeFantasia IS NULL; -- CLI_CODCLI=282
+UPDATE Cliente SET NomeFantasia = N'GRANJA MIZOHATA - WAGNER' WHERE Documento = N'14.767.148/0001-60' AND NomeFantasia IS NULL; -- CLI_CODCLI=283
+UPDATE Cliente SET NomeFantasia = N'CEILDA MOREIRA LIMA' WHERE Documento = N'054.352.998-37' AND NomeFantasia IS NULL; -- CLI_CODCLI=284
+UPDATE Cliente SET NomeFantasia = N'BRAVISCO DE BASTOS' WHERE Documento = N'44.930.444/0001-00' AND NomeFantasia IS NULL; -- CLI_CODCLI=285
+UPDATE Cliente SET NomeFantasia = N'GRANJA REBELLO' WHERE Documento = N'07.948.278/0001-34' AND NomeFantasia IS NULL; -- CLI_CODCLI=286
+UPDATE Cliente SET NomeFantasia = N'ATITUDE' WHERE Documento = N'11.594.899/0001-34' AND NomeFantasia IS NULL; -- CLI_CODCLI=287
+UPDATE Cliente SET NomeFantasia = N'GRANJA ACAMPAMENTO' WHERE Documento = N'07.967.646/0001-91' AND NomeFantasia IS NULL; -- CLI_CODCLI=288
+UPDATE Cliente SET NomeFantasia = N'GRANJA MORISHITA - MONTEIRO' WHERE Documento = N'07.939.399/0001-10' AND NomeFantasia IS NULL; -- CLI_CODCLI=289
+UPDATE Cliente SET NomeFantasia = N'GRANJA PAULISTA - OLD' WHERE Documento = N'08.024.503/0001-09' AND NomeFantasia IS NULL; -- CLI_CODCLI=290
+UPDATE Cliente SET NomeFantasia = N'LEGIÃO MIRIM' WHERE Documento = N'05.298.119/0001-06' AND NomeFantasia IS NULL; -- CLI_CODCLI=291
+UPDATE Cliente SET NomeFantasia = N'EDITORA ATMAN' WHERE Documento = N'06.292.421/0001-10' AND NomeFantasia IS NULL; -- CLI_CODCLI=292
+UPDATE Cliente SET NomeFantasia = N'FAZENDA YABUTA PROGR' WHERE Documento = N'07.988.552/0001-07' AND NomeFantasia IS NULL; -- CLI_CODCLI=293
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOS MOMBUCA-ME' WHERE Documento = N'03.570.358/0001-48' AND NomeFantasia IS NULL; -- CLI_CODCLI=294
+UPDATE Cliente SET NomeFantasia = N'GRANJA SAO JOSE' WHERE Documento = N'08.076.260/0001-52' AND NomeFantasia IS NULL; -- CLI_CODCLI=295
+UPDATE Cliente SET NomeFantasia = N'UMBERTO PEREIRA' WHERE Documento = N'118.692.798-40' AND NomeFantasia IS NULL; -- CLI_CODCLI=296
+UPDATE Cliente SET NomeFantasia = N'IGREJA UNIAO CENTRAL' WHERE Documento = N'55.233.019/0047-52' AND NomeFantasia IS NULL; -- CLI_CODCLI=297
+UPDATE Cliente SET NomeFantasia = N'GRANJA YOSHIKAWA - LEONARDO' WHERE Documento = N'08.993.618/0001-01' AND NomeFantasia IS NULL; -- CLI_CODCLI=298
+UPDATE Cliente SET NomeFantasia = N'GRANJA YABUTA RANCH' WHERE Documento = N'07.938.348/0004-16' AND NomeFantasia IS NULL; -- CLI_CODCLI=299
+UPDATE Cliente SET NomeFantasia = N'GRANJA MORISHITA - III' WHERE Documento = N'07.939.399/0002-09' AND NomeFantasia IS NULL; -- CLI_CODCLI=300
+UPDATE Cliente SET NomeFantasia = N'GRAZIELE BONONI' WHERE Documento = N'11.261.149/0001-40' AND NomeFantasia IS NULL; -- CLI_CODCLI=301
+UPDATE Cliente SET NomeFantasia = N'HOSPITAL DE BASTOS' WHERE Documento = N'44.930.931/0001-64' AND NomeFantasia IS NULL; -- CLI_CODCLI=302
+UPDATE Cliente SET NomeFantasia = N'GRANJA CIA DA CODORNA-CONSERVA' WHERE Documento = N'06.016.840/0001-29' AND NomeFantasia IS NULL; -- CLI_CODCLI=303
+UPDATE Cliente SET NomeFantasia = N'GRANJA MORISHITA - II' WHERE Documento = N'07.939.399/0007-05' AND NomeFantasia IS NULL; -- CLI_CODCLI=304
+UPDATE Cliente SET NomeFantasia = N'ARTABAS' WHERE Documento = N'44.574.374/0001-96' AND NomeFantasia IS NULL; -- CLI_CODCLI=305
+UPDATE Cliente SET NomeFantasia = N'GRANJA LOYOLA - 04' WHERE Documento = N'03.766.078/0004-52' AND NomeFantasia IS NULL; -- CLI_CODCLI=306
+UPDATE Cliente SET NomeFantasia = N'PISCULTURA ZIPPY' WHERE Documento = N'65.083.669/0005-63' AND NomeFantasia IS NULL; -- CLI_CODCLI=307
+UPDATE Cliente SET NomeFantasia = N'SPACE TECH' WHERE Documento = N'07.660.698/0001-10' AND NomeFantasia IS NULL; -- CLI_CODCLI=308
+UPDATE Cliente SET NomeFantasia = N'ACIB' WHERE Documento = N'51.507.580/0001-49' AND NomeFantasia IS NULL; -- CLI_CODCLI=309
+UPDATE Cliente SET NomeFantasia = N'YAKIPIZZA' WHERE Documento = N'04.614.279/0001-54' AND NomeFantasia IS NULL; -- CLI_CODCLI=310
+UPDATE Cliente SET NomeFantasia = N'TICH ALIMENTOS - ZANETICH' WHERE Documento = N'13.043.485/0001-42' AND NomeFantasia IS NULL; -- CLI_CODCLI=311
+UPDATE Cliente SET NomeFantasia = N'DISTRIBUIDORA DR' WHERE Documento = N'30.659.859/0001-78' AND NomeFantasia IS NULL; -- CLI_CODCLI=312
+UPDATE Cliente SET NomeFantasia = N'AÇOUGUE NOSSA Sª AP.' WHERE Documento = N'00.001.400/0001-11' AND NomeFantasia IS NULL; -- CLI_CODCLI=434
+UPDATE Cliente SET NomeFantasia = N'VALDECIR A. DA SILVA' WHERE Documento = N'044.310.848-00' AND NomeFantasia IS NULL; -- CLI_CODCLI=314
+UPDATE Cliente SET NomeFantasia = N'GRANJA KOGA - EDUARDO' WHERE Documento = N'21.834.628/0001-62' AND NomeFantasia IS NULL; -- CLI_CODCLI=315
+UPDATE Cliente SET NomeFantasia = N'MARIA DO R. R. SILVA' WHERE Documento = N'046.891.748-90' AND NomeFantasia IS NULL; -- CLI_CODCLI=316
+UPDATE Cliente SET NomeFantasia = N'BRATAC' WHERE Documento = N'61.080.735/0002-48' AND NomeFantasia IS NULL; -- CLI_CODCLI=317
+UPDATE Cliente SET NomeFantasia = N'PONTA DOS PES' WHERE Documento = N'08.898.631/0001-81' AND NomeFantasia IS NULL; -- CLI_CODCLI=318
+UPDATE Cliente SET NomeFantasia = N'GRANJA SANTA MONICA' WHERE Documento = N'16.965.664/0001-25' AND NomeFantasia IS NULL; -- CLI_CODCLI=319
+UPDATE Cliente SET NomeFantasia = N'DROGARIA UNIÃO' WHERE Documento = N'44.929.297/0001-40' AND NomeFantasia IS NULL; -- CLI_CODCLI=436
+UPDATE Cliente SET NomeFantasia = N'NILTON DE S. BARBOSA' WHERE Documento = N'283.196.158-01' AND NomeFantasia IS NULL; -- CLI_CODCLI=321
+UPDATE Cliente SET NomeFantasia = N'TRANS ENEMU TRANSPORTE' WHERE Documento = N'14.499.785/0001-01' AND NomeFantasia IS NULL; -- CLI_CODCLI=322
+UPDATE Cliente SET NomeFantasia = N'ESCRITORIO PAULISTA' WHERE Documento = N'50.837.822/0001-08' AND NomeFantasia IS NULL; -- CLI_CODCLI=323
+UPDATE Cliente SET NomeFantasia = N'AGATA MODAS' WHERE Documento = N'67.207.639/0001-13' AND NomeFantasia IS NULL; -- CLI_CODCLI=324
+UPDATE Cliente SET NomeFantasia = N'ZENILDA FERREIRA' WHERE Documento = N'141.240.798-26' AND NomeFantasia IS NULL; -- CLI_CODCLI=325
+UPDATE Cliente SET NomeFantasia = N'FRANCISCO - R N - EQUIPAMENTOS' WHERE Documento = N'09.432.791/0001-01' AND NomeFantasia IS NULL; -- CLI_CODCLI=326
+UPDATE Cliente SET NomeFantasia = N'FHL SERVIÇOS' WHERE Documento = N'15.746.177/0001-09' AND NomeFantasia IS NULL; -- CLI_CODCLI=327
+UPDATE Cliente SET NomeFantasia = N'SUP. SANTO ANTONIO' WHERE Documento = N'12.482.448/0001-78' AND NomeFantasia IS NULL; -- CLI_CODCLI=328
+UPDATE Cliente SET NomeFantasia = N'TAKAHIRO SHIBATA' WHERE Documento = N'068.269.208-59' AND NomeFantasia IS NULL; -- CLI_CODCLI=329
+UPDATE Cliente SET NomeFantasia = N'FARMA DE MANIP IDEAL' WHERE Documento = N'08.047.068/0001-38' AND NomeFantasia IS NULL; -- CLI_CODCLI=330
+UPDATE Cliente SET NomeFantasia = N'CAPITAL IMOVEIS' WHERE Documento = N'030.302.598-03' AND NomeFantasia IS NULL; -- CLI_CODCLI=331
+UPDATE Cliente SET NomeFantasia = N'MATEL BASTOS' WHERE Documento = N'65.512.790/0001-30' AND NomeFantasia IS NULL; -- CLI_CODCLI=332
+UPDATE Cliente SET NomeFantasia = N'YOSHINORI ASAKAWA' WHERE Documento = N'032.039.058-68' AND NomeFantasia IS NULL; -- CLI_CODCLI=333
+UPDATE Cliente SET NomeFantasia = N'PATRICIA S. DE OLIV.' WHERE Documento = N'333.547.568-29' AND NomeFantasia IS NULL; -- CLI_CODCLI=334
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOBOM' WHERE Documento = N'17.232.965/0001-02' AND NomeFantasia IS NULL; -- CLI_CODCLI=335
+UPDATE Cliente SET NomeFantasia = N'BASTOS GOLF CLUB' WHERE Documento = N'44.930.972/0001-50' AND NomeFantasia IS NULL; -- CLI_CODCLI=336
+UPDATE Cliente SET NomeFantasia = N'GRANJA PARAISO' WHERE Documento = N'13.517.810/0001-61' AND NomeFantasia IS NULL; -- CLI_CODCLI=337
+UPDATE Cliente SET NomeFantasia = N'ADVENT DO SETIMO DIA' WHERE Documento = N'55.233.019/0047-52' AND NomeFantasia IS NULL; -- CLI_CODCLI=338
+UPDATE Cliente SET NomeFantasia = N'RIBEIRO & SANCHES' WHERE Documento = N'15.394.770/0001-33' AND NomeFantasia IS NULL; -- CLI_CODCLI=339
+UPDATE Cliente SET NomeFantasia = N'PAROQUIA SÃO FRANCISCO' WHERE Documento = N'52.059.797/0043-55' AND NomeFantasia IS NULL; -- CLI_CODCLI=340
+UPDATE Cliente SET NomeFantasia = N'COMERCIAL OVONOVO' WHERE Documento = N'15.026.956/0001-30' AND NomeFantasia IS NULL; -- CLI_CODCLI=341
+UPDATE Cliente SET NomeFantasia = N'JOSEFA AP DE ALMEIDA' WHERE Documento = N'266.527.848-07' AND NomeFantasia IS NULL; -- CLI_CODCLI=342
+UPDATE Cliente SET NomeFantasia = N'GRANJA COPACABANA' WHERE Documento = N'08.013.334/0001-01' AND NomeFantasia IS NULL; -- CLI_CODCLI=343
+UPDATE Cliente SET NomeFantasia = N'DROGALIDER CONVEN.' WHERE Documento = N'04.767.602/0001-20' AND NomeFantasia IS NULL; -- CLI_CODCLI=435
+UPDATE Cliente SET NomeFantasia = N'CASA DO CONSTRUTOR' WHERE Documento = N'53.288.676/0001-99' AND NomeFantasia IS NULL; -- CLI_CODCLI=345
+UPDATE Cliente SET NomeFantasia = N'HOTEL LUAND' WHERE Documento = N'09.510.166/0001-22' AND NomeFantasia IS NULL; -- CLI_CODCLI=346
+UPDATE Cliente SET NomeFantasia = N'SAKAE MARUYAMA' WHERE Documento = N'049.604.598-91' AND NomeFantasia IS NULL; -- CLI_CODCLI=347
+UPDATE Cliente SET NomeFantasia = N'SAPATARIA NAGAYOSHI' WHERE Documento = N'67.372.391/0001-46' AND NomeFantasia IS NULL; -- CLI_CODCLI=348
+UPDATE Cliente SET NomeFantasia = N'CALÇADOS MANIA' WHERE Documento = N'17.653.735/0001-17' AND NomeFantasia IS NULL; -- CLI_CODCLI=349
+UPDATE Cliente SET NomeFantasia = N'ANTONIO GRACINO OLIV' WHERE Documento = N'248.447.888-76' AND NomeFantasia IS NULL; -- CLI_CODCLI=351
+UPDATE Cliente SET NomeFantasia = N'SIND DOS SERV BASTOS' WHERE Documento = N'54.723.606/0001-84' AND NomeFantasia IS NULL; -- CLI_CODCLI=352
+UPDATE Cliente SET NomeFantasia = N'MARIA BARB. DE SOUZA' WHERE Documento = N'001.881.508-11' AND NomeFantasia IS NULL; -- CLI_CODCLI=353
+UPDATE Cliente SET NomeFantasia = N'GRANJA NAKAURA' WHERE Documento = N'07.927.178/0001-21' AND NomeFantasia IS NULL; -- CLI_CODCLI=354
+UPDATE Cliente SET NomeFantasia = N'PASSO A PASSO' WHERE Documento = N'961.272.288-91' AND NomeFantasia IS NULL; -- CLI_CODCLI=355
+UPDATE Cliente SET NomeFantasia = N'FUNDO MUN. DE BASTOS' WHERE Documento = N'11.892.520/0001-72' AND NomeFantasia IS NULL; -- CLI_CODCLI=356
+UPDATE Cliente SET NomeFantasia = N'RODOPECAS - LAERTI' WHERE Documento = N'05.409.482/0001-51' AND NomeFantasia IS NULL; -- CLI_CODCLI=357
+UPDATE Cliente SET NomeFantasia = N'JOSE CARLOS A. DOS S' WHERE Documento = N'709.649.128-72' AND NomeFantasia IS NULL; -- CLI_CODCLI=358
+UPDATE Cliente SET NomeFantasia = N'MARIO KUSHIMA' WHERE Documento = N'397.412.909-00' AND NomeFantasia IS NULL; -- CLI_CODCLI=359
+UPDATE Cliente SET NomeFantasia = N'CAMARA MUN.BASTOS' WHERE Documento = N'51.507.135/0001-89' AND NomeFantasia IS NULL; -- CLI_CODCLI=360
+UPDATE Cliente SET NomeFantasia = N'FRANCISCO - DELTA CENTER' WHERE Documento = N'11.917.584/0001-80' AND NomeFantasia IS NULL; -- CLI_CODCLI=361
+UPDATE Cliente SET NomeFantasia = N'PRIMEXTECH' WHERE Documento = N'13.281.460/0001-87' AND NomeFantasia IS NULL; -- CLI_CODCLI=362
+UPDATE Cliente SET NomeFantasia = N'ANITA KUBO TANAKA' WHERE Documento = N'015.081.498-44' AND NomeFantasia IS NULL; -- CLI_CODCLI=363
+UPDATE Cliente SET NomeFantasia = N'SUZILEI DA SILVA ME' WHERE Documento = N'18.551.964/0001-93' AND NomeFantasia IS NULL; -- CLI_CODCLI=364
+UPDATE Cliente SET NomeFantasia = N'NCAVES - NC' WHERE Documento = N'02.855.402/0001-01' AND NomeFantasia IS NULL; -- CLI_CODCLI=365
+UPDATE Cliente SET NomeFantasia = N'SINDICATO DA FIAÇÃO' WHERE Documento = N'51.517.597/0001-87' AND NomeFantasia IS NULL; -- CLI_CODCLI=366
+UPDATE Cliente SET NomeFantasia = N'DURVALINO G. PARRA F' WHERE Documento = N'015.260.048-52' AND NomeFantasia IS NULL; -- CLI_CODCLI=367
+UPDATE Cliente SET NomeFantasia = N'ELITON YAMAUCHI' WHERE Documento = N'18.957.439/0001-72' AND NomeFantasia IS NULL; -- CLI_CODCLI=368
+UPDATE Cliente SET NomeFantasia = N'VALDIR SILVA' WHERE Documento = N'138.267.478-36' AND NomeFantasia IS NULL; -- CLI_CODCLI=369
+UPDATE Cliente SET NomeFantasia = N'TRANS NENEZINHO' WHERE Documento = N'17.965.418/0001-36' AND NomeFantasia IS NULL; -- CLI_CODCLI=370
+UPDATE Cliente SET NomeFantasia = N'ASS ANJOS DA VIDA' WHERE Documento = N'09.010.438/0001-25' AND NomeFantasia IS NULL; -- CLI_CODCLI=371
+UPDATE Cliente SET NomeFantasia = N'CENTRAL PARK' WHERE Documento = N'11.104.211/0001-90' AND NomeFantasia IS NULL; -- CLI_CODCLI=372
+UPDATE Cliente SET NomeFantasia = N'MARLETE MIRANDA' WHERE Documento = N'136.904.968-45' AND NomeFantasia IS NULL; -- CLI_CODCLI=373
+UPDATE Cliente SET NomeFantasia = N'EROFLEX' WHERE Documento = N'00.398.659/0001-48' AND NomeFantasia IS NULL; -- CLI_CODCLI=374
+UPDATE Cliente SET NomeFantasia = N'BRASOVOS' WHERE Documento = N'17.911.185/0001-99' AND NomeFantasia IS NULL; -- CLI_CODCLI=375
+UPDATE Cliente SET NomeFantasia = N'GRANJA PALACETE' WHERE Documento = N'665.959.914-20' AND NomeFantasia IS NULL; -- CLI_CODCLI=376
+UPDATE Cliente SET NomeFantasia = N'YEVA LINGERIE' WHERE Documento = N'19.789.067/0001-85' AND NomeFantasia IS NULL; -- CLI_CODCLI=377
+UPDATE Cliente SET NomeFantasia = N'VILLIANS DANIEL SHIN' WHERE Documento = N'272.585.118-14' AND NomeFantasia IS NULL; -- CLI_CODCLI=378
+UPDATE Cliente SET NomeFantasia = N'RESTAURANTE TOTTORI' WHERE Documento = N'13.164.495/0001-36' AND NomeFantasia IS NULL; -- CLI_CODCLI=379
+UPDATE Cliente SET NomeFantasia = N'GRANJA SANTA MARTA' WHERE Documento = N'462.462.586-20' AND NomeFantasia IS NULL; -- CLI_CODCLI=380
+UPDATE Cliente SET NomeFantasia = N'TRANS TUKA' WHERE Documento = N'14.282.025/0001-30' AND NomeFantasia IS NULL; -- CLI_CODCLI=381
+UPDATE Cliente SET NomeFantasia = N'SADAO IAWASAWA' WHERE Documento = N'015.665.748-11' AND NomeFantasia IS NULL; -- CLI_CODCLI=382
+UPDATE Cliente SET NomeFantasia = N'KOZAKI & VIANA VEIC.' WHERE Documento = N'07.737.186/0001-05' AND NomeFantasia IS NULL; -- CLI_CODCLI=383
+UPDATE Cliente SET NomeFantasia = N'GRANJA MORISHITA - FENIX' WHERE Documento = N'07.940.373/0001-91' AND NomeFantasia IS NULL; -- CLI_CODCLI=384
+UPDATE Cliente SET NomeFantasia = N'SABRINA TAGUCHI' WHERE Documento = N'292.426.208-90' AND NomeFantasia IS NULL; -- CLI_CODCLI=385
+UPDATE Cliente SET NomeFantasia = N'TRANS OVOS' WHERE Documento = N'71.812.051/0001-66' AND NomeFantasia IS NULL; -- CLI_CODCLI=386
+UPDATE Cliente SET NomeFantasia = N'TRANS VERONEZE' WHERE Documento = N'14.952.646/0001-83' AND NomeFantasia IS NULL; -- CLI_CODCLI=387
+UPDATE Cliente SET NomeFantasia = N'TRANS BERGAMO' WHERE Documento = N'13.801.627/0001-93' AND NomeFantasia IS NULL; -- CLI_CODCLI=388
+UPDATE Cliente SET NomeFantasia = N'TRANS FORTALEZA' WHERE Documento = N'09.061.690/0001-63' AND NomeFantasia IS NULL; -- CLI_CODCLI=389
+UPDATE Cliente SET NomeFantasia = N'TRANS SILVA' WHERE Documento = N'03.269.151/0001-38' AND NomeFantasia IS NULL; -- CLI_CODCLI=390
+UPDATE Cliente SET NomeFantasia = N'TRANS TADASHI' WHERE Documento = N'17.820.963/0001-34' AND NomeFantasia IS NULL; -- CLI_CODCLI=391
+UPDATE Cliente SET NomeFantasia = N'TRANS TAKAHASHI' WHERE Documento = N'05.274.326/0001-20' AND NomeFantasia IS NULL; -- CLI_CODCLI=392
+UPDATE Cliente SET NomeFantasia = N'TRANS YAMADA' WHERE Documento = N'13.774.684/0001-20' AND NomeFantasia IS NULL; -- CLI_CODCLI=393
+UPDATE Cliente SET NomeFantasia = N'GRANJA TINOCO - TRANSPORTE' WHERE Documento = N'09.331.499/0001-94' AND NomeFantasia IS NULL; -- CLI_CODCLI=394
+UPDATE Cliente SET NomeFantasia = N'TRANS LARANJEIRA' WHERE Documento = N'19.173.844/0001-62' AND NomeFantasia IS NULL; -- CLI_CODCLI=395
+UPDATE Cliente SET NomeFantasia = N'TRANS RAPIDO PIMENTA' WHERE Documento = N'57.569.204/0001-65' AND NomeFantasia IS NULL; -- CLI_CODCLI=396
+UPDATE Cliente SET NomeFantasia = N'TRANS SALU - TRANSP' WHERE Documento = N'58.945.486/0001-10' AND NomeFantasia IS NULL; -- CLI_CODCLI=398
+UPDATE Cliente SET NomeFantasia = N'IPPON HIRO' WHERE Documento = N'00.928.315/0001-01' AND NomeFantasia IS NULL; -- CLI_CODCLI=399
+UPDATE Cliente SET NomeFantasia = N'TICH - ALIMENTOS' WHERE Documento = N'72.860.265/0001-70' AND NomeFantasia IS NULL; -- CLI_CODCLI=400
+UPDATE Cliente SET NomeFantasia = N'ITAG SISTEMAS' WHERE Documento = N'17.932.272/0001-22' AND NomeFantasia IS NULL; -- CLI_CODCLI=401
+UPDATE Cliente SET NomeFantasia = N'GINO AVES - RUTE MARQUES' WHERE Documento = N'11.687.648/0001-02' AND NomeFantasia IS NULL; -- CLI_CODCLI=402
+UPDATE Cliente SET NomeFantasia = N'GATO EDITORA LTDA' WHERE Documento = N'08.635.055/0001-80' AND NomeFantasia IS NULL; -- CLI_CODCLI=403
+UPDATE Cliente SET NomeFantasia = N'ZOOCAMP' WHERE Documento = N'19.216.682/0001-00' AND NomeFantasia IS NULL; -- CLI_CODCLI=404
+UPDATE Cliente SET NomeFantasia = N'NA BRASA' WHERE Documento = N'06.920.455/0001-01' AND NomeFantasia IS NULL; -- CLI_CODCLI=405
+UPDATE Cliente SET NomeFantasia = N'LUA NOVA' WHERE Documento = N'62.461.140/0006-29' AND NomeFantasia IS NULL; -- CLI_CODCLI=406
+UPDATE Cliente SET NomeFantasia = N'AKIRA - TECNOMOTO' WHERE Documento = N'61.088.092/0001-06' AND NomeFantasia IS NULL; -- CLI_CODCLI=407
+UPDATE Cliente SET NomeFantasia = N'TRANS ATHAS' WHERE Documento = N'13.585.341/0001-18' AND NomeFantasia IS NULL; -- CLI_CODCLI=408
+UPDATE Cliente SET NomeFantasia = N'GRANJA MIZUMA - MARCOS' WHERE Documento = N'10.460.449/0001-96' AND NomeFantasia IS NULL; -- CLI_CODCLI=409
+UPDATE Cliente SET NomeFantasia = N'FRANGO FILADELFIA-OLD' WHERE Documento = N'22.729.899/0003-82' AND NomeFantasia IS NULL; -- CLI_CODCLI=410
+UPDATE Cliente SET NomeFantasia = N'CASA SÃO JORGE' WHERE Documento = N'47.584.925/0001-90' AND NomeFantasia IS NULL; -- CLI_CODCLI=412
+UPDATE Cliente SET NomeFantasia = N'GRANJA KUMANO' WHERE Documento = N'08.582.560/0001-03' AND NomeFantasia IS NULL; -- CLI_CODCLI=413
+UPDATE Cliente SET NomeFantasia = N'IGREJA E.PENT.UNIÃO' WHERE Documento = N'49.819.626/0009-70' AND NomeFantasia IS NULL; -- CLI_CODCLI=414
+UPDATE Cliente SET NomeFantasia = N'GRANJA PROGRESSO' WHERE Documento = N'00.598.375/0001-03' AND NomeFantasia IS NULL; -- CLI_CODCLI=415
+UPDATE Cliente SET NomeFantasia = N'LINARI PNEUS' WHERE Documento = N'436.925.718-28' AND NomeFantasia IS NULL; -- CLI_CODCLI=416
+UPDATE Cliente SET NomeFantasia = N'GRANJA CAGERI - GERMANO-J' WHERE Documento = N'04.970.565/0001-52' AND NomeFantasia IS NULL; -- CLI_CODCLI=417
+UPDATE Cliente SET NomeFantasia = N'PASTELARIA OIKAWA' WHERE Documento = N'69.037.380/0001-35' AND NomeFantasia IS NULL; -- CLI_CODCLI=418
+UPDATE Cliente SET NomeFantasia = N'INDUSTRIA DE MAQUINA' WHERE Documento = N'56.350.127/0001-95' AND NomeFantasia IS NULL; -- CLI_CODCLI=419
+UPDATE Cliente SET NomeFantasia = N'GRANJA SHIDA - FAZ.SAO PAULO' WHERE Documento = N'07.921.855/0004-47' AND NomeFantasia IS NULL; -- CLI_CODCLI=420
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOS HANSEN - ANDREI' WHERE Documento = N'25.101.977/0001-26' AND NomeFantasia IS NULL; -- CLI_CODCLI=425
+UPDATE Cliente SET NomeFantasia = N'SANTTO' WHERE Documento = N'22.197.786/0001-11' AND NomeFantasia IS NULL; -- CLI_CODCLI=426
+UPDATE Cliente SET NomeFantasia = N'TRANS J.H.E - KORRO' WHERE Documento = N'21.724.157/0001-30' AND NomeFantasia IS NULL; -- CLI_CODCLI=427
+UPDATE Cliente SET NomeFantasia = N'TRANS SEGURA - EDER' WHERE Documento = N'10.313.718/0001-91' AND NomeFantasia IS NULL; -- CLI_CODCLI=428
+UPDATE Cliente SET NomeFantasia = N'SIND EMPR RURAIS BAS' WHERE Documento = N'50.837.665/0001-22' AND NomeFantasia IS NULL; -- CLI_CODCLI=429
+UPDATE Cliente SET NomeFantasia = N'NOVA TAMOIO COMERCIO' WHERE Documento = N'22.498.855/0001-27' AND NomeFantasia IS NULL; -- CLI_CODCLI=430
+UPDATE Cliente SET NomeFantasia = N'MERCADO NOVO BASTOS' WHERE Documento = N'05.760.378/0001-07' AND NomeFantasia IS NULL; -- CLI_CODCLI=431
+UPDATE Cliente SET NomeFantasia = N'AMETISTA STORE' WHERE Documento = N'14.239.039/0001-70' AND NomeFantasia IS NULL; -- CLI_CODCLI=433
+UPDATE Cliente SET NomeFantasia = N'TRANS EVERALDO' WHERE Documento = N'23.424.081/0001-52' AND NomeFantasia IS NULL; -- CLI_CODCLI=437
+UPDATE Cliente SET NomeFantasia = N'GRANJA KADOWAKI' WHERE Documento = N'508.397.059-72' AND NomeFantasia IS NULL; -- CLI_CODCLI=438
+UPDATE Cliente SET NomeFantasia = N'AUTO PEÇAS ANDRADE' WHERE Documento = N'00.008.203/0001-24' AND NomeFantasia IS NULL; -- CLI_CODCLI=439
+UPDATE Cliente SET NomeFantasia = N'QUITANDA KUBO' WHERE Documento = N'03.435.918/0001-51' AND NomeFantasia IS NULL; -- CLI_CODCLI=440
+UPDATE Cliente SET NomeFantasia = N'GRANJA NIKKEI - 01' WHERE Documento = N'07.963.401/0001-96' AND NomeFantasia IS NULL; -- CLI_CODCLI=441
+UPDATE Cliente SET NomeFantasia = N'JOTA BOM HORTIFRUTI - BEZERRA' WHERE Documento = N'22.408.416/0001-86' AND NomeFantasia IS NULL; -- CLI_CODCLI=442
+UPDATE Cliente SET NomeFantasia = N'OVOS KAZAMA' WHERE Documento = N'06.225.711/0001-40' AND NomeFantasia IS NULL; -- CLI_CODCLI=444
+UPDATE Cliente SET NomeFantasia = N'NIVALDO JOÃO GUIRAD.' WHERE Documento = N'033.761.518-73' AND NomeFantasia IS NULL; -- CLI_CODCLI=445
+UPDATE Cliente SET NomeFantasia = N'OVOS NAKAURA' WHERE Documento = N'52.232.261/0001-30' AND NomeFantasia IS NULL; -- CLI_CODCLI=446
+UPDATE Cliente SET NomeFantasia = N'GRANJA TRENTO' WHERE Documento = N'08.707.764/0001-23' AND NomeFantasia IS NULL; -- CLI_CODCLI=447
+UPDATE Cliente SET NomeFantasia = N'MACRO FORT' WHERE Documento = N'08.763.196/0001-88' AND NomeFantasia IS NULL; -- CLI_CODCLI=448
+UPDATE Cliente SET NomeFantasia = N'PINK FASHION' WHERE Documento = N'11.086.834/0001-88' AND NomeFantasia IS NULL; -- CLI_CODCLI=449
+UPDATE Cliente SET NomeFantasia = N'MYKE JOON SUZUKI' WHERE Documento = N'365.260.218-83' AND NomeFantasia IS NULL; -- CLI_CODCLI=450
+UPDATE Cliente SET NomeFantasia = N'NUTRIGRANJA TRANSPORTE' WHERE Documento = N'23.113.407/0001-20' AND NomeFantasia IS NULL; -- CLI_CODCLI=451
+UPDATE Cliente SET NomeFantasia = N'DILÃO MOTO PEÇAS' WHERE Documento = N'13.347.676/0001-06' AND NomeFantasia IS NULL; -- CLI_CODCLI=452
+UPDATE Cliente SET NomeFantasia = N'CLINICA GOU' WHERE Documento = N'19.544.344/0001-90' AND NomeFantasia IS NULL; -- CLI_CODCLI=453
+UPDATE Cliente SET NomeFantasia = N'GRANJA NIKKEI - 06' WHERE Documento = N'07.963.401/0006-09' AND NomeFantasia IS NULL; -- CLI_CODCLI=454
+UPDATE Cliente SET NomeFantasia = N'SHOUBAI - MARILIA' WHERE Documento = N'07.046.613/0001-09' AND NomeFantasia IS NULL; -- CLI_CODCLI=455
+UPDATE Cliente SET NomeFantasia = N'DIMEP' WHERE Documento = N'61.099.008/0001-41' AND NomeFantasia IS NULL; -- CLI_CODCLI=456
+UPDATE Cliente SET NomeFantasia = N'GRANJA JOSIDITH' WHERE Documento = N'18.547.545/0001-88' AND NomeFantasia IS NULL; -- CLI_CODCLI=457
+UPDATE Cliente SET NomeFantasia = N'PLANETA ANIMAL' WHERE Documento = N'23.423.899/0001-50' AND NomeFantasia IS NULL; -- CLI_CODCLI=459
+UPDATE Cliente SET NomeFantasia = N'JG PRESENTES' WHERE Documento = N'55.657.159/0001-75' AND NomeFantasia IS NULL; -- CLI_CODCLI=460
+UPDATE Cliente SET NomeFantasia = N'DIM ALIMENTOS - NSM' WHERE Documento = N'07.271.969/0001-46' AND NomeFantasia IS NULL; -- CLI_CODCLI=461
+UPDATE Cliente SET NomeFantasia = N'YAKIPIZZA POMPEIA' WHERE Documento = N'12.513.634/0001-27' AND NomeFantasia IS NULL; -- CLI_CODCLI=463
+UPDATE Cliente SET NomeFantasia = N'LOVE SHOES' WHERE Documento = N'23.500.005/0001-89' AND NomeFantasia IS NULL; -- CLI_CODCLI=464
+UPDATE Cliente SET NomeFantasia = N'BAR DO ADILSON' WHERE Documento = N'59.441.741/0001-50' AND NomeFantasia IS NULL; -- CLI_CODCLI=465
+UPDATE Cliente SET NomeFantasia = N'TRANS PAULO RIBEIRO' WHERE Documento = N'16.973.913/0001-24' AND NomeFantasia IS NULL; -- CLI_CODCLI=466
+UPDATE Cliente SET NomeFantasia = N'MIRAI PET SHOP' WHERE Documento = N'18.846.384/0001-23' AND NomeFantasia IS NULL; -- CLI_CODCLI=467
+UPDATE Cliente SET NomeFantasia = N'GRANJA PAINEIRAS' WHERE Documento = N'999.999.999-99' AND NomeFantasia IS NULL; -- CLI_CODCLI=469
+UPDATE Cliente SET NomeFantasia = N'PURINA' WHERE Documento = N'08.971.840/0001-03' AND NomeFantasia IS NULL; -- CLI_CODCLI=470
+UPDATE Cliente SET NomeFantasia = N'ELETROTECNICA VENDRAMINI' WHERE Documento = N'07.122.779/0001-67' AND NomeFantasia IS NULL; -- CLI_CODCLI=488
+UPDATE Cliente SET NomeFantasia = N'LUKEN PNEUS' WHERE Documento = N'07.825.647/0001-00' AND NomeFantasia IS NULL; -- CLI_CODCLI=472
+UPDATE Cliente SET NomeFantasia = N'PESQUEIRO OURA' WHERE Documento = N'07.782.760/0001-47' AND NomeFantasia IS NULL; -- CLI_CODCLI=473
+UPDATE Cliente SET NomeFantasia = N'FUNERARIA BOM JESUS' WHERE Documento = N'08.956.647/0001-01' AND NomeFantasia IS NULL; -- CLI_CODCLI=474
+UPDATE Cliente SET NomeFantasia = N'PONTO CELL' WHERE Documento = N'02.137.908/0001-77' AND NomeFantasia IS NULL; -- CLI_CODCLI=475
+UPDATE Cliente SET NomeFantasia = N'GAS HIRAI' WHERE Documento = N'04.584.888/0001-08' AND NomeFantasia IS NULL; -- CLI_CODCLI=476
+UPDATE Cliente SET NomeFantasia = N'EMBALAGEM JUNIO' WHERE Documento = N'10.619.912/0001-08' AND NomeFantasia IS NULL; -- CLI_CODCLI=477
+UPDATE Cliente SET NomeFantasia = N'GAS NICOLETI' WHERE Documento = N'18.919.992/0001-10' AND NomeFantasia IS NULL; -- CLI_CODCLI=478
+UPDATE Cliente SET NomeFantasia = N'FABIO FIGUEIREDO F.' WHERE Documento = N'257.193.188-10' AND NomeFantasia IS NULL; -- CLI_CODCLI=479
+UPDATE Cliente SET NomeFantasia = N'GRANJA SERMANI' WHERE Documento = N'08.213.221/0001-50' AND NomeFantasia IS NULL; -- CLI_CODCLI=480
+UPDATE Cliente SET NomeFantasia = N'SKIMELL BASTOS' WHERE Documento = N'01.602.852/0001-11' AND NomeFantasia IS NULL; -- CLI_CODCLI=481
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOS DA TERRA' WHERE Documento = N'08.005.424/0009-08' AND NomeFantasia IS NULL; -- CLI_CODCLI=482
+UPDATE Cliente SET NomeFantasia = N'VENDA DO ELETRICISTA' WHERE Documento = N'18.707.046/0001-00' AND NomeFantasia IS NULL; -- CLI_CODCLI=483
+UPDATE Cliente SET NomeFantasia = N'TABACARIA VITÓRIA' WHERE Documento = N'09.072.278/0001-49' AND NomeFantasia IS NULL; -- CLI_CODCLI=484
+UPDATE Cliente SET NomeFantasia = N'GIGAS CAFE' WHERE Documento = N'07.490.830/0001-93' AND NomeFantasia IS NULL; -- CLI_CODCLI=485
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOBOM - PRATANIA' WHERE Documento = N'17.232.965/0002-93' AND NomeFantasia IS NULL; -- CLI_CODCLI=486
+UPDATE Cliente SET NomeFantasia = N'SERCAT - OFICINA' WHERE Documento = N'07.008.933/0001-74' AND NomeFantasia IS NULL; -- CLI_CODCLI=487
+UPDATE Cliente SET NomeFantasia = N'BASE BASTOS' WHERE Documento = N'49.900.848/0001-66' AND NomeFantasia IS NULL; -- CLI_CODCLI=489
+UPDATE Cliente SET NomeFantasia = N'COOCRED' WHERE Documento = N'71.328.769/0021-25' AND NomeFantasia IS NULL; -- CLI_CODCLI=490
+UPDATE Cliente SET NomeFantasia = N'STUDIO IMAGEM' WHERE Documento = N'66.751.520/0001-44' AND NomeFantasia IS NULL; -- CLI_CODCLI=491
+UPDATE Cliente SET NomeFantasia = N'GRANJA NIKKEI - VITOR' WHERE Documento = N'11.048.531/0004-13' AND NomeFantasia IS NULL; -- CLI_CODCLI=492
+UPDATE Cliente SET NomeFantasia = N'EHP - CONCEPT STORE' WHERE Documento = N'13.129.360/0001-30' AND NomeFantasia IS NULL; -- CLI_CODCLI=573
+UPDATE Cliente SET NomeFantasia = N'PHYSIOERGO SERV DE F' WHERE Documento = N'03.943.705/0001-30' AND NomeFantasia IS NULL; -- CLI_CODCLI=493
+UPDATE Cliente SET NomeFantasia = N'GRANJA PAVAO' WHERE Documento = N'08.027.822/0001-78' AND NomeFantasia IS NULL; -- CLI_CODCLI=494
+UPDATE Cliente SET NomeFantasia = N'BAR DO CAÇOTE' WHERE Documento = N'62.703.962/0001-64' AND NomeFantasia IS NULL; -- CLI_CODCLI=495
+UPDATE Cliente SET NomeFantasia = N'AÇOUGUE NUNES' WHERE Documento = N'22.720.119/0001-71' AND NomeFantasia IS NULL; -- CLI_CODCLI=496
+UPDATE Cliente SET NomeFantasia = N'SERGINHO ELETROMOVEI' WHERE Documento = N'12.619.336/0001-16' AND NomeFantasia IS NULL; -- CLI_CODCLI=500
+UPDATE Cliente SET NomeFantasia = N'PADARIA TAVARES' WHERE Documento = N'16.890.251/0001-29' AND NomeFantasia IS NULL; -- CLI_CODCLI=498
+UPDATE Cliente SET NomeFantasia = N'FEITO EM CASA' WHERE Documento = N'62.309.141/0003-00' AND NomeFantasia IS NULL; -- CLI_CODCLI=499
+UPDATE Cliente SET NomeFantasia = N'TIAGO KENJI OCAMOTO' WHERE Documento = N'216.232.058-40' AND NomeFantasia IS NULL; -- CLI_CODCLI=501
+UPDATE Cliente SET NomeFantasia = N'RESTAURANTE UEKITA' WHERE Documento = N'14.776.027/0001-85' AND NomeFantasia IS NULL; -- CLI_CODCLI=502
+UPDATE Cliente SET NomeFantasia = N'POSTO PIONEIRO' WHERE Documento = N'44.574.838/0001-64' AND NomeFantasia IS NULL; -- CLI_CODCLI=504
+UPDATE Cliente SET NomeFantasia = N'HT COMPÓSITOS' WHERE Documento = N'20.672.367/0001-69' AND NomeFantasia IS NULL; -- CLI_CODCLI=505
+UPDATE Cliente SET NomeFantasia = N'BAR DO GOLF' WHERE Documento = N'02.626.852/0001-14' AND NomeFantasia IS NULL; -- CLI_CODCLI=506
+UPDATE Cliente SET NomeFantasia = N'MINERSAL' WHERE Documento = N'55.139.349/0001-09' AND NomeFantasia IS NULL; -- CLI_CODCLI=507
+UPDATE Cliente SET NomeFantasia = N'GRANJA FILIPPSEN' WHERE Documento = N'05.314.170/0001-64' AND NomeFantasia IS NULL; -- CLI_CODCLI=508
+UPDATE Cliente SET NomeFantasia = N'GRANJA CAGERI - CAROLINE-J' WHERE Documento = N'08.283.839/0001-96' AND NomeFantasia IS NULL; -- CLI_CODCLI=509
+UPDATE Cliente SET NomeFantasia = N'PAULISTA CORRETORA' WHERE Documento = N'12.439.399/0001-90' AND NomeFantasia IS NULL; -- CLI_CODCLI=510
+UPDATE Cliente SET NomeFantasia = N'BUSKCIPA' WHERE Documento = N'19.994.574/0001-50' AND NomeFantasia IS NULL; -- CLI_CODCLI=511
+UPDATE Cliente SET NomeFantasia = N'POSTO LARANJ. - CONV' WHERE Documento = N'24.717.737/0001-98' AND NomeFantasia IS NULL; -- CLI_CODCLI=512
+UPDATE Cliente SET NomeFantasia = N'GRANLAVE LAVANDERIA' WHERE Documento = N'23.822.872/0001-30' AND NomeFantasia IS NULL; -- CLI_CODCLI=513
+UPDATE Cliente SET NomeFantasia = N'BASFER (INDUSTRIAL)' WHERE Documento = N'24.569.650/0001-10' AND NomeFantasia IS NULL; -- CLI_CODCLI=514
+UPDATE Cliente SET NomeFantasia = N'REGITRONIC ASSIST.' WHERE Documento = N'00.172.564/0001-01' AND NomeFantasia IS NULL; -- CLI_CODCLI=515
+UPDATE Cliente SET NomeFantasia = N'GRANJA BENDITOVO' WHERE Documento = N'07.410.306/0001-65' AND NomeFantasia IS NULL; -- CLI_CODCLI=516
+UPDATE Cliente SET NomeFantasia = N'GRANJA AGROWAM - AVICULTURA' WHERE Documento = N'837.858.096-20' AND NomeFantasia IS NULL; -- CLI_CODCLI=517
+UPDATE Cliente SET NomeFantasia = N'GRANJA NAJU' WHERE Documento = N'07.975.491/0001-35' AND NomeFantasia IS NULL; -- CLI_CODCLI=518
+UPDATE Cliente SET NomeFantasia = N'ADUBOS DAI' WHERE Documento = N'27.933.527/0001-25' AND NomeFantasia IS NULL; -- CLI_CODCLI=519
+UPDATE Cliente SET NomeFantasia = N'LOJAS ANDRADE' WHERE Documento = N'999.999.999-99' AND NomeFantasia IS NULL; -- CLI_CODCLI=520
+UPDATE Cliente SET NomeFantasia = N'TRANS ENEMU - AVICOLA' WHERE Documento = N'62.703.830/0001-32' AND NomeFantasia IS NULL; -- CLI_CODCLI=521
+UPDATE Cliente SET NomeFantasia = N'FORT MILK RAÇOES' WHERE Documento = N'22.530.985/0001-08' AND NomeFantasia IS NULL; -- CLI_CODCLI=522
+UPDATE Cliente SET NomeFantasia = N'GRANJA YOSHIKAWA - 02' WHERE Documento = N'07.921.706/0002-16' AND NomeFantasia IS NULL; -- CLI_CODCLI=523
+UPDATE Cliente SET NomeFantasia = N'MERCADO KANNO' WHERE Documento = N'01.364.332/0001-18' AND NomeFantasia IS NULL; -- CLI_CODCLI=524
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOS DO PORTO' WHERE Documento = N'581.152.349-15' AND NomeFantasia IS NULL; -- CLI_CODCLI=525
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOS HANSEN' WHERE Documento = N'522.083.890-34' AND NomeFantasia IS NULL; -- CLI_CODCLI=526
+UPDATE Cliente SET NomeFantasia = N'TRANS UEMURA - EMIKO' WHERE Documento = N'01.983.024/0001-70' AND NomeFantasia IS NULL; -- CLI_CODCLI=527
+UPDATE Cliente SET NomeFantasia = N'RETRAT AUTOMAÇÃO' WHERE Documento = N'25.201.389/0001-64' AND NomeFantasia IS NULL; -- CLI_CODCLI=528
+UPDATE Cliente SET NomeFantasia = N'GRANJA KOGA - FERNANDOPOLIS' WHERE Documento = N'29.755.409/0001-08' AND NomeFantasia IS NULL; -- CLI_CODCLI=529
+UPDATE Cliente SET NomeFantasia = N'TRANS EVANDIO' WHERE Documento = N'62.868.781/0001-98' AND NomeFantasia IS NULL; -- CLI_CODCLI=539
+UPDATE Cliente SET NomeFantasia = N'FAZENDA DA TOCA' WHERE Documento = N'50.163.146/0001-26' AND NomeFantasia IS NULL; -- CLI_CODCLI=531
+UPDATE Cliente SET NomeFantasia = N'GRANJA POMPEIA' WHERE Documento = N'24.712.932/0001-25' AND NomeFantasia IS NULL; -- CLI_CODCLI=532
+UPDATE Cliente SET NomeFantasia = N'GRANJA PRIMAVIS' WHERE Documento = N'04.583.006/0001-90' AND NomeFantasia IS NULL; -- CLI_CODCLI=533
+UPDATE Cliente SET NomeFantasia = N'DIMEP MINAS' WHERE Documento = N'61.099.008/0036-71' AND NomeFantasia IS NULL; -- CLI_CODCLI=534
+UPDATE Cliente SET NomeFantasia = N'GRANJA BRASIL VILHENA' WHERE Documento = N'068.560.948-09' AND NomeFantasia IS NULL; -- CLI_CODCLI=535
+UPDATE Cliente SET NomeFantasia = N'AVIVET - WILSON' WHERE Documento = N'62.415.211/0001-42' AND NomeFantasia IS NULL; -- CLI_CODCLI=536
+UPDATE Cliente SET NomeFantasia = N'AGRO LOYOLA' WHERE Documento = N'18.246.607/0001-11' AND NomeFantasia IS NULL; -- CLI_CODCLI=537
+UPDATE Cliente SET NomeFantasia = N'GRANJA PRIMAVIS - FILIAL' WHERE Documento = N'04.583.006/0001-90' AND NomeFantasia IS NULL; -- CLI_CODCLI=538
+UPDATE Cliente SET NomeFantasia = N'GRANJA PANHOSSI' WHERE Documento = N'08.552.138/0002-96' AND NomeFantasia IS NULL; -- CLI_CODCLI=540
+UPDATE Cliente SET NomeFantasia = N'BASFER' WHERE Documento = N'12.688.242/0001-07' AND NomeFantasia IS NULL; -- CLI_CODCLI=541
+UPDATE Cliente SET NomeFantasia = N'GRANJA JATAI' WHERE Documento = N'001.878.948-09' AND NomeFantasia IS NULL; -- CLI_CODCLI=542
+UPDATE Cliente SET NomeFantasia = N'AÇOUGUE DO BALL' WHERE Documento = N'02.464.978/0001-30' AND NomeFantasia IS NULL; -- CLI_CODCLI=543
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOS TAMAGO' WHERE Documento = N'44.066.845/0001-55' AND NomeFantasia IS NULL; -- CLI_CODCLI=544
+UPDATE Cliente SET NomeFantasia = N'GRANJA NIKKEI' WHERE Documento = N'10.270.069/0001-99' AND NomeFantasia IS NULL; -- CLI_CODCLI=545
+UPDATE Cliente SET NomeFantasia = N'AGROP. BICHO BRASIL' WHERE Documento = N'08.327.059/0001-09' AND NomeFantasia IS NULL; -- CLI_CODCLI=546
+UPDATE Cliente SET NomeFantasia = N'OVOS SÃO JOSE' WHERE Documento = N'10.656.830/0001-25' AND NomeFantasia IS NULL; -- CLI_CODCLI=547
+UPDATE Cliente SET NomeFantasia = N'OVOS BASTOS - RANOLFO' WHERE Documento = N'05.020.396/0001-52' AND NomeFantasia IS NULL; -- CLI_CODCLI=548
+UPDATE Cliente SET NomeFantasia = N'MERCADO CONQUISTA' WHERE Documento = N'01.879.682/0001-17' AND NomeFantasia IS NULL; -- CLI_CODCLI=549
+UPDATE Cliente SET NomeFantasia = N'NCAVES' WHERE Documento = N'22.729.899/0001-10' AND NomeFantasia IS NULL; -- CLI_CODCLI=550
+UPDATE Cliente SET NomeFantasia = N'ISAAC GOMES DO NASCI' WHERE Documento = N'076.431.098-42' AND NomeFantasia IS NULL; -- CLI_CODCLI=551
+UPDATE Cliente SET NomeFantasia = N'AÇOUGUE CREPALDI' WHERE Documento = N'26.413.045/0001-81' AND NomeFantasia IS NULL; -- CLI_CODCLI=552
+UPDATE Cliente SET NomeFantasia = N'GRANJA MARINHO' WHERE Documento = N'07.938.299/0001-79' AND NomeFantasia IS NULL; -- CLI_CODCLI=553
+UPDATE Cliente SET NomeFantasia = N'GRANJA SAO PAULO' WHERE Documento = N'16.645.120/0001-86' AND NomeFantasia IS NULL; -- CLI_CODCLI=554
+UPDATE Cliente SET NomeFantasia = N'ARMAZEM NATURAL' WHERE Documento = N'26.458.909/0001-81' AND NomeFantasia IS NULL; -- CLI_CODCLI=556
+UPDATE Cliente SET NomeFantasia = N'ATI SANGYO' WHERE Documento = N'05.267.112/0001-27' AND NomeFantasia IS NULL; -- CLI_CODCLI=557
+UPDATE Cliente SET NomeFantasia = N'QUITANDA NAGATOMO' WHERE Documento = N'01.129.541/0001-87' AND NomeFantasia IS NULL; -- CLI_CODCLI=558
+UPDATE Cliente SET NomeFantasia = N'TRANS CIHODA' WHERE Documento = N'62.856.646/0001-22' AND NomeFantasia IS NULL; -- CLI_CODCLI=559
+UPDATE Cliente SET NomeFantasia = N'TRANS GUASTALI - NEI' WHERE Documento = N'26.549.461/0001-01' AND NomeFantasia IS NULL; -- CLI_CODCLI=560
+UPDATE Cliente SET NomeFantasia = N'DELGADO' WHERE Documento = N'08.942.809/0001-44' AND NomeFantasia IS NULL; -- CLI_CODCLI=561
+UPDATE Cliente SET NomeFantasia = N'PROTECA' WHERE Documento = N'44.930.790/0001-80' AND NomeFantasia IS NULL; -- CLI_CODCLI=562
+UPDATE Cliente SET NomeFantasia = N'TRANS MASSOCHINI - NICOLAL' WHERE Documento = N'26.655.791/0001-81' AND NomeFantasia IS NULL; -- CLI_CODCLI=563
+UPDATE Cliente SET NomeFantasia = N'PODENSAC MARCEL' WHERE Documento = N'11.131.676/0001-30' AND NomeFantasia IS NULL; -- CLI_CODCLI=564
+UPDATE Cliente SET NomeFantasia = N'METALTEC' WHERE Documento = N'45.872.579/0001-10' AND NomeFantasia IS NULL; -- CLI_CODCLI=565
+UPDATE Cliente SET NomeFantasia = N'GRANJA SHINDI UEMURA' WHERE Documento = N'07.921.712/0001-92' AND NomeFantasia IS NULL; -- CLI_CODCLI=566
+UPDATE Cliente SET NomeFantasia = N'EMPRESARIAL CERTA' WHERE Documento = N'10.334.723/0001-80' AND NomeFantasia IS NULL; -- CLI_CODCLI=567
+UPDATE Cliente SET NomeFantasia = N'ATM BASTOS' WHERE Documento = N'06.814.111/0001-18' AND NomeFantasia IS NULL; -- CLI_CODCLI=568
+UPDATE Cliente SET NomeFantasia = N'PET SHOP BELA VISTA' WHERE Documento = N'14.168.328/0001-26' AND NomeFantasia IS NULL; -- CLI_CODCLI=569
+UPDATE Cliente SET NomeFantasia = N'GRANJA EDAN' WHERE Documento = N'08.554.331/0002-66' AND NomeFantasia IS NULL; -- CLI_CODCLI=582
+UPDATE Cliente SET NomeFantasia = N'JW TRANSPORTES' WHERE Documento = N'13.214.559/0001-66' AND NomeFantasia IS NULL; -- CLI_CODCLI=571
+UPDATE Cliente SET NomeFantasia = N'TRANS RAFA - CAPUCHETA' WHERE Documento = N'12.983.306/0001-94' AND NomeFantasia IS NULL; -- CLI_CODCLI=572
+UPDATE Cliente SET NomeFantasia = N'CASA DE CARNE MUNDIAL' WHERE Documento = N'19.754.437/0001-49' AND NomeFantasia IS NULL; -- CLI_CODCLI=574
+UPDATE Cliente SET NomeFantasia = N'TANCA' WHERE Documento = N'08.723.218/0001-86' AND NomeFantasia IS NULL; -- CLI_CODCLI=575
+UPDATE Cliente SET NomeFantasia = N'PRO LAR' WHERE Documento = N'03.661.515/0001-20' AND NomeFantasia IS NULL; -- CLI_CODCLI=576
+UPDATE Cliente SET NomeFantasia = N'OFICINA PERLUIZ' WHERE Documento = N'22.509.556/0001-40' AND NomeFantasia IS NULL; -- CLI_CODCLI=577
+UPDATE Cliente SET NomeFantasia = N'TRANS GRAVA' WHERE Documento = N'26.866.987/0001-15' AND NomeFantasia IS NULL; -- CLI_CODCLI=578
+UPDATE Cliente SET NomeFantasia = N'GRANJA SHIGEAKI' WHERE Documento = N'16.705.027/0002-09' AND NomeFantasia IS NULL; -- CLI_CODCLI=579
+UPDATE Cliente SET NomeFantasia = N'DISTRIB BENEVIDES' WHERE Documento = N'26.771.628/0001-84' AND NomeFantasia IS NULL; -- CLI_CODCLI=580
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOS DA TERRA-DISTRIB' WHERE Documento = N'26.882.438/0001-34' AND NomeFantasia IS NULL; -- CLI_CODCLI=581
+UPDATE Cliente SET NomeFantasia = N'ACADEMIA QUALITY' WHERE Documento = N'22.045.430/0001-62' AND NomeFantasia IS NULL; -- CLI_CODCLI=583
+UPDATE Cliente SET NomeFantasia = N'PET SHOP MUNDO ANIMAL' WHERE Documento = N'26.867.000/0001-87' AND NomeFantasia IS NULL; -- CLI_CODCLI=584
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVO FORTE - POMPEIA' WHERE Documento = N'08.013.317/0002-55' AND NomeFantasia IS NULL; -- CLI_CODCLI=585
+UPDATE Cliente SET NomeFantasia = N'Mathias Kouta Mizuma' WHERE Documento = N'345.267.138-05' AND NomeFantasia IS NULL; -- CLI_CODCLI=586
+UPDATE Cliente SET NomeFantasia = N'BORRACHARIA CONFIANÇA' WHERE Documento = N'07.364.820/0001-01' AND NomeFantasia IS NULL; -- CLI_CODCLI=587
+UPDATE Cliente SET NomeFantasia = N'DR.JAQUETO' WHERE Documento = N'231.127.199-72' AND NomeFantasia IS NULL; -- CLI_CODCLI=588
+UPDATE Cliente SET NomeFantasia = N'ESCRITORIO UNIÃO' WHERE Documento = N'68.165.976/0001-58' AND NomeFantasia IS NULL; -- CLI_CODCLI=589
+UPDATE Cliente SET NomeFantasia = N'GRANJA ALFA' WHERE Documento = N'20.597.790/0001-41' AND NomeFantasia IS NULL; -- CLI_CODCLI=590
+UPDATE Cliente SET NomeFantasia = N'TRANS MASSOCHINI VAGNER' WHERE Documento = N'26.830.289/0001-60' AND NomeFantasia IS NULL; -- CLI_CODCLI=591
+UPDATE Cliente SET NomeFantasia = N'O BOTICARIO BASTOS' WHERE Documento = N'02.454.540/0008-47' AND NomeFantasia IS NULL; -- CLI_CODCLI=592
+UPDATE Cliente SET NomeFantasia = N'MERCADO CAVALCANTE' WHERE Documento = N'27.275.230/0001-10' AND NomeFantasia IS NULL; -- CLI_CODCLI=593
+UPDATE Cliente SET NomeFantasia = N'TRANS MATERAZZI' WHERE Documento = N'15.592.343/0001-60' AND NomeFantasia IS NULL; -- CLI_CODCLI=594
+UPDATE Cliente SET NomeFantasia = N'GRANJA SHINDI UEMURA E OUTROS' WHERE Documento = N'08.369.504/0003-57' AND NomeFantasia IS NULL; -- CLI_CODCLI=595
+UPDATE Cliente SET NomeFantasia = N'ARTE BAU' WHERE Documento = N'27.298.837/0001-15' AND NomeFantasia IS NULL; -- CLI_CODCLI=596
+UPDATE Cliente SET NomeFantasia = N'TRANS SEIZI' WHERE Documento = N'44.322.626/0001-90' AND NomeFantasia IS NULL; -- CLI_CODCLI=597
+UPDATE Cliente SET NomeFantasia = N'GRANJA SITIO GALINHA FELIZ' WHERE Documento = N'24.495.381/0001-95' AND NomeFantasia IS NULL; -- CLI_CODCLI=598
+UPDATE Cliente SET NomeFantasia = N'PORAO - PORTAS & JA' WHERE Documento = N'26.655.796/0001-04' AND NomeFantasia IS NULL; -- CLI_CODCLI=599
+UPDATE Cliente SET NomeFantasia = N'FOSCAUTO ADESIVOS' WHERE Documento = N'21.559.508/0001-02' AND NomeFantasia IS NULL; -- CLI_CODCLI=600
+UPDATE Cliente SET NomeFantasia = N'ALWAYS SYSTEM MANAGER' WHERE Documento = N'06.186.222/0001-27' AND NomeFantasia IS NULL; -- CLI_CODCLI=601
+UPDATE Cliente SET NomeFantasia = N'ACENBA' WHERE Documento = N'44.930.899/0001-17' AND NomeFantasia IS NULL; -- CLI_CODCLI=602
+UPDATE Cliente SET NomeFantasia = N'TILIFORM' WHERE Documento = N'57.905.812/0001-01' AND NomeFantasia IS NULL; -- CLI_CODCLI=603
+UPDATE Cliente SET NomeFantasia = N'TRANS MORAES' WHERE Documento = N'27.616.520/0001-80' AND NomeFantasia IS NULL; -- CLI_CODCLI=604
+UPDATE Cliente SET NomeFantasia = N'KATO VEICULOS' WHERE Documento = N'04.879.647/0001-96' AND NomeFantasia IS NULL; -- CLI_CODCLI=605
+UPDATE Cliente SET NomeFantasia = N'AÇOUGUE SAO JOSE' WHERE Documento = N'57.042.939/0001-36' AND NomeFantasia IS NULL; -- CLI_CODCLI=606
+UPDATE Cliente SET NomeFantasia = N'FARMAIS' WHERE Documento = N'10.715.204/0001-62' AND NomeFantasia IS NULL; -- CLI_CODCLI=607
+UPDATE Cliente SET NomeFantasia = N'CEREAIS TAMOIO' WHERE Documento = N'45.132.149/0001-62' AND NomeFantasia IS NULL; -- CLI_CODCLI=608
+UPDATE Cliente SET NomeFantasia = N'CORRETORA DE IMÓVEIS' WHERE Documento = N'26.196.003/0001-36' AND NomeFantasia IS NULL; -- CLI_CODCLI=609
+UPDATE Cliente SET NomeFantasia = N'ADUBOS TSUZUKI' WHERE Documento = N'08.313.089/0001-58' AND NomeFantasia IS NULL; -- CLI_CODCLI=610
+UPDATE Cliente SET NomeFantasia = N'HAMMER PROJETOS' WHERE Documento = N'27.611.704/0001-57' AND NomeFantasia IS NULL; -- CLI_CODCLI=611
+UPDATE Cliente SET NomeFantasia = N'GRANJA BONJI' WHERE Documento = N'10.156.675/0001-88' AND NomeFantasia IS NULL; -- CLI_CODCLI=612
+UPDATE Cliente SET NomeFantasia = N'TALITA CUMI' WHERE Documento = N'20.641.203/0001-74' AND NomeFantasia IS NULL; -- CLI_CODCLI=613
+UPDATE Cliente SET NomeFantasia = N'TRANS MARCELO' WHERE Documento = N'20.291.665/0001-09' AND NomeFantasia IS NULL; -- CLI_CODCLI=614
+UPDATE Cliente SET NomeFantasia = N'LEÃO DE JUDA' WHERE Documento = N'02.028.722/0001-80' AND NomeFantasia IS NULL; -- CLI_CODCLI=615
+UPDATE Cliente SET NomeFantasia = N'MAKTUB"S BAR' WHERE Documento = N'27.714.573/0001-33' AND NomeFantasia IS NULL; -- CLI_CODCLI=616
+UPDATE Cliente SET NomeFantasia = N'GRANJA HOLANDA' WHERE Documento = N'13.248.381/0001-74' AND NomeFantasia IS NULL; -- CLI_CODCLI=617
+UPDATE Cliente SET NomeFantasia = N'GRANJA AVIPEC' WHERE Documento = N'35.645.035/0001-62' AND NomeFantasia IS NULL; -- CLI_CODCLI=618
+UPDATE Cliente SET NomeFantasia = N'GRANJA TALISMA' WHERE Documento = N'14.760.406/0001-87' AND NomeFantasia IS NULL; -- CLI_CODCLI=619
+UPDATE Cliente SET NomeFantasia = N'GRANJA NORDESTE' WHERE Documento = N'10.672.527/0001-16' AND NomeFantasia IS NULL; -- CLI_CODCLI=620
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVO SERTANEJO' WHERE Documento = N'11.224.992/0001-57' AND NomeFantasia IS NULL; -- CLI_CODCLI=621
+UPDATE Cliente SET NomeFantasia = N'GRANJA COMAVES' WHERE Documento = N'03.937.268/0001-42' AND NomeFantasia IS NULL; -- CLI_CODCLI=622
+UPDATE Cliente SET NomeFantasia = N'DIM ALIMENTOS' WHERE Documento = N'04.627.812/0001-12' AND NomeFantasia IS NULL; -- CLI_CODCLI=625
+UPDATE Cliente SET NomeFantasia = N'ENDLESS IDIOMAS' WHERE Documento = N'27.811.430/0001-40' AND NomeFantasia IS NULL; -- CLI_CODCLI=623
+UPDATE Cliente SET NomeFantasia = N'GRANJA AFIPE' WHERE Documento = N'28.147.984/0001-57' AND NomeFantasia IS NULL; -- CLI_CODCLI=624
+UPDATE Cliente SET NomeFantasia = N'ELGIN S/A' WHERE Documento = N'52.556.578/0001-22' AND NomeFantasia IS NULL; -- CLI_CODCLI=626
+UPDATE Cliente SET NomeFantasia = N'CACAU SHOW' WHERE Documento = N'17.980.819/0001-65' AND NomeFantasia IS NULL; -- CLI_CODCLI=627
+UPDATE Cliente SET NomeFantasia = N'UPS SCS LOGISTICA' WHERE Documento = N'00.462.691/0001-45' AND NomeFantasia IS NULL; -- CLI_CODCLI=628
+UPDATE Cliente SET NomeFantasia = N'CASA DE CARNE MIRANDA' WHERE Documento = N'28.575.712/0001-58' AND NomeFantasia IS NULL; -- CLI_CODCLI=629
+UPDATE Cliente SET NomeFantasia = N'GRANJA SATOSHI ITO' WHERE Documento = N'08.209.839/0001-46' AND NomeFantasia IS NULL; -- CLI_CODCLI=630
+UPDATE Cliente SET NomeFantasia = N'GRANJA PACHECO' WHERE Documento = N'378.595.363-15' AND NomeFantasia IS NULL; -- CLI_CODCLI=631
+UPDATE Cliente SET NomeFantasia = N'TRANS RIBEIRO GOMES(GIO OVOS)' WHERE Documento = N'64.578.461/0001-29' AND NomeFantasia IS NULL; -- CLI_CODCLI=634
+UPDATE Cliente SET NomeFantasia = N'GRANJA FLORIDA' WHERE Documento = N'27.131.570/0001-77' AND NomeFantasia IS NULL; -- CLI_CODCLI=635
+UPDATE Cliente SET NomeFantasia = N'OVOS TAK - ERICA' WHERE Documento = N'27.926.246/0001-45' AND NomeFantasia IS NULL; -- CLI_CODCLI=636
+UPDATE Cliente SET NomeFantasia = N'EMPORIO DO OVO' WHERE Documento = N'28.820.087/0001-62' AND NomeFantasia IS NULL; -- CLI_CODCLI=637
+UPDATE Cliente SET NomeFantasia = N'TRANS BIRIGUI - TRANSP EIRE' WHERE Documento = N'14.645.778/0001-62' AND NomeFantasia IS NULL; -- CLI_CODCLI=638
+UPDATE Cliente SET NomeFantasia = N'MERCADO SMAR' WHERE Documento = N'03.657.985/0001-10' AND NomeFantasia IS NULL; -- CLI_CODCLI=639
+UPDATE Cliente SET NomeFantasia = N'GRANJA MORETTO' WHERE Documento = N'07.938.504/0001-04' AND NomeFantasia IS NULL; -- CLI_CODCLI=640
+UPDATE Cliente SET NomeFantasia = N'GRANJA BAMPI' WHERE Documento = N'098.183.160-53' AND NomeFantasia IS NULL; -- CLI_CODCLI=643
+UPDATE Cliente SET NomeFantasia = N'GRANJA ONAKADO' WHERE Documento = N'08.328.488/0001-92' AND NomeFantasia IS NULL; -- CLI_CODCLI=644
+UPDATE Cliente SET NomeFantasia = N'NUTRISOJA' WHERE Documento = N'53.134.920/0001-69' AND NomeFantasia IS NULL; -- CLI_CODCLI=645
+UPDATE Cliente SET NomeFantasia = N'TRANS EVANDRO - TORTO' WHERE Documento = N'18.630.783/0001-52' AND NomeFantasia IS NULL; -- CLI_CODCLI=646
+UPDATE Cliente SET NomeFantasia = N'DS TORNEARIA' WHERE Documento = N'20.400.846/0001-26' AND NomeFantasia IS NULL; -- CLI_CODCLI=647
+UPDATE Cliente SET NomeFantasia = N'NEGREIRO VEICULOS' WHERE Documento = N'18.457.930/0001-34' AND NomeFantasia IS NULL; -- CLI_CODCLI=648
+UPDATE Cliente SET NomeFantasia = N'GRANJA SHIGUENO' WHERE Documento = N'07.949.341/0004-08' AND NomeFantasia IS NULL; -- CLI_CODCLI=649
+UPDATE Cliente SET NomeFantasia = N'KEBAB LANCHE' WHERE Documento = N'24.512.955/0001-96' AND NomeFantasia IS NULL; -- CLI_CODCLI=650
+UPDATE Cliente SET NomeFantasia = N'BAR DO DEVAIR' WHERE Documento = N'61.309.613/0001-08' AND NomeFantasia IS NULL; -- CLI_CODCLI=651
+UPDATE Cliente SET NomeFantasia = N'DISTRIBUIDORA COELHO' WHERE Documento = N'24.680.105/0001-05' AND NomeFantasia IS NULL; -- CLI_CODCLI=652
+UPDATE Cliente SET NomeFantasia = N'NUTRISOJA - CERES BRASILCOMMOD' WHERE Documento = N'17.073.597/0001-05' AND NomeFantasia IS NULL; -- CLI_CODCLI=653
+UPDATE Cliente SET NomeFantasia = N'GRANJA MORISHITA - TREVO' WHERE Documento = N'07.939.399/0021-63' AND NomeFantasia IS NULL; -- CLI_CODCLI=654
+UPDATE Cliente SET NomeFantasia = N'GRANJA AVIPEC - CEASA' WHERE Documento = N'00.477.534/0001-03' AND NomeFantasia IS NULL; -- CLI_CODCLI=655
+UPDATE Cliente SET NomeFantasia = N'GRANJA CARLOS IKEDA BIRIG.FIL.' WHERE Documento = N'07.937.843/0002-49' AND NomeFantasia IS NULL; -- CLI_CODCLI=656
+UPDATE Cliente SET NomeFantasia = N'GRANJA DOURADO - VICTOR' WHERE Documento = N'09.638.358/0001-19' AND NomeFantasia IS NULL; -- CLI_CODCLI=267
+UPDATE Cliente SET NomeFantasia = N'GRANJA NORDESTE - CEASA' WHERE Documento = N'08.271.819/0001-03' AND NomeFantasia IS NULL; -- CLI_CODCLI=657
+UPDATE Cliente SET NomeFantasia = N'TIM GUASTALLI - 2' WHERE Documento = N'27.663.270/0001-39' AND NomeFantasia IS NULL; -- CLI_CODCLI=658
+UPDATE Cliente SET NomeFantasia = N'TRANS BIRIGUI - BAGATINI' WHERE Documento = N'28.019.675/0001-00' AND NomeFantasia IS NULL; -- CLI_CODCLI=659
+UPDATE Cliente SET NomeFantasia = N'TRANS BIRIGUI - BRAZ EMILIO' WHERE Documento = N'14.177.111/0001-82' AND NomeFantasia IS NULL; -- CLI_CODCLI=660
+UPDATE Cliente SET NomeFantasia = N'TRANS BIRIGUI - VALDEMIR' WHERE Documento = N'54.427.851/0001-44' AND NomeFantasia IS NULL; -- CLI_CODCLI=661
+UPDATE Cliente SET NomeFantasia = N'TRANS BIRIGUI - JANIR' WHERE Documento = N'18.463.060/0001-06' AND NomeFantasia IS NULL; -- CLI_CODCLI=662
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOS MOMBUCA-DESCALVADO' WHERE Documento = N'08.023.912/0002-71' AND NomeFantasia IS NULL; -- CLI_CODCLI=663
+UPDATE Cliente SET NomeFantasia = N'TRANS SALU - MARCELO' WHERE Documento = N'26.456.167/0001-55' AND NomeFantasia IS NULL; -- CLI_CODCLI=664
+UPDATE Cliente SET NomeFantasia = N'TRANS SANTO & MESQUITA - 02' WHERE Documento = N'24.166.015/0001-92' AND NomeFantasia IS NULL; -- CLI_CODCLI=665
+UPDATE Cliente SET NomeFantasia = N'ARMARINHO ANDRADE 2 LOJA' WHERE Documento = N'06.020.781/0002-43' AND NomeFantasia IS NULL; -- CLI_CODCLI=666
+UPDATE Cliente SET NomeFantasia = N'OFICINA CIHODA' WHERE Documento = N'05.580.205/0001-07' AND NomeFantasia IS NULL; -- CLI_CODCLI=667
+UPDATE Cliente SET NomeFantasia = N'GRANJA MINAS' WHERE Documento = N'065.014.286-10' AND NomeFantasia IS NULL; -- CLI_CODCLI=668
+UPDATE Cliente SET NomeFantasia = N'TIM GUASTALLI - 3' WHERE Documento = N'27.663.270/0002-10' AND NomeFantasia IS NULL; -- CLI_CODCLI=669
+UPDATE Cliente SET NomeFantasia = N'GRANJA FAZENDA BOA VISTA' WHERE Documento = N'007.098.246-53' AND NomeFantasia IS NULL; -- CLI_CODCLI=670
+UPDATE Cliente SET NomeFantasia = N'ANDERSON SOSSAI' WHERE Documento = N'009.431.339-39' AND NomeFantasia IS NULL; -- CLI_CODCLI=671
+UPDATE Cliente SET NomeFantasia = N'GRANJA HIRAI' WHERE Documento = N'09.218.558/0001-12' AND NomeFantasia IS NULL; -- CLI_CODCLI=672
+UPDATE Cliente SET NomeFantasia = N'EMPORIO MARTINEZ' WHERE Documento = N'29.480.163/0001-09' AND NomeFantasia IS NULL; -- CLI_CODCLI=673
+UPDATE Cliente SET NomeFantasia = N'AGROINDUSTRIA SAVANA' WHERE Documento = N'17.426.987/0001-03' AND NomeFantasia IS NULL; -- CLI_CODCLI=674
+UPDATE Cliente SET NomeFantasia = N'DEO AR' WHERE Documento = N'22.961.476/0001-21' AND NomeFantasia IS NULL; -- CLI_CODCLI=675
+UPDATE Cliente SET NomeFantasia = N'TRANS BIRIGUI - DENIS' WHERE Documento = N'379.503.838-36' AND NomeFantasia IS NULL; -- CLI_CODCLI=676
+UPDATE Cliente SET NomeFantasia = N'GRANJA VIDOTTO' WHERE Documento = N'07.921.713/0001-37' AND NomeFantasia IS NULL; -- CLI_CODCLI=677
+UPDATE Cliente SET NomeFantasia = N'GRANJA VIDOTTO - DOI' WHERE Documento = N'07.934.679/0001-35' AND NomeFantasia IS NULL; -- CLI_CODCLI=678
+UPDATE Cliente SET NomeFantasia = N'TRANS SALU - NATIVA' WHERE Documento = N'19.666.991/0001-74' AND NomeFantasia IS NULL; -- CLI_CODCLI=679
+UPDATE Cliente SET NomeFantasia = N'GIOVANE MARCUSSI' WHERE Documento = N'12.653.111/0001-86' AND NomeFantasia IS NULL; -- CLI_CODCLI=680
+UPDATE Cliente SET NomeFantasia = N'ASSISTEC' WHERE Documento = N'06.228.085/0001-46' AND NomeFantasia IS NULL; -- CLI_CODCLI=681
+UPDATE Cliente SET NomeFantasia = N'GRANJA TALISMA - CEASA' WHERE Documento = N'14.760.406/0002-68' AND NomeFantasia IS NULL; -- CLI_CODCLI=682
+UPDATE Cliente SET NomeFantasia = N'GRANJA NAJU - SP' WHERE Documento = N'29.720.914/0001-09' AND NomeFantasia IS NULL; -- CLI_CODCLI=683
+UPDATE Cliente SET NomeFantasia = N'TRANS RODRIGUES' WHERE Documento = N'29.940.575/0001-76' AND NomeFantasia IS NULL; -- CLI_CODCLI=684
+UPDATE Cliente SET NomeFantasia = N'GRANJA PARAISO 2' WHERE Documento = N'13.517.810/0002-42' AND NomeFantasia IS NULL; -- CLI_CODCLI=685
+UPDATE Cliente SET NomeFantasia = N'GRANJA PASSARÃO' WHERE Documento = N'382.971.592-72' AND NomeFantasia IS NULL; -- CLI_CODCLI=686
+UPDATE Cliente SET NomeFantasia = N'GRANJA FUJIKURA' WHERE Documento = N'07.938.224/0001-98' AND NomeFantasia IS NULL; -- CLI_CODCLI=687
+UPDATE Cliente SET NomeFantasia = N'TRANS ELITE GARCENSE' WHERE Documento = N'16.593.823/0001-08' AND NomeFantasia IS NULL; -- CLI_CODCLI=688
+UPDATE Cliente SET NomeFantasia = N'TRANS ELITE GARCENSE - MANCUZO' WHERE Documento = N'15.033.858/0001-20' AND NomeFantasia IS NULL; -- CLI_CODCLI=689
+UPDATE Cliente SET NomeFantasia = N'RESTAURANTE DA VILMA' WHERE Documento = N'13.753.360/0001-06' AND NomeFantasia IS NULL; -- CLI_CODCLI=690
+UPDATE Cliente SET NomeFantasia = N'GRANJA NUTREOVOS' WHERE Documento = N'23.705.158/0001-62' AND NomeFantasia IS NULL; -- CLI_CODCLI=691
+UPDATE Cliente SET NomeFantasia = N'GRANJA CARLOS IKEDA - BIRIGUI' WHERE Documento = N'08.016.498/0001-92' AND NomeFantasia IS NULL; -- CLI_CODCLI=692
+UPDATE Cliente SET NomeFantasia = N'GRANJA DOURADO - VICTOR-2' WHERE Documento = N'08.728.921/0001-87' AND NomeFantasia IS NULL; -- CLI_CODCLI=693
+UPDATE Cliente SET NomeFantasia = N'JOTA BOM HORTIFRUTI - RAJE' WHERE Documento = N'18.044.340/0001-80' AND NomeFantasia IS NULL; -- CLI_CODCLI=694
+UPDATE Cliente SET NomeFantasia = N'BAR DO VITORIO' WHERE Documento = N'00.835.590/0001-72' AND NomeFantasia IS NULL; -- CLI_CODCLI=695
+UPDATE Cliente SET NomeFantasia = N'TRANS BRIMARY' WHERE Documento = N'22.582.708/0001-30' AND NomeFantasia IS NULL; -- CLI_CODCLI=696
+UPDATE Cliente SET NomeFantasia = N'TRANS BRIMARY - RIBEIRO' WHERE Documento = N'11.503.617/0001-46' AND NomeFantasia IS NULL; -- CLI_CODCLI=697
+UPDATE Cliente SET NomeFantasia = N'TRANS CELIO' WHERE Documento = N'22.579.546/0001-81' AND NomeFantasia IS NULL; -- CLI_CODCLI=712
+UPDATE Cliente SET NomeFantasia = N'MARMORARIA J & D' WHERE Documento = N'08.733.146/0001-58' AND NomeFantasia IS NULL; -- CLI_CODCLI=698
+UPDATE Cliente SET NomeFantasia = N'GRANJA DO OVO' WHERE Documento = N'19.956.692/0001-74' AND NomeFantasia IS NULL; -- CLI_CODCLI=699
+UPDATE Cliente SET NomeFantasia = N'GRANJA AVIPEC - FILIAL' WHERE Documento = N'00.477.534/0002-94' AND NomeFantasia IS NULL; -- CLI_CODCLI=700
+UPDATE Cliente SET NomeFantasia = N'GRANJA VIDOTTO - TRANSPORTE' WHERE Documento = N'30.675.766/0001-37' AND NomeFantasia IS NULL; -- CLI_CODCLI=701
+UPDATE Cliente SET NomeFantasia = N'TRANS ZEZINHO' WHERE Documento = N'04.558.007/0001-84' AND NomeFantasia IS NULL; -- CLI_CODCLI=702
+UPDATE Cliente SET NomeFantasia = N'OVOS IKEDA - ARACATUBA' WHERE Documento = N'30.430.925/0001-33' AND NomeFantasia IS NULL; -- CLI_CODCLI=703
+UPDATE Cliente SET NomeFantasia = N'VIDRAÇARIA - SÃO PEDRO VIDRAÇA' WHERE Documento = N'12.152.255/0001-59' AND NomeFantasia IS NULL; -- CLI_CODCLI=704
+UPDATE Cliente SET NomeFantasia = N'CEREAIS TAMOIO - LORO' WHERE Documento = N'30.481.562/0001-65' AND NomeFantasia IS NULL; -- CLI_CODCLI=705
+UPDATE Cliente SET NomeFantasia = N'CRB FUNILARIA' WHERE Documento = N'03.860.556/0001-46' AND NomeFantasia IS NULL; -- CLI_CODCLI=706
+UPDATE Cliente SET NomeFantasia = N'TRANS ELITE GARCENSE - J R M' WHERE Documento = N'26.516.621/0001-16' AND NomeFantasia IS NULL; -- CLI_CODCLI=707
+UPDATE Cliente SET NomeFantasia = N'TRANS ELITE GARCENSE - TRANSP' WHERE Documento = N'17.299.153/0001-84' AND NomeFantasia IS NULL; -- CLI_CODCLI=708
+UPDATE Cliente SET NomeFantasia = N'MIRAI EMBALAGENS' WHERE Documento = N'30.796.894/0001-39' AND NomeFantasia IS NULL; -- CLI_CODCLI=709
+UPDATE Cliente SET NomeFantasia = N'TRANS CAQUI - TRANSPORTADORA' WHERE Documento = N'30.777.715/0001-16' AND NomeFantasia IS NULL; -- CLI_CODCLI=710
+UPDATE Cliente SET NomeFantasia = N'TRANS BODINHO TRANSPORTES' WHERE Documento = N'28.281.430/0001-48' AND NomeFantasia IS NULL; -- CLI_CODCLI=711
+UPDATE Cliente SET NomeFantasia = N'CIA. DOS UNIFORMES' WHERE Documento = N'27.631.810/0001-00' AND NomeFantasia IS NULL; -- CLI_CODCLI=713
+UPDATE Cliente SET NomeFantasia = N'MIL SABORES DISTRIBUIDOR' WHERE Documento = N'28.407.149/0001-09' AND NomeFantasia IS NULL; -- CLI_CODCLI=714
+UPDATE Cliente SET NomeFantasia = N'TRANS TADASHI - 02' WHERE Documento = N'30.936.498/0001-60' AND NomeFantasia IS NULL; -- CLI_CODCLI=715
+UPDATE Cliente SET NomeFantasia = N'ROTARY' WHERE Documento = N'51.507.622/0001-41' AND NomeFantasia IS NULL; -- CLI_CODCLI=717
+UPDATE Cliente SET NomeFantasia = N'ATACADO DO FRANGO - OLD' WHERE Documento = N'22.729.899/0004-63' AND NomeFantasia IS NULL; -- CLI_CODCLI=718
+UPDATE Cliente SET NomeFantasia = N'TRANS DINHO' WHERE Documento = N'28.963.616/0001-87' AND NomeFantasia IS NULL; -- CLI_CODCLI=719
+UPDATE Cliente SET NomeFantasia = N'CARLOS KAKIMOTO - DISTR.OVO' WHERE Documento = N'05.509.571/0001-70' AND NomeFantasia IS NULL; -- CLI_CODCLI=720
+UPDATE Cliente SET NomeFantasia = N'PURIMAN - INDUSTRIA DE FARINHA' WHERE Documento = N'03.067.126/0001-71' AND NomeFantasia IS NULL; -- CLI_CODCLI=721
+UPDATE Cliente SET NomeFantasia = N'GRANJA EDEN' WHERE Documento = N'24.205.056/0001-40' AND NomeFantasia IS NULL; -- CLI_CODCLI=722
+UPDATE Cliente SET NomeFantasia = N'GRANJA EDEN - FRANGOVO' WHERE Documento = N'24.205.056/0002-21' AND NomeFantasia IS NULL; -- CLI_CODCLI=723
+UPDATE Cliente SET NomeFantasia = N'GRANJA PARAISO RN - JURACI' WHERE Documento = N'40.803.264/0001-06' AND NomeFantasia IS NULL; -- CLI_CODCLI=724
+UPDATE Cliente SET NomeFantasia = N'GRANJA MULUNGU' WHERE Documento = N'20.548.606/0001-73' AND NomeFantasia IS NULL; -- CLI_CODCLI=726
+UPDATE Cliente SET NomeFantasia = N'GRANJA BOA VISTA' WHERE Documento = N'269.044.972-20' AND NomeFantasia IS NULL; -- CLI_CODCLI=727
+UPDATE Cliente SET NomeFantasia = N'GRANJA KOHIYAMA' WHERE Documento = N'349.604.069-68' AND NomeFantasia IS NULL; -- CLI_CODCLI=728
+UPDATE Cliente SET NomeFantasia = N'FLONNER INDUSTRIA E COMERCIO' WHERE Documento = N'61.338.059/0001-89' AND NomeFantasia IS NULL; -- CLI_CODCLI=729
+UPDATE Cliente SET NomeFantasia = N'GRANJA SANTELMO ALIMENTOS' WHERE Documento = N'08.230.847/0001-74' AND NomeFantasia IS NULL; -- CLI_CODCLI=730
+UPDATE Cliente SET NomeFantasia = N'EMPORIO DAS TELHAS' WHERE Documento = N'22.545.581/0001-80' AND NomeFantasia IS NULL; -- CLI_CODCLI=731
+UPDATE Cliente SET NomeFantasia = N'RESTAURANTE SUSHI DA FELICIA' WHERE Documento = N'31.631.299/0001-06' AND NomeFantasia IS NULL; -- CLI_CODCLI=732
+UPDATE Cliente SET NomeFantasia = N'E-CERTIFICADORA' WHERE Documento = N'27.353.252/0001-50' AND NomeFantasia IS NULL; -- CLI_CODCLI=733
+UPDATE Cliente SET NomeFantasia = N'TRANS BO - ADMILSON' WHERE Documento = N'09.614.589/0001-92' AND NomeFantasia IS NULL; -- CLI_CODCLI=734
+UPDATE Cliente SET NomeFantasia = N'TRANS BO - MARCEL' WHERE Documento = N'24.803.485/0001-10' AND NomeFantasia IS NULL; -- CLI_CODCLI=735
+UPDATE Cliente SET NomeFantasia = N'CASA DE CARNES NELORE' WHERE Documento = N'30.565.991/0001-10' AND NomeFantasia IS NULL; -- CLI_CODCLI=736
+UPDATE Cliente SET NomeFantasia = N'OTICA MESQUITA' WHERE Documento = N'63.011.266/0001-50' AND NomeFantasia IS NULL; -- CLI_CODCLI=737
+UPDATE Cliente SET NomeFantasia = N'GRANJA YOSHIKAWA - 04' WHERE Documento = N'07.921.706/0004-88' AND NomeFantasia IS NULL; -- CLI_CODCLI=738
+UPDATE Cliente SET NomeFantasia = N'GRANJA NAGANO 01' WHERE Documento = N'07.916.057/0001-84' AND NomeFantasia IS NULL; -- CLI_CODCLI=739
+UPDATE Cliente SET NomeFantasia = N'OVOS SAO FRANCISCO - CONEGLIAN' WHERE Documento = N'09.115.553/0001-64' AND NomeFantasia IS NULL; -- CLI_CODCLI=740
+UPDATE Cliente SET NomeFantasia = N'ANDRADE & ANDRADE VEICULO-JEAN' WHERE Documento = N'31.007.898/0001-53' AND NomeFantasia IS NULL; -- CLI_CODCLI=741
+UPDATE Cliente SET NomeFantasia = N'GRANJA FILADELFIA BARRINHA' WHERE Documento = N'22.619.773/0002-74' AND NomeFantasia IS NULL; -- CLI_CODCLI=742
+UPDATE Cliente SET NomeFantasia = N'GRANJA JF OVONOVO-02' WHERE Documento = N'07.312.421/0002-88' AND NomeFantasia IS NULL; -- CLI_CODCLI=743
+UPDATE Cliente SET NomeFantasia = N'TRANS SILVA - JSS' WHERE Documento = N'31.732.700/0001-02' AND NomeFantasia IS NULL; -- CLI_CODCLI=744
+UPDATE Cliente SET NomeFantasia = N'SITIO RANCHO DO IPE' WHERE Documento = N'08.748.343/0001-40' AND NomeFantasia IS NULL; -- CLI_CODCLI=745
+UPDATE Cliente SET NomeFantasia = N'NAGAI AUTO PECAS' WHERE Documento = N'17.371.650/0001-46' AND NomeFantasia IS NULL; -- CLI_CODCLI=746
+UPDATE Cliente SET NomeFantasia = N'MS UNIFORMES' WHERE Documento = N'16.756.318/0001-37' AND NomeFantasia IS NULL; -- CLI_CODCLI=747
+UPDATE Cliente SET NomeFantasia = N'LUMI TELAS E ALAMBRADOS' WHERE Documento = N'27.587.496/0001-06' AND NomeFantasia IS NULL; -- CLI_CODCLI=748
+UPDATE Cliente SET NomeFantasia = N'MERCADO NOVO BASTOS - FILIAL' WHERE Documento = N'05.760.378/0002-98' AND NomeFantasia IS NULL; -- CLI_CODCLI=749
+UPDATE Cliente SET NomeFantasia = N'VENDA DO ELETRICISTA - FILIAL' WHERE Documento = N'18.707.046/0002-91' AND NomeFantasia IS NULL; -- CLI_CODCLI=750
+UPDATE Cliente SET NomeFantasia = N'TRANS RAPIDO PIMENTA - INATIV' WHERE Documento = N'19.401.988/0001-29' AND NomeFantasia IS NULL; -- CLI_CODCLI=751
+UPDATE Cliente SET NomeFantasia = N'TRUCK FREIOS TUPA' WHERE Documento = N'24.604.895/0001-31' AND NomeFantasia IS NULL; -- CLI_CODCLI=752
+UPDATE Cliente SET NomeFantasia = N'TRANS BRASIL' WHERE Documento = N'44.567.774/0001-74' AND NomeFantasia IS NULL; -- CLI_CODCLI=753
+UPDATE Cliente SET NomeFantasia = N'CASA DO OVO' WHERE Documento = N'24.525.834/0001-89' AND NomeFantasia IS NULL; -- CLI_CODCLI=754
+UPDATE Cliente SET NomeFantasia = N'LABOR MED - POMPEIA' WHERE Documento = N'97.535.538/0001-32' AND NomeFantasia IS NULL; -- CLI_CODCLI=755
+UPDATE Cliente SET NomeFantasia = N'FATIMA PRESENTES' WHERE Documento = N'21.868.574/0001-56' AND NomeFantasia IS NULL; -- CLI_CODCLI=756
+UPDATE Cliente SET NomeFantasia = N'QUITANDA EL SHIDAY' WHERE Documento = N'32.742.762/0001-50' AND NomeFantasia IS NULL; -- CLI_CODCLI=757
+UPDATE Cliente SET NomeFantasia = N'MERCADÃO DAS TINTAS' WHERE Documento = N'18.846.334/0001-46' AND NomeFantasia IS NULL; -- CLI_CODCLI=758
+UPDATE Cliente SET NomeFantasia = N'BOUTIQUE BASTOS' WHERE Documento = N'17.044.027/0001-89' AND NomeFantasia IS NULL; -- CLI_CODCLI=759
+UPDATE Cliente SET NomeFantasia = N'GRANJA SAO JOSE - CANDIDO MOTA' WHERE Documento = N'13.453.316/0002-61' AND NomeFantasia IS NULL; -- CLI_CODCLI=760
+UPDATE Cliente SET NomeFantasia = N'GRANJA LOUREIRO - RJ EIRELI' WHERE Documento = N'32.213.669/0001-58' AND NomeFantasia IS NULL; -- CLI_CODCLI=762
+UPDATE Cliente SET NomeFantasia = N'TRANS MAJORE TRANSPORTES' WHERE Documento = N'32.984.402/0001-64' AND NomeFantasia IS NULL; -- CLI_CODCLI=763
+UPDATE Cliente SET NomeFantasia = N'GRANJA VIDOTTO - ALBERTO' WHERE Documento = N'10.717.350/0004-70' AND NomeFantasia IS NULL; -- CLI_CODCLI=764
+UPDATE Cliente SET NomeFantasia = N'NUTRISOJA - DA GRANJA' WHERE Documento = N'20.789.387/0001-14' AND NomeFantasia IS NULL; -- CLI_CODCLI=765
+UPDATE Cliente SET NomeFantasia = N'ZAPIS FESTAS' WHERE Documento = N'24.944.190/0001-63' AND NomeFantasia IS NULL; -- CLI_CODCLI=766
+UPDATE Cliente SET NomeFantasia = N'NUTRISOJA - CERES BRASIL - GO' WHERE Documento = N'17.073.597/0002-88' AND NomeFantasia IS NULL; -- CLI_CODCLI=767
+UPDATE Cliente SET NomeFantasia = N'YAKIPIZZA MARILIA' WHERE Documento = N'12.513.634/0002-08' AND NomeFantasia IS NULL; -- CLI_CODCLI=776
+UPDATE Cliente SET NomeFantasia = N'SUPIMPAO PADARIA E CONFEITARIA' WHERE Documento = N'32.781.728/0001-94' AND NomeFantasia IS NULL; -- CLI_CODCLI=770
+UPDATE Cliente SET NomeFantasia = N'TRANS DU BEN - HELENICE' WHERE Documento = N'33.288.889/0001-03' AND NomeFantasia IS NULL; -- CLI_CODCLI=771
+UPDATE Cliente SET NomeFantasia = N'VALDIR MOVEIS PLANEJADOS' WHERE Documento = N'16.655.079/0001-29' AND NomeFantasia IS NULL; -- CLI_CODCLI=772
+UPDATE Cliente SET NomeFantasia = N'OVOS TAK - SOROCABA' WHERE Documento = N'32.010.695/0001-89' AND NomeFantasia IS NULL; -- CLI_CODCLI=773
+UPDATE Cliente SET NomeFantasia = N'ADUBOS DAI - ANGELA' WHERE Documento = N'05.805.466/0001-88' AND NomeFantasia IS NULL; -- CLI_CODCLI=774
+UPDATE Cliente SET NomeFantasia = N'GRANJA ENAVIS' WHERE Documento = N'234.187.294-87' AND NomeFantasia IS NULL; -- CLI_CODCLI=775
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOS IPE' WHERE Documento = N'565.201.319-20' AND NomeFantasia IS NULL; -- CLI_CODCLI=777
+UPDATE Cliente SET NomeFantasia = N'ESPETARIA ESPETO MANEIRO' WHERE Documento = N'21.005.151/0001-02' AND NomeFantasia IS NULL; -- CLI_CODCLI=778
+UPDATE Cliente SET NomeFantasia = N'TRANS NIVALDO TEIXEIRA' WHERE Documento = N'33.289.130/0001-45' AND NomeFantasia IS NULL; -- CLI_CODCLI=779
+UPDATE Cliente SET NomeFantasia = N'D OVOS TRANS. DISTR. ALIMENTOS' WHERE Documento = N'33.466.729/0001-07' AND NomeFantasia IS NULL; -- CLI_CODCLI=780
+UPDATE Cliente SET NomeFantasia = N'PAULISTA CORRETORA - GO' WHERE Documento = N'33.155.253/0001-93' AND NomeFantasia IS NULL; -- CLI_CODCLI=781
+UPDATE Cliente SET NomeFantasia = N'TRANS GENAVES' WHERE Documento = N'33.414.463/0001-59' AND NomeFantasia IS NULL; -- CLI_CODCLI=782
+UPDATE Cliente SET NomeFantasia = N'GRANJA NIENOW' WHERE Documento = N'89.787.956/0001-99' AND NomeFantasia IS NULL; -- CLI_CODCLI=783
+UPDATE Cliente SET NomeFantasia = N'TRANS FERNANDO - TORTO' WHERE Documento = N'08.969.356/0001-40' AND NomeFantasia IS NULL; -- CLI_CODCLI=784
+UPDATE Cliente SET NomeFantasia = N'TRANS BODINHO - DOIS AMIGOS' WHERE Documento = N'33.008.908/0001-09' AND NomeFantasia IS NULL; -- CLI_CODCLI=785
+UPDATE Cliente SET NomeFantasia = N'FAZENDA RECANTO' WHERE Documento = N'561.849.135-49' AND NomeFantasia IS NULL; -- CLI_CODCLI=786
+UPDATE Cliente SET NomeFantasia = N'FAZENDA SOFIA' WHERE Documento = N'900.609.465-04' AND NomeFantasia IS NULL; -- CLI_CODCLI=787
+UPDATE Cliente SET NomeFantasia = N'NANDO VIDROS' WHERE Documento = N'53.562.229/0001-86' AND NomeFantasia IS NULL; -- CLI_CODCLI=788
+UPDATE Cliente SET NomeFantasia = N'TRANS ANDRADE' WHERE Documento = N'31.719.963/0001-73' AND NomeFantasia IS NULL; -- CLI_CODCLI=789
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVO FORTE II' WHERE Documento = N'10.232.496/0002-63' AND NomeFantasia IS NULL; -- CLI_CODCLI=790
+UPDATE Cliente SET NomeFantasia = N'ACCAPP' WHERE Documento = N'12.515.095/0001-65' AND NomeFantasia IS NULL; -- CLI_CODCLI=791
+UPDATE Cliente SET NomeFantasia = N'MARCINHO LANCHES' WHERE Documento = N'25.185.412/0001-74' AND NomeFantasia IS NULL; -- CLI_CODCLI=792
+UPDATE Cliente SET NomeFantasia = N'GRANJA IKEDA DE GARÇA' WHERE Documento = N'10.915.670/0001-91' AND NomeFantasia IS NULL; -- CLI_CODCLI=793
+UPDATE Cliente SET NomeFantasia = N'GRANJA IKEDA DE GARÇA II' WHERE Documento = N'20.374.947/0001-70' AND NomeFantasia IS NULL; -- CLI_CODCLI=794
+UPDATE Cliente SET NomeFantasia = N'RESTAURANTE VICTORIA"S GRILL' WHERE Documento = N'33.753.390/0001-20' AND NomeFantasia IS NULL; -- CLI_CODCLI=795
+UPDATE Cliente SET NomeFantasia = N'FOFOCAS DA LUXO LINGIERI' WHERE Documento = N'34.125.321/0001-34' AND NomeFantasia IS NULL; -- CLI_CODCLI=796
+UPDATE Cliente SET NomeFantasia = N'KIMASSA' WHERE Documento = N'03.796.193/0001-27' AND NomeFantasia IS NULL; -- CLI_CODCLI=797
+UPDATE Cliente SET NomeFantasia = N'TICH - ALIMENTOS - ANGELA' WHERE Documento = N'34.267.095/0001-26' AND NomeFantasia IS NULL; -- CLI_CODCLI=798
+UPDATE Cliente SET NomeFantasia = N'SECRETARIA MUNICIPAL DE EDUC.' WHERE Documento = N'29.937.718/0001-90' AND NomeFantasia IS NULL; -- CLI_CODCLI=799
+UPDATE Cliente SET NomeFantasia = N'GRANJA SAO PEDRO - PF' WHERE Documento = N'618.362.144-72' AND NomeFantasia IS NULL; -- CLI_CODCLI=800
+UPDATE Cliente SET NomeFantasia = N'FRANGO FILADELFIA' WHERE Documento = N'22.729.899/0003-82' AND NomeFantasia IS NULL; -- CLI_CODCLI=801
+UPDATE Cliente SET NomeFantasia = N'KADU FERRAMENTAS' WHERE Documento = N'20.923.113/0001-76' AND NomeFantasia IS NULL; -- CLI_CODCLI=802
+UPDATE Cliente SET NomeFantasia = N'TRANS ANDREGHETTO' WHERE Documento = N'10.428.760/0001-58' AND NomeFantasia IS NULL; -- CLI_CODCLI=803
+UPDATE Cliente SET NomeFantasia = N'OVOS DEC S' WHERE Documento = N'03.298.639/0001-93' AND NomeFantasia IS NULL; -- CLI_CODCLI=804
+UPDATE Cliente SET NomeFantasia = N'JAPA ACAI' WHERE Documento = N'32.952.823/0001-03' AND NomeFantasia IS NULL; -- CLI_CODCLI=805
+UPDATE Cliente SET NomeFantasia = N'ADUBOS ARIZONA' WHERE Documento = N'24.717.147/0001-65' AND NomeFantasia IS NULL; -- CLI_CODCLI=806
+UPDATE Cliente SET NomeFantasia = N'GRANJA BOM SUCESSO' WHERE Documento = N'705.654.906-30' AND NomeFantasia IS NULL; -- CLI_CODCLI=807
+UPDATE Cliente SET NomeFantasia = N'GRANJA BURITIS' WHERE Documento = N'101.355.166-41' AND NomeFantasia IS NULL; -- CLI_CODCLI=808
+UPDATE Cliente SET NomeFantasia = N'GRANJA DIAMANTE' WHERE Documento = N'003.593.097-71' AND NomeFantasia IS NULL; -- CLI_CODCLI=810
+UPDATE Cliente SET NomeFantasia = N'DIEGO VEICULOS' WHERE Documento = N'34.620.246/0001-88' AND NomeFantasia IS NULL; -- CLI_CODCLI=811
+UPDATE Cliente SET NomeFantasia = N'NUTRIFAL AGRONEGOCIOS' WHERE Documento = N'30.122.614/0001-07' AND NomeFantasia IS NULL; -- CLI_CODCLI=812
+UPDATE Cliente SET NomeFantasia = N'BIOGEMIX - BETO AMICIL-PR' WHERE Documento = N'25.369.820/0002-67' AND NomeFantasia IS NULL; -- CLI_CODCLI=813
+UPDATE Cliente SET NomeFantasia = N'JM DA SILVA JUNIOR INFORMATICA' WHERE Documento = N'14.335.888/0001-28' AND NomeFantasia IS NULL; -- CLI_CODCLI=814
+UPDATE Cliente SET NomeFantasia = N'GRANJA SAARA - CPF' WHERE Documento = N'476.573.839-68' AND NomeFantasia IS NULL; -- CLI_CODCLI=815
+UPDATE Cliente SET NomeFantasia = N'IGREJA EVANGELICA HOLINESS BAS' WHERE Documento = N'09.010.432/0001-58' AND NomeFantasia IS NULL; -- CLI_CODCLI=816
+UPDATE Cliente SET NomeFantasia = N'JM CARDOSO' WHERE Documento = N'29.711.162/0001-10' AND NomeFantasia IS NULL; -- CLI_CODCLI=817
+UPDATE Cliente SET NomeFantasia = N'MASTER EGGS' WHERE Documento = N'26.720.570/0001-40' AND NomeFantasia IS NULL; -- CLI_CODCLI=818
+UPDATE Cliente SET NomeFantasia = N'LUZZ BASTOS' WHERE Documento = N'15.100.069/0002-45' AND NomeFantasia IS NULL; -- CLI_CODCLI=819
+UPDATE Cliente SET NomeFantasia = N'W.P. REPRESENTACOES' WHERE Documento = N'29.536.801/0001-58' AND NomeFantasia IS NULL; -- CLI_CODCLI=820
+UPDATE Cliente SET NomeFantasia = N'TRANS PANIZZA TRANSPORTE' WHERE Documento = N'34.558.834/0001-39' AND NomeFantasia IS NULL; -- CLI_CODCLI=821
+UPDATE Cliente SET NomeFantasia = N'TRANS CHINELLO TRANSPORTES' WHERE Documento = N'30.672.664/0001-68' AND NomeFantasia IS NULL; -- CLI_CODCLI=822
+UPDATE Cliente SET NomeFantasia = N'CASA DE CARNES PANIZZA' WHERE Documento = N'34.558.834/0001-39' AND NomeFantasia IS NULL; -- CLI_CODCLI=823
+UPDATE Cliente SET NomeFantasia = N'VIVA MODAS' WHERE Documento = N'27.094.616/0001-25' AND NomeFantasia IS NULL; -- CLI_CODCLI=824
+UPDATE Cliente SET NomeFantasia = N'OFD EMBALAGEM' WHERE Documento = N'20.249.764/0001-22' AND NomeFantasia IS NULL; -- CLI_CODCLI=825
+UPDATE Cliente SET NomeFantasia = N'FAZENDA TIJUCO' WHERE Documento = N'716.573.125-34' AND NomeFantasia IS NULL; -- CLI_CODCLI=826
+UPDATE Cliente SET NomeFantasia = N'GRUPO CARLOS-FAZENDA BOCAINA' WHERE Documento = N'15.645.156/0001-05' AND NomeFantasia IS NULL; -- CLI_CODCLI=827
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOS DA TERRA APARECIDA' WHERE Documento = N'08.005.424/0001-50' AND NomeFantasia IS NULL; -- CLI_CODCLI=828
+UPDATE Cliente SET NomeFantasia = N'GRANJA NIENOW - FILIAL 04' WHERE Documento = N'89.787.956/0004-31' AND NomeFantasia IS NULL; -- CLI_CODCLI=829
+UPDATE Cliente SET NomeFantasia = N'GRANJA NIENOW - FILIAL 03' WHERE Documento = N'89.787.956/0003-50' AND NomeFantasia IS NULL; -- CLI_CODCLI=830
+UPDATE Cliente SET NomeFantasia = N'GRANJA PIARARA' WHERE Documento = N'11.094.287/0007-78' AND NomeFantasia IS NULL; -- CLI_CODCLI=831
+UPDATE Cliente SET NomeFantasia = N'REGI GESSO' WHERE Documento = N'20.689.215/0001-79' AND NomeFantasia IS NULL; -- CLI_CODCLI=832
+UPDATE Cliente SET NomeFantasia = N'MADEIREIRA PARAISO-II' WHERE Documento = N'07.643.368/0001-17' AND NomeFantasia IS NULL; -- CLI_CODCLI=833
+UPDATE Cliente SET NomeFantasia = N'CATARINA MODAS' WHERE Documento = N'36.089.054/0001-12' AND NomeFantasia IS NULL; -- CLI_CODCLI=834
+UPDATE Cliente SET NomeFantasia = N'FAZENDA CANAA' WHERE Documento = N'237.561.285-04' AND NomeFantasia IS NULL; -- CLI_CODCLI=835
+UPDATE Cliente SET NomeFantasia = N'BASFER - EDUARDO' WHERE Documento = N'34.798.305/0001-02' AND NomeFantasia IS NULL; -- CLI_CODCLI=836
+UPDATE Cliente SET NomeFantasia = N'FABRICA DE VARAS - 1' WHERE Documento = N'34.711.389/0001-03' AND NomeFantasia IS NULL; -- CLI_CODCLI=837
+UPDATE Cliente SET NomeFantasia = N'CUSTOM BRASIL' WHERE Documento = N'10.261.693/0001-20' AND NomeFantasia IS NULL; -- CLI_CODCLI=838
+UPDATE Cliente SET NomeFantasia = N'GRANJA SAO JOSE -TERRA RICA' WHERE Documento = N'208.525.689-91' AND NomeFantasia IS NULL; -- CLI_CODCLI=839
+UPDATE Cliente SET NomeFantasia = N'GRANJA MURAKAMI' WHERE Documento = N'07.934.815/0001-97' AND NomeFantasia IS NULL; -- CLI_CODCLI=840
+UPDATE Cliente SET NomeFantasia = N'TRANS VIP LOGISTICA' WHERE Documento = N'33.419.895/0001-52' AND NomeFantasia IS NULL; -- CLI_CODCLI=841
+UPDATE Cliente SET NomeFantasia = N'GRANJA SANTA MONICA PF' WHERE Documento = N'063.298.486-45' AND NomeFantasia IS NULL; -- CLI_CODCLI=842
+UPDATE Cliente SET NomeFantasia = N'GRANJA MARCELO MAKI - IACRI' WHERE Documento = N'08.206.445/0005-68' AND NomeFantasia IS NULL; -- CLI_CODCLI=843
+UPDATE Cliente SET NomeFantasia = N'ROYALE EQUIPAMENTOS AVICOLAS' WHERE Documento = N'26.850.358/0001-05' AND NomeFantasia IS NULL; -- CLI_CODCLI=844
+UPDATE Cliente SET NomeFantasia = N'CLUB DO CHOPP' WHERE Documento = N'35.256.572/0001-10' AND NomeFantasia IS NULL; -- CLI_CODCLI=845
+UPDATE Cliente SET NomeFantasia = N'OURA COMERCIO E IMPORTACAO.' WHERE Documento = N'34.513.344/0001-16' AND NomeFantasia IS NULL; -- CLI_CODCLI=846
+UPDATE Cliente SET NomeFantasia = N'GRANJA DIAMANTE - CNPJ' WHERE Documento = N'36.223.255/0001-60' AND NomeFantasia IS NULL; -- CLI_CODCLI=847
+UPDATE Cliente SET NomeFantasia = N'CASA DE CARNES SERVE BEM' WHERE Documento = N'71.819.049/0001-19' AND NomeFantasia IS NULL; -- CLI_CODCLI=848
+UPDATE Cliente SET NomeFantasia = N'TRANS BRIMARY - G&D' WHERE Documento = N'36.538.702/0001-70' AND NomeFantasia IS NULL; -- CLI_CODCLI=849
+UPDATE Cliente SET NomeFantasia = N'GRANJA MORISHITA - FENIX-II' WHERE Documento = N'07.939.399/0015-15' AND NomeFantasia IS NULL; -- CLI_CODCLI=850
+UPDATE Cliente SET NomeFantasia = N'GRANJA DO OVO - LOJA PHILLIPI' WHERE Documento = N'12.235.936/0001-80' AND NomeFantasia IS NULL; -- CLI_CODCLI=851
+UPDATE Cliente SET NomeFantasia = N'GRANJA REBELLO - GR OVOS 01' WHERE Documento = N'60.440.815/0001-13' AND NomeFantasia IS NULL; -- CLI_CODCLI=852
+UPDATE Cliente SET NomeFantasia = N'GRANJA REBELLO - GR OVOS 02' WHERE Documento = N'60.440.815/0002-02' AND NomeFantasia IS NULL; -- CLI_CODCLI=853
+UPDATE Cliente SET NomeFantasia = N'GRANJA KASULKE' WHERE Documento = N'903.023.039-87' AND NomeFantasia IS NULL; -- CLI_CODCLI=854
+UPDATE Cliente SET NomeFantasia = N'GRANJA NEGOSEK' WHERE Documento = N'660.153.169-34' AND NomeFantasia IS NULL; -- CLI_CODCLI=855
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOS MOMBUCA-PINTEIRO' WHERE Documento = N'08.023.912/0003-52' AND NomeFantasia IS NULL; -- CLI_CODCLI=856
+UPDATE Cliente SET NomeFantasia = N'FAZENDA PERIPERI' WHERE Documento = N'044.642.495-15' AND NomeFantasia IS NULL; -- CLI_CODCLI=857
+UPDATE Cliente SET NomeFantasia = N'FAZENDA JATOBÁ' WHERE Documento = N'927.242.725-87' AND NomeFantasia IS NULL; -- CLI_CODCLI=858
+UPDATE Cliente SET NomeFantasia = N'DROGARIA SANTA FE' WHERE Documento = N'02.485.797/0001-90' AND NomeFantasia IS NULL; -- CLI_CODCLI=859
+UPDATE Cliente SET NomeFantasia = N'OVOS BASTOS - CARIOCA' WHERE Documento = N'35.961.011/0001-12' AND NomeFantasia IS NULL; -- CLI_CODCLI=860
+UPDATE Cliente SET NomeFantasia = N'NOSSA FARMA' WHERE Documento = N'37.041.046/0001-69' AND NomeFantasia IS NULL; -- CLI_CODCLI=861
+UPDATE Cliente SET NomeFantasia = N'ABENS SEGURO' WHERE Documento = N'54.723.051/0002-51' AND NomeFantasia IS NULL; -- CLI_CODCLI=862
+UPDATE Cliente SET NomeFantasia = N'QUITANDA E MERCEARIA TARODA' WHERE Documento = N'68.047.125/0001-00' AND NomeFantasia IS NULL; -- CLI_CODCLI=863
+UPDATE Cliente SET NomeFantasia = N'GRANJA PENA REAL' WHERE Documento = N'36.580.385/0001-50' AND NomeFantasia IS NULL; -- CLI_CODCLI=864
+UPDATE Cliente SET NomeFantasia = N'CITROGRAF MUDAS' WHERE Documento = N'063.780.788-07' AND NomeFantasia IS NULL; -- CLI_CODCLI=865
+UPDATE Cliente SET NomeFantasia = N'GRANJA VITTA - CONSULTORIA' WHERE Documento = N'33.358.938/0001-37' AND NomeFantasia IS NULL; -- CLI_CODCLI=866
+UPDATE Cliente SET NomeFantasia = N'NCAVES - CONSULTORIA' WHERE Documento = N'22.729.899/0001-10' AND NomeFantasia IS NULL; -- CLI_CODCLI=867
+UPDATE Cliente SET NomeFantasia = N'TRANS DENISE' WHERE Documento = N'21.257.788/0001-96' AND NomeFantasia IS NULL; -- CLI_CODCLI=869
+UPDATE Cliente SET NomeFantasia = N'TRANS PROTECA' WHERE Documento = N'37.355.853/0001-56' AND NomeFantasia IS NULL; -- CLI_CODCLI=870
+UPDATE Cliente SET NomeFantasia = N'GRANJA CRISTA VERMELHA' WHERE Documento = N'35.718.868/0001-06' AND NomeFantasia IS NULL; -- CLI_CODCLI=871
+UPDATE Cliente SET NomeFantasia = N'GRANJA RS' WHERE Documento = N'474.682.899-72' AND NomeFantasia IS NULL; -- CLI_CODCLI=872
+UPDATE Cliente SET NomeFantasia = N'TRANS JOAO BATISTA' WHERE Documento = N'19.762.618/0001-17' AND NomeFantasia IS NULL; -- CLI_CODCLI=873
+UPDATE Cliente SET NomeFantasia = N'TRANS SANTOS E MESQUITA MARIAN' WHERE Documento = N'37.490.476/0001-68' AND NomeFantasia IS NULL; -- CLI_CODCLI=874
+UPDATE Cliente SET NomeFantasia = N'ESCRITORIO RIO BRANCO' WHERE Documento = N'01.649.092/0001-06' AND NomeFantasia IS NULL; -- CLI_CODCLI=875
+UPDATE Cliente SET NomeFantasia = N'VAINE DOS S. G. DO NASCIMENTO' WHERE Documento = N'369.666.838-92' AND NomeFantasia IS NULL; -- CLI_CODCLI=876
+UPDATE Cliente SET NomeFantasia = N'GRANJA HERMES CHIAMOLERA' WHERE Documento = N'761.073.029-72' AND NomeFantasia IS NULL; -- CLI_CODCLI=877
+UPDATE Cliente SET NomeFantasia = N'JULIANO BERNADINO' WHERE Documento = N'230.098.418-09' AND NomeFantasia IS NULL; -- CLI_CODCLI=878
+UPDATE Cliente SET NomeFantasia = N'GRANJA MOREIRA' WHERE Documento = N'63.531.396/0001-13' AND NomeFantasia IS NULL; -- CLI_CODCLI=879
+UPDATE Cliente SET NomeFantasia = N'TRANS JH TRANSPORTES' WHERE Documento = N'37.904.522/0001-28' AND NomeFantasia IS NULL; -- CLI_CODCLI=880
+UPDATE Cliente SET NomeFantasia = N'PAULISTA CORRETORA - MT' WHERE Documento = N'37.382.021/0001-29' AND NomeFantasia IS NULL; -- CLI_CODCLI=881
+UPDATE Cliente SET NomeFantasia = N'POUSADA CARAVELA' WHERE Documento = N'02.370.994/0001-63' AND NomeFantasia IS NULL; -- CLI_CODCLI=882
+UPDATE Cliente SET NomeFantasia = N'TRANS RD - TRANSPORTES' WHERE Documento = N'37.637.823/0001-32' AND NomeFantasia IS NULL; -- CLI_CODCLI=883
+UPDATE Cliente SET NomeFantasia = N'FABRICA DE VARAS' WHERE Documento = N'38.075.931/0001-21' AND NomeFantasia IS NULL; -- CLI_CODCLI=884
+UPDATE Cliente SET NomeFantasia = N'LUIZ GUSTAVO DIAS CUNHA' WHERE Documento = N'325.168.458-20' AND NomeFantasia IS NULL; -- CLI_CODCLI=885
+UPDATE Cliente SET NomeFantasia = N'JOSE DA SILVA MELO' WHERE Documento = N'063.006.748-19' AND NomeFantasia IS NULL; -- CLI_CODCLI=886
+UPDATE Cliente SET NomeFantasia = N'CAMVA' WHERE Documento = N'03.226.024/0001-51' AND NomeFantasia IS NULL; -- CLI_CODCLI=887
+UPDATE Cliente SET NomeFantasia = N'GRANJA NETTO ALIMENTOS' WHERE Documento = N'08.451.414/0001-49' AND NomeFantasia IS NULL; -- CLI_CODCLI=888
+UPDATE Cliente SET NomeFantasia = N'CLINICA DE BELEZA ROSANA' WHERE Documento = N'16.870.372/0001-09' AND NomeFantasia IS NULL; -- CLI_CODCLI=889
+UPDATE Cliente SET NomeFantasia = N'GRANJA SAO JOSE - CONSULTORIA' WHERE Documento = N'08.076.260/0001-52' AND NomeFantasia IS NULL; -- CLI_CODCLI=891
+UPDATE Cliente SET NomeFantasia = N'WILIANS MARCELO PERES GONÇALVE' WHERE Documento = N'082.206.738-26' AND NomeFantasia IS NULL; -- CLI_CODCLI=892
+UPDATE Cliente SET NomeFantasia = N'TRANS LIMA (LULA)' WHERE Documento = N'38.368.852/0001-09' AND NomeFantasia IS NULL; -- CLI_CODCLI=893
+UPDATE Cliente SET NomeFantasia = N'GRANJA ATALAYA' WHERE Documento = N'124.594.137-26' AND NomeFantasia IS NULL; -- CLI_CODCLI=894
+UPDATE Cliente SET NomeFantasia = N'ELITON YAMAUCHI - CAVALOS' WHERE Documento = N'36.275.655/0001-10' AND NomeFantasia IS NULL; -- CLI_CODCLI=895
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOS MOMBUCA-CAIPIRA' WHERE Documento = N'08.023.912/0005-14' AND NomeFantasia IS NULL; -- CLI_CODCLI=896
+UPDATE Cliente SET NomeFantasia = N'GRANJA AMOROVOS   (KARIJO)' WHERE Documento = N'37.210.151/0001-84' AND NomeFantasia IS NULL; -- CLI_CODCLI=897
+UPDATE Cliente SET NomeFantasia = N'TRANS DDI TRANSPORTES' WHERE Documento = N'35.933.904/0001-54' AND NomeFantasia IS NULL; -- CLI_CODCLI=898
+UPDATE Cliente SET NomeFantasia = N'CASA DE CARNES DOIS IRMAOS' WHERE Documento = N'39.249.007/0001-87' AND NomeFantasia IS NULL; -- CLI_CODCLI=899
+UPDATE Cliente SET NomeFantasia = N'FABRICA DE VARAS - 2' WHERE Documento = N'39.235.430/0001-28' AND NomeFantasia IS NULL; -- CLI_CODCLI=900
+UPDATE Cliente SET NomeFantasia = N'CASA DO NORTE - MANDACARU' WHERE Documento = N'29.446.392/0001-07' AND NomeFantasia IS NULL; -- CLI_CODCLI=901
+UPDATE Cliente SET NomeFantasia = N'GRANJA MALABAR - ORGANICO' WHERE Documento = N'11.318.176/0001-02' AND NomeFantasia IS NULL; -- CLI_CODCLI=902
+UPDATE Cliente SET NomeFantasia = N'TRANS ANALIO - SANTA MONICA' WHERE Documento = N'12.211.435/0001-64' AND NomeFantasia IS NULL; -- CLI_CODCLI=903
+UPDATE Cliente SET NomeFantasia = N'TRANS SEGURA - ALESSANDRA' WHERE Documento = N'38.731.110/0001-04' AND NomeFantasia IS NULL; -- CLI_CODCLI=904
+UPDATE Cliente SET NomeFantasia = N'POUSADA MIMI PARK' WHERE Documento = N'20.514.966/0001-54' AND NomeFantasia IS NULL; -- CLI_CODCLI=905
+UPDATE Cliente SET NomeFantasia = N'TRANS UEMURA - PEDRO' WHERE Documento = N'34.675.311/0001-72' AND NomeFantasia IS NULL; -- CLI_CODCLI=906
+UPDATE Cliente SET NomeFantasia = N'GRANJA CRISTA VERMELHA PF' WHERE Documento = N'031.396.196-42' AND NomeFantasia IS NULL; -- CLI_CODCLI=907
+UPDATE Cliente SET NomeFantasia = N'ENCANTO ACESSORIOS E PRESENTES' WHERE Documento = N'38.709.013/0001-07' AND NomeFantasia IS NULL; -- CLI_CODCLI=908
+UPDATE Cliente SET NomeFantasia = N'MERCE. E QUITAN. SANTO ANTONIO' WHERE Documento = N'66.967.571/0001-08' AND NomeFantasia IS NULL; -- CLI_CODCLI=909
+UPDATE Cliente SET NomeFantasia = N'GRANJA GUARANI - FENIX' WHERE Documento = N'04.188.995/0001-17' AND NomeFantasia IS NULL; -- CLI_CODCLI=911
+UPDATE Cliente SET NomeFantasia = N'GRANJA GUARANI - LUZIANIA' WHERE Documento = N'01.463.926/0001-86' AND NomeFantasia IS NULL; -- CLI_CODCLI=912
+UPDATE Cliente SET NomeFantasia = N'AMPLA MULTI ITENS' WHERE Documento = N'39.467.648/0001-08' AND NomeFantasia IS NULL; -- CLI_CODCLI=913
+UPDATE Cliente SET NomeFantasia = N'CASA DE CARNES JACOMELE' WHERE Documento = N'39.815.630/0001-50' AND NomeFantasia IS NULL; -- CLI_CODCLI=914
+UPDATE Cliente SET NomeFantasia = N'GRANJA MOREIRA FILIAL 1' WHERE Documento = N'63.531.396/0002-02' AND NomeFantasia IS NULL; -- CLI_CODCLI=915
+UPDATE Cliente SET NomeFantasia = N'GRANJA MOREIRA FILIAL 2' WHERE Documento = N'63.531.396/0003-85' AND NomeFantasia IS NULL; -- CLI_CODCLI=916
+UPDATE Cliente SET NomeFantasia = N'GAS RP' WHERE Documento = N'39.651.676/0001-80' AND NomeFantasia IS NULL; -- CLI_CODCLI=917
+UPDATE Cliente SET NomeFantasia = N'GRANJA UEYAMA - FAZENDA' WHERE Documento = N'08.216.683/0004-73' AND NomeFantasia IS NULL; -- CLI_CODCLI=918
+UPDATE Cliente SET NomeFantasia = N'GRANJA UEYAMA - ITAUNA' WHERE Documento = N'08.216.683/0002-01' AND NomeFantasia IS NULL; -- CLI_CODCLI=919
+UPDATE Cliente SET NomeFantasia = N'GRANJA UEYAMA - ESPERANÇA' WHERE Documento = N'08.216.683/0010-11' AND NomeFantasia IS NULL; -- CLI_CODCLI=920
+UPDATE Cliente SET NomeFantasia = N'TRANS PIRULITO' WHERE Documento = N'21.762.348/0001-96' AND NomeFantasia IS NULL; -- CLI_CODCLI=921
+UPDATE Cliente SET NomeFantasia = N'GRANJA BRASIL - KYONO' WHERE Documento = N'07.937.846/0005-25' AND NomeFantasia IS NULL; -- CLI_CODCLI=923
+UPDATE Cliente SET NomeFantasia = N'GRANJA BRASIL - FUKUDA' WHERE Documento = N'07.937.846/0014-16' AND NomeFantasia IS NULL; -- CLI_CODCLI=924
+UPDATE Cliente SET NomeFantasia = N'GRANJA PEDRO GOHARA - TERUI' WHERE Documento = N'14.106.560/0002-10' AND NomeFantasia IS NULL; -- CLI_CODCLI=925
+UPDATE Cliente SET NomeFantasia = N'GRANJA PEDRO GOHARA - II' WHERE Documento = N'14.106.560/0005-63' AND NomeFantasia IS NULL; -- CLI_CODCLI=926
+UPDATE Cliente SET NomeFantasia = N'GRANJA PEDRO GOHARA - SAKAGUTI' WHERE Documento = N'14.106.560/0006-44' AND NomeFantasia IS NULL; -- CLI_CODCLI=927
+UPDATE Cliente SET NomeFantasia = N'GRANJA PEDRO GOHARA - SHIDA' WHERE Documento = N'14.106.560/0007-25' AND NomeFantasia IS NULL; -- CLI_CODCLI=928
+UPDATE Cliente SET NomeFantasia = N'GRANJA HIRO MIYAKUBO - II' WHERE Documento = N'07.949.691/0004-66' AND NomeFantasia IS NULL; -- CLI_CODCLI=929
+UPDATE Cliente SET NomeFantasia = N'GRANJA HIRO MIYAKUBO - III JHM' WHERE Documento = N'07.949.691/0008-90' AND NomeFantasia IS NULL; -- CLI_CODCLI=930
+UPDATE Cliente SET NomeFantasia = N'GRANJA BRASIL - YANAKA' WHERE Documento = N'07.937.846/0011-73' AND NomeFantasia IS NULL; -- CLI_CODCLI=931
+UPDATE Cliente SET NomeFantasia = N'GRANJA BRASIL - FAZ.FENIX' WHERE Documento = N'07.937.846/0007-97' AND NomeFantasia IS NULL; -- CLI_CODCLI=932
+UPDATE Cliente SET NomeFantasia = N'GRANJA BRASIL - BOA VISTA' WHERE Documento = N'07.937.846/0013-35' AND NomeFantasia IS NULL; -- CLI_CODCLI=933
+UPDATE Cliente SET NomeFantasia = N'GRANJA BRASIL - RANCHO W M' WHERE Documento = N'07.937.846/0017-69' AND NomeFantasia IS NULL; -- CLI_CODCLI=934
+UPDATE Cliente SET NomeFantasia = N'GRANJA BRASIL - KOBAYASHI' WHERE Documento = N'07.937.846/0016-88' AND NomeFantasia IS NULL; -- CLI_CODCLI=935
+UPDATE Cliente SET NomeFantasia = N'GRANJA BRASIL - SAO JOAO' WHERE Documento = N'07.937.846/0012-54' AND NomeFantasia IS NULL; -- CLI_CODCLI=936
+UPDATE Cliente SET NomeFantasia = N'GRANJA BRASIL - YONAMINE' WHERE Documento = N'07.937.846/0018-40' AND NomeFantasia IS NULL; -- CLI_CODCLI=937
+UPDATE Cliente SET NomeFantasia = N'GRANJA BRASIL - EDWIGES II' WHERE Documento = N'07.937.846/0019-20' AND NomeFantasia IS NULL; -- CLI_CODCLI=938
+UPDATE Cliente SET NomeFantasia = N'GRANJA BRASIL - IV' WHERE Documento = N'07.937.846/0020-64' AND NomeFantasia IS NULL; -- CLI_CODCLI=939
+UPDATE Cliente SET NomeFantasia = N'GRANJA BRASIL - EMAUS IV' WHERE Documento = N'07.937.846/0006-06' AND NomeFantasia IS NULL; -- CLI_CODCLI=940
+UPDATE Cliente SET NomeFantasia = N'GRANJA BRASIL - IWAHASHI' WHERE Documento = N'07.937.846/0004-44' AND NomeFantasia IS NULL; -- CLI_CODCLI=941
+UPDATE Cliente SET NomeFantasia = N'GRANJA BRASIL - RANCH.BRASIL' WHERE Documento = N'07.937.846/0008-78' AND NomeFantasia IS NULL; -- CLI_CODCLI=942
+UPDATE Cliente SET NomeFantasia = N'GRANJA MARCELO MAKI - RINOPOLI' WHERE Documento = N'08.206.445/0003-04' AND NomeFantasia IS NULL; -- CLI_CODCLI=943
+UPDATE Cliente SET NomeFantasia = N'GRANJA MARCELO MAKI - IACRI' WHERE Documento = N'08.206.445/0014-59' AND NomeFantasia IS NULL; -- CLI_CODCLI=944
+UPDATE Cliente SET NomeFantasia = N'GRANJA MARCELO MAKI - SOL NASC' WHERE Documento = N'08.206.445/0013-78' AND NomeFantasia IS NULL; -- CLI_CODCLI=945
+UPDATE Cliente SET NomeFantasia = N'GRANJA MARCELO MAKI - SAO JOSE' WHERE Documento = N'08.206.445/0009-91' AND NomeFantasia IS NULL; -- CLI_CODCLI=946
+UPDATE Cliente SET NomeFantasia = N'GRANJA GLOBAL - DISTRIBUIDORA' WHERE Documento = N'31.074.937/0001-35' AND NomeFantasia IS NULL; -- CLI_CODCLI=947
+UPDATE Cliente SET NomeFantasia = N'GRANJA GLOBAL - MOMBUCA' WHERE Documento = N'31.074.937/0002-16' AND NomeFantasia IS NULL; -- CLI_CODCLI=948
+UPDATE Cliente SET NomeFantasia = N'W.S - JOTABOM' WHERE Documento = N'06.328.951/0001-70' AND NomeFantasia IS NULL; -- CLI_CODCLI=949
+UPDATE Cliente SET NomeFantasia = N'FORT MILK - TRANSPORTADORA' WHERE Documento = N'27.412.229/0001-90' AND NomeFantasia IS NULL; -- CLI_CODCLI=950
+UPDATE Cliente SET NomeFantasia = N'GRANJA FAZENDA BANDEIRANTES' WHERE Documento = N'08.253.341/0001-80' AND NomeFantasia IS NULL; -- CLI_CODCLI=951
+UPDATE Cliente SET NomeFantasia = N'GRANJA FUJIKURA - PE' WHERE Documento = N'169.064.568-73' AND NomeFantasia IS NULL; -- CLI_CODCLI=952
+UPDATE Cliente SET NomeFantasia = N'TRANS TUKA - SEOLIN' WHERE Documento = N'40.715.027/0001-85' AND NomeFantasia IS NULL; -- CLI_CODCLI=953
+UPDATE Cliente SET NomeFantasia = N'SIND TRAB TRANSP ROD DE TUPÃ' WHERE Documento = N'02.733.273/0001-70' AND NomeFantasia IS NULL; -- CLI_CODCLI=954
+UPDATE Cliente SET NomeFantasia = N'OVOS PRIME' WHERE Documento = N'36.612.640/0001-08' AND NomeFantasia IS NULL; -- CLI_CODCLI=955
+UPDATE Cliente SET NomeFantasia = N'MILENIO DISTRIBUIDORA DE ACESS' WHERE Documento = N'03.691.867/0001-29' AND NomeFantasia IS NULL; -- CLI_CODCLI=956
+UPDATE Cliente SET NomeFantasia = N'TRANS BERGAMO TRANSPORTES' WHERE Documento = N'01.853.378/0001-09' AND NomeFantasia IS NULL; -- CLI_CODCLI=957
+UPDATE Cliente SET NomeFantasia = N'TRANS BERGAMO - G.O' WHERE Documento = N'21.013.211/0001-39' AND NomeFantasia IS NULL; -- CLI_CODCLI=958
+UPDATE Cliente SET NomeFantasia = N'GRANJA GLOBAL - _UEDA' WHERE Documento = N'31.074.937/0004-88' AND NomeFantasia IS NULL; -- CLI_CODCLI=959
+UPDATE Cliente SET NomeFantasia = N'GRANJA GLOBAL - SHIMIZU' WHERE Documento = N'31.074.937/0003-05' AND NomeFantasia IS NULL; -- CLI_CODCLI=960
+UPDATE Cliente SET NomeFantasia = N'FAZENDA DECISAO I' WHERE Documento = N'190.857.658-89' AND NomeFantasia IS NULL; -- CLI_CODCLI=961
+UPDATE Cliente SET NomeFantasia = N'PDV LAB INFORMATICA LTDA' WHERE Documento = N'37.999.325/0001-30' AND NomeFantasia IS NULL; -- CLI_CODCLI=962
+UPDATE Cliente SET NomeFantasia = N'TRANS GUANAIS/ANTUNES' WHERE Documento = N'40.954.391/0001-06' AND NomeFantasia IS NULL; -- CLI_CODCLI=963
+UPDATE Cliente SET NomeFantasia = N'TRANS 3W TRANSPORTES' WHERE Documento = N'40.896.198/0001-58' AND NomeFantasia IS NULL; -- CLI_CODCLI=964
+UPDATE Cliente SET NomeFantasia = N'MHD- CALHAS E RUFOS' WHERE Documento = N'41.105.276/0001-11' AND NomeFantasia IS NULL; -- CLI_CODCLI=965
+UPDATE Cliente SET NomeFantasia = N'GRANJA PAVAO - TRANSPORTADORA' WHERE Documento = N'25.015.869/0001-30' AND NomeFantasia IS NULL; -- CLI_CODCLI=966
+UPDATE Cliente SET NomeFantasia = N'EGS IMPLEMENTOS AGRICOLAS' WHERE Documento = N'18.954.183/0001-40' AND NomeFantasia IS NULL; -- CLI_CODCLI=967
+UPDATE Cliente SET NomeFantasia = N'M&M MECANICA MENEZES' WHERE Documento = N'35.976.582/0001-20' AND NomeFantasia IS NULL; -- CLI_CODCLI=968
+UPDATE Cliente SET NomeFantasia = N'GRANJA MORATO' WHERE Documento = N'667.281.776-04' AND NomeFantasia IS NULL; -- CLI_CODCLI=969
+UPDATE Cliente SET NomeFantasia = N'GRANJA MORISHITA - ALVORADA' WHERE Documento = N'07.939.399/0024-06' AND NomeFantasia IS NULL; -- CLI_CODCLI=970
+UPDATE Cliente SET NomeFantasia = N'GRANJA PARAISO BTS' WHERE Documento = N'40.854.904/0001-07' AND NomeFantasia IS NULL; -- CLI_CODCLI=971
+UPDATE Cliente SET NomeFantasia = N'GRANJA WAKAMOTO' WHERE Documento = N'11.932.665/0001-50' AND NomeFantasia IS NULL; -- CLI_CODCLI=972
+UPDATE Cliente SET NomeFantasia = N'GISELA APARECIDA DEO HAUY' WHERE Documento = N'136.798.468-86' AND NomeFantasia IS NULL; -- CLI_CODCLI=973
+UPDATE Cliente SET NomeFantasia = N'GRANJA UEYAMA - QUATA' WHERE Documento = N'08.216.683/0009-88' AND NomeFantasia IS NULL; -- CLI_CODCLI=974
+UPDATE Cliente SET NomeFantasia = N'GRANJA PACHECO - CAIPIRA' WHERE Documento = N'378.595.363-15' AND NomeFantasia IS NULL; -- CLI_CODCLI=975
+UPDATE Cliente SET NomeFantasia = N'SERGIO' WHERE Documento = N'112.743.228-12' AND NomeFantasia IS NULL; -- CLI_CODCLI=976
+UPDATE Cliente SET NomeFantasia = N'TIAGO' WHERE Documento = N'19.776.117/0001-90' AND NomeFantasia IS NULL; -- CLI_CODCLI=977
+UPDATE Cliente SET NomeFantasia = N'LEANDRO' WHERE Documento = N'05.096.652/0001-95' AND NomeFantasia IS NULL; -- CLI_CODCLI=978
+UPDATE Cliente SET NomeFantasia = N'TRANS ARROYO TRANSPORTES' WHERE Documento = N'36.731.272/0001-09' AND NomeFantasia IS NULL; -- CLI_CODCLI=979
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOS MOMBUCA-LUCAS' WHERE Documento = N'41.260.311/0002-58' AND NomeFantasia IS NULL; -- CLI_CODCLI=980
+UPDATE Cliente SET NomeFantasia = N'GPJ INFORMATICA' WHERE Documento = N'06.697.988/0004-19' AND NomeFantasia IS NULL; -- CLI_CODCLI=981
+UPDATE Cliente SET NomeFantasia = N'SUPERMERCADO CERBANTES PANHOZZ' WHERE Documento = N'41.936.248/0001-46' AND NomeFantasia IS NULL; -- CLI_CODCLI=982
+UPDATE Cliente SET NomeFantasia = N'REGIVET REPRESENTACAO' WHERE Documento = N'08.927.475/0001-30' AND NomeFantasia IS NULL; -- CLI_CODCLI=983
+UPDATE Cliente SET NomeFantasia = N'SABOR DE MEL MODA INFANTIL E A' WHERE Documento = N'13.361.562/0001-02' AND NomeFantasia IS NULL; -- CLI_CODCLI=984
+UPDATE Cliente SET NomeFantasia = N'GRANJA ARENOVOS' WHERE Documento = N'03.568.925/0001-21' AND NomeFantasia IS NULL; -- CLI_CODCLI=985
+UPDATE Cliente SET NomeFantasia = N'TEMPERO DE HELENA' WHERE Documento = N'39.669.391/0001-77' AND NomeFantasia IS NULL; -- CLI_CODCLI=986
+UPDATE Cliente SET NomeFantasia = N'CAVI-AGRO VETERINÁRIA IACRI' WHERE Documento = N'41.740.270/0001-16' AND NomeFantasia IS NULL; -- CLI_CODCLI=987
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOS J.JUNIOR - FISICO' WHERE Documento = N'265.919.010-00' AND NomeFantasia IS NULL; -- CLI_CODCLI=988
+UPDATE Cliente SET NomeFantasia = N'GRANJA GR' WHERE Documento = N'42.707.789/0001-65' AND NomeFantasia IS NULL; -- CLI_CODCLI=989
+UPDATE Cliente SET NomeFantasia = N'GRANJA AGROWAM - CNPJ' WHERE Documento = N'41.488.158/0001-30' AND NomeFantasia IS NULL; -- CLI_CODCLI=991
+UPDATE Cliente SET NomeFantasia = N'MAGIA ENXOVAIS' WHERE Documento = N'07.931.816/0001-88' AND NomeFantasia IS NULL; -- CLI_CODCLI=992
+UPDATE Cliente SET NomeFantasia = N'RODRIGO DE CARVALHO' WHERE Documento = N'251.932.978-54' AND NomeFantasia IS NULL; -- CLI_CODCLI=993
+UPDATE Cliente SET NomeFantasia = N'PADARIA E CONFE.SANTO ANTONIO' WHERE Documento = N'05.264.793/0001-70' AND NomeFantasia IS NULL; -- CLI_CODCLI=994
+UPDATE Cliente SET NomeFantasia = N'GRANJA FILADELFIA TIBAU' WHERE Documento = N'22.619.773/0004-36' AND NomeFantasia IS NULL; -- CLI_CODCLI=995
+UPDATE Cliente SET NomeFantasia = N'GRANJA VITTAOVOS - JURIDICA' WHERE Documento = N'25.058.690/0001-60' AND NomeFantasia IS NULL; -- CLI_CODCLI=996
+UPDATE Cliente SET NomeFantasia = N'QUALY GRAOS' WHERE Documento = N'41.034.597/0001-72' AND NomeFantasia IS NULL; -- CLI_CODCLI=997
+UPDATE Cliente SET NomeFantasia = N'NEY - HORTIFRUTI' WHERE Documento = N'42.866.919/0001-02' AND NomeFantasia IS NULL; -- CLI_CODCLI=998
+UPDATE Cliente SET NomeFantasia = N'TJ TECNICA MECANICA' WHERE Documento = N'02.964.480/0001-36' AND NomeFantasia IS NULL; -- CLI_CODCLI=999
+UPDATE Cliente SET NomeFantasia = N'FAZENDA TRENTO' WHERE Documento = N'285.843.339-91' AND NomeFantasia IS NULL; -- CLI_CODCLI=1001
+UPDATE Cliente SET NomeFantasia = N'CASA DE CARNE HIKARI' WHERE Documento = N'43.276.331/0001-61' AND NomeFantasia IS NULL; -- CLI_CODCLI=1002
+UPDATE Cliente SET NomeFantasia = N'FABRICA DE VARA - LUZITANA' WHERE Documento = N'00.025.048/0001-54' AND NomeFantasia IS NULL; -- CLI_CODCLI=1003
+UPDATE Cliente SET NomeFantasia = N'CENTER LIMP' WHERE Documento = N'43.394.288/0001-39' AND NomeFantasia IS NULL; -- CLI_CODCLI=1004
+UPDATE Cliente SET NomeFantasia = N'LUIZ FERRAMENTAS' WHERE Documento = N'48.673.365/0001-03' AND NomeFantasia IS NULL; -- CLI_CODCLI=1005
+UPDATE Cliente SET NomeFantasia = N'GRANJA RAIAR' WHERE Documento = N'36.204.525/0001-96' AND NomeFantasia IS NULL; -- CLI_CODCLI=1006
+UPDATE Cliente SET NomeFantasia = N'GRANJA INDAIA - PF-06' WHERE Documento = N'320.032.006-06' AND NomeFantasia IS NULL; -- CLI_CODCLI=1007
+UPDATE Cliente SET NomeFantasia = N'FABRICA DE VARA -NOVO' WHERE Documento = N'43.601.557/0001-90' AND NomeFantasia IS NULL; -- CLI_CODCLI=1009
+UPDATE Cliente SET NomeFantasia = N'GRANJA VITTAOVOS - JEFERSON' WHERE Documento = N'026.185.050-42' AND NomeFantasia IS NULL; -- CLI_CODCLI=1010
+UPDATE Cliente SET NomeFantasia = N'GRANJA VITTAOVOS - SERGIO' WHERE Documento = N'458.315.560-34' AND NomeFantasia IS NULL; -- CLI_CODCLI=1011
+UPDATE Cliente SET NomeFantasia = N'FARMACIA POPULAR' WHERE Documento = N'96.638.796/0001-81' AND NomeFantasia IS NULL; -- CLI_CODCLI=1012
+UPDATE Cliente SET NomeFantasia = N'CONVENIENCIA TALISMA' WHERE Documento = N'43.259.234/0001-60' AND NomeFantasia IS NULL; -- CLI_CODCLI=1013
+UPDATE Cliente SET NomeFantasia = N'SITIO VIVIAN 1 - YAMADA' WHERE Documento = N'41.642.878/0001-08' AND NomeFantasia IS NULL; -- CLI_CODCLI=1014
+UPDATE Cliente SET NomeFantasia = N'DURA-LEX' WHERE Documento = N'04.220.636/0001-08' AND NomeFantasia IS NULL; -- CLI_CODCLI=1015
+UPDATE Cliente SET NomeFantasia = N'VENDINHA DA FAZENDA' WHERE Documento = N'30.800.986/0001-45' AND NomeFantasia IS NULL; -- CLI_CODCLI=1016
+UPDATE Cliente SET NomeFantasia = N'INSTITUTO DRA FABIANI B.ONO' WHERE Documento = N'25.026.053/0001-02' AND NomeFantasia IS NULL; -- CLI_CODCLI=1017
+UPDATE Cliente SET NomeFantasia = N'ARENA BAR & PUB' WHERE Documento = N'44.271.579/0001-00' AND NomeFantasia IS NULL; -- CLI_CODCLI=1018
+UPDATE Cliente SET NomeFantasia = N'GRANJA MOREIRA FAZENDA' WHERE Documento = N'17.545.142/0001-37' AND NomeFantasia IS NULL; -- CLI_CODCLI=1019
+UPDATE Cliente SET NomeFantasia = N'NEY - RAFAARAUJO HORTI FRUTI' WHERE Documento = N'44.329.547/0001-00' AND NomeFantasia IS NULL; -- CLI_CODCLI=1020
+UPDATE Cliente SET NomeFantasia = N'SABOR DUBOM' WHERE Documento = N'19.201.498/0001-89' AND NomeFantasia IS NULL; -- CLI_CODCLI=1021
+UPDATE Cliente SET NomeFantasia = N'GRANJA BAIXA VERDE' WHERE Documento = N'51.424.962/0001-09' AND NomeFantasia IS NULL; -- CLI_CODCLI=1022
+UPDATE Cliente SET NomeFantasia = N'GRANJA SANTA LUZIA' WHERE Documento = N'199.962.252-91' AND NomeFantasia IS NULL; -- CLI_CODCLI=1023
+UPDATE Cliente SET NomeFantasia = N'TRANS J P TRANSPORTES CARGAS' WHERE Documento = N'31.935.179/0001-00' AND NomeFantasia IS NULL; -- CLI_CODCLI=1024
+UPDATE Cliente SET NomeFantasia = N'GRANJA INDAIA PJ' WHERE Documento = N'36.573.550/0001-47' AND NomeFantasia IS NULL; -- CLI_CODCLI=1025
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOS MOMBUCA 005-09' WHERE Documento = N'41.260.311/0005-09' AND NomeFantasia IS NULL; -- CLI_CODCLI=1026
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOS MOMBUCA 003-39' WHERE Documento = N'41.260.311/0003-39' AND NomeFantasia IS NULL; -- CLI_CODCLI=1027
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOS MOMBUCA LUCAS CNPJ' WHERE Documento = N'43.184.857/0001-11' AND NomeFantasia IS NULL; -- CLI_CODCLI=1028
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOS MOMBUCA 004-10' WHERE Documento = N'41.260.311/0004-10' AND NomeFantasia IS NULL; -- CLI_CODCLI=1029
+UPDATE Cliente SET NomeFantasia = N'MED WORK - TUPA' WHERE Documento = N'09.348.600/0001-10' AND NomeFantasia IS NULL; -- CLI_CODCLI=30
+UPDATE Cliente SET NomeFantasia = N'MERCEARIA CANIEL' WHERE Documento = N'39.951.771/0001-08' AND NomeFantasia IS NULL; -- CLI_CODCLI=1030
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOS MOMBUCA 001-77' WHERE Documento = N'41.260.311/0001-77' AND NomeFantasia IS NULL; -- CLI_CODCLI=1031
+UPDATE Cliente SET NomeFantasia = N'GRANJA SANTA EMA' WHERE Documento = N'29.157.660/0001-62' AND NomeFantasia IS NULL; -- CLI_CODCLI=1032
+UPDATE Cliente SET NomeFantasia = N'TRANS RTR TRANSPORTES' WHERE Documento = N'39.592.980/0001-02' AND NomeFantasia IS NULL; -- CLI_CODCLI=1033
+UPDATE Cliente SET NomeFantasia = N'GRANJA WAKAMOTO - MARCEL' WHERE Documento = N'12.439.114/0001-11' AND NomeFantasia IS NULL; -- CLI_CODCLI=1034
+UPDATE Cliente SET NomeFantasia = N'ANA MARIA G. V. RUFINO' WHERE Documento = N'301.664.518-19' AND NomeFantasia IS NULL; -- CLI_CODCLI=1035
+UPDATE Cliente SET NomeFantasia = N'DMK REPRESENTACOES' WHERE Documento = N'41.056.536/0001-06' AND NomeFantasia IS NULL; -- CLI_CODCLI=1036
+UPDATE Cliente SET NomeFantasia = N'ECORI ENERGIA SOLAR LTDA' WHERE Documento = N'13.329.758/0001-10' AND NomeFantasia IS NULL; -- CLI_CODCLI=1037
+UPDATE Cliente SET NomeFantasia = N'ESPERANCA COMERCIO CEREAIS' WHERE Documento = N'21.948.907/0001-57' AND NomeFantasia IS NULL; -- CLI_CODCLI=1038
+UPDATE Cliente SET NomeFantasia = N'CAMILA NUNES GOMES' WHERE Documento = N'37.036.339/0001-58' AND NomeFantasia IS NULL; -- CLI_CODCLI=1039
+UPDATE Cliente SET NomeFantasia = N'FAZENDA LAVRA - FAVO REAL' WHERE Documento = N'38.040.656/0001-00' AND NomeFantasia IS NULL; -- CLI_CODCLI=1040
+UPDATE Cliente SET NomeFantasia = N'QM DISTRIBUIDORA-OVOS DA TERRA' WHERE Documento = N'45.290.744/0001-26' AND NomeFantasia IS NULL; -- CLI_CODCLI=1041
+UPDATE Cliente SET NomeFantasia = N'VIDRAÇARIA - SÃO PEDRO-MARIPED' WHERE Documento = N'45.081.596/0001-30' AND NomeFantasia IS NULL; -- CLI_CODCLI=1042
+UPDATE Cliente SET NomeFantasia = N'GRANJA LACERDS' WHERE Documento = N'34.879.400/0001-30' AND NomeFantasia IS NULL; -- CLI_CODCLI=1043
+UPDATE Cliente SET NomeFantasia = N'FNF AGRONEGOCIOS' WHERE Documento = N'38.872.816/0001-88' AND NomeFantasia IS NULL; -- CLI_CODCLI=1044
+UPDATE Cliente SET NomeFantasia = N'GRANJA CARLOS IKEDA - SP' WHERE Documento = N'45.579.191/0001-26' AND NomeFantasia IS NULL; -- CLI_CODCLI=1045
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVO EXTRA' WHERE Documento = N'13.003.893/0001-70' AND NomeFantasia IS NULL; -- CLI_CODCLI=1046
+UPDATE Cliente SET NomeFantasia = N'TICH ALIMENTOS - BRUNO' WHERE Documento = N'45.353.068/0001-92' AND NomeFantasia IS NULL; -- CLI_CODCLI=1047
+UPDATE Cliente SET NomeFantasia = N'GRANJA GEMA DA ROÇA' WHERE Documento = N'04.545.573/0001-51' AND NomeFantasia IS NULL; -- CLI_CODCLI=1048
+UPDATE Cliente SET NomeFantasia = N'GRANJA RS - YOKO' WHERE Documento = N'579.112.749-91' AND NomeFantasia IS NULL; -- CLI_CODCLI=1049
+UPDATE Cliente SET NomeFantasia = N'VIDA ACADEMIA' WHERE Documento = N'40.563.776/0001-34' AND NomeFantasia IS NULL; -- CLI_CODCLI=1050
+UPDATE Cliente SET NomeFantasia = N'GRANJA HOLANDA AVICULTURA' WHERE Documento = N'13.248.381/0002-55' AND NomeFantasia IS NULL; -- CLI_CODCLI=1051
+UPDATE Cliente SET NomeFantasia = N'GRANJA CANASTRA FOODS' WHERE Documento = N'31.067.278/0001-00' AND NomeFantasia IS NULL; -- CLI_CODCLI=1052
+UPDATE Cliente SET NomeFantasia = N'DIDA CONVENIENCIA' WHERE Documento = N'48.288.012/0001-90' AND NomeFantasia IS NULL; -- CLI_CODCLI=1053
+UPDATE Cliente SET NomeFantasia = N'GRANJA AVIARIO APOLLO' WHERE Documento = N'101.059.716-77' AND NomeFantasia IS NULL; -- CLI_CODCLI=1054
+UPDATE Cliente SET NomeFantasia = N'TRANS FELIPE - ELZA ONO' WHERE Documento = N'46.093.776/0001-02' AND NomeFantasia IS NULL; -- CLI_CODCLI=1055
+UPDATE Cliente SET NomeFantasia = N'ESPERANCA COMERCIO CEREAIS 2' WHERE Documento = N'35.014.903/0001-06' AND NomeFantasia IS NULL; -- CLI_CODCLI=1056
+UPDATE Cliente SET NomeFantasia = N'GRANJA ARENOVOS FILIAL' WHERE Documento = N'03.568.925/0002-02' AND NomeFantasia IS NULL; -- CLI_CODCLI=1057
+UPDATE Cliente SET NomeFantasia = N'PROMIL' WHERE Documento = N'03.811.442/0001-06' AND NomeFantasia IS NULL; -- CLI_CODCLI=1058
+UPDATE Cliente SET NomeFantasia = N'DSM - DISTRIBUIDORA SAO MIGUEL' WHERE Documento = N'04.058.396/0001-89' AND NomeFantasia IS NULL; -- CLI_CODCLI=1059
+UPDATE Cliente SET NomeFantasia = N'GRANJA AVICOLA CORTEZ' WHERE Documento = N'537.892.969-53' AND NomeFantasia IS NULL; -- CLI_CODCLI=1060
+UPDATE Cliente SET NomeFantasia = N'OVOS GUATAPARA -  MARCOS' WHERE Documento = N'46.623.461/0001-11' AND NomeFantasia IS NULL; -- CLI_CODCLI=1061
+UPDATE Cliente SET NomeFantasia = N'GRANJA AVICOLA CORTEZ-ARNALDO' WHERE Documento = N'493.489.229-04' AND NomeFantasia IS NULL; -- CLI_CODCLI=1062
+UPDATE Cliente SET NomeFantasia = N'DISTRIBUIDORA SAO LUCAS' WHERE Documento = N'46.837.625/0001-03' AND NomeFantasia IS NULL; -- CLI_CODCLI=1063
+UPDATE Cliente SET NomeFantasia = N'ALIMENTA FRIGORIFICO' WHERE Documento = N'01.364.300/0001-12' AND NomeFantasia IS NULL; -- CLI_CODCLI=1064
+UPDATE Cliente SET NomeFantasia = N'GRANJA INDAIA - PF-11' WHERE Documento = N'061.390.896-11' AND NomeFantasia IS NULL; -- CLI_CODCLI=1065
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOS DEIMLING' WHERE Documento = N'43.712.925/0001-78' AND NomeFantasia IS NULL; -- CLI_CODCLI=1066
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOS DEIMLING - PF' WHERE Documento = N'473.441.990-68' AND NomeFantasia IS NULL; -- CLI_CODCLI=1067
+UPDATE Cliente SET NomeFantasia = N'GRANJA IPIRANGA' WHERE Documento = N'097.898.009-32' AND NomeFantasia IS NULL; -- CLI_CODCLI=1068
+UPDATE Cliente SET NomeFantasia = N'GRANJA KADOWAKI - ARTUR' WHERE Documento = N'057.482.229-14' AND NomeFantasia IS NULL; -- CLI_CODCLI=1069
+UPDATE Cliente SET NomeFantasia = N'NUTRIGALLIS- EXCELENCIA EM NUT' WHERE Documento = N'34.718.798/0001-23' AND NomeFantasia IS NULL; -- CLI_CODCLI=1070
+UPDATE Cliente SET NomeFantasia = N'GRANJA KADOWAKI - TIAGO' WHERE Documento = N'047.998.069-12' AND NomeFantasia IS NULL; -- CLI_CODCLI=1071
+UPDATE Cliente SET NomeFantasia = N'GRANJA MONTE SINAI' WHERE Documento = N'018.758.349-82' AND NomeFantasia IS NULL; -- CLI_CODCLI=1072
+UPDATE Cliente SET NomeFantasia = N'POSTO PRUDENTÃO' WHERE Documento = N'05.432.276/0001-62' AND NomeFantasia IS NULL; -- CLI_CODCLI=1073
+UPDATE Cliente SET NomeFantasia = N'GRANJA FUJIKURA - HASEGAWA ALI' WHERE Documento = N'33.456.853/0001-91' AND NomeFantasia IS NULL; -- CLI_CODCLI=1074
+UPDATE Cliente SET NomeFantasia = N'TRANS ANDREGHETTO' WHERE Documento = N'47.409.034/0001-06' AND NomeFantasia IS NULL; -- CLI_CODCLI=1075
+UPDATE Cliente SET NomeFantasia = N'BORRACHARIA CONFIANCA - SID PN' WHERE Documento = N'46.058.587/0001-90' AND NomeFantasia IS NULL; -- CLI_CODCLI=1076
+UPDATE Cliente SET NomeFantasia = N'GRANJA EDAN - TRANSPORTE' WHERE Documento = N'46.942.971/0001-51' AND NomeFantasia IS NULL; -- CLI_CODCLI=1077
+UPDATE Cliente SET NomeFantasia = N'TRANS DENISE - AGRO' WHERE Documento = N'46.224.763/0001-17' AND NomeFantasia IS NULL; -- CLI_CODCLI=1078
+UPDATE Cliente SET NomeFantasia = N'GRANJA CANASTRA FOODS - JVM' WHERE Documento = N'47.753.092/0001-44' AND NomeFantasia IS NULL; -- CLI_CODCLI=1079
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOS SAO LOURENCO' WHERE Documento = N'44.473.572/0001-63' AND NomeFantasia IS NULL; -- CLI_CODCLI=1080
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOS SAO LOURENCO PF' WHERE Documento = N'238.345.796-53' AND NomeFantasia IS NULL; -- CLI_CODCLI=1081
+UPDATE Cliente SET NomeFantasia = N'GRANJA DOIS IRMÃO' WHERE Documento = N'09.167.258/0001-51' AND NomeFantasia IS NULL; -- CLI_CODCLI=1082
+UPDATE Cliente SET NomeFantasia = N'IGOR DAGMAR DE GIULI CABRERA' WHERE Documento = N'44.456.759/0001-59' AND NomeFantasia IS NULL; -- CLI_CODCLI=1083
+UPDATE Cliente SET NomeFantasia = N'J. A. CORTICA PAINEIS' WHERE Documento = N'48.222.321/0001-67' AND NomeFantasia IS NULL; -- CLI_CODCLI=1084
+UPDATE Cliente SET NomeFantasia = N'TRANS CIHODA - GC TRANSPORTES' WHERE Documento = N'41.283.986/0001-31' AND NomeFantasia IS NULL; -- CLI_CODCLI=1085
+UPDATE Cliente SET NomeFantasia = N'GRANJA MORISHITA - FENIX' WHERE Documento = N'07.939.399/0025-97' AND NomeFantasia IS NULL; -- CLI_CODCLI=1086
+UPDATE Cliente SET NomeFantasia = N'TRANS TEIXEIRA' WHERE Documento = N'48.438.757/0001-98' AND NomeFantasia IS NULL; -- CLI_CODCLI=1087
+UPDATE Cliente SET NomeFantasia = N'LOJA SAO LUIZ' WHERE Documento = N'36.061.647/0001-70' AND NomeFantasia IS NULL; -- CLI_CODCLI=1088
+UPDATE Cliente SET NomeFantasia = N'PASTELARIA SOL NASCENTE' WHERE Documento = N'55.151.518/0001-18' AND NomeFantasia IS NULL; -- CLI_CODCLI=1089
+UPDATE Cliente SET NomeFantasia = N'AGROBASTOS' WHERE Documento = N'43.891.775/0001-07' AND NomeFantasia IS NULL; -- CLI_CODCLI=1090
+UPDATE Cliente SET NomeFantasia = N'AGROBASTOS - SERVICO' WHERE Documento = N'44.762.109/0001-31' AND NomeFantasia IS NULL; -- CLI_CODCLI=1091
+UPDATE Cliente SET NomeFantasia = N'AMORALUA' WHERE Documento = N'46.447.624/0001-52' AND NomeFantasia IS NULL; -- CLI_CODCLI=1092
+UPDATE Cliente SET NomeFantasia = N'PADARIA NATUR' WHERE Documento = N'94.549.268/0001-20' AND NomeFantasia IS NULL; -- CLI_CODCLI=1093
+UPDATE Cliente SET NomeFantasia = N'GRANJA GEMA DE OURO' WHERE Documento = N'29.237.687/0001-65' AND NomeFantasia IS NULL; -- CLI_CODCLI=1094
+UPDATE Cliente SET NomeFantasia = N'ENERBIO ALIMENTOS' WHERE Documento = N'17.867.008/0001-52' AND NomeFantasia IS NULL; -- CLI_CODCLI=1095
+UPDATE Cliente SET NomeFantasia = N'GRANJA VILA AGRICOLA' WHERE Documento = N'43.940.974/0001-68' AND NomeFantasia IS NULL; -- CLI_CODCLI=1096
+UPDATE Cliente SET NomeFantasia = N'GRANJA VILA AGRICOLA - PF' WHERE Documento = N'023.511.259-32' AND NomeFantasia IS NULL; -- CLI_CODCLI=1097
+UPDATE Cliente SET NomeFantasia = N'DUQUESA CALCADOS E VESTUARIO' WHERE Documento = N'40.637.441/0001-13' AND NomeFantasia IS NULL; -- CLI_CODCLI=1098
+UPDATE Cliente SET NomeFantasia = N'GRANJA FILADEIFIA - BALSAS' WHERE Documento = N'43.660.152/0001-23' AND NomeFantasia IS NULL; -- CLI_CODCLI=1099
+UPDATE Cliente SET NomeFantasia = N'GRANJA CAGERI - CAROL-037' WHERE Documento = N'000.431.190-69' AND NomeFantasia IS NULL; -- CLI_CODCLI=1100
+UPDATE Cliente SET NomeFantasia = N'COSTELA NO BAFO' WHERE Documento = N'48.289.032/0001-85' AND NomeFantasia IS NULL; -- CLI_CODCLI=1101
+UPDATE Cliente SET NomeFantasia = N'GRANJA CAPOEIRAS' WHERE Documento = N'49.553.713/0001-71' AND NomeFantasia IS NULL; -- CLI_CODCLI=1102
+UPDATE Cliente SET NomeFantasia = N'GRANJA DIVINO PAI ETERNO' WHERE Documento = N'080.233.576-46' AND NomeFantasia IS NULL; -- CLI_CODCLI=1103
+UPDATE Cliente SET NomeFantasia = N'JAPA AÇAI' WHERE Documento = N'48.133.299/0001-89' AND NomeFantasia IS NULL; -- CLI_CODCLI=1104
+UPDATE Cliente SET NomeFantasia = N'GRANJA CASA DA COCÓ' WHERE Documento = N'007.250.022-04' AND NomeFantasia IS NULL; -- CLI_CODCLI=1105
+UPDATE Cliente SET NomeFantasia = N'TRANS CIHODA - GUGA' WHERE Documento = N'48.376.731/0001-62' AND NomeFantasia IS NULL; -- CLI_CODCLI=1106
+UPDATE Cliente SET NomeFantasia = N'TRANS GARUTTI' WHERE Documento = N'49.558.759/0001-83' AND NomeFantasia IS NULL; -- CLI_CODCLI=1107
+UPDATE Cliente SET NomeFantasia = N'CHEF HAMBURGUERIA' WHERE Documento = N'49.109.909/0001-71' AND NomeFantasia IS NULL; -- CLI_CODCLI=1108
+UPDATE Cliente SET NomeFantasia = N'AUTO MARKA' WHERE Documento = N'10.660.821/0001-08' AND NomeFantasia IS NULL; -- CLI_CODCLI=1109
+UPDATE Cliente SET NomeFantasia = N'FAZENDA LIVIA - INHAMBUPE' WHERE Documento = N'48.698.227/0001-89' AND NomeFantasia IS NULL; -- CLI_CODCLI=1110
+UPDATE Cliente SET NomeFantasia = N'ATACADISTA FLORESTA' WHERE Documento = N'49.679.526/0001-39' AND NomeFantasia IS NULL; -- CLI_CODCLI=1111
+UPDATE Cliente SET NomeFantasia = N'GG DISTRIBUIDORA - PARAGUAÇU' WHERE Documento = N'53.034.005/0001-00' AND NomeFantasia IS NULL; -- CLI_CODCLI=1112
+UPDATE Cliente SET NomeFantasia = N'GRANJA SITIO A ROÇA' WHERE Documento = N'40.378.401/0001-02' AND NomeFantasia IS NULL; -- CLI_CODCLI=1113
+UPDATE Cliente SET NomeFantasia = N'TRANS BRIMARY' WHERE Documento = N'12.916.999/0001-00' AND NomeFantasia IS NULL; -- CLI_CODCLI=1114
+UPDATE Cliente SET NomeFantasia = N'FAZENDA MALABAR' WHERE Documento = N'13.191.886/0001-40' AND NomeFantasia IS NULL; -- CLI_CODCLI=1115
+UPDATE Cliente SET NomeFantasia = N'GRANJA GEMA DE OURO - BA' WHERE Documento = N'274.959.579-72' AND NomeFantasia IS NULL; -- CLI_CODCLI=1116
+UPDATE Cliente SET NomeFantasia = N'FAZENDA LIVIA - APORA' WHERE Documento = N'925.218.435-04' AND NomeFantasia IS NULL; -- CLI_CODCLI=1117
+UPDATE Cliente SET NomeFantasia = N'JOAO LEMOS DA SILVA' WHERE Documento = N'11.013.748/0001-45' AND NomeFantasia IS NULL; -- CLI_CODCLI=1118
+UPDATE Cliente SET NomeFantasia = N'GRANJA GUARANI - PAULISTANO' WHERE Documento = N'01.463.926/0005-00' AND NomeFantasia IS NULL; -- CLI_CODCLI=1119
+UPDATE Cliente SET NomeFantasia = N'DAMIAO VICENTE DA SILVA COME.' WHERE Documento = N'50.415.711/0001-03' AND NomeFantasia IS NULL; -- CLI_CODCLI=1120
+UPDATE Cliente SET NomeFantasia = N'AÇOUGUE RA EMBUTIDOS' WHERE Documento = N'42.783.103/0001-15' AND NomeFantasia IS NULL; -- CLI_CODCLI=1121
+UPDATE Cliente SET NomeFantasia = N'HOTEL STEFFEN' WHERE Documento = N'08.356.333/0001-60' AND NomeFantasia IS NULL; -- CLI_CODCLI=1122
+UPDATE Cliente SET NomeFantasia = N'GRANJA CANASTRA FOODS - PF' WHERE Documento = N'044.832.826-70' AND NomeFantasia IS NULL; -- CLI_CODCLI=1123
+UPDATE Cliente SET NomeFantasia = N'GRANJA AVICOLA CAIPIRA SERIDO' WHERE Documento = N'43.594.479/0001-44' AND NomeFantasia IS NULL; -- CLI_CODCLI=1124
+UPDATE Cliente SET NomeFantasia = N'SHOW DE BANHO' WHERE Documento = N'29.888.846/0001-91' AND NomeFantasia IS NULL; -- CLI_CODCLI=1125
+UPDATE Cliente SET NomeFantasia = N'GRANJA AGUA BONITA' WHERE Documento = N'08.076.379/0001-25' AND NomeFantasia IS NULL; -- CLI_CODCLI=1126
+UPDATE Cliente SET NomeFantasia = N'PADARIA E CONFEITARIA BERGAMO' WHERE Documento = N'50.858.218/0001-50' AND NomeFantasia IS NULL; -- CLI_CODCLI=1127
+UPDATE Cliente SET NomeFantasia = N'TRANS BRIMARY - JCA' WHERE Documento = N'46.619.643/0001-19' AND NomeFantasia IS NULL; -- CLI_CODCLI=1128
+UPDATE Cliente SET NomeFantasia = N'JOSIMARIO GOMES FLORENCIO' WHERE Documento = N'370.739.404-25' AND NomeFantasia IS NULL; -- CLI_CODCLI=1129
+UPDATE Cliente SET NomeFantasia = N'GRANJA AVICOLA DO VALE' WHERE Documento = N'290.390.100-72' AND NomeFantasia IS NULL; -- CLI_CODCLI=1130
+UPDATE Cliente SET NomeFantasia = N'GRANJA KOGA ESTANCIA BELA VIST' WHERE Documento = N'21.834.628/0005-96' AND NomeFantasia IS NULL; -- CLI_CODCLI=1131
+UPDATE Cliente SET NomeFantasia = N'GRANJA KOGA II' WHERE Documento = N'21.834.628/0008-39' AND NomeFantasia IS NULL; -- CLI_CODCLI=1132
+UPDATE Cliente SET NomeFantasia = N'GRANJA KOGA III' WHERE Documento = N'21.834.628/0002-43' AND NomeFantasia IS NULL; -- CLI_CODCLI=1133
+UPDATE Cliente SET NomeFantasia = N'GRANJA YOSHIDA' WHERE Documento = N'21.834.628/0003-24' AND NomeFantasia IS NULL; -- CLI_CODCLI=1134
+UPDATE Cliente SET NomeFantasia = N'GRANJA KOGA ESTANCIA PRIMAVERA' WHERE Documento = N'21.834.628/0009-10' AND NomeFantasia IS NULL; -- CLI_CODCLI=1135
+UPDATE Cliente SET NomeFantasia = N'GRANJA BRASIL - SITIO FARTURA' WHERE Documento = N'07.937.846/0022-26' AND NomeFantasia IS NULL; -- CLI_CODCLI=1136
+UPDATE Cliente SET NomeFantasia = N'GRANJA BRASIL - GRANJA SUZUKI' WHERE Documento = N'07.937.846/0021-45' AND NomeFantasia IS NULL; -- CLI_CODCLI=1137
+UPDATE Cliente SET NomeFantasia = N'GRANJA PEDRO GOHARA - YAJIMA' WHERE Documento = N'14.106.560/0008-06' AND NomeFantasia IS NULL; -- CLI_CODCLI=1138
+UPDATE Cliente SET NomeFantasia = N'GRANJA SÃO BENEDITO PAMITAL' WHERE Documento = N'50.037.222/0001-57' AND NomeFantasia IS NULL; -- CLI_CODCLI=1139
+UPDATE Cliente SET NomeFantasia = N'SITIO VIVIAN 2 - SHIRASU' WHERE Documento = N'51.022.595/0001-17' AND NomeFantasia IS NULL; -- CLI_CODCLI=1140
+UPDATE Cliente SET NomeFantasia = N'GRANJA GLOBAL - GRANJA' WHERE Documento = N'31.074.937/0005-69' AND NomeFantasia IS NULL; -- CLI_CODCLI=1141
+UPDATE Cliente SET NomeFantasia = N'JOÃO CARLOS DÉO' WHERE Documento = N'405.849.728-90' AND NomeFantasia IS NULL; -- CLI_CODCLI=1142
+UPDATE Cliente SET NomeFantasia = N'GRANJA HARADA' WHERE Documento = N'208.334.589-49' AND NomeFantasia IS NULL; -- CLI_CODCLI=1143
+UPDATE Cliente SET NomeFantasia = N'GRANJA PROGRESSO TERUI' WHERE Documento = N'07.927.200/0006-48' AND NomeFantasia IS NULL; -- CLI_CODCLI=1144
+UPDATE Cliente SET NomeFantasia = N'GRANJA MORAES BA' WHERE Documento = N'07.683.245/0001-00' AND NomeFantasia IS NULL; -- CLI_CODCLI=1145
+UPDATE Cliente SET NomeFantasia = N'JF AGRO' WHERE Documento = N'056.221.004-02' AND NomeFantasia IS NULL; -- CLI_CODCLI=1146
+UPDATE Cliente SET NomeFantasia = N'FJ AGRO' WHERE Documento = N'057.950.194-96' AND NomeFantasia IS NULL; -- CLI_CODCLI=1147
+UPDATE Cliente SET NomeFantasia = N'JF AGRO' WHERE Documento = N'470.996.154-91' AND NomeFantasia IS NULL; -- CLI_CODCLI=1148
+UPDATE Cliente SET NomeFantasia = N'JF AGRO' WHERE Documento = N'071.568.624-05' AND NomeFantasia IS NULL; -- CLI_CODCLI=1149
+UPDATE Cliente SET NomeFantasia = N'GRANJA AGRONOVO' WHERE Documento = N'079.646.746-33' AND NomeFantasia IS NULL; -- CLI_CODCLI=1150
+UPDATE Cliente SET NomeFantasia = N'GRANJA BECKER - BSM EDUARDO' WHERE Documento = N'51.675.566/0001-54' AND NomeFantasia IS NULL; -- CLI_CODCLI=1151
+UPDATE Cliente SET NomeFantasia = N'GRANJA ESPERANÇA' WHERE Documento = N'095.316.396-20' AND NomeFantasia IS NULL; -- CLI_CODCLI=1152
+UPDATE Cliente SET NomeFantasia = N'BUBBAS BURGUER' WHERE Documento = N'52.011.853/0001-22' AND NomeFantasia IS NULL; -- CLI_CODCLI=1153
+UPDATE Cliente SET NomeFantasia = N'LIMIEN MEDICAL DENTAL' WHERE Documento = N'44.757.186/0001-01' AND NomeFantasia IS NULL; -- CLI_CODCLI=1154
+UPDATE Cliente SET NomeFantasia = N'WG SERVICOS ELETRICOS' WHERE Documento = N'40.456.636/0001-67' AND NomeFantasia IS NULL; -- CLI_CODCLI=1155
+UPDATE Cliente SET NomeFantasia = N'ROGER TUPAZINHO' WHERE Documento = N'46.069.285/0001-18' AND NomeFantasia IS NULL; -- CLI_CODCLI=1156
+UPDATE Cliente SET NomeFantasia = N'GRANJA BECKER' WHERE Documento = N'469.810.049-68' AND NomeFantasia IS NULL; -- CLI_CODCLI=1157
+UPDATE Cliente SET NomeFantasia = N'GRANJA GEMA DOURADA' WHERE Documento = N'409.490.289-91' AND NomeFantasia IS NULL; -- CLI_CODCLI=1158
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOS TATIANE' WHERE Documento = N'093.728.589-78' AND NomeFantasia IS NULL; -- CLI_CODCLI=1159
+UPDATE Cliente SET NomeFantasia = N'GRANJA SAO PEDRO - MATRIZ' WHERE Documento = N'52.324.666/0001-07' AND NomeFantasia IS NULL; -- CLI_CODCLI=1160
+UPDATE Cliente SET NomeFantasia = N'GRANJA SAO PEDRO FILIAL 1' WHERE Documento = N'52.324.666/0002-80' AND NomeFantasia IS NULL; -- CLI_CODCLI=1161
+UPDATE Cliente SET NomeFantasia = N'GRANJA SAO PEDRO FILIAL 2' WHERE Documento = N'52.324.666/0003-60' AND NomeFantasia IS NULL; -- CLI_CODCLI=1162
+UPDATE Cliente SET NomeFantasia = N'GRANJA CAIPIRA TODO DIA' WHERE Documento = N'51.809.930/0001-21' AND NomeFantasia IS NULL; -- CLI_CODCLI=1163
+UPDATE Cliente SET NomeFantasia = N'TRANS RD - SIGAMAIS' WHERE Documento = N'52.351.661/0001-65' AND NomeFantasia IS NULL; -- CLI_CODCLI=1164
+UPDATE Cliente SET NomeFantasia = N'MAXMETAL' WHERE Documento = N'18.076.276/0001-19' AND NomeFantasia IS NULL; -- CLI_CODCLI=1165
+UPDATE Cliente SET NomeFantasia = N'GRANJA GANOZA' WHERE Documento = N'48.470.612/0001-74' AND NomeFantasia IS NULL; -- CLI_CODCLI=1166
+UPDATE Cliente SET NomeFantasia = N'GRANJA GEMA DA ROÇA - BEBEDOUR' WHERE Documento = N'21.878.274/0002-39' AND NomeFantasia IS NULL; -- CLI_CODCLI=1167
+UPDATE Cliente SET NomeFantasia = N'GRANJA GEMA DA ROÇA - TRES FAZ' WHERE Documento = N'04.545.573/0005-85' AND NomeFantasia IS NULL; -- CLI_CODCLI=1168
+UPDATE Cliente SET NomeFantasia = N'GRANJA GEMA DA ROÇA - DISTRIT' WHERE Documento = N'21.878.274/0001-58' AND NomeFantasia IS NULL; -- CLI_CODCLI=1169
+UPDATE Cliente SET NomeFantasia = N'GRANJA SITIO DUVIDOSO' WHERE Documento = N'40.099.885/0001-42' AND NomeFantasia IS NULL; -- CLI_CODCLI=1170
+UPDATE Cliente SET NomeFantasia = N'GRANJA TINOCO - CONSULTORIA' WHERE Documento = N'07.928.137/0001-50' AND NomeFantasia IS NULL; -- CLI_CODCLI=1171
+UPDATE Cliente SET NomeFantasia = N'GRANJA FENIX - FILIAL' WHERE Documento = N'04.188.995/0002-06' AND NomeFantasia IS NULL; -- CLI_CODCLI=1172
+UPDATE Cliente SET NomeFantasia = N'OVOS BASTOS - BOM PADRAO' WHERE Documento = N'44.745.160/0001-35' AND NomeFantasia IS NULL; -- CLI_CODCLI=1173
+UPDATE Cliente SET NomeFantasia = N'PONTO DO OVO' WHERE Documento = N'28.086.906/0001-90' AND NomeFantasia IS NULL; -- CLI_CODCLI=1174
+UPDATE Cliente SET NomeFantasia = N'TRANS LETS DOG - BELLA' WHERE Documento = N'35.676.855/0001-11' AND NomeFantasia IS NULL; -- CLI_CODCLI=1175
+UPDATE Cliente SET NomeFantasia = N'GRANJA AVICOLA MISSÕES' WHERE Documento = N'001.669.170-95' AND NomeFantasia IS NULL; -- CLI_CODCLI=1176
+UPDATE Cliente SET NomeFantasia = N'GRANJA ALVORADA DA SERRA' WHERE Documento = N'769.548.381-87' AND NomeFantasia IS NULL; -- CLI_CODCLI=1177
+UPDATE Cliente SET NomeFantasia = N'DISTRIBUIDORA DR II' WHERE Documento = N'53.045.600/0001-32' AND NomeFantasia IS NULL; -- CLI_CODCLI=1178
+UPDATE Cliente SET NomeFantasia = N'MITRA DIOCESANA DE MARILIA' WHERE Documento = N'52.059.797/0060-56' AND NomeFantasia IS NULL; -- CLI_CODCLI=1179
+UPDATE Cliente SET NomeFantasia = N'JOÃO CARLOS - EGG EASY' WHERE Documento = N'51.495.202/0001-92' AND NomeFantasia IS NULL; -- CLI_CODCLI=1180
+UPDATE Cliente SET NomeFantasia = N'BIOGEMIX - BETO AMICIL-SP' WHERE Documento = N'33.770.630/0001-02' AND NomeFantasia IS NULL; -- CLI_CODCLI=1181
+UPDATE Cliente SET NomeFantasia = N'GRANJA MOMBUCA DESCALVADO' WHERE Documento = N'41.260.311/0007-62' AND NomeFantasia IS NULL; -- CLI_CODCLI=1182
+UPDATE Cliente SET NomeFantasia = N'BIOGEMIX - BETO  MATRIX' WHERE Documento = N'25.369.820/0001-86' AND NomeFantasia IS NULL; -- CLI_CODCLI=1183
+UPDATE Cliente SET NomeFantasia = N'GRANJA GEMA DA ROÇA - BLEND' WHERE Documento = N'04.545.573/0003-13' AND NomeFantasia IS NULL; -- CLI_CODCLI=1184
+UPDATE Cliente SET NomeFantasia = N'GRANJA CODORNAS DO SERTÃO' WHERE Documento = N'48.300.670/0001-50' AND NomeFantasia IS NULL; -- CLI_CODCLI=1185
+UPDATE Cliente SET NomeFantasia = N'COFHENA' WHERE Documento = N'52.918.952/0001-92' AND NomeFantasia IS NULL; -- CLI_CODCLI=1186
+UPDATE Cliente SET NomeFantasia = N'STEEL BR AMAZÔNIA' WHERE Documento = N'40.084.417/0001-02' AND NomeFantasia IS NULL; -- CLI_CODCLI=1187
+UPDATE Cliente SET NomeFantasia = N'GRANJA GLOBAL - SAO CARLOS 2' WHERE Documento = N'53.709.484/0001-09' AND NomeFantasia IS NULL; -- CLI_CODCLI=1188
+UPDATE Cliente SET NomeFantasia = N'GRANJA SANTA JOANA' WHERE Documento = N'024.686.112-68' AND NomeFantasia IS NULL; -- CLI_CODCLI=1189
+UPDATE Cliente SET NomeFantasia = N'JUDO DE BASTOS' WHERE Documento = N'54.707.997/0001-43' AND NomeFantasia IS NULL; -- CLI_CODCLI=1190
+UPDATE Cliente SET NomeFantasia = N'ADUBOS BRANCO DAVID' WHERE Documento = N'45.733.343/0001-01' AND NomeFantasia IS NULL; -- CLI_CODCLI=1191
+UPDATE Cliente SET NomeFantasia = N'JOTA BOM HORTIFRUTI - GOMES' WHERE Documento = N'53.043.889/0001-50' AND NomeFantasia IS NULL; -- CLI_CODCLI=1192
+UPDATE Cliente SET NomeFantasia = N'TRANS DU BEN BARBOSA (MORIYA)' WHERE Documento = N'44.930.949/0001-66' AND NomeFantasia IS NULL; -- CLI_CODCLI=1193
+UPDATE Cliente SET NomeFantasia = N'GRANJA BRASIL - IKEDA' WHERE Documento = N'07.937.846/0023-07' AND NomeFantasia IS NULL; -- CLI_CODCLI=1194
+UPDATE Cliente SET NomeFantasia = N'RK PRODUTOS ALIMENTICIOS' WHERE Documento = N'11.258.914/0001-73' AND NomeFantasia IS NULL; -- CLI_CODCLI=1195
+UPDATE Cliente SET NomeFantasia = N'LATTREVO BAR E RESTAURANTE' WHERE Documento = N'51.926.122/0001-44' AND NomeFantasia IS NULL; -- CLI_CODCLI=1196
+UPDATE Cliente SET NomeFantasia = N'TRANS CERVANTES TRANSPORTES' WHERE Documento = N'04.332.976/0001-12' AND NomeFantasia IS NULL; -- CLI_CODCLI=1198
+UPDATE Cliente SET NomeFantasia = N'DENES HORTI FRUTI' WHERE Documento = N'12.476.652/0001-86' AND NomeFantasia IS NULL; -- CLI_CODCLI=1200
+UPDATE Cliente SET NomeFantasia = N'OVOS BASTOS - BOM GOSTO' WHERE Documento = N'54.154.087/0001-80' AND NomeFantasia IS NULL; -- CLI_CODCLI=1201
+UPDATE Cliente SET NomeFantasia = N'DR CONVENIENCIA' WHERE Documento = N'47.521.846/0001-30' AND NomeFantasia IS NULL; -- CLI_CODCLI=1202
+UPDATE Cliente SET NomeFantasia = N'GRANJA SANTA IZABEL' WHERE Documento = N'51.930.558/0001-07' AND NomeFantasia IS NULL; -- CLI_CODCLI=1203
+UPDATE Cliente SET NomeFantasia = N'GRANJA CANASTRA FOODS SR SABOR' WHERE Documento = N'54.379.085/0001-90' AND NomeFantasia IS NULL; -- CLI_CODCLI=1204
+UPDATE Cliente SET NomeFantasia = N'SOCAB - MARIO AKIRA INOUE' WHERE Documento = N'08.444.098/0001-88' AND NomeFantasia IS NULL; -- CLI_CODCLI=1205
+UPDATE Cliente SET NomeFantasia = N'SOCAB - TEREZA YUKIKO SAKAGUTI' WHERE Documento = N'08.213.219/0001-80' AND NomeFantasia IS NULL; -- CLI_CODCLI=1206
+UPDATE Cliente SET NomeFantasia = N'FAZENDA MALABAR - LUIZ AFONSO' WHERE Documento = N'11.335.093/0001-21' AND NomeFantasia IS NULL; -- CLI_CODCLI=1207
+UPDATE Cliente SET NomeFantasia = N'FAZENDA MALABAR - ROBERTO' WHERE Documento = N'11.318.718/0001-47' AND NomeFantasia IS NULL; -- CLI_CODCLI=1208
+UPDATE Cliente SET NomeFantasia = N'GRANJA SHIDA FAZENDA BONFIM' WHERE Documento = N'07.921.855/0009-51' AND NomeFantasia IS NULL; -- CLI_CODCLI=1209
+UPDATE Cliente SET NomeFantasia = N'GRANJA SHIDA ESTRADA RANCHARIA' WHERE Documento = N'07.921.855/0008-70' AND NomeFantasia IS NULL; -- CLI_CODCLI=1210
+UPDATE Cliente SET NomeFantasia = N'GRANJA SHIDA SECÇAO UNIAO I' WHERE Documento = N'07.921.855/0003-66' AND NomeFantasia IS NULL; -- CLI_CODCLI=1211
+UPDATE Cliente SET NomeFantasia = N'GRANJA SHIDA FAZENDA VENEZA' WHERE Documento = N'07.921.855/0012-57' AND NomeFantasia IS NULL; -- CLI_CODCLI=1212
+UPDATE Cliente SET NomeFantasia = N'GRANJA WAKAMOTO SITIO WAKAMOTO' WHERE Documento = N'11.932.665/0002-30' AND NomeFantasia IS NULL; -- CLI_CODCLI=1213
+UPDATE Cliente SET NomeFantasia = N'GRANJA WAKAMOTO FAZENDA TIETE' WHERE Documento = N'07.922.950/0004-65' AND NomeFantasia IS NULL; -- CLI_CODCLI=1214
+UPDATE Cliente SET NomeFantasia = N'GRANJA WAKAMOTO MIRANDOPOLIS' WHERE Documento = N'11.932.665/0004-00' AND NomeFantasia IS NULL; -- CLI_CODCLI=1215
+UPDATE Cliente SET NomeFantasia = N'GRANJA WAKAMOTO PEREIRA BARRET' WHERE Documento = N'11.932.665/0005-83' AND NomeFantasia IS NULL; -- CLI_CODCLI=1216
+UPDATE Cliente SET NomeFantasia = N'NO ESPETO' WHERE Documento = N'54.187.512/0001-38' AND NomeFantasia IS NULL; -- CLI_CODCLI=1217
+UPDATE Cliente SET NomeFantasia = N'SITIO ALCIDES - BOM JESUS' WHERE Documento = N'09.030.551/0001-72' AND NomeFantasia IS NULL; -- CLI_CODCLI=1218
+UPDATE Cliente SET NomeFantasia = N'ALCIDES - FAZENDA BOM JESUS II' WHERE Documento = N'19.770.230/0001-68' AND NomeFantasia IS NULL; -- CLI_CODCLI=1219
+UPDATE Cliente SET NomeFantasia = N'ALCIDES -SITIO SÃO PEDRO' WHERE Documento = N'51.483.244/0001-03' AND NomeFantasia IS NULL; -- CLI_CODCLI=1220
+UPDATE Cliente SET NomeFantasia = N'ALCIDES - SITIO NOVA ESPERANÇA' WHERE Documento = N'08.993.984/0001-60' AND NomeFantasia IS NULL; -- CLI_CODCLI=1221
+UPDATE Cliente SET NomeFantasia = N'ALCIDES - SITIO SÃO PEDRO' WHERE Documento = N'51.471.104/0001-15' AND NomeFantasia IS NULL; -- CLI_CODCLI=1222
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOS MANDAGUACU' WHERE Documento = N'576.324.649-72' AND NomeFantasia IS NULL; -- CLI_CODCLI=1223
+UPDATE Cliente SET NomeFantasia = N'GRANJA UM - ELEN' WHERE Documento = N'50.373.290/0001-97' AND NomeFantasia IS NULL; -- CLI_CODCLI=1224
+UPDATE Cliente SET NomeFantasia = N'GRANJA UM IACRI' WHERE Documento = N'50.373.290/0002-78' AND NomeFantasia IS NULL; -- CLI_CODCLI=1225
+UPDATE Cliente SET NomeFantasia = N'GRANJA UM KYONO  ELEN TALITA' WHERE Documento = N'50.373.290/0003-59' AND NomeFantasia IS NULL; -- CLI_CODCLI=1226
+UPDATE Cliente SET NomeFantasia = N'RM ADUBAL' WHERE Documento = N'41.722.108/0001-75' AND NomeFantasia IS NULL; -- CLI_CODCLI=1227
+UPDATE Cliente SET NomeFantasia = N'WAGNER MIZOHATA TRANSPORTE' WHERE Documento = N'19.864.880/0001-72' AND NomeFantasia IS NULL; -- CLI_CODCLI=1228
+UPDATE Cliente SET NomeFantasia = N'GRANJA SERMANI SITIO ESPERANÇA' WHERE Documento = N'08.549.194/0001-90' AND NomeFantasia IS NULL; -- CLI_CODCLI=1229
+UPDATE Cliente SET NomeFantasia = N'GRANJA SCHMOELLER' WHERE Documento = N'098.972.039-07' AND NomeFantasia IS NULL; -- CLI_CODCLI=1230
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOBOM - SOLANGE' WHERE Documento = N'29.025.433/0001-83' AND NomeFantasia IS NULL; -- CLI_CODCLI=1231
+UPDATE Cliente SET NomeFantasia = N'CITROGRAF - VIVEIRO DO HORTO' WHERE Documento = N'07.963.381/0002-34' AND NomeFantasia IS NULL; -- CLI_CODCLI=1232
+UPDATE Cliente SET NomeFantasia = N'CITROGRAF - VIVEIRO DO ROCHEDO' WHERE Documento = N'07.963.381/0004-04' AND NomeFantasia IS NULL; -- CLI_CODCLI=1233
+UPDATE Cliente SET NomeFantasia = N'CITROGRAF - SITIO NOVO' WHERE Documento = N'08.028.238/0002-18' AND NomeFantasia IS NULL; -- CLI_CODCLI=1234
+UPDATE Cliente SET NomeFantasia = N'CITROGRAF - SITIO SANTA INES' WHERE Documento = N'07.963.381/0003-15' AND NomeFantasia IS NULL; -- CLI_CODCLI=1235
+UPDATE Cliente SET NomeFantasia = N'CITROGRAF - SITIO ALVORADA' WHERE Documento = N'08.028.267/0001-07' AND NomeFantasia IS NULL; -- CLI_CODCLI=1236
+UPDATE Cliente SET NomeFantasia = N'TRANS MIQUELIM' WHERE Documento = N'54.746.957/0001-00' AND NomeFantasia IS NULL; -- CLI_CODCLI=1237
+UPDATE Cliente SET NomeFantasia = N'PODENSAC - ES' WHERE Documento = N'11.131.676/0002-11' AND NomeFantasia IS NULL; -- CLI_CODCLI=1238
+UPDATE Cliente SET NomeFantasia = N'GRANJA IMPERIO' WHERE Documento = N'807.016.639-87' AND NomeFantasia IS NULL; -- CLI_CODCLI=1239
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOS URUPES - JOSE' WHERE Documento = N'08.478.429/0001-09' AND NomeFantasia IS NULL; -- CLI_CODCLI=1241
+UPDATE Cliente SET NomeFantasia = N'FAZENDA SAO JOSE - BARBIZAM' WHERE Documento = N'08.249.741/0003-84' AND NomeFantasia IS NULL; -- CLI_CODCLI=1242
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOS DA TERRA - BALSAMO' WHERE Documento = N'08.005.424/0012-03' AND NomeFantasia IS NULL; -- CLI_CODCLI=1243
+UPDATE Cliente SET NomeFantasia = N'GRANJA YOROZUYA 3-80' WHERE Documento = N'07.937.810/0003-80' AND NomeFantasia IS NULL; -- CLI_CODCLI=1244
+UPDATE Cliente SET NomeFantasia = N'GRANJA YOROZUYA 5-41' WHERE Documento = N'07.937.810/0005-41' AND NomeFantasia IS NULL; -- CLI_CODCLI=1245
+UPDATE Cliente SET NomeFantasia = N'GRANJA YOROZUYA 6-22' WHERE Documento = N'07.937.810/0006-22' AND NomeFantasia IS NULL; -- CLI_CODCLI=1246
+UPDATE Cliente SET NomeFantasia = N'GRANJA YOROZUYA 7-03' WHERE Documento = N'07.937.810/0007-03' AND NomeFantasia IS NULL; -- CLI_CODCLI=1247
+UPDATE Cliente SET NomeFantasia = N'GRANJA YOROZUYA 8-41' WHERE Documento = N'07.937.810/0008-94' AND NomeFantasia IS NULL; -- CLI_CODCLI=1248
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOBOM - DOMINGOS' WHERE Documento = N'44.937.731/0001-33' AND NomeFantasia IS NULL; -- CLI_CODCLI=1249
+UPDATE Cliente SET NomeFantasia = N'GRANJA GEMA DA ROÇA - PRISCILA' WHERE Documento = N'48.783.491/0001-10' AND NomeFantasia IS NULL; -- CLI_CODCLI=1250
+UPDATE Cliente SET NomeFantasia = N'GRANJA PURO OVO ORGANICO - MOM' WHERE Documento = N'41.260.311/0006-81' AND NomeFantasia IS NULL; -- CLI_CODCLI=1251
+UPDATE Cliente SET NomeFantasia = N'GRANJA AKAUAN' WHERE Documento = N'00.776.099/0001-18' AND NomeFantasia IS NULL; -- CLI_CODCLI=1252
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOS MORAES' WHERE Documento = N'036.619.289-29' AND NomeFantasia IS NULL; -- CLI_CODCLI=1253
+UPDATE Cliente SET NomeFantasia = N'GRANJA ORIENTE' WHERE Documento = N'167.409.636-49' AND NomeFantasia IS NULL; -- CLI_CODCLI=1254
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOS URUPES - TIAGO' WHERE Documento = N'07.980.248/0001-05' AND NomeFantasia IS NULL; -- CLI_CODCLI=1255
+UPDATE Cliente SET NomeFantasia = N'TRANS NAGANO - PEDROZA' WHERE Documento = N'55.128.823/0001-99' AND NomeFantasia IS NULL; -- CLI_CODCLI=1256
+UPDATE Cliente SET NomeFantasia = N'TRANS NAGANO - NORONHA' WHERE Documento = N'54.947.880/0001-37' AND NomeFantasia IS NULL; -- CLI_CODCLI=1257
+UPDATE Cliente SET NomeFantasia = N'TRANS NAGANO - JOSE CARLOS FOR' WHERE Documento = N'55.187.817/0001-02' AND NomeFantasia IS NULL; -- CLI_CODCLI=1258
+UPDATE Cliente SET NomeFantasia = N'TRANS DU BEN TRANSPORTES' WHERE Documento = N'55.087.242/0001-56' AND NomeFantasia IS NULL; -- CLI_CODCLI=1259
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOS ASI' WHERE Documento = N'496.599.520-15' AND NomeFantasia IS NULL; -- CLI_CODCLI=1260
+UPDATE Cliente SET NomeFantasia = N'GRANJA AGRANOR' WHERE Documento = N'11.223.794/0001-79' AND NomeFantasia IS NULL; -- CLI_CODCLI=1261
+UPDATE Cliente SET NomeFantasia = N'GRANJA MORISHITA' WHERE Documento = N'07.939.399/0023-25' AND NomeFantasia IS NULL; -- CLI_CODCLI=1262
+UPDATE Cliente SET NomeFantasia = N'GRANJA GEMA DA ROÇA - PONTAL' WHERE Documento = N'04.545.573/0002-32' AND NomeFantasia IS NULL; -- CLI_CODCLI=1263
+UPDATE Cliente SET NomeFantasia = N'TRANS SENNA' WHERE Documento = N'44.624.486/0001-04' AND NomeFantasia IS NULL; -- CLI_CODCLI=1264
+UPDATE Cliente SET NomeFantasia = N'GRANJA MARCELO MAKI - GLORIA' WHERE Documento = N'08.206.445/0015-30' AND NomeFantasia IS NULL; -- CLI_CODCLI=1265
+UPDATE Cliente SET NomeFantasia = N'UAN LA BAR' WHERE Documento = N'55.478.122/0001-80' AND NomeFantasia IS NULL; -- CLI_CODCLI=1266
+UPDATE Cliente SET NomeFantasia = N'TRANS NAGANO - FORTINI' WHERE Documento = N'55.549.153/0001-84' AND NomeFantasia IS NULL; -- CLI_CODCLI=1267
+UPDATE Cliente SET NomeFantasia = N'IPASAI BRASIL' WHERE Documento = N'52.016.338/0001-35' AND NomeFantasia IS NULL; -- CLI_CODCLI=1268
+UPDATE Cliente SET NomeFantasia = N'DELGADO - C.D.SEGURANÇA' WHERE Documento = N'51.117.720/0001-72' AND NomeFantasia IS NULL; -- CLI_CODCLI=1269
+UPDATE Cliente SET NomeFantasia = N'CITROGRAF - TERRA PRETA' WHERE Documento = N'07.963.381/0001-53' AND NomeFantasia IS NULL; -- CLI_CODCLI=1270
+UPDATE Cliente SET NomeFantasia = N'P-ADUBOS' WHERE Documento = N'53.674.330/0001-29' AND NomeFantasia IS NULL; -- CLI_CODCLI=1271
+UPDATE Cliente SET NomeFantasia = N'SOLOMAX COMERCIO E REPRESENTAC' WHERE Documento = N'71.894.323/0001-14' AND NomeFantasia IS NULL; -- CLI_CODCLI=1272
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOS ASI - RENAN' WHERE Documento = N'26.668.586/0001-50' AND NomeFantasia IS NULL; -- CLI_CODCLI=1273
+UPDATE Cliente SET NomeFantasia = N'GRANJA NINHO DE OURO' WHERE Documento = N'45.434.698/0001-91' AND NomeFantasia IS NULL; -- CLI_CODCLI=1274
+UPDATE Cliente SET NomeFantasia = N'GRANJA VOVÓ DULCE' WHERE Documento = N'054.828.746-56' AND NomeFantasia IS NULL; -- CLI_CODCLI=1275
+UPDATE Cliente SET NomeFantasia = N'GRANJA ELOY' WHERE Documento = N'18.750.072/0001-11' AND NomeFantasia IS NULL; -- CLI_CODCLI=1276
+UPDATE Cliente SET NomeFantasia = N'GRANJA SPERANZA - FLORESTA' WHERE Documento = N'088.012.976-02' AND NomeFantasia IS NULL; -- CLI_CODCLI=1277
+UPDATE Cliente SET NomeFantasia = N'GRANJA RADIL ALIMENTOS' WHERE Documento = N'03.341.066/0003-03' AND NomeFantasia IS NULL; -- CLI_CODCLI=1278
+UPDATE Cliente SET NomeFantasia = N'UNIAO MADEIRAS' WHERE Documento = N'51.594.848/0001-27' AND NomeFantasia IS NULL; -- CLI_CODCLI=1279
+UPDATE Cliente SET NomeFantasia = N'DIM ALIMENTOS - NAOMI' WHERE Documento = N'55.611.480/0001-19' AND NomeFantasia IS NULL; -- CLI_CODCLI=1280
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVO EXTRA - COMERCIAL' WHERE Documento = N'54.535.318/0001-04' AND NomeFantasia IS NULL; -- CLI_CODCLI=1281
+UPDATE Cliente SET NomeFantasia = N'WILLIAM SOSSAI' WHERE Documento = N'078.452.749-09' AND NomeFantasia IS NULL; -- CLI_CODCLI=1282
+UPDATE Cliente SET NomeFantasia = N'GRANJA ELOY - ESTEVAM' WHERE Documento = N'891.594.891-20' AND NomeFantasia IS NULL; -- CLI_CODCLI=1283
+UPDATE Cliente SET NomeFantasia = N'GRANJA ELOY - JULIO' WHERE Documento = N'062.906.711-20' AND NomeFantasia IS NULL; -- CLI_CODCLI=1284
+UPDATE Cliente SET NomeFantasia = N'GRANJA RED OVO' WHERE Documento = N'49.033.718/0001-73' AND NomeFantasia IS NULL; -- CLI_CODCLI=1285
+UPDATE Cliente SET NomeFantasia = N'GRANJA RED OVO - NUTRIAVES' WHERE Documento = N'52.527.890/0001-98' AND NomeFantasia IS NULL; -- CLI_CODCLI=1286
+UPDATE Cliente SET NomeFantasia = N'GRANJA RED OVO - FERTIAVES' WHERE Documento = N'49.033.647/0001-09' AND NomeFantasia IS NULL; -- CLI_CODCLI=1287
+UPDATE Cliente SET NomeFantasia = N'TRANS W12 TRANSPORTES' WHERE Documento = N'56.427.478/0001-57' AND NomeFantasia IS NULL; -- CLI_CODCLI=1288
+UPDATE Cliente SET NomeFantasia = N'TRANS CIHODA - GRANJA PRODUTOR' WHERE Documento = N'53.450.876/0001-04' AND NomeFantasia IS NULL; -- CLI_CODCLI=1289
+UPDATE Cliente SET NomeFantasia = N'TRANS DENISE - BIOESTE' WHERE Documento = N'57.016.861/0001-85' AND NomeFantasia IS NULL; -- CLI_CODCLI=1290
+UPDATE Cliente SET NomeFantasia = N'FARMACIA SANTO REMEDIO' WHERE Documento = N'13.089.707/0001-68' AND NomeFantasia IS NULL; -- CLI_CODCLI=1291
+UPDATE Cliente SET NomeFantasia = N'TRANS NAGANO - GUAIMBE' WHERE Documento = N'57.084.792/0001-47' AND NomeFantasia IS NULL; -- CLI_CODCLI=1292
+UPDATE Cliente SET NomeFantasia = N'SOMEL AGROPECUARIA' WHERE Documento = N'57.103.019/0001-80' AND NomeFantasia IS NULL; -- CLI_CODCLI=1293
+UPDATE Cliente SET NomeFantasia = N'GRANJA KOHIYAMA - ANDRE' WHERE Documento = N'116.821.659-14' AND NomeFantasia IS NULL; -- CLI_CODCLI=1294
+UPDATE Cliente SET NomeFantasia = N'GEMA ROÇA SITIO SANTA R PINHAI' WHERE Documento = N'303.570.898-39' AND NomeFantasia IS NULL; -- CLI_CODCLI=1295
+UPDATE Cliente SET NomeFantasia = N'SITIO VIVIAN 3 - TOYOSHIMA' WHERE Documento = N'57.565.231/0001-60' AND NomeFantasia IS NULL; -- CLI_CODCLI=1296
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOBOM - SAO MANUEL' WHERE Documento = N'17.232.965/0003-74' AND NomeFantasia IS NULL; -- CLI_CODCLI=1297
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOS DO MONTE' WHERE Documento = N'089.415.416-89' AND NomeFantasia IS NULL; -- CLI_CODCLI=1298
+UPDATE Cliente SET NomeFantasia = N'GRANJA SANTA GEMMA' WHERE Documento = N'537.267.827-53' AND NomeFantasia IS NULL; -- CLI_CODCLI=1299
+UPDATE Cliente SET NomeFantasia = N'PAPILLON - INFANTIL' WHERE Documento = N'22.158.483/0001-90' AND NomeFantasia IS NULL; -- CLI_CODCLI=1300
+UPDATE Cliente SET NomeFantasia = N'GRANJA SANTA GEMMA - RECRIA' WHERE Documento = N'537.267.827-53' AND NomeFantasia IS NULL; -- CLI_CODCLI=1301
+UPDATE Cliente SET NomeFantasia = N'GRANJA BOM SUCESSO - BIOBOM' WHERE Documento = N'57.733.276/0001-04' AND NomeFantasia IS NULL; -- CLI_CODCLI=1302
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOS PINHALENSE' WHERE Documento = N'024.986.780-00' AND NomeFantasia IS NULL; -- CLI_CODCLI=1303
+UPDATE Cliente SET NomeFantasia = N'GRANJA MIYAKUBO II' WHERE Documento = N'07.949.363/0002-06' AND NomeFantasia IS NULL; -- CLI_CODCLI=1305
+UPDATE Cliente SET NomeFantasia = N'GRANJA MIYAKUBO III' WHERE Documento = N'07.949.363/0014-31' AND NomeFantasia IS NULL; -- CLI_CODCLI=1306
+UPDATE Cliente SET NomeFantasia = N'GRANJA AVIARIO JM' WHERE Documento = N'228.660.786-91' AND NomeFantasia IS NULL; -- CLI_CODCLI=1307
+UPDATE Cliente SET NomeFantasia = N'GRANJA MIYAKUBO-SITIO BELA VIS' WHERE Documento = N'07.949.363/0011-99' AND NomeFantasia IS NULL; -- CLI_CODCLI=1308
+UPDATE Cliente SET NomeFantasia = N'GRANJA MIYAKUBO - RANCHARIA' WHERE Documento = N'07.949.363/0017-84' AND NomeFantasia IS NULL; -- CLI_CODCLI=1309
+UPDATE Cliente SET NomeFantasia = N'ORIENTAL HAPPINESS' WHERE Documento = N'41.700.449/0001-40' AND NomeFantasia IS NULL; -- CLI_CODCLI=1310
+UPDATE Cliente SET NomeFantasia = N'GRANJA CASTANHEIRA' WHERE Documento = N'008.864.396-47' AND NomeFantasia IS NULL; -- CLI_CODCLI=1311
+UPDATE Cliente SET NomeFantasia = N'GRANJA SHIRO' WHERE Documento = N'39.850.395/0001-57' AND NomeFantasia IS NULL; -- CLI_CODCLI=1312
+UPDATE Cliente SET NomeFantasia = N'AGO COMÉRCIO - GRANJA RS CEASA' WHERE Documento = N'57.185.269/0001-07' AND NomeFantasia IS NULL; -- CLI_CODCLI=1313
+UPDATE Cliente SET NomeFantasia = N'VALE DO OURO - DIADEMA' WHERE Documento = N'00.225.575/0001-02' AND NomeFantasia IS NULL; -- CLI_CODCLI=1314
+UPDATE Cliente SET NomeFantasia = N'GRANJA AGRO MELO' WHERE Documento = N'102.108.596-01' AND NomeFantasia IS NULL; -- CLI_CODCLI=1315
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOS GOLDEN' WHERE Documento = N'31.011.001/0001-65' AND NomeFantasia IS NULL; -- CLI_CODCLI=1316
+UPDATE Cliente SET NomeFantasia = N'MERCADINHO SANTA MARIA' WHERE Documento = N'58.058.740/0001-69' AND NomeFantasia IS NULL; -- CLI_CODCLI=1317
+UPDATE Cliente SET NomeFantasia = N'GRANJA J.ALCANTARA' WHERE Documento = N'195.268.493-53' AND NomeFantasia IS NULL; -- CLI_CODCLI=1318
+UPDATE Cliente SET NomeFantasia = N'R & R MECANICA DIESEL' WHERE Documento = N'59.218.121/0001-57' AND NomeFantasia IS NULL; -- CLI_CODCLI=1319
+UPDATE Cliente SET NomeFantasia = N'CS MOVEIS SOB MEDIDA E DECORAC' WHERE Documento = N'11.584.582/0001-17' AND NomeFantasia IS NULL; -- CLI_CODCLI=1320
+UPDATE Cliente SET NomeFantasia = N'HARAS MRT MORATO' WHERE Documento = N'837.858.096-20' AND NomeFantasia IS NULL; -- CLI_CODCLI=1321
+UPDATE Cliente SET NomeFantasia = N'GRANJA MONTE CRISTO' WHERE Documento = N'225.482.542-91' AND NomeFantasia IS NULL; -- CLI_CODCLI=1322
+UPDATE Cliente SET NomeFantasia = N'GRANJA SENDAS DA CAATINGA' WHERE Documento = N'50.070.538/0001-40' AND NomeFantasia IS NULL; -- CLI_CODCLI=1323
+UPDATE Cliente SET NomeFantasia = N'MAGIAS ENXOVAL' WHERE Documento = N'59.509.531/0001-57' AND NomeFantasia IS NULL; -- CLI_CODCLI=1324
+UPDATE Cliente SET NomeFantasia = N'TRANS SANTO OVO' WHERE Documento = N'46.500.473/0001-59' AND NomeFantasia IS NULL; -- CLI_CODCLI=1325
+UPDATE Cliente SET NomeFantasia = N'JQ AGRONEGOCIO' WHERE Documento = N'55.333.829/0001-06' AND NomeFantasia IS NULL; -- CLI_CODCLI=1326
+UPDATE Cliente SET NomeFantasia = N'GRANJA MARCELO MAKI - PARAPUA' WHERE Documento = N'08.206.445/0017-00' AND NomeFantasia IS NULL; -- CLI_CODCLI=1327
+UPDATE Cliente SET NomeFantasia = N'TG EQUIPAMENTOS' WHERE Documento = N'29.849.305/0001-54' AND NomeFantasia IS NULL; -- CLI_CODCLI=1328
+UPDATE Cliente SET NomeFantasia = N'GRANJA SHIDA - PARAGUACU' WHERE Documento = N'07.921.855/0013-38' AND NomeFantasia IS NULL; -- CLI_CODCLI=1329
+UPDATE Cliente SET NomeFantasia = N'AUTO ELETRICA ADRIANO SIQUEIRA' WHERE Documento = N'44.821.149/0001-07' AND NomeFantasia IS NULL; -- CLI_CODCLI=1331
+UPDATE Cliente SET NomeFantasia = N'FAZENDA MALABAR - FLAVIA' WHERE Documento = N'32.689.256/0001-44' AND NomeFantasia IS NULL; -- CLI_CODCLI=1332
+UPDATE Cliente SET NomeFantasia = N'SITIO ROBERTO TSUYOSHI MANO' WHERE Documento = N'19.841.039/0001-60' AND NomeFantasia IS NULL; -- CLI_CODCLI=1333
+UPDATE Cliente SET NomeFantasia = N'HT HORTIFRUTIGRANJEIROS' WHERE Documento = N'58.531.545/0001-04' AND NomeFantasia IS NULL; -- CLI_CODCLI=1334
+UPDATE Cliente SET NomeFantasia = N'CONTATO VISTORIA' WHERE Documento = N'10.791.145/0001-01' AND NomeFantasia IS NULL; -- CLI_CODCLI=1335
+UPDATE Cliente SET NomeFantasia = N'ART MOVEIS' WHERE Documento = N'45.051.228/0001-49' AND NomeFantasia IS NULL; -- CLI_CODCLI=1336
+UPDATE Cliente SET NomeFantasia = N'ART MOVEIS - GEOVANE' WHERE Documento = N'33.210.412/0001-05' AND NomeFantasia IS NULL; -- CLI_CODCLI=1337
+UPDATE Cliente SET NomeFantasia = N'ART MOVEIS - ARNALDO' WHERE Documento = N'35.956.700/0001-39' AND NomeFantasia IS NULL; -- CLI_CODCLI=1338
+UPDATE Cliente SET NomeFantasia = N'JOTA BOM HORTIFRUTI - A.B.S' WHERE Documento = N'52.730.317/0001-87' AND NomeFantasia IS NULL; -- CLI_CODCLI=1339
+UPDATE Cliente SET NomeFantasia = N'GRANJA OURO VERDE' WHERE Documento = N'970.923.982-15' AND NomeFantasia IS NULL; -- CLI_CODCLI=1340
+UPDATE Cliente SET NomeFantasia = N'GRANJA AVIARIO RICO' WHERE Documento = N'014.176.946-70' AND NomeFantasia IS NULL; -- CLI_CODCLI=1341
+UPDATE Cliente SET NomeFantasia = N'SITIO SAO JUDAS TADEU 1-19' WHERE Documento = N'40.171.467/0001-19' AND NomeFantasia IS NULL; -- CLI_CODCLI=1342
+UPDATE Cliente SET NomeFantasia = N'TRANS SILVA - CS TRANSPORTES' WHERE Documento = N'59.865.682/0001-48' AND NomeFantasia IS NULL; -- CLI_CODCLI=1343
+UPDATE Cliente SET NomeFantasia = N'GRANJA SAO JOSE - SAO BENEDITO' WHERE Documento = N'08.076.260/0002-33' AND NomeFantasia IS NULL; -- CLI_CODCLI=1344
+UPDATE Cliente SET NomeFantasia = N'GRANJA J.ALCANTARA - MARIA' WHERE Documento = N'244.458.433-34' AND NomeFantasia IS NULL; -- CLI_CODCLI=1345
+UPDATE Cliente SET NomeFantasia = N'CASA DO NORTE - NICOLLY E SAMI' WHERE Documento = N'21.868.825/0001-00' AND NomeFantasia IS NULL; -- CLI_CODCLI=1346
+UPDATE Cliente SET NomeFantasia = N'CASA DO NORTE - CAIXETA' WHERE Documento = N'56.021.153/0001-70' AND NomeFantasia IS NULL; -- CLI_CODCLI=1347
+UPDATE Cliente SET NomeFantasia = N'EHP STORE' WHERE Documento = N'45.969.835/0001-92' AND NomeFantasia IS NULL; -- CLI_CODCLI=1348
+UPDATE Cliente SET NomeFantasia = N'SITIO CONQUISTA' WHERE Documento = N'21.671.212/0001-70' AND NomeFantasia IS NULL; -- CLI_CODCLI=1349
+UPDATE Cliente SET NomeFantasia = N'TRIAGRO GRAOS' WHERE Documento = N'57.457.846/0001-72' AND NomeFantasia IS NULL; -- CLI_CODCLI=1350
+UPDATE Cliente SET NomeFantasia = N'GRANJA MIRAI' WHERE Documento = N'60.220.164/0001-56' AND NomeFantasia IS NULL; -- CLI_CODCLI=1352
+UPDATE Cliente SET NomeFantasia = N'GRANJA SANTELMO LTDA' WHERE Documento = N'08.231.654/0001-38' AND NomeFantasia IS NULL; -- CLI_CODCLI=1353
+UPDATE Cliente SET NomeFantasia = N'GRANJA DIVINO PAI ETERNO LTDA' WHERE Documento = N'53.277.727/0001-87' AND NomeFantasia IS NULL; -- CLI_CODCLI=1354
+UPDATE Cliente SET NomeFantasia = N'TRANS SWV TRANSPORTE' WHERE Documento = N'58.891.397/0001-39' AND NomeFantasia IS NULL; -- CLI_CODCLI=1355
+UPDATE Cliente SET NomeFantasia = N'GRANJA SPERANZA - LAVRA' WHERE Documento = N'088.012.976-02' AND NomeFantasia IS NULL; -- CLI_CODCLI=1357
+UPDATE Cliente SET NomeFantasia = N'CS EMPORIO PRODUTOS NATURAIS' WHERE Documento = N'60.238.885/0001-93' AND NomeFantasia IS NULL; -- CLI_CODCLI=1358
+UPDATE Cliente SET NomeFantasia = N'GRANJA SAARA - CNPJ' WHERE Documento = N'59.932.562/0001-16' AND NomeFantasia IS NULL; -- CLI_CODCLI=1359
+UPDATE Cliente SET NomeFantasia = N'SITIO SAO RAPHAEL' WHERE Documento = N'55.878.629/0001-20' AND NomeFantasia IS NULL; -- CLI_CODCLI=1360
+UPDATE Cliente SET NomeFantasia = N'COOPEMBASTOS' WHERE Documento = N'04.522.627/0001-63' AND NomeFantasia IS NULL; -- CLI_CODCLI=1361
+UPDATE Cliente SET NomeFantasia = N'GEMMA S - OVOS DA TERRA' WHERE Documento = N'60.746.570/0001-57' AND NomeFantasia IS NULL; -- CLI_CODCLI=1362
+UPDATE Cliente SET NomeFantasia = N'NIPPON SERVICE' WHERE Documento = N'37.129.189/0001-27' AND NomeFantasia IS NULL; -- CLI_CODCLI=1363
+UPDATE Cliente SET NomeFantasia = N'CARVAO PANTANEIRO' WHERE Documento = N'15.618.306/0001-83' AND NomeFantasia IS NULL; -- CLI_CODCLI=1364
+UPDATE Cliente SET NomeFantasia = N'TRANS NAGANO - SILVA' WHERE Documento = N'60.909.443/0001-21' AND NomeFantasia IS NULL; -- CLI_CODCLI=1365
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOS MOMBUCA 008-43' WHERE Documento = N'41.260.311/0008-43' AND NomeFantasia IS NULL; -- CLI_CODCLI=1366
+UPDATE Cliente SET NomeFantasia = N'CASA DO AMENDOIM (NATURELLO)' WHERE Documento = N'60.004.786/0001-47' AND NomeFantasia IS NULL; -- CLI_CODCLI=1367
+UPDATE Cliente SET NomeFantasia = N'SITIO SÃO JUDAS TADEU' WHERE Documento = N'40.171.467/0003-80' AND NomeFantasia IS NULL; -- CLI_CODCLI=1368
+UPDATE Cliente SET NomeFantasia = N'INOVAR ASSESSORIA CONTABIL' WHERE Documento = N'42.932.295/0001-84' AND NomeFantasia IS NULL; -- CLI_CODCLI=1369
+UPDATE Cliente SET NomeFantasia = N'D OVOS TRANS. ALIMENTOS 1-47' WHERE Documento = N'60.982.156/0001-47' AND NomeFantasia IS NULL; -- CLI_CODCLI=1370
+UPDATE Cliente SET NomeFantasia = N'GRANJA BONJI' WHERE Documento = N'10.156.675/0002-69' AND NomeFantasia IS NULL; -- CLI_CODCLI=1371
+UPDATE Cliente SET NomeFantasia = N'FABRICA DA PRATA - 01-83' WHERE Documento = N'60.524.671/0001-83' AND NomeFantasia IS NULL; -- CLI_CODCLI=1372
+UPDATE Cliente SET NomeFantasia = N'FABRICA DA PRATA - 925' WHERE Documento = N'57.838.587/0001-20' AND NomeFantasia IS NULL; -- CLI_CODCLI=1373
+UPDATE Cliente SET NomeFantasia = N'GRANJA SOPHIA' WHERE Documento = N'30.032.372/0001-60' AND NomeFantasia IS NULL; -- CLI_CODCLI=1374
+UPDATE Cliente SET NomeFantasia = N'GRANJA PRIMAVIS - WJT COMERCIO' WHERE Documento = N'16.577.519/0001-77' AND NomeFantasia IS NULL; -- CLI_CODCLI=1375
+UPDATE Cliente SET NomeFantasia = N'GRANJA HANSEN (ANDREI WOBETO)' WHERE Documento = N'25.101.977/0002-07' AND NomeFantasia IS NULL; -- CLI_CODCLI=1376
+UPDATE Cliente SET NomeFantasia = N'GRANJA RECANTO FELIZ' WHERE Documento = N'040.305.826-05' AND NomeFantasia IS NULL; -- CLI_CODCLI=1377
+UPDATE Cliente SET NomeFantasia = N'GRANJA BENDITOOVO - PF' WHERE Documento = N'026.041.870-60' AND NomeFantasia IS NULL; -- CLI_CODCLI=1378
+UPDATE Cliente SET NomeFantasia = N'GRANJA SITIO DA SERRA LUCIMAR' WHERE Documento = N'451.140.646-49' AND NomeFantasia IS NULL; -- CLI_CODCLI=1379
+UPDATE Cliente SET NomeFantasia = N'RK PRODUTOS - FAMILIA CORTEZ' WHERE Documento = N'61.278.805/0001-96' AND NomeFantasia IS NULL; -- CLI_CODCLI=1380
+UPDATE Cliente SET NomeFantasia = N'TRANS JW TRANSPORTES - JW ANGE' WHERE Documento = N'58.583.962/0001-09' AND NomeFantasia IS NULL; -- CLI_CODCLI=1381
+UPDATE Cliente SET NomeFantasia = N'GRANJA SANTA GEMMA - THIAGO' WHERE Documento = N'016.249.586-21' AND NomeFantasia IS NULL; -- CLI_CODCLI=1382
+UPDATE Cliente SET NomeFantasia = N'GRANJA NATIVA' WHERE Documento = N'09.614.350/0001-12' AND NomeFantasia IS NULL; -- CLI_CODCLI=1383
+UPDATE Cliente SET NomeFantasia = N'GRANJA SAO JORGE' WHERE Documento = N'010.781.196-00' AND NomeFantasia IS NULL; -- CLI_CODCLI=1385
+UPDATE Cliente SET NomeFantasia = N'GRANJA YOROZUYA 9-75' WHERE Documento = N'07.937.810/0009-75' AND NomeFantasia IS NULL; -- CLI_CODCLI=1387
+UPDATE Cliente SET NomeFantasia = N'GRANJA IKEDA GARÇA - COMÉRCIO' WHERE Documento = N'61.550.870/0001-29' AND NomeFantasia IS NULL; -- CLI_CODCLI=1388
+UPDATE Cliente SET NomeFantasia = N'TRANS TADASHI - PATRICIA' WHERE Documento = N'61.886.095/0001-87' AND NomeFantasia IS NULL; -- CLI_CODCLI=1389
+UPDATE Cliente SET NomeFantasia = N'GRANJA LUZ DO VALE' WHERE Documento = N'61.729.003/0001-55' AND NomeFantasia IS NULL; -- CLI_CODCLI=1390
+UPDATE Cliente SET NomeFantasia = N'GRANJA FRIDORNAS' WHERE Documento = N'11.447.444/0001-96' AND NomeFantasia IS NULL; -- CLI_CODCLI=1391
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVO NOBRE' WHERE Documento = N'134.952.591-04' AND NomeFantasia IS NULL; -- CLI_CODCLI=1392
+UPDATE Cliente SET NomeFantasia = N'TRANS LEAL REPRESENTACOES' WHERE Documento = N'46.602.960/0001-22' AND NomeFantasia IS NULL; -- CLI_CODCLI=1393
+UPDATE Cliente SET NomeFantasia = N'FABRICA DE PRATA - JOAO' WHERE Documento = N'57.511.401/0001-23' AND NomeFantasia IS NULL; -- CLI_CODCLI=1394
+UPDATE Cliente SET NomeFantasia = N'GRANJA SATURNINO' WHERE Documento = N'39.860.392/0001-02' AND NomeFantasia IS NULL; -- CLI_CODCLI=1395
+UPDATE Cliente SET NomeFantasia = N'GRANJA SOFHIA - MA' WHERE Documento = N'30.479.913/0001-01' AND NomeFantasia IS NULL; -- CLI_CODCLI=1396
+UPDATE Cliente SET NomeFantasia = N'FRIOMAQ' WHERE Documento = N'09.061.577/0001-88' AND NomeFantasia IS NULL; -- CLI_CODCLI=1397
+UPDATE Cliente SET NomeFantasia = N'SITIO CONQUISTA 3-32' WHERE Documento = N'21.671.212/0003-32' AND NomeFantasia IS NULL; -- CLI_CODCLI=1398
+UPDATE Cliente SET NomeFantasia = N'GRANJA DO OVO - FILIAL' WHERE Documento = N'19.956.692/0002-55' AND NomeFantasia IS NULL; -- CLI_CODCLI=1399
+UPDATE Cliente SET NomeFantasia = N'SOCAB - EDUARDO HASHIOKA' WHERE Documento = N'13.688.145/0004-11' AND NomeFantasia IS NULL; -- CLI_CODCLI=1400
+UPDATE Cliente SET NomeFantasia = N'PORTUGA HORTI FRUTTI' WHERE Documento = N'49.078.608/0001-28' AND NomeFantasia IS NULL; -- CLI_CODCLI=1402
+UPDATE Cliente SET NomeFantasia = N'RM ADUBAL - AQUINO' WHERE Documento = N'24.125.588/0001-78' AND NomeFantasia IS NULL; -- CLI_CODCLI=1403
+UPDATE Cliente SET NomeFantasia = N'SEG ELETRON' WHERE Documento = N'62.689.225/0001-54' AND NomeFantasia IS NULL; -- CLI_CODCLI=1404
+UPDATE Cliente SET NomeFantasia = N'WLJ SUPPLIES DISTRIBUICAO LT' WHERE Documento = N'23.317.564/0001-58' AND NomeFantasia IS NULL; -- CLI_CODCLI=1405
+UPDATE Cliente SET NomeFantasia = N'WLJ SUPPLIES FARIA FACIL' WHERE Documento = N'33.511.723/0001-04' AND NomeFantasia IS NULL; -- CLI_CODCLI=1406
+UPDATE Cliente SET NomeFantasia = N'FABRICA DA PRATA - 01-03' WHERE Documento = N'59.896.403/0001-03' AND NomeFantasia IS NULL; -- CLI_CODCLI=1407
+UPDATE Cliente SET NomeFantasia = N'GRANJA SHIRO CEASA' WHERE Documento = N'43.569.953/0001-88' AND NomeFantasia IS NULL; -- CLI_CODCLI=1408
+UPDATE Cliente SET NomeFantasia = N'OVO NOBRE - ANGELO' WHERE Documento = N'950.352.571-34' AND NomeFantasia IS NULL; -- CLI_CODCLI=1409
+UPDATE Cliente SET NomeFantasia = N'OVO NOBRE - ANDRE' WHERE Documento = N'763.977.421-72' AND NomeFantasia IS NULL; -- CLI_CODCLI=1410
+UPDATE Cliente SET NomeFantasia = N'GRANJA VILA AGRICOLA - RAÇÃO' WHERE Documento = N'54.172.841/0001-05' AND NomeFantasia IS NULL; -- CLI_CODCLI=1411
+UPDATE Cliente SET NomeFantasia = N'GRANJA AVIARIO REALEZA' WHERE Documento = N'293.716.866-34' AND NomeFantasia IS NULL; -- CLI_CODCLI=1412
+UPDATE Cliente SET NomeFantasia = N'TRANS YASUO TRANSPORTES' WHERE Documento = N'62.291.934/0001-87' AND NomeFantasia IS NULL; -- CLI_CODCLI=1413
+UPDATE Cliente SET NomeFantasia = N'GRANJA BONJI (OVOS MAHALO )' WHERE Documento = N'62.319.366/0001-85' AND NomeFantasia IS NULL; -- CLI_CODCLI=1414
+UPDATE Cliente SET NomeFantasia = N'LEONARDO BENETON DA SILVA' WHERE Documento = N'379.481.288-32' AND NomeFantasia IS NULL; -- CLI_CODCLI=1415
+UPDATE Cliente SET NomeFantasia = N'GRANJA MONTE CASTELO' WHERE Documento = N'516.676.730-68' AND NomeFantasia IS NULL; -- CLI_CODCLI=1416
+UPDATE Cliente SET NomeFantasia = N'ADUBOS 4M' WHERE Documento = N'63.390.818/0001-88' AND NomeFantasia IS NULL; -- CLI_CODCLI=1417
+UPDATE Cliente SET NomeFantasia = N'SITIO BELA VISTA' WHERE Documento = N'09.211.027/0003-60' AND NomeFantasia IS NULL; -- CLI_CODCLI=1418
+UPDATE Cliente SET NomeFantasia = N'DISTRIBUIDORA DOM PEDRO' WHERE Documento = N'04.952.535/0001-13' AND NomeFantasia IS NULL; -- CLI_CODCLI=1419
+UPDATE Cliente SET NomeFantasia = N'GRANJA BOM OVO' WHERE Documento = N'109.579.464-73' AND NomeFantasia IS NULL; -- CLI_CODCLI=1420
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOS LUCELIA - FELIZ' WHERE Documento = N'07.968.661/0005-88' AND NomeFantasia IS NULL; -- CLI_CODCLI=1421
+UPDATE Cliente SET NomeFantasia = N'DOCE MEL FLORES E PRESENTES' WHERE Documento = N'02.246.479/0001-76' AND NomeFantasia IS NULL; -- CLI_CODCLI=1422
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOS DORO' WHERE Documento = N'784.371.995-49' AND NomeFantasia IS NULL; -- CLI_CODCLI=1423
+UPDATE Cliente SET NomeFantasia = N'TRANS EDY TRANSPORTES' WHERE Documento = N'63.671.160/0001-82' AND NomeFantasia IS NULL; -- CLI_CODCLI=1424
+UPDATE Cliente SET NomeFantasia = N'FAZENDA MONTE CARLO' WHERE Documento = N'29.178.527/0001-92' AND NomeFantasia IS NULL; -- CLI_CODCLI=1425
+UPDATE Cliente SET NomeFantasia = N'TRANS DENISE - BRUNA' WHERE Documento = N'50.618.949/0001-28' AND NomeFantasia IS NULL; -- CLI_CODCLI=1426
+UPDATE Cliente SET NomeFantasia = N'SITIO RANCHO DO IPE' WHERE Documento = N'11.353.655/0001-60' AND NomeFantasia IS NULL; -- CLI_CODCLI=1427
+UPDATE Cliente SET NomeFantasia = N'LOJA MEDEIRO' WHERE Documento = N'12.489.385/0001-81' AND NomeFantasia IS NULL; -- CLI_CODCLI=1428
+UPDATE Cliente SET NomeFantasia = N'GRANJA SITIO SERRA P.AZUL 5-09' WHERE Documento = N'451.140.646-49' AND NomeFantasia IS NULL; -- CLI_CODCLI=1429
+UPDATE Cliente SET NomeFantasia = N'GRANJA SITIO SERRA SOBRADO' WHERE Documento = N'451.140.646-49' AND NomeFantasia IS NULL; -- CLI_CODCLI=1430
+UPDATE Cliente SET NomeFantasia = N'GRANJA SITIO SERRA MORIM' WHERE Documento = N'451.140.646-49' AND NomeFantasia IS NULL; -- CLI_CODCLI=1431
+UPDATE Cliente SET NomeFantasia = N'GRANJA SITIO SERRA LAGE' WHERE Documento = N'451.140.646-49' AND NomeFantasia IS NULL; -- CLI_CODCLI=1432
+UPDATE Cliente SET NomeFantasia = N'GRANJA SITIO SERRA PALESTINA I' WHERE Documento = N'451.140.646-49' AND NomeFantasia IS NULL; -- CLI_CODCLI=1433
+UPDATE Cliente SET NomeFantasia = N'GRANJA SITIO SERRA P.AZUL 4-36' WHERE Documento = N'451.140.646-49' AND NomeFantasia IS NULL; -- CLI_CODCLI=1434
+UPDATE Cliente SET NomeFantasia = N'GRANJA SITIO SERRA P.AZUL 0-10' WHERE Documento = N'451.140.646-49' AND NomeFantasia IS NULL; -- CLI_CODCLI=1435
+UPDATE Cliente SET NomeFantasia = N'GRANJA SITIO SERRA P.AZUL 2-74' WHERE Documento = N'451.140.646-49' AND NomeFantasia IS NULL; -- CLI_CODCLI=1436
+UPDATE Cliente SET NomeFantasia = N'GRANJA SITIO SERRA FERNANDO' WHERE Documento = N'102.983.836-40' AND NomeFantasia IS NULL; -- CLI_CODCLI=1437
+UPDATE Cliente SET NomeFantasia = N'GRANJA ARIDA' WHERE Documento = N'13.760.631/0001-50' AND NomeFantasia IS NULL; -- CLI_CODCLI=1438
+UPDATE Cliente SET NomeFantasia = N'OVOS TAK - EMPORIO' WHERE Documento = N'55.547.444/0001-33' AND NomeFantasia IS NULL; -- CLI_CODCLI=1439
+UPDATE Cliente SET NomeFantasia = N'RENATA FERNANDES' WHERE Documento = N'36.079.211/0001-09' AND NomeFantasia IS NULL; -- CLI_CODCLI=1440
+UPDATE Cliente SET NomeFantasia = N'RECANTOS DOS OVOS' WHERE Documento = N'040.305.826-05' AND NomeFantasia IS NULL; -- CLI_CODCLI=1441
+UPDATE Cliente SET NomeFantasia = N'INOVASUN' WHERE Documento = N'47.975.267/0001-68' AND NomeFantasia IS NULL; -- CLI_CODCLI=1442
+UPDATE Cliente SET NomeFantasia = N'GRANJA LIMA - PEDRO' WHERE Documento = N'482.516.319-04' AND NomeFantasia IS NULL; -- CLI_CODCLI=1443
+UPDATE Cliente SET NomeFantasia = N'GRANJA LIMA - LUCINEIDE' WHERE Documento = N'602.055.809-63' AND NomeFantasia IS NULL; -- CLI_CODCLI=1444
+UPDATE Cliente SET NomeFantasia = N'GRANJA LIMA -  SIMONI' WHERE Documento = N'088.594.989-70' AND NomeFantasia IS NULL; -- CLI_CODCLI=1445
+UPDATE Cliente SET NomeFantasia = N'GRANJA OVOS DA TERRA STO ANTON' WHERE Documento = N'08.005.424/0014-75' AND NomeFantasia IS NULL; -- CLI_CODCLI=1446
+UPDATE Cliente SET NomeFantasia = N'GRANJA ALFA - ATAIR' WHERE Documento = N'09.050.034/0001-65' AND NomeFantasia IS NULL; -- CLI_CODCLI=1447
+UPDATE Cliente SET NomeFantasia = N'TRANS JWF TRANSPORTES' WHERE Documento = N'63.847.055/0001-51' AND NomeFantasia IS NULL; -- CLI_CODCLI=1448
+UPDATE Cliente SET NomeFantasia = N'PAVAO COMERCIO E TRANSPORTE' WHERE Documento = N'44.914.057/0001-71' AND NomeFantasia IS NULL; -- CLI_CODCLI=1449
+UPDATE Cliente SET NomeFantasia = N'GRANJA ZIANI' WHERE Documento = N'248.804.358-30' AND NomeFantasia IS NULL; -- CLI_CODCLI=1450
+UPDATE Cliente SET NomeFantasia = N'GRANJA ARIDA - CIA' WHERE Documento = N'48.618.095/0001-38' AND NomeFantasia IS NULL; -- CLI_CODCLI=1451
+UPDATE Cliente SET NomeFantasia = N'GRANJA AVIBRA' WHERE Documento = N'40.810.631/0001-90' AND NomeFantasia IS NULL; -- CLI_CODCLI=1452
+UPDATE Cliente SET NomeFantasia = N'SITIO MAURICIO' WHERE Documento = N'32.175.827/0001-22' AND NomeFantasia IS NULL; -- CLI_CODCLI=1453
+UPDATE Cliente SET NomeFantasia = N'SUPER GEMA  ALLAN BARREGA' WHERE Documento = N'65.454.091/0001-80' AND NomeFantasia IS NULL; -- CLI_CODCLI=1454
+UPDATE Cliente SET NomeFantasia = N'GRANJA ATALAYA - FERNANDO' WHERE Documento = N'695.678.081-04' AND NomeFantasia IS NULL; -- CLI_CODCLI=1455
+UPDATE Cliente SET NomeFantasia = N'CAMARA MUNICIPAL DE IACRI' WHERE Documento = N'51.507.176/0001-75' AND NomeFantasia IS NULL; -- CLI_CODCLI=1456
+UPDATE Cliente SET NomeFantasia = N'GRANJA SATURNINO - GILDASIO' WHERE Documento = N'293.166.773-00' AND NomeFantasia IS NULL; -- CLI_CODCLI=1457
+UPDATE Cliente SET NomeFantasia = N'TRANS VELOZES - LEONARDO' WHERE Documento = N'62.392.700/0001-26' AND NomeFantasia IS NULL; -- CLI_CODCLI=1458
+UPDATE Cliente SET NomeFantasia = N'GRANJA UEYAMA - BRASILANDIA' WHERE Documento = N'104.180.028-27' AND NomeFantasia IS NULL; -- CLI_CODCLI=1459
+UPDATE Cliente SET NomeFantasia = N'GRANJA BOM MENINO' WHERE Documento = N'07.921.706/0005-69' AND NomeFantasia IS NULL; -- CLI_CODCLI=1460
+UPDATE Cliente SET NomeFantasia = N'SITIO REINALDO' WHERE Documento = N'57.655.115/0001-31' AND NomeFantasia IS NULL; -- CLI_CODCLI=1461
+UPDATE Cliente SET NomeFantasia = N'TRANS LEC TRANSPORTES' WHERE Documento = N'65.100.084/0001-80' AND NomeFantasia IS NULL; -- CLI_CODCLI=1462
+UPDATE Cliente SET NomeFantasia = N'GRANJA BANDEIRANTES' WHERE Documento = N'08.253.341/0003-42' AND NomeFantasia IS NULL; -- CLI_CODCLI=1463
+UPDATE Cliente SET NomeFantasia = N'ABENS SEGURO' WHERE Documento = N'54.723.051/0005-02' AND NomeFantasia IS NULL; -- CLI_CODCLI=1464
+UPDATE Cliente SET NomeFantasia = N'PAPILLON STORE' WHERE Documento = N'22.158.483/0002-70' AND NomeFantasia IS NULL; -- CLI_CODCLI=1465
+UPDATE Cliente SET NomeFantasia = N'GRANJA PEDRO GOHARA - GADO' WHERE Documento = N'07.927.402/0006-90' AND NomeFantasia IS NULL; -- CLI_CODCLI=1466
+UPDATE Cliente SET NomeFantasia = N'GRANJA GOHARA (TOYOSHIMA)' WHERE Documento = N'14.106.560/0003-00' AND NomeFantasia IS NULL; -- CLI_CODCLI=1467
+UPDATE Cliente SET NomeFantasia = N'TRANS CIHODA - OVOS CIHODA' WHERE Documento = N'66.427.523/0001-27' AND NomeFantasia IS NULL; -- CLI_CODCLI=1468
+UPDATE Cliente SET NomeFantasia = N'JOTA BOM HORTIFRUTI - EMPORIO' WHERE Documento = N'55.970.290/0001-98' AND NomeFantasia IS NULL; -- CLI_CODCLI=1469
+UPDATE Cliente SET NomeFantasia = N'GRANJA NAGANO - PJ' WHERE Documento = N'65.221.304/0001-24' AND NomeFantasia IS NULL; -- CLI_CODCLI=1470
+UPDATE Cliente SET NomeFantasia = N'GRANJA NAGANO - EPITACIO' WHERE Documento = N'07.916.057/0003-46' AND NomeFantasia IS NULL; -- CLI_CODCLI=1471
+UPDATE Cliente SET NomeFantasia = N'SITIO SAO JUDAS TADEU 4-61' WHERE Documento = N'40.171.467/0004-61' AND NomeFantasia IS NULL; -- CLI_CODCLI=1472
+UPDATE Cliente SET NomeFantasia = N'SITIO DOHASHI II' WHERE Documento = N'08.589.625/0001-42' AND NomeFantasia IS NULL; -- CLI_CODCLI=1473
+UPDATE Cliente SET NomeFantasia = N'SITIO DOHASHI III' WHERE Documento = N'13.743.392/0001-20' AND NomeFantasia IS NULL; -- CLI_CODCLI=1474
+UPDATE Cliente SET NomeFantasia = N'TRANS VELOZES OVOS' WHERE Documento = N'65.936.952/0001-67' AND NomeFantasia IS NULL; -- CLI_CODCLI=1475
+UPDATE Cliente SET NomeFantasia = N'GRANJA AVIARIO JM BERNARDO' WHERE Documento = N'113.247.946-07' AND NomeFantasia IS NULL; -- CLI_CODCLI=1476
+
+-- =============================================
+-- 6. Vinculo de filiais com suas matrizes (MatrizId)
+-- =============================================
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.921.855/0001-02' ORDER BY Id) WHERE Documento = N'07.921.855/0005-28' AND MatrizId IS NULL; -- filial CLI_CODCLI=107 -> matriz CLI_CODCLI=165
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'22.530.985/0001-08' ORDER BY Id) WHERE Documento = N'26.750.152/0001-03' AND MatrizId IS NULL; -- filial CLI_CODCLI=115 -> matriz CLI_CODCLI=522
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'26.456.167/0001-55' ORDER BY Id) WHERE Documento = N'10.357.097/0001-48' AND MatrizId IS NULL; -- filial CLI_CODCLI=140 -> matriz CLI_CODCLI=664
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.728.921/0001-87' ORDER BY Id) WHERE Documento = N'08.452.290/0001-16' AND MatrizId IS NULL; -- filial CLI_CODCLI=141 -> matriz CLI_CODCLI=693
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'16.965.664/0001-25' ORDER BY Id) WHERE Documento = N'16.965.664/0001-25' AND MatrizId IS NULL; -- filial CLI_CODCLI=177 -> matriz CLI_CODCLI=319
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'01.810.714/0001-28' ORDER BY Id) WHERE Documento = N'15.131.025/0001-00' AND MatrizId IS NULL; -- filial CLI_CODCLI=183 -> matriz CLI_CODCLI=237
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.076.260/0001-52' ORDER BY Id) WHERE Documento = N'13.453.316/0001-80' AND MatrizId IS NULL; -- filial CLI_CODCLI=184 -> matriz CLI_CODCLI=295
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'10.334.723/0001-80' ORDER BY Id) WHERE Documento = N'14.914.101/0001-82' AND MatrizId IS NULL; -- filial CLI_CODCLI=185 -> matriz CLI_CODCLI=567
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.206.445/0002-15' ORDER BY Id) WHERE Documento = N'08.206.445/0001-34' AND MatrizId IS NULL; -- filial CLI_CODCLI=186 -> matriz CLI_CODCLI=159
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'04.627.812/0001-12' ORDER BY Id) WHERE Documento = N'19.536.258/0001-35' AND MatrizId IS NULL; -- filial CLI_CODCLI=187 -> matriz CLI_CODCLI=625
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'09.432.194/0001-79' ORDER BY Id) WHERE Documento = N'09.517.596/0001-76' AND MatrizId IS NULL; -- filial CLI_CODCLI=189 -> matriz CLI_CODCLI=119
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.921.712/0001-92' ORDER BY Id) WHERE Documento = N'09.138.187/0001-69' AND MatrizId IS NULL; -- filial CLI_CODCLI=191 -> matriz CLI_CODCLI=566
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.580.055/0003-29' ORDER BY Id) WHERE Documento = N'07.580.055/0001-67' AND MatrizId IS NULL; -- filial CLI_CODCLI=203 -> matriz CLI_CODCLI=232
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'72.860.265/0001-70' ORDER BY Id) WHERE Documento = N'24.307.683/0001-92' AND MatrizId IS NULL; -- filial CLI_CODCLI=215 -> matriz CLI_CODCLI=400
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.027.822/0001-78' ORDER BY Id) WHERE Documento = N'06.019.519/0001-06' AND MatrizId IS NULL; -- filial CLI_CODCLI=236 -> matriz CLI_CODCLI=494
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'01.810.714/0001-28' ORDER BY Id) WHERE Documento = N'05.251.371/0001-60' AND MatrizId IS NULL; -- filial CLI_CODCLI=243 -> matriz CLI_CODCLI=237
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.580.055/0003-29' ORDER BY Id) WHERE Documento = N'07.580.055/0002-48' AND MatrizId IS NULL; -- filial CLI_CODCLI=251 -> matriz CLI_CODCLI=232
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'45.872.579/0001-10' ORDER BY Id) WHERE Documento = N'05.398.653/0001-94' AND MatrizId IS NULL; -- filial CLI_CODCLI=253 -> matriz CLI_CODCLI=565
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'06.016.840/0001-29' ORDER BY Id) WHERE Documento = N'07.948.849/0002-11' AND MatrizId IS NULL; -- filial CLI_CODCLI=258 -> matriz CLI_CODCLI=303
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'09.432.194/0001-79' ORDER BY Id) WHERE Documento = N'23.250.983/0001-10' AND MatrizId IS NULL; -- filial CLI_CODCLI=259 -> matriz CLI_CODCLI=119
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'22.729.899/0001-10' ORDER BY Id) WHERE Documento = N'22.729.899/0002-00' AND MatrizId IS NULL; -- filial CLI_CODCLI=264 -> matriz CLI_CODCLI=550
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'01.810.714/0001-28' ORDER BY Id) WHERE Documento = N'24.672.130/0001-39' AND MatrizId IS NULL; -- filial CLI_CODCLI=265 -> matriz CLI_CODCLI=237
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.580.055/0003-29' ORDER BY Id) WHERE Documento = N'07.580.055/0004-00' AND MatrizId IS NULL; -- filial CLI_CODCLI=270 -> matriz CLI_CODCLI=232
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'03.766.078/0001-00' ORDER BY Id) WHERE Documento = N'03.766.078/0002-90' AND MatrizId IS NULL; -- filial CLI_CODCLI=279 -> matriz CLI_CODCLI=181
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.943.154/0001-66' ORDER BY Id) WHERE Documento = N'14.767.148/0001-60' AND MatrizId IS NULL; -- filial CLI_CODCLI=283 -> matriz CLI_CODCLI=166
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.939.399/0004-62' ORDER BY Id) WHERE Documento = N'07.939.399/0001-10' AND MatrizId IS NULL; -- filial CLI_CODCLI=289 -> matriz CLI_CODCLI=144
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.023.912/0001-90' ORDER BY Id) WHERE Documento = N'03.570.358/0001-48' AND MatrizId IS NULL; -- filial CLI_CODCLI=294 -> matriz CLI_CODCLI=261
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.921.706/0001-35' ORDER BY Id) WHERE Documento = N'08.993.618/0001-01' AND MatrizId IS NULL; -- filial CLI_CODCLI=298 -> matriz CLI_CODCLI=262
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.939.399/0004-62' ORDER BY Id) WHERE Documento = N'07.939.399/0002-09' AND MatrizId IS NULL; -- filial CLI_CODCLI=300 -> matriz CLI_CODCLI=144
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.939.399/0004-62' ORDER BY Id) WHERE Documento = N'07.939.399/0007-05' AND MatrizId IS NULL; -- filial CLI_CODCLI=304 -> matriz CLI_CODCLI=144
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'03.766.078/0001-00' ORDER BY Id) WHERE Documento = N'03.766.078/0004-52' AND MatrizId IS NULL; -- filial CLI_CODCLI=306 -> matriz CLI_CODCLI=181
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'72.860.265/0001-70' ORDER BY Id) WHERE Documento = N'13.043.485/0001-42' AND MatrizId IS NULL; -- filial CLI_CODCLI=311 -> matriz CLI_CODCLI=400
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'11.917.584/0001-80' ORDER BY Id) WHERE Documento = N'09.432.791/0001-01' AND MatrizId IS NULL; -- filial CLI_CODCLI=326 -> matriz CLI_CODCLI=361
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'59.149.468/0001-95' ORDER BY Id) WHERE Documento = N'05.409.482/0001-51' AND MatrizId IS NULL; -- filial CLI_CODCLI=357 -> matriz CLI_CODCLI=225
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'22.729.899/0001-10' ORDER BY Id) WHERE Documento = N'02.855.402/0001-01' AND MatrizId IS NULL; -- filial CLI_CODCLI=365 -> matriz CLI_CODCLI=550
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'01.842.838/0001-95' ORDER BY Id) WHERE Documento = N'07.940.373/0001-91' AND MatrizId IS NULL; -- filial CLI_CODCLI=384 -> matriz CLI_CODCLI=114
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'01.853.378/0001-09' ORDER BY Id) WHERE Documento = N'13.801.627/0001-93' AND MatrizId IS NULL; -- filial CLI_CODCLI=388 -> matriz CLI_CODCLI=957
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.928.137/0001-50' ORDER BY Id) WHERE Documento = N'09.331.499/0001-94' AND MatrizId IS NULL; -- filial CLI_CODCLI=394 -> matriz CLI_CODCLI=214
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'09.432.194/0001-79' ORDER BY Id) WHERE Documento = N'11.687.648/0001-02' AND MatrizId IS NULL; -- filial CLI_CODCLI=402 -> matriz CLI_CODCLI=119
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.963.237/0001-17' ORDER BY Id) WHERE Documento = N'10.460.449/0001-96' AND MatrizId IS NULL; -- filial CLI_CODCLI=409 -> matriz CLI_CODCLI=212
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'22.729.899/0001-10' ORDER BY Id) WHERE Documento = N'22.729.899/0003-82' AND MatrizId IS NULL; -- filial CLI_CODCLI=410 -> matriz CLI_CODCLI=550
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.921.855/0001-02' ORDER BY Id) WHERE Documento = N'07.921.855/0004-47' AND MatrizId IS NULL; -- filial CLI_CODCLI=420 -> matriz CLI_CODCLI=165
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'522.083.890-34' ORDER BY Id) WHERE Documento = N'25.101.977/0001-26' AND MatrizId IS NULL; -- filial CLI_CODCLI=425 -> matriz CLI_CODCLI=526
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'04.135.712/0001-79' ORDER BY Id) WHERE Documento = N'10.313.718/0001-91' AND MatrizId IS NULL; -- filial CLI_CODCLI=428 -> matriz CLI_CODCLI=137
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'10.270.069/0001-99' ORDER BY Id) WHERE Documento = N'07.963.401/0001-96' AND MatrizId IS NULL; -- filial CLI_CODCLI=441 -> matriz CLI_CODCLI=545
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'22.639.859/0001-88' ORDER BY Id) WHERE Documento = N'22.408.416/0001-86' AND MatrizId IS NULL; -- filial CLI_CODCLI=442 -> matriz CLI_CODCLI=199
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'01.711.792/0001-75' ORDER BY Id) WHERE Documento = N'23.113.407/0001-20' AND MatrizId IS NULL; -- filial CLI_CODCLI=451 -> matriz CLI_CODCLI=222
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'10.270.069/0001-99' ORDER BY Id) WHERE Documento = N'07.963.401/0006-09' AND MatrizId IS NULL; -- filial CLI_CODCLI=454 -> matriz CLI_CODCLI=545
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'04.627.812/0001-12' ORDER BY Id) WHERE Documento = N'07.271.969/0001-46' AND MatrizId IS NULL; -- filial CLI_CODCLI=461 -> matriz CLI_CODCLI=625
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'17.232.965/0001-02' ORDER BY Id) WHERE Documento = N'17.232.965/0002-93' AND MatrizId IS NULL; -- filial CLI_CODCLI=486 -> matriz CLI_CODCLI=335
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'10.270.069/0001-99' ORDER BY Id) WHERE Documento = N'11.048.531/0004-13' AND MatrizId IS NULL; -- filial CLI_CODCLI=492 -> matriz CLI_CODCLI=545
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'240.669.230-20' ORDER BY Id) WHERE Documento = N'08.283.839/0001-96' AND MatrizId IS NULL; -- filial CLI_CODCLI=509 -> matriz CLI_CODCLI=432
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'54.119.847/0001-19' ORDER BY Id) WHERE Documento = N'24.717.737/0001-98' AND MatrizId IS NULL; -- filial CLI_CODCLI=512 -> matriz CLI_CODCLI=131
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'12.688.242/0001-07' ORDER BY Id) WHERE Documento = N'24.569.650/0001-10' AND MatrizId IS NULL; -- filial CLI_CODCLI=514 -> matriz CLI_CODCLI=541
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'14.499.785/0001-01' ORDER BY Id) WHERE Documento = N'62.703.830/0001-32' AND MatrizId IS NULL; -- filial CLI_CODCLI=521 -> matriz CLI_CODCLI=322
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.921.706/0001-35' ORDER BY Id) WHERE Documento = N'07.921.706/0002-16' AND MatrizId IS NULL; -- filial CLI_CODCLI=523 -> matriz CLI_CODCLI=262
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'15.754.030/0001-60' ORDER BY Id) WHERE Documento = N'01.983.024/0001-70' AND MatrizId IS NULL; -- filial CLI_CODCLI=527 -> matriz CLI_CODCLI=250
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'04.583.006/0001-90' ORDER BY Id) WHERE Documento = N'04.583.006/0001-90' AND MatrizId IS NULL; -- filial CLI_CODCLI=538 -> matriz CLI_CODCLI=533
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'11.184.403/0001-54' ORDER BY Id) WHERE Documento = N'05.020.396/0001-52' AND MatrizId IS NULL; -- filial CLI_CODCLI=548 -> matriz CLI_CODCLI=246
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.005.424/0009-08' ORDER BY Id) WHERE Documento = N'26.882.438/0001-34' AND MatrizId IS NULL; -- filial CLI_CODCLI=581 -> matriz CLI_CODCLI=482
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'10.232.496/0001-82' ORDER BY Id) WHERE Documento = N'08.013.317/0002-55' AND MatrizId IS NULL; -- filial CLI_CODCLI=585 -> matriz CLI_CODCLI=239
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.921.712/0001-92' ORDER BY Id) WHERE Documento = N'08.369.504/0003-57' AND MatrizId IS NULL; -- filial CLI_CODCLI=595 -> matriz CLI_CODCLI=566
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'96.560.412/0001-55' ORDER BY Id) WHERE Documento = N'27.926.246/0001-45' AND MatrizId IS NULL; -- filial CLI_CODCLI=636 -> matriz CLI_CODCLI=210
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'379.503.838-36' ORDER BY Id) WHERE Documento = N'14.645.778/0001-62' AND MatrizId IS NULL; -- filial CLI_CODCLI=638 -> matriz CLI_CODCLI=676
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'53.134.920/0001-69' ORDER BY Id) WHERE Documento = N'17.073.597/0001-05' AND MatrizId IS NULL; -- filial CLI_CODCLI=653 -> matriz CLI_CODCLI=645
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.939.399/0004-62' ORDER BY Id) WHERE Documento = N'07.939.399/0021-63' AND MatrizId IS NULL; -- filial CLI_CODCLI=654 -> matriz CLI_CODCLI=144
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'35.645.035/0001-62' ORDER BY Id) WHERE Documento = N'00.477.534/0001-03' AND MatrizId IS NULL; -- filial CLI_CODCLI=655 -> matriz CLI_CODCLI=618
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.937.843/0001-68' ORDER BY Id) WHERE Documento = N'07.937.843/0002-49' AND MatrizId IS NULL; -- filial CLI_CODCLI=656 -> matriz CLI_CODCLI=154
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.728.921/0001-87' ORDER BY Id) WHERE Documento = N'09.638.358/0001-19' AND MatrizId IS NULL; -- filial CLI_CODCLI=267 -> matriz CLI_CODCLI=693
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'10.672.527/0001-16' ORDER BY Id) WHERE Documento = N'08.271.819/0001-03' AND MatrizId IS NULL; -- filial CLI_CODCLI=657 -> matriz CLI_CODCLI=620
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.927.465/0001-02' ORDER BY Id) WHERE Documento = N'27.663.270/0001-39' AND MatrizId IS NULL; -- filial CLI_CODCLI=658 -> matriz CLI_CODCLI=127
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'379.503.838-36' ORDER BY Id) WHERE Documento = N'28.019.675/0001-00' AND MatrizId IS NULL; -- filial CLI_CODCLI=659 -> matriz CLI_CODCLI=676
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'379.503.838-36' ORDER BY Id) WHERE Documento = N'14.177.111/0001-82' AND MatrizId IS NULL; -- filial CLI_CODCLI=660 -> matriz CLI_CODCLI=676
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'379.503.838-36' ORDER BY Id) WHERE Documento = N'54.427.851/0001-44' AND MatrizId IS NULL; -- filial CLI_CODCLI=661 -> matriz CLI_CODCLI=676
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'379.503.838-36' ORDER BY Id) WHERE Documento = N'18.463.060/0001-06' AND MatrizId IS NULL; -- filial CLI_CODCLI=662 -> matriz CLI_CODCLI=676
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.023.912/0001-90' ORDER BY Id) WHERE Documento = N'08.023.912/0002-71' AND MatrizId IS NULL; -- filial CLI_CODCLI=663 -> matriz CLI_CODCLI=261
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'24.166.015/0001-92' ORDER BY Id) WHERE Documento = N'24.166.015/0001-92' AND MatrizId IS NULL; -- filial CLI_CODCLI=665 -> matriz CLI_CODCLI=252
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'06.020.781/0001-62' ORDER BY Id) WHERE Documento = N'06.020.781/0002-43' AND MatrizId IS NULL; -- filial CLI_CODCLI=666 -> matriz CLI_CODCLI=122
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.927.465/0001-02' ORDER BY Id) WHERE Documento = N'27.663.270/0002-10' AND MatrizId IS NULL; -- filial CLI_CODCLI=669 -> matriz CLI_CODCLI=127
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.921.713/0001-37' ORDER BY Id) WHERE Documento = N'07.934.679/0001-35' AND MatrizId IS NULL; -- filial CLI_CODCLI=678 -> matriz CLI_CODCLI=677
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'26.456.167/0001-55' ORDER BY Id) WHERE Documento = N'19.666.991/0001-74' AND MatrizId IS NULL; -- filial CLI_CODCLI=679 -> matriz CLI_CODCLI=664
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'14.760.406/0001-87' ORDER BY Id) WHERE Documento = N'14.760.406/0002-68' AND MatrizId IS NULL; -- filial CLI_CODCLI=682 -> matriz CLI_CODCLI=619
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.975.491/0001-35' ORDER BY Id) WHERE Documento = N'29.720.914/0001-09' AND MatrizId IS NULL; -- filial CLI_CODCLI=683 -> matriz CLI_CODCLI=518
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'13.517.810/0001-61' ORDER BY Id) WHERE Documento = N'13.517.810/0002-42' AND MatrizId IS NULL; -- filial CLI_CODCLI=685 -> matriz CLI_CODCLI=337
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'16.593.823/0001-08' ORDER BY Id) WHERE Documento = N'15.033.858/0001-20' AND MatrizId IS NULL; -- filial CLI_CODCLI=689 -> matriz CLI_CODCLI=688
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.937.843/0001-68' ORDER BY Id) WHERE Documento = N'08.016.498/0001-92' AND MatrizId IS NULL; -- filial CLI_CODCLI=692 -> matriz CLI_CODCLI=154
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'22.639.859/0001-88' ORDER BY Id) WHERE Documento = N'18.044.340/0001-80' AND MatrizId IS NULL; -- filial CLI_CODCLI=694 -> matriz CLI_CODCLI=199
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'35.645.035/0001-62' ORDER BY Id) WHERE Documento = N'00.477.534/0002-94' AND MatrizId IS NULL; -- filial CLI_CODCLI=700 -> matriz CLI_CODCLI=618
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.921.713/0001-37' ORDER BY Id) WHERE Documento = N'30.675.766/0001-37' AND MatrizId IS NULL; -- filial CLI_CODCLI=701 -> matriz CLI_CODCLI=677
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'45.132.149/0001-62' ORDER BY Id) WHERE Documento = N'30.481.562/0001-65' AND MatrizId IS NULL; -- filial CLI_CODCLI=705 -> matriz CLI_CODCLI=608
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'16.593.823/0001-08' ORDER BY Id) WHERE Documento = N'26.516.621/0001-16' AND MatrizId IS NULL; -- filial CLI_CODCLI=707 -> matriz CLI_CODCLI=688
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'16.593.823/0001-08' ORDER BY Id) WHERE Documento = N'17.299.153/0001-84' AND MatrizId IS NULL; -- filial CLI_CODCLI=708 -> matriz CLI_CODCLI=688
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'01.138.945/0001-37' ORDER BY Id) WHERE Documento = N'30.777.715/0001-16' AND MatrizId IS NULL; -- filial CLI_CODCLI=710 -> matriz CLI_CODCLI=235
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'17.708.390/0001-51' ORDER BY Id) WHERE Documento = N'27.631.810/0001-00' AND MatrizId IS NULL; -- filial CLI_CODCLI=713 -> matriz CLI_CODCLI=120
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'17.820.963/0001-34' ORDER BY Id) WHERE Documento = N'30.936.498/0001-60' AND MatrizId IS NULL; -- filial CLI_CODCLI=715 -> matriz CLI_CODCLI=391
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'24.205.056/0001-40' ORDER BY Id) WHERE Documento = N'24.205.056/0002-21' AND MatrizId IS NULL; -- filial CLI_CODCLI=723 -> matriz CLI_CODCLI=722
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'03.067.126/0001-71' ORDER BY Id) WHERE Documento = N'61.338.059/0001-89' AND MatrizId IS NULL; -- filial CLI_CODCLI=729 -> matriz CLI_CODCLI=721
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'09.614.589/0001-92' ORDER BY Id) WHERE Documento = N'24.803.485/0001-10' AND MatrizId IS NULL; -- filial CLI_CODCLI=735 -> matriz CLI_CODCLI=734
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.921.706/0001-35' ORDER BY Id) WHERE Documento = N'07.921.706/0004-88' AND MatrizId IS NULL; -- filial CLI_CODCLI=738 -> matriz CLI_CODCLI=262
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.916.057/0002-65' ORDER BY Id) WHERE Documento = N'07.916.057/0001-84' AND MatrizId IS NULL; -- filial CLI_CODCLI=739 -> matriz CLI_CODCLI=172
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'03.437.507/0001-03' ORDER BY Id) WHERE Documento = N'09.115.553/0001-64' AND MatrizId IS NULL; -- filial CLI_CODCLI=740 -> matriz CLI_CODCLI=198
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'22.619.773/0001-93' ORDER BY Id) WHERE Documento = N'22.619.773/0002-74' AND MatrizId IS NULL; -- filial CLI_CODCLI=742 -> matriz CLI_CODCLI=226
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.312.421/0001-05' ORDER BY Id) WHERE Documento = N'07.312.421/0002-88' AND MatrizId IS NULL; -- filial CLI_CODCLI=743 -> matriz CLI_CODCLI=249
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'03.269.151/0001-38' ORDER BY Id) WHERE Documento = N'31.732.700/0001-02' AND MatrizId IS NULL; -- filial CLI_CODCLI=744 -> matriz CLI_CODCLI=390
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'05.760.378/0001-07' ORDER BY Id) WHERE Documento = N'05.760.378/0002-98' AND MatrizId IS NULL; -- filial CLI_CODCLI=749 -> matriz CLI_CODCLI=431
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'18.707.046/0001-00' ORDER BY Id) WHERE Documento = N'18.707.046/0002-91' AND MatrizId IS NULL; -- filial CLI_CODCLI=750 -> matriz CLI_CODCLI=483
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'57.569.204/0001-65' ORDER BY Id) WHERE Documento = N'19.401.988/0001-29' AND MatrizId IS NULL; -- filial CLI_CODCLI=751 -> matriz CLI_CODCLI=396
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'19.956.692/0001-74' ORDER BY Id) WHERE Documento = N'24.525.834/0001-89' AND MatrizId IS NULL; -- filial CLI_CODCLI=754 -> matriz CLI_CODCLI=699
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'10.218.613/0001-53' ORDER BY Id) WHERE Documento = N'97.535.538/0001-32' AND MatrizId IS NULL; -- filial CLI_CODCLI=755 -> matriz CLI_CODCLI=117
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.076.260/0001-52' ORDER BY Id) WHERE Documento = N'13.453.316/0002-61' AND MatrizId IS NULL; -- filial CLI_CODCLI=760 -> matriz CLI_CODCLI=295
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.580.055/0003-29' ORDER BY Id) WHERE Documento = N'32.213.669/0001-58' AND MatrizId IS NULL; -- filial CLI_CODCLI=762 -> matriz CLI_CODCLI=232
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.921.713/0001-37' ORDER BY Id) WHERE Documento = N'10.717.350/0004-70' AND MatrizId IS NULL; -- filial CLI_CODCLI=764 -> matriz CLI_CODCLI=677
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'53.134.920/0001-69' ORDER BY Id) WHERE Documento = N'20.789.387/0001-14' AND MatrizId IS NULL; -- filial CLI_CODCLI=765 -> matriz CLI_CODCLI=645
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'53.134.920/0001-69' ORDER BY Id) WHERE Documento = N'17.073.597/0002-88' AND MatrizId IS NULL; -- filial CLI_CODCLI=767 -> matriz CLI_CODCLI=645
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'12.513.634/0001-27' ORDER BY Id) WHERE Documento = N'12.513.634/0002-08' AND MatrizId IS NULL; -- filial CLI_CODCLI=776 -> matriz CLI_CODCLI=463
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'96.560.412/0001-55' ORDER BY Id) WHERE Documento = N'32.010.695/0001-89' AND MatrizId IS NULL; -- filial CLI_CODCLI=773 -> matriz CLI_CODCLI=210
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'27.933.527/0001-25' ORDER BY Id) WHERE Documento = N'05.805.466/0001-88' AND MatrizId IS NULL; -- filial CLI_CODCLI=774 -> matriz CLI_CODCLI=519
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'12.439.399/0001-90' ORDER BY Id) WHERE Documento = N'33.155.253/0001-93' AND MatrizId IS NULL; -- filial CLI_CODCLI=781 -> matriz CLI_CODCLI=510
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'28.281.430/0001-48' ORDER BY Id) WHERE Documento = N'33.008.908/0001-09' AND MatrizId IS NULL; -- filial CLI_CODCLI=785 -> matriz CLI_CODCLI=711
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'10.232.496/0001-82' ORDER BY Id) WHERE Documento = N'10.232.496/0002-63' AND MatrizId IS NULL; -- filial CLI_CODCLI=790 -> matriz CLI_CODCLI=239
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'10.915.670/0001-91' ORDER BY Id) WHERE Documento = N'20.374.947/0001-70' AND MatrizId IS NULL; -- filial CLI_CODCLI=794 -> matriz CLI_CODCLI=793
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'72.860.265/0001-70' ORDER BY Id) WHERE Documento = N'34.267.095/0001-26' AND MatrizId IS NULL; -- filial CLI_CODCLI=798 -> matriz CLI_CODCLI=400
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'29.536.801/0001-58' ORDER BY Id) WHERE Documento = N'34.558.834/0001-39' AND MatrizId IS NULL; -- filial CLI_CODCLI=821 -> matriz CLI_CODCLI=820
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'64.578.461/0001-29' ORDER BY Id) WHERE Documento = N'30.672.664/0001-68' AND MatrizId IS NULL; -- filial CLI_CODCLI=822 -> matriz CLI_CODCLI=634
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'900.609.465-04' ORDER BY Id) WHERE Documento = N'716.573.125-34' AND MatrizId IS NULL; -- filial CLI_CODCLI=826 -> matriz CLI_CODCLI=787
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.005.424/0009-08' ORDER BY Id) WHERE Documento = N'08.005.424/0001-50' AND MatrizId IS NULL; -- filial CLI_CODCLI=828 -> matriz CLI_CODCLI=482
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'89.787.956/0001-99' ORDER BY Id) WHERE Documento = N'89.787.956/0004-31' AND MatrizId IS NULL; -- filial CLI_CODCLI=829 -> matriz CLI_CODCLI=783
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'89.787.956/0001-99' ORDER BY Id) WHERE Documento = N'89.787.956/0003-50' AND MatrizId IS NULL; -- filial CLI_CODCLI=830 -> matriz CLI_CODCLI=783
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'13.517.810/0001-61' ORDER BY Id) WHERE Documento = N'07.643.368/0001-17' AND MatrizId IS NULL; -- filial CLI_CODCLI=833 -> matriz CLI_CODCLI=337
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'12.688.242/0001-07' ORDER BY Id) WHERE Documento = N'34.798.305/0001-02' AND MatrizId IS NULL; -- filial CLI_CODCLI=836 -> matriz CLI_CODCLI=541
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'38.075.931/0001-21' ORDER BY Id) WHERE Documento = N'34.711.389/0001-03' AND MatrizId IS NULL; -- filial CLI_CODCLI=837 -> matriz CLI_CODCLI=884
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'16.965.664/0001-25' ORDER BY Id) WHERE Documento = N'063.298.486-45' AND MatrizId IS NULL; -- filial CLI_CODCLI=842 -> matriz CLI_CODCLI=319
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.206.445/0002-15' ORDER BY Id) WHERE Documento = N'08.206.445/0005-68' AND MatrizId IS NULL; -- filial CLI_CODCLI=843 -> matriz CLI_CODCLI=159
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'003.593.097-71' ORDER BY Id) WHERE Documento = N'36.223.255/0001-60' AND MatrizId IS NULL; -- filial CLI_CODCLI=847 -> matriz CLI_CODCLI=810
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'11.503.617/0001-46' ORDER BY Id) WHERE Documento = N'36.538.702/0001-70' AND MatrizId IS NULL; -- filial CLI_CODCLI=849 -> matriz CLI_CODCLI=697
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'01.842.838/0001-95' ORDER BY Id) WHERE Documento = N'07.939.399/0015-15' AND MatrizId IS NULL; -- filial CLI_CODCLI=850 -> matriz CLI_CODCLI=114
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'19.956.692/0001-74' ORDER BY Id) WHERE Documento = N'12.235.936/0001-80' AND MatrizId IS NULL; -- filial CLI_CODCLI=851 -> matriz CLI_CODCLI=699
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.948.278/0001-34' ORDER BY Id) WHERE Documento = N'60.440.815/0001-13' AND MatrizId IS NULL; -- filial CLI_CODCLI=852 -> matriz CLI_CODCLI=286
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.948.278/0001-34' ORDER BY Id) WHERE Documento = N'60.440.815/0002-02' AND MatrizId IS NULL; -- filial CLI_CODCLI=853 -> matriz CLI_CODCLI=286
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.023.912/0001-90' ORDER BY Id) WHERE Documento = N'08.023.912/0003-52' AND MatrizId IS NULL; -- filial CLI_CODCLI=856 -> matriz CLI_CODCLI=261
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'11.184.403/0001-54' ORDER BY Id) WHERE Documento = N'35.961.011/0001-12' AND MatrizId IS NULL; -- filial CLI_CODCLI=860 -> matriz CLI_CODCLI=246
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'33.358.938/0001-37' ORDER BY Id) WHERE Documento = N'33.358.938/0001-37' AND MatrizId IS NULL; -- filial CLI_CODCLI=866 -> matriz CLI_CODCLI=171
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'24.166.015/0001-92' ORDER BY Id) WHERE Documento = N'37.490.476/0001-68' AND MatrizId IS NULL; -- filial CLI_CODCLI=874 -> matriz CLI_CODCLI=252
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'12.439.399/0001-90' ORDER BY Id) WHERE Documento = N'37.382.021/0001-29' AND MatrizId IS NULL; -- filial CLI_CODCLI=881 -> matriz CLI_CODCLI=510
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.076.260/0001-52' ORDER BY Id) WHERE Documento = N'08.076.260/0001-52' AND MatrizId IS NULL; -- filial CLI_CODCLI=891 -> matriz CLI_CODCLI=295
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.023.912/0001-90' ORDER BY Id) WHERE Documento = N'08.023.912/0005-14' AND MatrizId IS NULL; -- filial CLI_CODCLI=896 -> matriz CLI_CODCLI=261
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'38.075.931/0001-21' ORDER BY Id) WHERE Documento = N'39.235.430/0001-28' AND MatrizId IS NULL; -- filial CLI_CODCLI=900 -> matriz CLI_CODCLI=884
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'04.135.712/0001-79' ORDER BY Id) WHERE Documento = N'38.731.110/0001-04' AND MatrizId IS NULL; -- filial CLI_CODCLI=904 -> matriz CLI_CODCLI=137
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'15.754.030/0001-60' ORDER BY Id) WHERE Documento = N'34.675.311/0001-72' AND MatrizId IS NULL; -- filial CLI_CODCLI=906 -> matriz CLI_CODCLI=250
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'35.718.868/0001-06' ORDER BY Id) WHERE Documento = N'031.396.196-42' AND MatrizId IS NULL; -- filial CLI_CODCLI=907 -> matriz CLI_CODCLI=871
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'63.531.396/0001-13' ORDER BY Id) WHERE Documento = N'63.531.396/0002-02' AND MatrizId IS NULL; -- filial CLI_CODCLI=915 -> matriz CLI_CODCLI=879
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'63.531.396/0001-13' ORDER BY Id) WHERE Documento = N'63.531.396/0003-85' AND MatrizId IS NULL; -- filial CLI_CODCLI=916 -> matriz CLI_CODCLI=879
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.216.683/0005-54' ORDER BY Id) WHERE Documento = N'08.216.683/0004-73' AND MatrizId IS NULL; -- filial CLI_CODCLI=918 -> matriz CLI_CODCLI=142
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.216.683/0005-54' ORDER BY Id) WHERE Documento = N'08.216.683/0002-01' AND MatrizId IS NULL; -- filial CLI_CODCLI=919 -> matriz CLI_CODCLI=142
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.216.683/0005-54' ORDER BY Id) WHERE Documento = N'08.216.683/0010-11' AND MatrizId IS NULL; -- filial CLI_CODCLI=920 -> matriz CLI_CODCLI=142
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.937.846/0001-00' ORDER BY Id) WHERE Documento = N'07.937.846/0005-25' AND MatrizId IS NULL; -- filial CLI_CODCLI=923 -> matriz CLI_CODCLI=160
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.937.846/0001-00' ORDER BY Id) WHERE Documento = N'07.937.846/0014-16' AND MatrizId IS NULL; -- filial CLI_CODCLI=924 -> matriz CLI_CODCLI=160
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'14.106.560/0001-30' ORDER BY Id) WHERE Documento = N'14.106.560/0002-10' AND MatrizId IS NULL; -- filial CLI_CODCLI=925 -> matriz CLI_CODCLI=157
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'14.106.560/0001-30' ORDER BY Id) WHERE Documento = N'14.106.560/0005-63' AND MatrizId IS NULL; -- filial CLI_CODCLI=926 -> matriz CLI_CODCLI=157
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'14.106.560/0001-30' ORDER BY Id) WHERE Documento = N'14.106.560/0006-44' AND MatrizId IS NULL; -- filial CLI_CODCLI=927 -> matriz CLI_CODCLI=157
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'14.106.560/0001-30' ORDER BY Id) WHERE Documento = N'14.106.560/0007-25' AND MatrizId IS NULL; -- filial CLI_CODCLI=928 -> matriz CLI_CODCLI=157
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.949.691/0001-13' ORDER BY Id) WHERE Documento = N'07.949.691/0004-66' AND MatrizId IS NULL; -- filial CLI_CODCLI=929 -> matriz CLI_CODCLI=149
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.949.691/0001-13' ORDER BY Id) WHERE Documento = N'07.949.691/0008-90' AND MatrizId IS NULL; -- filial CLI_CODCLI=930 -> matriz CLI_CODCLI=149
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.937.846/0001-00' ORDER BY Id) WHERE Documento = N'07.937.846/0011-73' AND MatrizId IS NULL; -- filial CLI_CODCLI=931 -> matriz CLI_CODCLI=160
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.937.846/0001-00' ORDER BY Id) WHERE Documento = N'07.937.846/0007-97' AND MatrizId IS NULL; -- filial CLI_CODCLI=932 -> matriz CLI_CODCLI=160
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.937.846/0001-00' ORDER BY Id) WHERE Documento = N'07.937.846/0013-35' AND MatrizId IS NULL; -- filial CLI_CODCLI=933 -> matriz CLI_CODCLI=160
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.937.846/0001-00' ORDER BY Id) WHERE Documento = N'07.937.846/0017-69' AND MatrizId IS NULL; -- filial CLI_CODCLI=934 -> matriz CLI_CODCLI=160
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.937.846/0001-00' ORDER BY Id) WHERE Documento = N'07.937.846/0016-88' AND MatrizId IS NULL; -- filial CLI_CODCLI=935 -> matriz CLI_CODCLI=160
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.937.846/0001-00' ORDER BY Id) WHERE Documento = N'07.937.846/0012-54' AND MatrizId IS NULL; -- filial CLI_CODCLI=936 -> matriz CLI_CODCLI=160
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.937.846/0001-00' ORDER BY Id) WHERE Documento = N'07.937.846/0018-40' AND MatrizId IS NULL; -- filial CLI_CODCLI=937 -> matriz CLI_CODCLI=160
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.937.846/0001-00' ORDER BY Id) WHERE Documento = N'07.937.846/0019-20' AND MatrizId IS NULL; -- filial CLI_CODCLI=938 -> matriz CLI_CODCLI=160
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.937.846/0001-00' ORDER BY Id) WHERE Documento = N'07.937.846/0020-64' AND MatrizId IS NULL; -- filial CLI_CODCLI=939 -> matriz CLI_CODCLI=160
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.937.846/0001-00' ORDER BY Id) WHERE Documento = N'07.937.846/0006-06' AND MatrizId IS NULL; -- filial CLI_CODCLI=940 -> matriz CLI_CODCLI=160
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.937.846/0001-00' ORDER BY Id) WHERE Documento = N'07.937.846/0004-44' AND MatrizId IS NULL; -- filial CLI_CODCLI=941 -> matriz CLI_CODCLI=160
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.937.846/0001-00' ORDER BY Id) WHERE Documento = N'07.937.846/0008-78' AND MatrizId IS NULL; -- filial CLI_CODCLI=942 -> matriz CLI_CODCLI=160
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.206.445/0002-15' ORDER BY Id) WHERE Documento = N'08.206.445/0003-04' AND MatrizId IS NULL; -- filial CLI_CODCLI=943 -> matriz CLI_CODCLI=159
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.206.445/0002-15' ORDER BY Id) WHERE Documento = N'08.206.445/0014-59' AND MatrizId IS NULL; -- filial CLI_CODCLI=944 -> matriz CLI_CODCLI=159
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.206.445/0002-15' ORDER BY Id) WHERE Documento = N'08.206.445/0013-78' AND MatrizId IS NULL; -- filial CLI_CODCLI=945 -> matriz CLI_CODCLI=159
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.206.445/0002-15' ORDER BY Id) WHERE Documento = N'08.206.445/0009-91' AND MatrizId IS NULL; -- filial CLI_CODCLI=946 -> matriz CLI_CODCLI=159
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'31.074.937/0004-88' ORDER BY Id) WHERE Documento = N'31.074.937/0002-16' AND MatrizId IS NULL; -- filial CLI_CODCLI=948 -> matriz CLI_CODCLI=959
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'22.530.985/0001-08' ORDER BY Id) WHERE Documento = N'27.412.229/0001-90' AND MatrizId IS NULL; -- filial CLI_CODCLI=950 -> matriz CLI_CODCLI=522
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.938.224/0001-98' ORDER BY Id) WHERE Documento = N'169.064.568-73' AND MatrizId IS NULL; -- filial CLI_CODCLI=952 -> matriz CLI_CODCLI=687
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'14.282.025/0001-30' ORDER BY Id) WHERE Documento = N'40.715.027/0001-85' AND MatrizId IS NULL; -- filial CLI_CODCLI=953 -> matriz CLI_CODCLI=381
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'01.853.378/0001-09' ORDER BY Id) WHERE Documento = N'21.013.211/0001-39' AND MatrizId IS NULL; -- filial CLI_CODCLI=958 -> matriz CLI_CODCLI=957
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'31.074.937/0004-88' ORDER BY Id) WHERE Documento = N'31.074.937/0003-05' AND MatrizId IS NULL; -- filial CLI_CODCLI=960 -> matriz CLI_CODCLI=959
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'21.257.788/0001-96' ORDER BY Id) WHERE Documento = N'41.105.276/0001-11' AND MatrizId IS NULL; -- filial CLI_CODCLI=965 -> matriz CLI_CODCLI=869
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.027.822/0001-78' ORDER BY Id) WHERE Documento = N'25.015.869/0001-30' AND MatrizId IS NULL; -- filial CLI_CODCLI=966 -> matriz CLI_CODCLI=494
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.939.399/0004-62' ORDER BY Id) WHERE Documento = N'07.939.399/0024-06' AND MatrizId IS NULL; -- filial CLI_CODCLI=970 -> matriz CLI_CODCLI=144
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'13.517.810/0001-61' ORDER BY Id) WHERE Documento = N'40.854.904/0001-07' AND MatrizId IS NULL; -- filial CLI_CODCLI=971 -> matriz CLI_CODCLI=337
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.216.683/0005-54' ORDER BY Id) WHERE Documento = N'08.216.683/0009-88' AND MatrizId IS NULL; -- filial CLI_CODCLI=974 -> matriz CLI_CODCLI=142
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'378.595.363-15' ORDER BY Id) WHERE Documento = N'378.595.363-15' AND MatrizId IS NULL; -- filial CLI_CODCLI=975 -> matriz CLI_CODCLI=631
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.023.912/0001-90' ORDER BY Id) WHERE Documento = N'41.260.311/0002-58' AND MatrizId IS NULL; -- filial CLI_CODCLI=980 -> matriz CLI_CODCLI=261
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.410.306/0001-65' ORDER BY Id) WHERE Documento = N'265.919.010-00' AND MatrizId IS NULL; -- filial CLI_CODCLI=988 -> matriz CLI_CODCLI=516
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'837.858.096-20' ORDER BY Id) WHERE Documento = N'41.488.158/0001-30' AND MatrizId IS NULL; -- filial CLI_CODCLI=991 -> matriz CLI_CODCLI=517
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'22.619.773/0001-93' ORDER BY Id) WHERE Documento = N'22.619.773/0004-36' AND MatrizId IS NULL; -- filial CLI_CODCLI=995 -> matriz CLI_CODCLI=226
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'38.075.931/0001-21' ORDER BY Id) WHERE Documento = N'43.601.557/0001-90' AND MatrizId IS NULL; -- filial CLI_CODCLI=1009 -> matriz CLI_CODCLI=884
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'25.058.690/0001-60' ORDER BY Id) WHERE Documento = N'026.185.050-42' AND MatrizId IS NULL; -- filial CLI_CODCLI=1010 -> matriz CLI_CODCLI=996
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'25.058.690/0001-60' ORDER BY Id) WHERE Documento = N'458.315.560-34' AND MatrizId IS NULL; -- filial CLI_CODCLI=1011 -> matriz CLI_CODCLI=996
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'63.531.396/0001-13' ORDER BY Id) WHERE Documento = N'17.545.142/0001-37' AND MatrizId IS NULL; -- filial CLI_CODCLI=1019 -> matriz CLI_CODCLI=879
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'42.866.919/0001-02' ORDER BY Id) WHERE Documento = N'44.329.547/0001-00' AND MatrizId IS NULL; -- filial CLI_CODCLI=1020 -> matriz CLI_CODCLI=998
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'320.032.006-06' ORDER BY Id) WHERE Documento = N'36.573.550/0001-47' AND MatrizId IS NULL; -- filial CLI_CODCLI=1025 -> matriz CLI_CODCLI=1007
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.023.912/0001-90' ORDER BY Id) WHERE Documento = N'41.260.311/0005-09' AND MatrizId IS NULL; -- filial CLI_CODCLI=1026 -> matriz CLI_CODCLI=261
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.023.912/0001-90' ORDER BY Id) WHERE Documento = N'43.184.857/0001-11' AND MatrizId IS NULL; -- filial CLI_CODCLI=1028 -> matriz CLI_CODCLI=261
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.023.912/0001-90' ORDER BY Id) WHERE Documento = N'41.260.311/0004-10' AND MatrizId IS NULL; -- filial CLI_CODCLI=1029 -> matriz CLI_CODCLI=261
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.023.912/0001-90' ORDER BY Id) WHERE Documento = N'41.260.311/0001-77' AND MatrizId IS NULL; -- filial CLI_CODCLI=1031 -> matriz CLI_CODCLI=261
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'11.932.665/0001-50' ORDER BY Id) WHERE Documento = N'12.439.114/0001-11' AND MatrizId IS NULL; -- filial CLI_CODCLI=1034 -> matriz CLI_CODCLI=972
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'12.152.255/0001-59' ORDER BY Id) WHERE Documento = N'45.081.596/0001-30' AND MatrizId IS NULL; -- filial CLI_CODCLI=1042 -> matriz CLI_CODCLI=704
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'72.860.265/0001-70' ORDER BY Id) WHERE Documento = N'45.353.068/0001-92' AND MatrizId IS NULL; -- filial CLI_CODCLI=1047 -> matriz CLI_CODCLI=400
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'474.682.899-72' ORDER BY Id) WHERE Documento = N'579.112.749-91' AND MatrizId IS NULL; -- filial CLI_CODCLI=1049 -> matriz CLI_CODCLI=872
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'13.248.381/0001-74' ORDER BY Id) WHERE Documento = N'13.248.381/0002-55' AND MatrizId IS NULL; -- filial CLI_CODCLI=1051 -> matriz CLI_CODCLI=617
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'21.948.907/0001-57' ORDER BY Id) WHERE Documento = N'35.014.903/0001-06' AND MatrizId IS NULL; -- filial CLI_CODCLI=1056 -> matriz CLI_CODCLI=1038
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'03.568.925/0001-21' ORDER BY Id) WHERE Documento = N'03.568.925/0002-02' AND MatrizId IS NULL; -- filial CLI_CODCLI=1057 -> matriz CLI_CODCLI=985
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'53.560.033/0001-52' ORDER BY Id) WHERE Documento = N'46.623.461/0001-11' AND MatrizId IS NULL; -- filial CLI_CODCLI=1061 -> matriz CLI_CODCLI=228
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'537.892.969-53' ORDER BY Id) WHERE Documento = N'493.489.229-04' AND MatrizId IS NULL; -- filial CLI_CODCLI=1062 -> matriz CLI_CODCLI=1060
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'320.032.006-06' ORDER BY Id) WHERE Documento = N'061.390.896-11' AND MatrizId IS NULL; -- filial CLI_CODCLI=1065 -> matriz CLI_CODCLI=1007
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'43.712.925/0001-78' ORDER BY Id) WHERE Documento = N'473.441.990-68' AND MatrizId IS NULL; -- filial CLI_CODCLI=1067 -> matriz CLI_CODCLI=1066
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'508.397.059-72' ORDER BY Id) WHERE Documento = N'057.482.229-14' AND MatrizId IS NULL; -- filial CLI_CODCLI=1069 -> matriz CLI_CODCLI=438
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'508.397.059-72' ORDER BY Id) WHERE Documento = N'047.998.069-12' AND MatrizId IS NULL; -- filial CLI_CODCLI=1071 -> matriz CLI_CODCLI=438
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.938.224/0001-98' ORDER BY Id) WHERE Documento = N'33.456.853/0001-91' AND MatrizId IS NULL; -- filial CLI_CODCLI=1074 -> matriz CLI_CODCLI=687
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'10.428.760/0001-58' ORDER BY Id) WHERE Documento = N'47.409.034/0001-06' AND MatrizId IS NULL; -- filial CLI_CODCLI=1075 -> matriz CLI_CODCLI=803
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.364.820/0001-01' ORDER BY Id) WHERE Documento = N'46.058.587/0001-90' AND MatrizId IS NULL; -- filial CLI_CODCLI=1076 -> matriz CLI_CODCLI=587
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.554.331/0002-66' ORDER BY Id) WHERE Documento = N'46.942.971/0001-51' AND MatrizId IS NULL; -- filial CLI_CODCLI=1077 -> matriz CLI_CODCLI=582
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'21.257.788/0001-96' ORDER BY Id) WHERE Documento = N'46.224.763/0001-17' AND MatrizId IS NULL; -- filial CLI_CODCLI=1078 -> matriz CLI_CODCLI=869
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'31.067.278/0001-00' ORDER BY Id) WHERE Documento = N'47.753.092/0001-44' AND MatrizId IS NULL; -- filial CLI_CODCLI=1079 -> matriz CLI_CODCLI=1052
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'44.473.572/0001-63' ORDER BY Id) WHERE Documento = N'238.345.796-53' AND MatrizId IS NULL; -- filial CLI_CODCLI=1081 -> matriz CLI_CODCLI=1080
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'62.856.646/0001-22' ORDER BY Id) WHERE Documento = N'41.283.986/0001-31' AND MatrizId IS NULL; -- filial CLI_CODCLI=1085 -> matriz CLI_CODCLI=559
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.939.399/0004-62' ORDER BY Id) WHERE Documento = N'07.939.399/0025-97' AND MatrizId IS NULL; -- filial CLI_CODCLI=1086 -> matriz CLI_CODCLI=144
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'43.891.775/0001-07' ORDER BY Id) WHERE Documento = N'44.762.109/0001-31' AND MatrizId IS NULL; -- filial CLI_CODCLI=1091 -> matriz CLI_CODCLI=1090
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'22.619.773/0001-93' ORDER BY Id) WHERE Documento = N'43.660.152/0001-23' AND MatrizId IS NULL; -- filial CLI_CODCLI=1099 -> matriz CLI_CODCLI=226
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'240.669.230-20' ORDER BY Id) WHERE Documento = N'000.431.190-69' AND MatrizId IS NULL; -- filial CLI_CODCLI=1100 -> matriz CLI_CODCLI=432
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'06.920.455/0001-01' ORDER BY Id) WHERE Documento = N'48.289.032/0001-85' AND MatrizId IS NULL; -- filial CLI_CODCLI=1101 -> matriz CLI_CODCLI=405
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'62.856.646/0001-22' ORDER BY Id) WHERE Documento = N'48.376.731/0001-62' AND MatrizId IS NULL; -- filial CLI_CODCLI=1106 -> matriz CLI_CODCLI=559
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'11.503.617/0001-46' ORDER BY Id) WHERE Documento = N'12.916.999/0001-00' AND MatrizId IS NULL; -- filial CLI_CODCLI=1114 -> matriz CLI_CODCLI=697
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'48.698.227/0001-89' ORDER BY Id) WHERE Documento = N'925.218.435-04' AND MatrizId IS NULL; -- filial CLI_CODCLI=1117 -> matriz CLI_CODCLI=1110
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'01.463.926/0001-86' ORDER BY Id) WHERE Documento = N'01.463.926/0005-00' AND MatrizId IS NULL; -- filial CLI_CODCLI=1119 -> matriz CLI_CODCLI=912
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'31.067.278/0001-00' ORDER BY Id) WHERE Documento = N'044.832.826-70' AND MatrizId IS NULL; -- filial CLI_CODCLI=1123 -> matriz CLI_CODCLI=1052
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'11.503.617/0001-46' ORDER BY Id) WHERE Documento = N'46.619.643/0001-19' AND MatrizId IS NULL; -- filial CLI_CODCLI=1128 -> matriz CLI_CODCLI=697
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'21.834.628/0001-62' ORDER BY Id) WHERE Documento = N'21.834.628/0005-96' AND MatrizId IS NULL; -- filial CLI_CODCLI=1131 -> matriz CLI_CODCLI=315
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'21.834.628/0001-62' ORDER BY Id) WHERE Documento = N'21.834.628/0008-39' AND MatrizId IS NULL; -- filial CLI_CODCLI=1132 -> matriz CLI_CODCLI=315
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'21.834.628/0001-62' ORDER BY Id) WHERE Documento = N'21.834.628/0002-43' AND MatrizId IS NULL; -- filial CLI_CODCLI=1133 -> matriz CLI_CODCLI=315
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'21.834.628/0001-62' ORDER BY Id) WHERE Documento = N'21.834.628/0003-24' AND MatrizId IS NULL; -- filial CLI_CODCLI=1134 -> matriz CLI_CODCLI=315
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'21.834.628/0001-62' ORDER BY Id) WHERE Documento = N'21.834.628/0009-10' AND MatrizId IS NULL; -- filial CLI_CODCLI=1135 -> matriz CLI_CODCLI=315
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.937.846/0001-00' ORDER BY Id) WHERE Documento = N'07.937.846/0022-26' AND MatrizId IS NULL; -- filial CLI_CODCLI=1136 -> matriz CLI_CODCLI=160
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.937.846/0001-00' ORDER BY Id) WHERE Documento = N'07.937.846/0021-45' AND MatrizId IS NULL; -- filial CLI_CODCLI=1137 -> matriz CLI_CODCLI=160
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'14.106.560/0001-30' ORDER BY Id) WHERE Documento = N'14.106.560/0008-06' AND MatrizId IS NULL; -- filial CLI_CODCLI=1138 -> matriz CLI_CODCLI=157
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.076.260/0001-52' ORDER BY Id) WHERE Documento = N'50.037.222/0001-57' AND MatrizId IS NULL; -- filial CLI_CODCLI=1139 -> matriz CLI_CODCLI=295
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'41.642.878/0001-08' ORDER BY Id) WHERE Documento = N'51.022.595/0001-17' AND MatrizId IS NULL; -- filial CLI_CODCLI=1140 -> matriz CLI_CODCLI=1014
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'31.074.937/0004-88' ORDER BY Id) WHERE Documento = N'31.074.937/0005-69' AND MatrizId IS NULL; -- filial CLI_CODCLI=1141 -> matriz CLI_CODCLI=959
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.927.200/0004-86' ORDER BY Id) WHERE Documento = N'07.927.200/0006-48' AND MatrizId IS NULL; -- filial CLI_CODCLI=1144 -> matriz CLI_CODCLI=150
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.312.421/0001-05' ORDER BY Id) WHERE Documento = N'056.221.004-02' AND MatrizId IS NULL; -- filial CLI_CODCLI=1146 -> matriz CLI_CODCLI=249
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.312.421/0001-05' ORDER BY Id) WHERE Documento = N'057.950.194-96' AND MatrizId IS NULL; -- filial CLI_CODCLI=1147 -> matriz CLI_CODCLI=249
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.312.421/0001-05' ORDER BY Id) WHERE Documento = N'470.996.154-91' AND MatrizId IS NULL; -- filial CLI_CODCLI=1148 -> matriz CLI_CODCLI=249
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.312.421/0001-05' ORDER BY Id) WHERE Documento = N'071.568.624-05' AND MatrizId IS NULL; -- filial CLI_CODCLI=1149 -> matriz CLI_CODCLI=249
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'469.810.049-68' ORDER BY Id) WHERE Documento = N'51.675.566/0001-54' AND MatrizId IS NULL; -- filial CLI_CODCLI=1151 -> matriz CLI_CODCLI=1157
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'618.362.144-72' ORDER BY Id) WHERE Documento = N'52.324.666/0001-07' AND MatrizId IS NULL; -- filial CLI_CODCLI=1160 -> matriz CLI_CODCLI=800
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'618.362.144-72' ORDER BY Id) WHERE Documento = N'52.324.666/0002-80' AND MatrizId IS NULL; -- filial CLI_CODCLI=1161 -> matriz CLI_CODCLI=800
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'618.362.144-72' ORDER BY Id) WHERE Documento = N'52.324.666/0003-60' AND MatrizId IS NULL; -- filial CLI_CODCLI=1162 -> matriz CLI_CODCLI=800
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'37.637.823/0001-32' ORDER BY Id) WHERE Documento = N'52.351.661/0001-65' AND MatrizId IS NULL; -- filial CLI_CODCLI=1164 -> matriz CLI_CODCLI=883
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'04.545.573/0001-51' ORDER BY Id) WHERE Documento = N'21.878.274/0002-39' AND MatrizId IS NULL; -- filial CLI_CODCLI=1167 -> matriz CLI_CODCLI=1048
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'04.545.573/0001-51' ORDER BY Id) WHERE Documento = N'04.545.573/0005-85' AND MatrizId IS NULL; -- filial CLI_CODCLI=1168 -> matriz CLI_CODCLI=1048
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'04.545.573/0001-51' ORDER BY Id) WHERE Documento = N'21.878.274/0001-58' AND MatrizId IS NULL; -- filial CLI_CODCLI=1169 -> matriz CLI_CODCLI=1048
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'01.463.926/0001-86' ORDER BY Id) WHERE Documento = N'04.188.995/0002-06' AND MatrizId IS NULL; -- filial CLI_CODCLI=1172 -> matriz CLI_CODCLI=912
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'11.184.403/0001-54' ORDER BY Id) WHERE Documento = N'44.745.160/0001-35' AND MatrizId IS NULL; -- filial CLI_CODCLI=1173 -> matriz CLI_CODCLI=246
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'30.659.859/0001-78' ORDER BY Id) WHERE Documento = N'53.045.600/0001-32' AND MatrizId IS NULL; -- filial CLI_CODCLI=1178 -> matriz CLI_CODCLI=312
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.023.912/0001-90' ORDER BY Id) WHERE Documento = N'41.260.311/0007-62' AND MatrizId IS NULL; -- filial CLI_CODCLI=1182 -> matriz CLI_CODCLI=261
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'04.545.573/0001-51' ORDER BY Id) WHERE Documento = N'04.545.573/0003-13' AND MatrizId IS NULL; -- filial CLI_CODCLI=1184 -> matriz CLI_CODCLI=1048
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'33.288.889/0001-03' ORDER BY Id) WHERE Documento = N'44.930.949/0001-66' AND MatrizId IS NULL; -- filial CLI_CODCLI=1193 -> matriz CLI_CODCLI=771
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.937.846/0001-00' ORDER BY Id) WHERE Documento = N'07.937.846/0023-07' AND MatrizId IS NULL; -- filial CLI_CODCLI=1194 -> matriz CLI_CODCLI=160
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'11.184.403/0001-54' ORDER BY Id) WHERE Documento = N'54.154.087/0001-80' AND MatrizId IS NULL; -- filial CLI_CODCLI=1201 -> matriz CLI_CODCLI=246
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'31.067.278/0001-00' ORDER BY Id) WHERE Documento = N'54.379.085/0001-90' AND MatrizId IS NULL; -- filial CLI_CODCLI=1204 -> matriz CLI_CODCLI=1052
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'44.929.628/0001-41' ORDER BY Id) WHERE Documento = N'08.444.098/0001-88' AND MatrizId IS NULL; -- filial CLI_CODCLI=1205 -> matriz CLI_CODCLI=136
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'44.929.628/0001-41' ORDER BY Id) WHERE Documento = N'08.213.219/0001-80' AND MatrizId IS NULL; -- filial CLI_CODCLI=1206 -> matriz CLI_CODCLI=136
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'11.318.176/0001-02' ORDER BY Id) WHERE Documento = N'11.335.093/0001-21' AND MatrizId IS NULL; -- filial CLI_CODCLI=1207 -> matriz CLI_CODCLI=902
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.921.855/0001-02' ORDER BY Id) WHERE Documento = N'07.921.855/0009-51' AND MatrizId IS NULL; -- filial CLI_CODCLI=1209 -> matriz CLI_CODCLI=165
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.921.855/0001-02' ORDER BY Id) WHERE Documento = N'07.921.855/0008-70' AND MatrizId IS NULL; -- filial CLI_CODCLI=1210 -> matriz CLI_CODCLI=165
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.921.855/0001-02' ORDER BY Id) WHERE Documento = N'07.921.855/0003-66' AND MatrizId IS NULL; -- filial CLI_CODCLI=1211 -> matriz CLI_CODCLI=165
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.921.855/0001-02' ORDER BY Id) WHERE Documento = N'07.921.855/0012-57' AND MatrizId IS NULL; -- filial CLI_CODCLI=1212 -> matriz CLI_CODCLI=165
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'11.932.665/0001-50' ORDER BY Id) WHERE Documento = N'11.932.665/0002-30' AND MatrizId IS NULL; -- filial CLI_CODCLI=1213 -> matriz CLI_CODCLI=972
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'11.932.665/0001-50' ORDER BY Id) WHERE Documento = N'07.922.950/0004-65' AND MatrizId IS NULL; -- filial CLI_CODCLI=1214 -> matriz CLI_CODCLI=972
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'11.932.665/0001-50' ORDER BY Id) WHERE Documento = N'11.932.665/0004-00' AND MatrizId IS NULL; -- filial CLI_CODCLI=1215 -> matriz CLI_CODCLI=972
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'11.932.665/0001-50' ORDER BY Id) WHERE Documento = N'11.932.665/0005-83' AND MatrizId IS NULL; -- filial CLI_CODCLI=1216 -> matriz CLI_CODCLI=972
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'09.030.551/0001-72' ORDER BY Id) WHERE Documento = N'19.770.230/0001-68' AND MatrizId IS NULL; -- filial CLI_CODCLI=1219 -> matriz CLI_CODCLI=1218
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'09.030.551/0001-72' ORDER BY Id) WHERE Documento = N'51.483.244/0001-03' AND MatrizId IS NULL; -- filial CLI_CODCLI=1220 -> matriz CLI_CODCLI=1218
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'09.030.551/0001-72' ORDER BY Id) WHERE Documento = N'08.993.984/0001-60' AND MatrizId IS NULL; -- filial CLI_CODCLI=1221 -> matriz CLI_CODCLI=1218
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'09.030.551/0001-72' ORDER BY Id) WHERE Documento = N'51.471.104/0001-15' AND MatrizId IS NULL; -- filial CLI_CODCLI=1222 -> matriz CLI_CODCLI=1218
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'50.373.290/0001-97' ORDER BY Id) WHERE Documento = N'50.373.290/0002-78' AND MatrizId IS NULL; -- filial CLI_CODCLI=1225 -> matriz CLI_CODCLI=1224
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'50.373.290/0001-97' ORDER BY Id) WHERE Documento = N'50.373.290/0003-59' AND MatrizId IS NULL; -- filial CLI_CODCLI=1226 -> matriz CLI_CODCLI=1224
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.943.154/0001-66' ORDER BY Id) WHERE Documento = N'19.864.880/0001-72' AND MatrizId IS NULL; -- filial CLI_CODCLI=1228 -> matriz CLI_CODCLI=166
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.213.221/0001-50' ORDER BY Id) WHERE Documento = N'08.549.194/0001-90' AND MatrizId IS NULL; -- filial CLI_CODCLI=1229 -> matriz CLI_CODCLI=480
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'17.232.965/0001-02' ORDER BY Id) WHERE Documento = N'29.025.433/0001-83' AND MatrizId IS NULL; -- filial CLI_CODCLI=1231 -> matriz CLI_CODCLI=335
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'063.780.788-07' ORDER BY Id) WHERE Documento = N'07.963.381/0002-34' AND MatrizId IS NULL; -- filial CLI_CODCLI=1232 -> matriz CLI_CODCLI=865
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'063.780.788-07' ORDER BY Id) WHERE Documento = N'07.963.381/0004-04' AND MatrizId IS NULL; -- filial CLI_CODCLI=1233 -> matriz CLI_CODCLI=865
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'063.780.788-07' ORDER BY Id) WHERE Documento = N'08.028.238/0002-18' AND MatrizId IS NULL; -- filial CLI_CODCLI=1234 -> matriz CLI_CODCLI=865
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'063.780.788-07' ORDER BY Id) WHERE Documento = N'07.963.381/0003-15' AND MatrizId IS NULL; -- filial CLI_CODCLI=1235 -> matriz CLI_CODCLI=865
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'063.780.788-07' ORDER BY Id) WHERE Documento = N'08.028.267/0001-07' AND MatrizId IS NULL; -- filial CLI_CODCLI=1236 -> matriz CLI_CODCLI=865
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.937.810/0001-18' ORDER BY Id) WHERE Documento = N'07.937.810/0003-80' AND MatrizId IS NULL; -- filial CLI_CODCLI=1244 -> matriz CLI_CODCLI=164
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.937.810/0001-18' ORDER BY Id) WHERE Documento = N'07.937.810/0005-41' AND MatrizId IS NULL; -- filial CLI_CODCLI=1245 -> matriz CLI_CODCLI=164
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.937.810/0001-18' ORDER BY Id) WHERE Documento = N'07.937.810/0006-22' AND MatrizId IS NULL; -- filial CLI_CODCLI=1246 -> matriz CLI_CODCLI=164
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.937.810/0001-18' ORDER BY Id) WHERE Documento = N'07.937.810/0007-03' AND MatrizId IS NULL; -- filial CLI_CODCLI=1247 -> matriz CLI_CODCLI=164
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.937.810/0001-18' ORDER BY Id) WHERE Documento = N'07.937.810/0008-94' AND MatrizId IS NULL; -- filial CLI_CODCLI=1248 -> matriz CLI_CODCLI=164
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'17.232.965/0001-02' ORDER BY Id) WHERE Documento = N'44.937.731/0001-33' AND MatrizId IS NULL; -- filial CLI_CODCLI=1249 -> matriz CLI_CODCLI=335
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.478.429/0001-09' ORDER BY Id) WHERE Documento = N'07.980.248/0001-05' AND MatrizId IS NULL; -- filial CLI_CODCLI=1255 -> matriz CLI_CODCLI=1241
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.916.057/0002-65' ORDER BY Id) WHERE Documento = N'55.128.823/0001-99' AND MatrizId IS NULL; -- filial CLI_CODCLI=1256 -> matriz CLI_CODCLI=172
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'33.288.889/0001-03' ORDER BY Id) WHERE Documento = N'55.087.242/0001-56' AND MatrizId IS NULL; -- filial CLI_CODCLI=1259 -> matriz CLI_CODCLI=771
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.939.399/0004-62' ORDER BY Id) WHERE Documento = N'07.939.399/0023-25' AND MatrizId IS NULL; -- filial CLI_CODCLI=1262 -> matriz CLI_CODCLI=144
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'04.545.573/0001-51' ORDER BY Id) WHERE Documento = N'04.545.573/0002-32' AND MatrizId IS NULL; -- filial CLI_CODCLI=1263 -> matriz CLI_CODCLI=1048
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.206.445/0002-15' ORDER BY Id) WHERE Documento = N'08.206.445/0015-30' AND MatrizId IS NULL; -- filial CLI_CODCLI=1265 -> matriz CLI_CODCLI=159
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'063.780.788-07' ORDER BY Id) WHERE Documento = N'07.963.381/0001-53' AND MatrizId IS NULL; -- filial CLI_CODCLI=1270 -> matriz CLI_CODCLI=865
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'496.599.520-15' ORDER BY Id) WHERE Documento = N'26.668.586/0001-50' AND MatrizId IS NULL; -- filial CLI_CODCLI=1273 -> matriz CLI_CODCLI=1260
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'04.627.812/0001-12' ORDER BY Id) WHERE Documento = N'55.611.480/0001-19' AND MatrizId IS NULL; -- filial CLI_CODCLI=1280 -> matriz CLI_CODCLI=625
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'13.003.893/0001-70' ORDER BY Id) WHERE Documento = N'54.535.318/0001-04' AND MatrizId IS NULL; -- filial CLI_CODCLI=1281 -> matriz CLI_CODCLI=1046
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'18.750.072/0001-11' ORDER BY Id) WHERE Documento = N'891.594.891-20' AND MatrizId IS NULL; -- filial CLI_CODCLI=1283 -> matriz CLI_CODCLI=1276
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'18.750.072/0001-11' ORDER BY Id) WHERE Documento = N'062.906.711-20' AND MatrizId IS NULL; -- filial CLI_CODCLI=1284 -> matriz CLI_CODCLI=1276
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'49.033.718/0001-73' ORDER BY Id) WHERE Documento = N'52.527.890/0001-98' AND MatrizId IS NULL; -- filial CLI_CODCLI=1286 -> matriz CLI_CODCLI=1285
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'49.033.718/0001-73' ORDER BY Id) WHERE Documento = N'49.033.647/0001-09' AND MatrizId IS NULL; -- filial CLI_CODCLI=1287 -> matriz CLI_CODCLI=1285
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'62.856.646/0001-22' ORDER BY Id) WHERE Documento = N'53.450.876/0001-04' AND MatrizId IS NULL; -- filial CLI_CODCLI=1289 -> matriz CLI_CODCLI=559
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'21.257.788/0001-96' ORDER BY Id) WHERE Documento = N'57.016.861/0001-85' AND MatrizId IS NULL; -- filial CLI_CODCLI=1290 -> matriz CLI_CODCLI=869
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'349.604.069-68' ORDER BY Id) WHERE Documento = N'116.821.659-14' AND MatrizId IS NULL; -- filial CLI_CODCLI=1294 -> matriz CLI_CODCLI=728
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'04.545.573/0001-51' ORDER BY Id) WHERE Documento = N'303.570.898-39' AND MatrizId IS NULL; -- filial CLI_CODCLI=1295 -> matriz CLI_CODCLI=1048
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'41.642.878/0001-08' ORDER BY Id) WHERE Documento = N'57.565.231/0001-60' AND MatrizId IS NULL; -- filial CLI_CODCLI=1296 -> matriz CLI_CODCLI=1014
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'17.232.965/0001-02' ORDER BY Id) WHERE Documento = N'17.232.965/0003-74' AND MatrizId IS NULL; -- filial CLI_CODCLI=1297 -> matriz CLI_CODCLI=335
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'537.267.827-53' ORDER BY Id) WHERE Documento = N'537.267.827-53' AND MatrizId IS NULL; -- filial CLI_CODCLI=1301 -> matriz CLI_CODCLI=1299
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'705.654.906-30' ORDER BY Id) WHERE Documento = N'57.733.276/0001-04' AND MatrizId IS NULL; -- filial CLI_CODCLI=1302 -> matriz CLI_CODCLI=807
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.949.363/0001-17' ORDER BY Id) WHERE Documento = N'07.949.363/0002-06' AND MatrizId IS NULL; -- filial CLI_CODCLI=1305 -> matriz CLI_CODCLI=277
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.949.363/0001-17' ORDER BY Id) WHERE Documento = N'07.949.363/0014-31' AND MatrizId IS NULL; -- filial CLI_CODCLI=1306 -> matriz CLI_CODCLI=277
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.949.363/0001-17' ORDER BY Id) WHERE Documento = N'07.949.363/0011-99' AND MatrizId IS NULL; -- filial CLI_CODCLI=1308 -> matriz CLI_CODCLI=277
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.931.816/0001-88' ORDER BY Id) WHERE Documento = N'59.509.531/0001-57' AND MatrizId IS NULL; -- filial CLI_CODCLI=1324 -> matriz CLI_CODCLI=992
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'45.051.228/0001-49' ORDER BY Id) WHERE Documento = N'33.210.412/0001-05' AND MatrizId IS NULL; -- filial CLI_CODCLI=1337 -> matriz CLI_CODCLI=1336
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'45.051.228/0001-49' ORDER BY Id) WHERE Documento = N'35.956.700/0001-39' AND MatrizId IS NULL; -- filial CLI_CODCLI=1338 -> matriz CLI_CODCLI=1336
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'22.639.859/0001-88' ORDER BY Id) WHERE Documento = N'52.730.317/0001-87' AND MatrizId IS NULL; -- filial CLI_CODCLI=1339 -> matriz CLI_CODCLI=199
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'195.268.493-53' ORDER BY Id) WHERE Documento = N'244.458.433-34' AND MatrizId IS NULL; -- filial CLI_CODCLI=1345 -> matriz CLI_CODCLI=1318
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'21.868.825/0001-00' ORDER BY Id) WHERE Documento = N'56.021.153/0001-70' AND MatrizId IS NULL; -- filial CLI_CODCLI=1347 -> matriz CLI_CODCLI=1346
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.230.847/0001-74' ORDER BY Id) WHERE Documento = N'08.231.654/0001-38' AND MatrizId IS NULL; -- filial CLI_CODCLI=1353 -> matriz CLI_CODCLI=730
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'080.233.576-46' ORDER BY Id) WHERE Documento = N'53.277.727/0001-87' AND MatrizId IS NULL; -- filial CLI_CODCLI=1354 -> matriz CLI_CODCLI=1103
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'088.012.976-02' ORDER BY Id) WHERE Documento = N'088.012.976-02' AND MatrizId IS NULL; -- filial CLI_CODCLI=1357 -> matriz CLI_CODCLI=1277
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'476.573.839-68' ORDER BY Id) WHERE Documento = N'59.932.562/0001-16' AND MatrizId IS NULL; -- filial CLI_CODCLI=1359 -> matriz CLI_CODCLI=815
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.023.912/0001-90' ORDER BY Id) WHERE Documento = N'41.260.311/0008-43' AND MatrizId IS NULL; -- filial CLI_CODCLI=1366 -> matriz CLI_CODCLI=261
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'33.466.729/0001-07' ORDER BY Id) WHERE Documento = N'60.982.156/0001-47' AND MatrizId IS NULL; -- filial CLI_CODCLI=1370 -> matriz CLI_CODCLI=780
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'60.524.671/0001-83' ORDER BY Id) WHERE Documento = N'57.838.587/0001-20' AND MatrizId IS NULL; -- filial CLI_CODCLI=1373 -> matriz CLI_CODCLI=1372
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'37.904.522/0001-28' ORDER BY Id) WHERE Documento = N'58.583.962/0001-09' AND MatrizId IS NULL; -- filial CLI_CODCLI=1381 -> matriz CLI_CODCLI=880
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'537.267.827-53' ORDER BY Id) WHERE Documento = N'016.249.586-21' AND MatrizId IS NULL; -- filial CLI_CODCLI=1382 -> matriz CLI_CODCLI=1299
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'10.915.670/0001-91' ORDER BY Id) WHERE Documento = N'61.550.870/0001-29' AND MatrizId IS NULL; -- filial CLI_CODCLI=1388 -> matriz CLI_CODCLI=793
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'17.820.963/0001-34' ORDER BY Id) WHERE Documento = N'61.886.095/0001-87' AND MatrizId IS NULL; -- filial CLI_CODCLI=1389 -> matriz CLI_CODCLI=391
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'60.524.671/0001-83' ORDER BY Id) WHERE Documento = N'57.511.401/0001-23' AND MatrizId IS NULL; -- filial CLI_CODCLI=1394 -> matriz CLI_CODCLI=1372
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'21.671.212/0001-70' ORDER BY Id) WHERE Documento = N'21.671.212/0003-32' AND MatrizId IS NULL; -- filial CLI_CODCLI=1398 -> matriz CLI_CODCLI=1349
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'19.956.692/0001-74' ORDER BY Id) WHERE Documento = N'19.956.692/0002-55' AND MatrizId IS NULL; -- filial CLI_CODCLI=1399 -> matriz CLI_CODCLI=699
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'44.929.628/0001-41' ORDER BY Id) WHERE Documento = N'13.688.145/0004-11' AND MatrizId IS NULL; -- filial CLI_CODCLI=1400 -> matriz CLI_CODCLI=136
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'41.722.108/0001-75' ORDER BY Id) WHERE Documento = N'24.125.588/0001-78' AND MatrizId IS NULL; -- filial CLI_CODCLI=1403 -> matriz CLI_CODCLI=1227
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'60.524.671/0001-83' ORDER BY Id) WHERE Documento = N'59.896.403/0001-03' AND MatrizId IS NULL; -- filial CLI_CODCLI=1407 -> matriz CLI_CODCLI=1372
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'134.952.591-04' ORDER BY Id) WHERE Documento = N'950.352.571-34' AND MatrizId IS NULL; -- filial CLI_CODCLI=1409 -> matriz CLI_CODCLI=1392
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'134.952.591-04' ORDER BY Id) WHERE Documento = N'763.977.421-72' AND MatrizId IS NULL; -- filial CLI_CODCLI=1410 -> matriz CLI_CODCLI=1392
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'43.940.974/0001-68' ORDER BY Id) WHERE Documento = N'54.172.841/0001-05' AND MatrizId IS NULL; -- filial CLI_CODCLI=1411 -> matriz CLI_CODCLI=1096
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'10.156.675/0001-88' ORDER BY Id) WHERE Documento = N'62.319.366/0001-85' AND MatrizId IS NULL; -- filial CLI_CODCLI=1414 -> matriz CLI_CODCLI=612
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.968.661/0002-35' ORDER BY Id) WHERE Documento = N'07.968.661/0005-88' AND MatrizId IS NULL; -- filial CLI_CODCLI=1421 -> matriz CLI_CODCLI=276
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'21.257.788/0001-96' ORDER BY Id) WHERE Documento = N'50.618.949/0001-28' AND MatrizId IS NULL; -- filial CLI_CODCLI=1426 -> matriz CLI_CODCLI=869
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'41.740.270/0001-16' ORDER BY Id) WHERE Documento = N'11.353.655/0001-60' AND MatrizId IS NULL; -- filial CLI_CODCLI=1427 -> matriz CLI_CODCLI=987
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'451.140.646-49' ORDER BY Id) WHERE Documento = N'451.140.646-49' AND MatrizId IS NULL; -- filial CLI_CODCLI=1429 -> matriz CLI_CODCLI=1379
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'451.140.646-49' ORDER BY Id) WHERE Documento = N'451.140.646-49' AND MatrizId IS NULL; -- filial CLI_CODCLI=1430 -> matriz CLI_CODCLI=1379
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'451.140.646-49' ORDER BY Id) WHERE Documento = N'451.140.646-49' AND MatrizId IS NULL; -- filial CLI_CODCLI=1431 -> matriz CLI_CODCLI=1379
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'451.140.646-49' ORDER BY Id) WHERE Documento = N'451.140.646-49' AND MatrizId IS NULL; -- filial CLI_CODCLI=1432 -> matriz CLI_CODCLI=1379
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'451.140.646-49' ORDER BY Id) WHERE Documento = N'451.140.646-49' AND MatrizId IS NULL; -- filial CLI_CODCLI=1433 -> matriz CLI_CODCLI=1379
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'451.140.646-49' ORDER BY Id) WHERE Documento = N'451.140.646-49' AND MatrizId IS NULL; -- filial CLI_CODCLI=1434 -> matriz CLI_CODCLI=1379
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'451.140.646-49' ORDER BY Id) WHERE Documento = N'451.140.646-49' AND MatrizId IS NULL; -- filial CLI_CODCLI=1435 -> matriz CLI_CODCLI=1379
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'451.140.646-49' ORDER BY Id) WHERE Documento = N'451.140.646-49' AND MatrizId IS NULL; -- filial CLI_CODCLI=1436 -> matriz CLI_CODCLI=1379
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'451.140.646-49' ORDER BY Id) WHERE Documento = N'102.983.836-40' AND MatrizId IS NULL; -- filial CLI_CODCLI=1437 -> matriz CLI_CODCLI=1379
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.005.424/0009-08' ORDER BY Id) WHERE Documento = N'08.005.424/0014-75' AND MatrizId IS NULL; -- filial CLI_CODCLI=1446 -> matriz CLI_CODCLI=482
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'37.904.522/0001-28' ORDER BY Id) WHERE Documento = N'63.847.055/0001-51' AND MatrizId IS NULL; -- filial CLI_CODCLI=1448 -> matriz CLI_CODCLI=880
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.027.822/0001-78' ORDER BY Id) WHERE Documento = N'44.914.057/0001-71' AND MatrizId IS NULL; -- filial CLI_CODCLI=1449 -> matriz CLI_CODCLI=494
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'13.760.631/0001-50' ORDER BY Id) WHERE Documento = N'48.618.095/0001-38' AND MatrizId IS NULL; -- filial CLI_CODCLI=1451 -> matriz CLI_CODCLI=1438
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'124.594.137-26' ORDER BY Id) WHERE Documento = N'695.678.081-04' AND MatrizId IS NULL; -- filial CLI_CODCLI=1455 -> matriz CLI_CODCLI=894
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.216.683/0005-54' ORDER BY Id) WHERE Documento = N'104.180.028-27' AND MatrizId IS NULL; -- filial CLI_CODCLI=1459 -> matriz CLI_CODCLI=142
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.253.341/0001-80' ORDER BY Id) WHERE Documento = N'08.253.341/0003-42' AND MatrizId IS NULL; -- filial CLI_CODCLI=1463 -> matriz CLI_CODCLI=951
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'22.158.483/0001-90' ORDER BY Id) WHERE Documento = N'22.158.483/0002-70' AND MatrizId IS NULL; -- filial CLI_CODCLI=1465 -> matriz CLI_CODCLI=1300
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'14.106.560/0001-30' ORDER BY Id) WHERE Documento = N'07.927.402/0006-90' AND MatrizId IS NULL; -- filial CLI_CODCLI=1466 -> matriz CLI_CODCLI=157
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'14.106.560/0001-30' ORDER BY Id) WHERE Documento = N'14.106.560/0003-00' AND MatrizId IS NULL; -- filial CLI_CODCLI=1467 -> matriz CLI_CODCLI=157
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'62.856.646/0001-22' ORDER BY Id) WHERE Documento = N'66.427.523/0001-27' AND MatrizId IS NULL; -- filial CLI_CODCLI=1468 -> matriz CLI_CODCLI=559
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'22.639.859/0001-88' ORDER BY Id) WHERE Documento = N'55.970.290/0001-98' AND MatrizId IS NULL; -- filial CLI_CODCLI=1469 -> matriz CLI_CODCLI=199
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.916.057/0002-65' ORDER BY Id) WHERE Documento = N'65.221.304/0001-24' AND MatrizId IS NULL; -- filial CLI_CODCLI=1470 -> matriz CLI_CODCLI=172
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.916.057/0002-65' ORDER BY Id) WHERE Documento = N'07.916.057/0003-46' AND MatrizId IS NULL; -- filial CLI_CODCLI=1471 -> matriz CLI_CODCLI=172
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.589.625/0001-42' ORDER BY Id) WHERE Documento = N'13.743.392/0001-20' AND MatrizId IS NULL; -- filial CLI_CODCLI=1474 -> matriz CLI_CODCLI=1473
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'62.392.700/0001-26' ORDER BY Id) WHERE Documento = N'65.936.952/0001-67' AND MatrizId IS NULL; -- filial CLI_CODCLI=1475 -> matriz CLI_CODCLI=1458
+UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'228.660.786-91' ORDER BY Id) WHERE Documento = N'113.247.946-07' AND MatrizId IS NULL; -- filial CLI_CODCLI=1476 -> matriz CLI_CODCLI=1307
