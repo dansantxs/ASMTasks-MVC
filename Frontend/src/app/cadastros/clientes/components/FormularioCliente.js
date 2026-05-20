@@ -500,34 +500,45 @@ export default function FormularioCliente({
                 </div>
               )}
               <div className="md:col-span-2">
-                <Label htmlFor="matrizSelecionada">Matriz (filial de)</Label>
+                <Label>Empresa Matriz</Label>
                 <div className="flex gap-2">
-                  <Input
-                    id="matrizSelecionada"
-                    readOnly
-                    value={formData.nomeMatrizSelecionada}
-                    placeholder="Nenhuma matriz selecionada (cliente independente)"
-                    className="flex-1 bg-muted cursor-pointer"
-                    onClick={() => setModalMatrizAberto(true)}
-                  />
+                  <Select
+                    value={formData.matrizId ? String(formData.matrizId) : '__none__'}
+                    onValueChange={(value) => {
+                      if (value === '__none__') {
+                        setFormData(prev => ({ ...prev, matrizId: null, nomeMatrizSelecionada: '' }));
+                        return;
+                      }
+                      const m = matrizes.find(x => String(x.id) === value);
+                      setFormData(prev => ({
+                        ...prev,
+                        matrizId: Number(value),
+                        nomeMatrizSelecionada: m ? (m.nomeFantasia || m.nome) : prev.nomeMatrizSelecionada,
+                      }));
+                    }}
+                  >
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Nenhuma" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">Nenhuma</SelectItem>
+                      {matrizes.map((m) => (
+                        <SelectItem key={m.id} value={String(m.id)}>
+                          {m.nomeFantasia || m.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <Button
                     type="button"
                     variant="outline"
                     size="icon"
                     onClick={() => setModalMatrizAberto(true)}
                     title="Buscar matriz"
+                    tabIndex={-1}
                   >
                     <Search className="h-4 w-4" />
                   </Button>
-                  {formData.matrizId && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setFormData(prev => ({ ...prev, matrizId: null, nomeMatrizSelecionada: '' }))}
-                    >
-                      Remover
-                    </Button>
-                  )}
                 </div>
               </div>
             </div>

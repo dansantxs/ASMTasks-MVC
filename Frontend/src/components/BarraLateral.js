@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import PropTypes from 'prop-types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import ModalNovidadesVersao from './ModalNovidadesVersao';
+import { VERSAO_ATUAL } from '../versao';
 import {
   Home,
   ChevronDown,
@@ -63,7 +65,26 @@ export function BarraLateral({ caminhoAtual, aoNavegar, aoAlternarRecolhimento, 
   const [ehIos, setEhIos] = useState(false);
   const [mostrarDicaIos, setMostrarDicaIos] = useState(false);
 
+  // Novidades de versão
+  const [modalNovidadesAberto, setModalNovidadesAberto] = useState(false);
+  const [temNovidadesNaoVistas, setTemNovidadesNaoVistas] = useState(false);
+
   useEffect(() => { setMontado(true); }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const versaoVista = localStorage.getItem('asm_versao_vista');
+    if (versaoVista !== VERSAO_ATUAL) {
+      setTemNovidadesNaoVistas(true);
+      setModalNovidadesAberto(true);
+    }
+  }, []);
+
+  function fecharModalNovidades() {
+    setModalNovidadesAberto(false);
+    setTemNovidadesNaoVistas(false);
+    localStorage.setItem('asm_versao_vista', VERSAO_ATUAL);
+  }
 
   useEffect(() => {
     const verificar = () => setIsMobile(window.innerWidth < 1024);
@@ -687,9 +708,28 @@ export function BarraLateral({ caminhoAtual, aoNavegar, aoAlternarRecolhimento, 
             <LogOut className="h-4 w-4 mr-2" />
             Sair
           </Button>
-          <p className="text-gray-500 text-xs text-center mt-3">v1.0.0</p>
+          <button
+            type="button"
+            onClick={() => setModalNovidadesAberto(true)}
+            className="relative w-full flex items-center justify-center mt-3 gap-1.5 rounded-md border border-gray-700 bg-gray-800/60 px-3 py-1.5 text-gray-400 hover:border-gray-500 hover:bg-gray-700 hover:text-gray-200 text-xs font-mono transition-all cursor-pointer"
+            title="Ver novidades desta versão"
+          >
+            {temNovidadesNaoVistas && (
+              <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse shrink-0" />
+            )}
+            v{VERSAO_ATUAL}
+            {temNovidadesNaoVistas && (
+              <span className="text-red-400 font-sans font-medium not-italic">novo</span>
+            )}
+          </button>
         </div>
       )}
+
+      <ModalNovidadesVersao
+        aberto={modalNovidadesAberto}
+        aoFechar={fecharModalNovidades}
+        versaoAtual={VERSAO_ATUAL}
+      />
     </div>
   );
 }

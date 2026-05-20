@@ -7,6 +7,7 @@ services:
       SA_PASSWORD: ${DB_PASSWORD}
       ACCEPT_EULA: "Y"
       MSSQL_PID: Express
+      TZ: America/Sao_Paulo
     volumes:
       - sqldata:/var/opt/mssql
     networks:
@@ -31,6 +32,7 @@ services:
       Jwt__ExpirationMinutes: "120"
       Jwt__SameSite: ${JWT_SAMESITE:-Strict}
       CorsOrigens: ${CORS_ORIGINS}
+      TZ: America/Sao_Paulo
     networks:
       - asmtasks
     depends_on:
@@ -43,6 +45,8 @@ services:
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    environment:
+      TZ: America/Sao_Paulo
     networks:
       - asmtasks
     depends_on:

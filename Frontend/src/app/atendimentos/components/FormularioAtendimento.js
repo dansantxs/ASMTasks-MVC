@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Dialog,
   DialogContent,
@@ -20,8 +21,11 @@ import {
   SelectValue,
 } from '../../../components/ui/form/select';
 import { Plus, Trash2, Search } from 'lucide-react';
+import { toast } from 'sonner';
 import { converterHoraParaMinutos } from '../../../services/configuracoes/utils';
 import ModalBuscaCliente from '../../../components/clientes/ModalBuscaCliente';
+import FormularioCliente from '../../cadastros/clientes/components/FormularioCliente';
+import { criarCliente } from '../../cadastros/clientes/api/cliente';
 import { useConfiguracoesSistema, configuracoesPadrao } from '../../../services/configuracoes/api';
 
 function paraValorDatetimeLocal(data) {
@@ -79,7 +83,9 @@ export default function FormularioAtendimento({
   const [erros, setErros] = useState({});
   const [configsNotificacao, setConfigsNotificacao] = useState([]);
   const [showModalBuscaCliente, setShowModalBuscaCliente] = useState(false);
+  const [showModalNovoCliente, setShowModalNovoCliente] = useState(false);
   const { data: config = configuracoesPadrao } = useConfiguracoesSistema();
+  const queryClient = useQueryClient();
 
   const colaboradoresAtivos = useMemo(
     () =>
@@ -184,6 +190,18 @@ export default function FormularioAtendimento({
 
   const removerConfigNotificacao = (indice) => {
     setConfigsNotificacao((prev) => prev.filter((_, i) => i !== indice));
+  };
+
+  const handleSalvarNovoCliente = async (dados) => {
+    try {
+      const result = await criarCliente(dados);
+      setDadosFormulario((prev) => ({ ...prev, clienteId: String(result.id) }));
+      queryClient.invalidateQueries({ queryKey: ['clientes-atendimento'] });
+      setShowModalNovoCliente(false);
+      toast.success('Cliente cadastrado.');
+    } catch (error) {
+      toast.error(error?.message ?? 'Erro ao cadastrar cliente.');
+    }
   };
 
   const validar = () => {
@@ -304,6 +322,17 @@ export default function FormularioAtendimento({
                   tabIndex={-1}
                 >
                   <Search className="h-4 w-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="shrink-0"
+                  onClick={() => setShowModalNovoCliente(true)}
+                  title="Cadastrar novo cliente"
+                  tabIndex={-1}
+                >
+                  <Plus className="h-4 w-4" />
                 </Button>
               </div>
               {erros.clienteId && <p className="text-sm text-destructive">{erros.clienteId}</p>}
@@ -444,6 +473,13 @@ export default function FormularioAtendimento({
       onOpenChange={setShowModalBuscaCliente}
       exibicaoNomeCliente={config.exibicaoNomeCliente}
       onSelect={(c) => setDadosFormulario((prev) => ({ ...prev, clienteId: String(c.id) }))}
+    />
+
+    <FormularioCliente
+      open={showModalNovoCliente}
+      onOpenChange={setShowModalNovoCliente}
+      cliente={null}
+      aoSalvar={handleSalvarNovoCliente}
     />
   </>
   );
