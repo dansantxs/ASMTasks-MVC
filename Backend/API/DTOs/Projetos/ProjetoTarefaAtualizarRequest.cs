@@ -16,8 +16,7 @@ namespace API.DTOs.Projetos
         [Range(1, int.MaxValue)]
         public int PrioridadeId { get; set; }
 
-        [Required]
         [Range(1, int.MaxValue)]
-        public int SetorId { get; set; }
+        public int? SetorId { get; set; }
     }
 }

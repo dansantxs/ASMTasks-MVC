@@ -315,9 +315,6 @@ export default function FormularioCliente({
       }
     }
 
-    if (formData.tipoPessoa === 'F' && formData.inscricaoEstadual.trim()) {
-      newErrors.inscricaoEstadual = 'Inscrição Estadual só deve ser informada para pessoa jurídica';
-    }
     if (formData.tipoPessoa === 'J' && formData.rg.trim()) {
       newErrors.rg = 'RG só deve ser informado para pessoa física';
     }
@@ -332,17 +329,16 @@ export default function FormularioCliente({
 
     const dataToSave = {
       nome: formData.nome,
-      nomeFantasia: formData.tipoPessoa === 'J' ? (formData.nomeFantasia || null) : null,
+      nomeFantasia: formData.nomeFantasia || null,
       tipoPessoa: formData.tipoPessoa,
       documento: formData.documento.replace(/\D/g, ''),
       rg:
         formData.tipoPessoa === 'F' && formData.rg
           ? formData.rg.replace(/\D/g, '')
           : null,
-      inscricaoEstadual:
-        formData.tipoPessoa === 'J' && formData.inscricaoEstadual
-          ? formData.inscricaoEstadual.replace(/\D/g, '')
-          : null,
+      inscricaoEstadual: formData.inscricaoEstadual
+        ? formData.inscricaoEstadual.replace(/\D/g, '')
+        : null,
       email: formData.email || null,
       telefone: formData.telefone.replace(/\D/g, '') || null,
       cep: formData.cep.replace(/\D/g, '') || null,
@@ -391,18 +387,16 @@ export default function FormularioCliente({
                 {errors.nome && <p className="text-sm text-destructive">{errors.nome}</p>}
               </div>
 
-              {formData.tipoPessoa === 'J' && (
-                <div className="md:col-span-2">
-                  <Label htmlFor="nomeFantasia">Nome Fantasia</Label>
-                  <Input
-                    id="nomeFantasia"
-                    value={formData.nomeFantasia}
-                    onChange={(e) => setFormData(prev => ({ ...prev, nomeFantasia: e.target.value }))}
-                    placeholder="Nome comercial (opcional)"
-                    maxLength={100}
-                  />
-                </div>
-              )}
+              <div className="md:col-span-2">
+                <Label htmlFor="nomeFantasia">Nome Fantasia</Label>
+                <Input
+                  id="nomeFantasia"
+                  value={formData.nomeFantasia}
+                  onChange={(e) => setFormData(prev => ({ ...prev, nomeFantasia: e.target.value }))}
+                  placeholder="Nome comercial (opcional)"
+                  maxLength={100}
+                />
+              </div>
 
               <div>
                 <Label>Tipo de Pessoa <span className="text-destructive">*</span></Label>
@@ -482,23 +476,21 @@ export default function FormularioCliente({
                 </div>
               )}
 
-              {formData.tipoPessoa === 'J' && (
-                <div>
-                  <Label htmlFor="inscricaoEstadual">Inscrição Estadual </Label>
-                  <Input
-                    id="inscricaoEstadual"
-                    ref={ieRef}
-                    value={formData.inscricaoEstadual}
-                    onInput={(e) => handleMaskedInput(e, 'inscricaoEstadual', mascararInscricaoEstadual)}
-                    placeholder="Somente números"
-                    maxLength={20}
-                    className={errors.inscricaoEstadual ? 'border-destructive' : ''}
-                  />
-                  {errors.inscricaoEstadual && (
-                    <p className="text-sm text-destructive">{errors.inscricaoEstadual}</p>
-                  )}
-                </div>
-              )}
+              <div>
+                <Label htmlFor="inscricaoEstadual">Inscrição Estadual </Label>
+                <Input
+                  id="inscricaoEstadual"
+                  ref={ieRef}
+                  value={formData.inscricaoEstadual}
+                  onInput={(e) => handleMaskedInput(e, 'inscricaoEstadual', mascararInscricaoEstadual)}
+                  placeholder="Somente números"
+                  maxLength={20}
+                  className={errors.inscricaoEstadual ? 'border-destructive' : ''}
+                />
+                {errors.inscricaoEstadual && (
+                  <p className="text-sm text-destructive">{errors.inscricaoEstadual}</p>
+                )}
+              </div>
               <div className="md:col-span-2">
                 <Label>Empresa Matriz</Label>
                 <div className="flex gap-2">

@@ -10,6 +10,24 @@ import { Search, Edit, Trash2, Eye, RefreshCw } from 'lucide-react';
 
 const formatDate = (value) => (value ? new Date(value).toLocaleDateString('pt-BR') : '—');
 
+function resolverNomeExibicao(cliente, exibicao) {
+  if (exibicao === 'nomeFantasia' && cliente.nomeFantasia) return cliente.nomeFantasia;
+  return cliente.name;
+}
+
+function resolverNomeMatriz(cliente, exibicao) {
+  if (exibicao === 'nomeFantasia' && cliente.nomeFantasiaMatriz) return cliente.nomeFantasiaMatriz;
+  return cliente.nomeMatriz;
+}
+
+function ordenarClientes(lista, exibicao) {
+  return [...lista].sort((a, b) => {
+    const nomeA = resolverNomeExibicao(a, exibicao) ?? '';
+    const nomeB = resolverNomeExibicao(b, exibicao) ?? '';
+    return nomeA.localeCompare(nomeB, 'pt-BR', { sensitivity: 'base' });
+  });
+}
+
 export default function ListaClientes({
   clientes,
   aoEditar,
@@ -17,16 +35,22 @@ export default function ListaClientes({
   aoVisualizar,
   aoReativar,
   modoVisualizacao,
+  exibicaoNomeCliente = 'razaoSocial',
 }) {
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filtered = clientes.filter((c) =>
-    (c.name && c.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (c.documento && c.documento.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const filtered = clientes.filter((c) => {
+    const term = searchTerm.toLowerCase();
+    if (!term) return true;
+    return (
+      (c.name && c.name.toLowerCase().includes(term)) ||
+      (c.nomeFantasia && c.nomeFantasia.toLowerCase().includes(term)) ||
+      (c.documento && c.documento.toLowerCase().includes(term))
+    );
+  });
 
-  const ativos = filtered.filter((c) => c.active);
-  const inativos = filtered.filter((c) => !c.active);
+  const ativos = ordenarClientes(filtered.filter((c) => c.active), exibicaoNomeCliente);
+  const inativos = ordenarClientes(filtered.filter((c) => !c.active), exibicaoNomeCliente);
 
   const ClienteCard = ({ cliente }) => (
     <Card className="hover:shadow-md transition-shadow border-l-4 border-l-brand-blue">
@@ -39,7 +63,7 @@ export default function ListaClientes({
             )}
             {cliente.nomeMatriz && (
               <p className="text-xs text-muted-foreground mt-0.5">
-                Filial de <span className="font-medium">{cliente.nomeMatriz}</span>
+                Filial de <span className="font-medium">{resolverNomeMatriz(cliente, exibicaoNomeCliente)}</span>
               </p>
             )}
           </div>
@@ -132,7 +156,7 @@ export default function ListaClientes({
       <TableCell className="font-medium">
         <div>{cliente.name}</div>
         {cliente.nomeFantasia && <div className="text-xs text-muted-foreground">{cliente.nomeFantasia}</div>}
-        {cliente.nomeMatriz && <div className="text-xs text-muted-foreground">Filial de {cliente.nomeMatriz}</div>}
+        {cliente.nomeMatriz && <div className="text-xs text-muted-foreground">Filial de {resolverNomeMatriz(cliente, exibicaoNomeCliente)}</div>}
       </TableCell>
       <TableCell>{cliente.documento}</TableCell>
       <TableCell>{cliente.tipoPessoa === 'J' ? 'Jurídica' : 'Física'}</TableCell>

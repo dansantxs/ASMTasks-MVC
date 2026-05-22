@@ -14,7 +14,12 @@ import { Handshake, MapPin, Mail, Phone, IdCard, Briefcase, Globe } from 'lucide
 
 const formatDate = (value) => (value ? new Date(value).toLocaleDateString('pt-BR') : ' ');
 
-export default function DialogoVisualizarCliente({ open, onOpenChange, cliente }) {
+function resolverNomeMatriz(cliente, exibicao) {
+  if (exibicao === 'nomeFantasia' && cliente.nomeFantasiaMatriz) return cliente.nomeFantasiaMatriz;
+  return cliente.nomeMatriz;
+}
+
+export default function DialogoVisualizarCliente({ open, onOpenChange, cliente, exibicaoNomeCliente = 'razaoSocial' }) {
   if (!cliente) return null;
 
   return (
@@ -36,14 +41,14 @@ export default function DialogoVisualizarCliente({ open, onOpenChange, cliente }
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="text-xl">{cliente.name}</CardTitle>
-                  {cliente.tipoPessoa === 'J' && cliente.nomeFantasia && (
+                  {cliente.nomeFantasia && (
                     <p className="text-muted-foreground text-sm">Nome Fantasia: {cliente.nomeFantasia}</p>
                   )}
                   <p className="text-muted-foreground text-sm">
                     {cliente.tipoPessoa === 'J' ? 'Pessoa Jurídica' : 'Pessoa Física'}
                     {cliente.nomeMatriz && (
                       <span className="ml-2 text-xs bg-muted rounded px-1.5 py-0.5">
-                        Filial de {cliente.nomeMatriz}
+                        Filial de {resolverNomeMatriz(cliente, exibicaoNomeCliente)}
                       </span>
                     )}
                   </p>

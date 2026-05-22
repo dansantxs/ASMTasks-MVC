@@ -23,5 +23,6 @@
         public string? NomeFantasia { get; set; }
         public int? MatrizId { get; set; }
         public string? NomeMatriz { get; set; }
+        public string? NomeFantasiaMatriz { get; set; }
     }
 }

@@ -375,19 +375,17 @@ namespace API.DB.DAOs
                     checkCmd.Transaction = transaction;
                     checkCmd.CommandText = @"
                         SELECT COUNT(*) FROM ProjetoTarefa
-                        WHERE ColaboradorResponsavelId = @ColaboradorId
+                        WHERE ColaboradorResponsavelId = (
+                            SELECT ColaboradorResponsavelId FROM ProjetoTarefa WHERE Id = @TarefaId
+                        )
                         AND DataHoraInicio IS NOT NULL
                         AND Id != @TarefaId;
                     ";
-                    checkCmd.Parameters.AddWithValue("@ColaboradorId", colaboradorId);
                     checkCmd.Parameters.AddWithValue("@TarefaId", tarefaId);
                     var count = Convert.ToInt32(await checkCmd.ExecuteScalarAsync());
                     if (count > 0)
-                    {
-                        await transaction.RollbackAsync();
                         throw new System.ComponentModel.DataAnnotations.ValidationException(
-                            "Você já possui outra tarefa em andamento. Pause-a antes de iniciar esta.");
-                    }
+                            "O responsável já possui outra tarefa em andamento. Pause-a antes de iniciar esta.");
                 }
 
                 await using (var cmd = con.CreateCommand())
@@ -548,11 +546,13 @@ namespace API.DB.DAOs
                     p.Titulo AS ProjetoTitulo,
                     c.Id AS ClienteId,
                     c.Nome AS ClienteNome,
+                    c.NomeFantasia AS ClienteNomeFantasia,
                     h.Tipo,
                     h.ColaboradorId,
                     h.ColaboradorNome,
                     h.EtapaId,
                     h.EtapaNome,
+                    h.Observacao,
                     h.DataHoraAcao,
                     h.RealizadoPorColaboradorId,
                     h.RealizadoPorColaboradorNome
@@ -621,7 +621,9 @@ namespace API.DB.DAOs
                     EtapaNome = dr["EtapaNome"] == DBNull.Value ? null : dr["EtapaNome"].ToString(),
                     DataHoraAcao = Convert.ToDateTime(dr["DataHoraAcao"]),
                     RealizadoPorColaboradorId = dr["RealizadoPorColaboradorId"] == DBNull.Value ? null : Convert.ToInt32(dr["RealizadoPorColaboradorId"]),
-                    RealizadoPorColaboradorNome = dr["RealizadoPorColaboradorNome"] == DBNull.Value ? null : dr["RealizadoPorColaboradorNome"].ToString()
+                    RealizadoPorColaboradorNome = dr["RealizadoPorColaboradorNome"] == DBNull.Value ? null : dr["RealizadoPorColaboradorNome"].ToString(),
+                    Observacao = dr["Observacao"] == DBNull.Value ? null : dr["Observacao"].ToString(),
+                    ClienteNomeFantasia = dr["ClienteNomeFantasia"] == DBNull.Value ? null : dr["ClienteNomeFantasia"].ToString(),
                 });
             }
 
@@ -658,7 +660,9 @@ namespace API.DB.DAOs
                     pt.DataHoraAtribuicao,
                     pt.EtapaId,
                     pt.DataHoraInicio,
-                    pt.SetorId
+                    pt.SetorId,
+                    c.NomeFantasia AS ClienteNomeFantasia,
+                    (SELECT COUNT(*) FROM ProjetoTarefaAnexo WHERE TarefaId = pt.Id) AS QuantidadeAnexos
                 FROM ProjetoTarefa pt
                 INNER JOIN Projeto p ON pt.ProjetoId = p.Id
                 INNER JOIN Cliente c ON p.ClienteId = c.Id
@@ -729,7 +733,9 @@ namespace API.DB.DAOs
                     DataHoraInicio = dr["DataHoraInicio"] == DBNull.Value
                         ? null
                         : Convert.ToDateTime(dr["DataHoraInicio"]),
-                    SetorId = Convert.ToInt32(dr["SetorId"])
+                    SetorId = dr["SetorId"] == DBNull.Value ? null : (int?)Convert.ToInt32(dr["SetorId"]),
+                    QuantidadeAnexos = Convert.ToInt32(dr["QuantidadeAnexos"]),
+                    ClienteNomeFantasia = dr["ClienteNomeFantasia"] == DBNull.Value ? null : dr["ClienteNomeFantasia"].ToString(),
                 });
             }
 
@@ -811,7 +817,7 @@ namespace API.DB.DAOs
                     Tipo = Convert.ToString(dr["Tipo"])![0],
                     RealizadoPorColaboradorId = dr["RealizadoPorColaboradorId"] == DBNull.Value ? null : Convert.ToInt32(dr["RealizadoPorColaboradorId"]),
                     RealizadoPorColaboradorNome = dr["RealizadoPorColaboradorNome"] == DBNull.Value ? null : dr["RealizadoPorColaboradorNome"].ToString(),
-                    DataHoraAcao = Convert.ToDateTime(dr["DataHoraAcao"])
+                    DataHoraAcao = Convert.ToDateTime(dr["DataHoraAcao"]),
                 });
             }
 
@@ -839,6 +845,7 @@ namespace API.DB.DAOs
                     p.Titulo AS ProjetoTitulo,
                     c.Id AS ClienteId,
                     c.Nome AS ClienteNome,
+                    c.NomeFantasia AS ClienteNomeFantasia,
                     h.Tipo,
                     h.RealizadoPorColaboradorId,
                     h.RealizadoPorColaboradorNome,
@@ -901,7 +908,8 @@ namespace API.DB.DAOs
                     Tipo = Convert.ToString(dr["Tipo"])![0],
                     RealizadoPorColaboradorId = dr["RealizadoPorColaboradorId"] == DBNull.Value ? null : Convert.ToInt32(dr["RealizadoPorColaboradorId"]),
                     RealizadoPorColaboradorNome = dr["RealizadoPorColaboradorNome"] == DBNull.Value ? null : dr["RealizadoPorColaboradorNome"].ToString(),
-                    DataHoraAcao = Convert.ToDateTime(dr["DataHoraAcao"])
+                    DataHoraAcao = Convert.ToDateTime(dr["DataHoraAcao"]),
+                    ClienteNomeFantasia = dr["ClienteNomeFantasia"] == DBNull.Value ? null : dr["ClienteNomeFantasia"].ToString(),
                 });
             }
 
@@ -947,10 +955,11 @@ namespace API.DB.DAOs
 
             await using var cmd = connection.CreateCommand();
             cmd.CommandText = @"
-                SELECT Id, ProjetoId, Titulo, Descricao, PrioridadeId, ColaboradorResponsavelId, DataHoraAtribuicao, EtapaId, DataHoraInicio, SetorId
-                FROM ProjetoTarefa
+                SELECT Id, ProjetoId, Titulo, Descricao, PrioridadeId, ColaboradorResponsavelId, DataHoraAtribuicao, EtapaId, DataHoraInicio, SetorId,
+                       (SELECT COUNT(*) FROM ProjetoTarefaAnexo WHERE TarefaId = pt.Id) AS QuantidadeAnexos
+                FROM ProjetoTarefa pt
                 WHERE ProjetoId = @ProjetoId
-                ORDER BY Id;
+                ORDER BY pt.Id;
             ";
             cmd.Parameters.AddWithValue("@ProjetoId", projetoId);
 
@@ -976,7 +985,8 @@ namespace API.DB.DAOs
                     DataHoraInicio = dr["DataHoraInicio"] == DBNull.Value
                         ? null
                         : Convert.ToDateTime(dr["DataHoraInicio"]),
-                    SetorId = Convert.ToInt32(dr["SetorId"])
+                    SetorId = dr["SetorId"] == DBNull.Value ? null : (int?)Convert.ToInt32(dr["SetorId"]),
+                    QuantidadeAnexos = Convert.ToInt32(dr["QuantidadeAnexos"])
                 });
             }
 

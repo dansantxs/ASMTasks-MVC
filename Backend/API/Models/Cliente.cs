@@ -30,6 +30,7 @@ namespace API.Models
         public string? NomeFantasia { get; set; }
         public int? MatrizId { get; set; }
         public string? NomeMatriz { get; set; }
+        public string? NomeFantasiaMatriz { get; set; }
 
         private bool ValidarCPF(string cpf)
         {
@@ -118,9 +119,6 @@ namespace API.Models
             {
                 if (!ValidarCPF(docNumerico))
                     throw new ValidationException("CPF inválido.");
-
-                if (!string.IsNullOrWhiteSpace(InscricaoEstadual))
-                    throw new ValidationException("Inscrição Estadual não deve ser informada para pessoa física.");
 
                 var idade = DateTime.Today.Year - DataReferencia.Value.Year;
                 if (DataReferencia.Value > DateTime.Today.AddYears(-idade)) idade--;

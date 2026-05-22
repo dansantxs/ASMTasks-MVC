@@ -19,5 +19,7 @@ namespace API.DTOs.Projetos
         public int? EtapaId { get; set; }
         public DateTime? DataHoraInicio { get; set; }
         public int? SetorId { get; set; }
+    public int QuantidadeAnexos { get; set; }
+    public string? ClienteNomeFantasia { get; set; }
     }
 }

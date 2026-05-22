@@ -194,7 +194,7 @@ export default function DialogoAnexosTarefa({ open, onOpenChange, tarefaId, tare
       <Dialog.Root open={open} onOpenChange={handleOpenChange}>
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 bg-black/50 z-[55]" />
-          <Dialog.Content className="fixed z-[55] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-xl w-full max-w-md max-h-[80vh] flex flex-col">
+          <Dialog.Content aria-describedby={undefined} className="fixed z-[55] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-xl w-full max-w-md max-h-[80vh] flex flex-col">
             {/* Lightbox dentro do Dialog.Content para não disparar fechamento externo */}
             {imagemAmpliada && (
               <div

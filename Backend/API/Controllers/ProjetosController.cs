@@ -921,7 +921,8 @@ namespace API.Controllers
                     SetorId = t.SetorId,
                     ColaboradorResponsavelId = t.ColaboradorResponsavelId,
                     DataHoraAtribuicao = t.DataHoraAtribuicao,
-                    EtapaId = t.EtapaId
+                    EtapaId = t.EtapaId,
+                    QuantidadeAnexos = t.QuantidadeAnexos
                 })]
             };
         }

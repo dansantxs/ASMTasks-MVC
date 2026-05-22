@@ -21,11 +21,14 @@ import FiltrosKanban from './components/FiltrosKanban';
 import QuadroKanban from './components/QuadroKanban';
 import TourGuia from '../../../components/TourGuia';
 import DialogoVisualizarTarefa from './components/DialogoVisualizarTarefa';
+import { configuracoesPadrao, useConfiguracoesSistema } from '../../../services/configuracoes/api';
 
 export default function KanbanPage() {
   const { usuario } = useUsuarioAtual();
   const colaboradorLogadoId = usuario?.colaboradorId ?? null;
   const ehAdmin = usuario?.ehAdministrador ?? false;
+  const { data: systemSettings = configuracoesPadrao } = useConfiguracoesSistema();
+  const exibicaoNomeCliente = systemSettings?.exibicaoNomeCliente ?? 'razaoSocial';
 
   const [filtros, setFiltros] = useState({
     colaboradorIds: colaboradorLogadoId ? [colaboradorLogadoId] : [],
@@ -339,6 +342,7 @@ export default function KanbanPage() {
             ehAdmin={ehAdmin}
             onReordenarColunas={handleReordenarColunas}
             onVisualizarTarefa={setTarefaVisualizando}
+            exibicaoNomeCliente={exibicaoNomeCliente}
           />
           </div>
         )}
@@ -359,6 +363,7 @@ export default function KanbanPage() {
           trocarColaborador.mutate({ tarefaId, colaboradorResponsavelId })
         }
         isTrocando={trocarColaborador.isPending}
+        exibicaoNomeCliente={exibicaoNomeCliente}
       />
       <Toaster position="top-right" />
     </div>

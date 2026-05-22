@@ -18,7 +18,7 @@ import {
 
 const COLUNA_BACKLOG = { id: null, nome: 'Backlog', ordem: -1 };
 
-export default function QuadroKanban({ tarefas, etapas, colaboradores, colaboradorLogadoId, onMoverTarefa, isMovendo, ehAdmin, onReordenarColunas, onVisualizarTarefa }) {
+export default function QuadroKanban({ tarefas, etapas, colaboradores, colaboradorLogadoId, onMoverTarefa, isMovendo, ehAdmin, onReordenarColunas, onVisualizarTarefa, exibicaoNomeCliente = 'razaoSocial' }) {
   const [tarefaArrastando, setTarefaArrastando] = useState(null);
   const [pendente, setPendente] = useState(null);
   const [pendenteBacklog, setPendenteBacklog] = useState(null);
@@ -123,6 +123,7 @@ export default function QuadroKanban({ tarefas, etapas, colaboradores, colaborad
               isBacklog={coluna.id === null}
               isEtapaFinal={coluna.ehEtapaFinal ?? false}
               onVisualizarTarefa={onVisualizarTarefa}
+              exibicaoNomeCliente={exibicaoNomeCliente}
             />
           ))}
         </div>

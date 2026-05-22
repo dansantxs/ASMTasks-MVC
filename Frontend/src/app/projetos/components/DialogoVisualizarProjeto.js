@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Badge } from '../../../components/ui/base/badge';
 import { Button } from '../../../components/ui/base/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../../../components/ui/base/dialog';
-import { Copy, FileText, FolderKanban, Loader2, Pencil, RefreshCw, RotateCcw, Trash2 } from 'lucide-react';
+import { Copy, FileText, FolderKanban, Loader2, Paperclip, Pencil, RefreshCw, RotateCcw, Trash2 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { configuracoesPadrao, useConfiguracoesSistema } from '../../../services/configuracoes/api';
@@ -468,14 +468,22 @@ export default function DialogoVisualizarProjeto({
                         <p className="text-xs text-muted-foreground">Setor: {tarefaSetorNome}</p>
                       )}
                       <div className="mt-auto pt-1 flex items-center justify-between gap-2">
-                        {prioridadeNome ? (
-                          <div className="flex items-center gap-1.5">
-                            {prioridadeCor && (
-                              <span className="inline-block w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: prioridadeCor }} />
-                            )}
-                            <span className="text-xs text-muted-foreground">{prioridadeNome}</span>
-                          </div>
-                        ) : <span />}
+                        <div className="flex items-center gap-2">
+                          {prioridadeNome ? (
+                            <div className="flex items-center gap-1.5">
+                              {prioridadeCor && (
+                                <span className="inline-block w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: prioridadeCor }} />
+                              )}
+                              <span className="text-xs text-muted-foreground">{prioridadeNome}</span>
+                            </div>
+                          ) : <span />}
+                          {task.quantidadeAnexos > 0 && (
+                            <div className="flex items-center gap-0.5 text-gray-400" title={`${task.quantidadeAnexos} anexo(s)`}>
+                              <Paperclip className="h-3 w-3" />
+                              <span className="text-xs">{task.quantidadeAnexos}</span>
+                            </div>
+                          )}
+                        </div>
                         <span className={`text-xs px-1.5 py-0.5 rounded font-medium shrink-0 ${
                           etapaConcluida
                             ? 'bg-green-100 text-green-700'

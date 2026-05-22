@@ -12,6 +12,7 @@ import ListaProjetos from './components/ListaProjetos';
 import DialogoVisualizarProjeto from './components/DialogoVisualizarProjeto';
 import DialogoDuplicarProjeto from './components/DialogoDuplicarProjeto';
 import { useUsuarioAtual } from '../../hooks/useUsuarioAtual';
+import { useConfiguracoesSistema, configuracoesPadrao } from '../../services/configuracoes/api';
 import {
   atualizarProjeto,
   criarProjeto,
@@ -39,6 +40,7 @@ export default function ProjetosPage() {
   const [modoVisualizacao, setModoVisualizacao] = useState('cards');
   const queryClient = useQueryClient();
   const { usuario } = useUsuarioAtual();
+  const { data: config = configuracoesPadrao } = useConfiguracoesSistema();
   const colaboradorLogadoNome = usuario?.colaboradorNome ?? '';
   const setorLogadoId = usuario?.setorId ?? null;
 
@@ -74,9 +76,14 @@ export default function ProjetosPage() {
 
   const clientesById = useMemo(() => {
     const map = new Map();
-    clientes.forEach((item) => map.set(item.id, item.nome));
+    clientes.forEach((item) => {
+      const nome = config.exibicaoNomeCliente === 'nomeFantasia' && item.nomeFantasia
+        ? item.nomeFantasia
+        : item.nome;
+      map.set(item.id, nome);
+    });
     return map;
-  }, [clientes]);
+  }, [clientes, config.exibicaoNomeCliente]);
 
   const setoresById = useMemo(() => {
     const map = new Map();

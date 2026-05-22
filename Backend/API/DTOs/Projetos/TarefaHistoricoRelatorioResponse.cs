@@ -17,5 +17,7 @@ namespace API.DTOs.Projetos
         public DateTime DataHoraAcao { get; set; }
         public int? RealizadoPorColaboradorId { get; set; }
         public string? RealizadoPorColaboradorNome { get; set; }
+        public string? Observacao { get; set; }
+        public string? ClienteNomeFantasia { get; set; }
     }
 }

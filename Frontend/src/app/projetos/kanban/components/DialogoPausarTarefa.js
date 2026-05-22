@@ -21,7 +21,7 @@ export default function DialogoPausarTarefa({ open, onOpenChange, tarefa, onConf
     <Dialog.Root open={open} onOpenChange={handleOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/50 z-[60]" />
-        <Dialog.Content className="fixed z-[60] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+        <Dialog.Content aria-describedby={undefined} className="fixed z-[60] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-xl w-full max-w-md p-6">
           <div className="flex items-start justify-between gap-3 mb-4">
             <div className="flex items-center gap-2">
               <div className="p-1.5 bg-orange-100 rounded-lg">

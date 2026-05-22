@@ -117,7 +117,7 @@ namespace API.DB.DAOs
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
             cmd.CommandText = @"
-                SELECT c.*, m.Nome AS NomeMatriz
+                SELECT c.*, m.Nome AS NomeMatriz, m.NomeFantasia AS NomeFantasiaMatriz
                 FROM Cliente c
                 LEFT JOIN Cliente m ON m.Id = c.MatrizId
                 ORDER BY c.Nome;
@@ -135,7 +135,7 @@ namespace API.DB.DAOs
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
             cmd.CommandText = @"
-                SELECT c.*, m.Nome AS NomeMatriz
+                SELECT c.*, m.Nome AS NomeMatriz, m.NomeFantasia AS NomeFantasiaMatriz
                 FROM Cliente c
                 LEFT JOIN Cliente m ON m.Id = c.MatrizId
                 WHERE c.Id = @Id;
@@ -203,7 +203,8 @@ namespace API.DB.DAOs
                 Ativo = Convert.ToBoolean(dr["Ativo"]),
                 NomeFantasia = dr["NomeFantasia"] == DBNull.Value ? null : dr["NomeFantasia"].ToString(),
                 MatrizId = dr["MatrizId"] == DBNull.Value ? null : (int?)Convert.ToInt32(dr["MatrizId"]),
-                NomeMatriz = dr["NomeMatriz"] == DBNull.Value ? null : dr["NomeMatriz"].ToString()
+                NomeMatriz = dr["NomeMatriz"] == DBNull.Value ? null : dr["NomeMatriz"].ToString(),
+                NomeFantasiaMatriz = dr["NomeFantasiaMatriz"] == DBNull.Value ? null : dr["NomeFantasiaMatriz"].ToString()
             };
         }
 

@@ -202,7 +202,8 @@ namespace API.Controllers
                 PossuiTarefasAtivas = idsComAtivos.Contains(c.Id),
                 NomeFantasia = c.NomeFantasia,
                 MatrizId = c.MatrizId,
-                NomeMatriz = c.NomeMatriz
+                NomeMatriz = c.NomeMatriz,
+                NomeFantasiaMatriz = c.NomeFantasiaMatriz
             });
 
             return Ok(response);
@@ -239,7 +240,8 @@ namespace API.Controllers
                 PossuiTarefasAtivas = false,
                 NomeFantasia = c.NomeFantasia,
                 MatrizId = c.MatrizId,
-                NomeMatriz = c.NomeMatriz
+                NomeMatriz = c.NomeMatriz,
+                NomeFantasiaMatriz = c.NomeFantasiaMatriz
             };
 
             return Ok(response);

@@ -19,7 +19,8 @@ import { obterRodapeRelatorio, obterLogotipo } from '../../../services/configura
 import TourGuia from '../../../components/TourGuia';
 
 const columns = [
-  { id: 'name', label: 'Nome/Razão Social' },
+  { id: 'name', label: 'Razão Social' },
+  { id: 'nomeFantasia', label: 'Nome Fantasia' },
   { id: 'documento', label: 'CPF/CNPJ' },
   { id: 'tipoPessoa', label: 'Tipo' },
   { id: 'status', label: 'Status' },
@@ -52,6 +53,7 @@ export default function ClientesReportPage() {
       clientesApi.map((c) => ({
         id: c.id,
         name: c.nome,
+        nomeFantasia: c.nomeFantasia || ' ',
         documento: c.documento,
         tipoPessoa: c.tipoPessoa,
         status: c.ativo ? 'Ativo' : 'Inativo',
@@ -70,11 +72,12 @@ export default function ClientesReportPage() {
   const filteredData = useMemo(
     () =>
       data.filter((item) => {
-        const name = item.name ? item.name.toLowerCase() : '';
-        const documento = item.documento ? item.documento.toLowerCase() : '';
+        const term = search.toLowerCase();
         const matchesSearch =
-          name.includes(search.toLowerCase()) ||
-          documento.includes(search.toLowerCase());
+          !term ||
+          (item.name && item.name.toLowerCase().includes(term)) ||
+          (item.nomeFantasia && item.nomeFantasia.toLowerCase().includes(term)) ||
+          (item.documento && item.documento.toLowerCase().includes(term));
         const matchesTipo = tipoFilter === 'todos' || item.tipoPessoa === tipoFilter;
         const matchesStatus =
           statusFilter === 'todos' ||
@@ -100,6 +103,7 @@ export default function ClientesReportPage() {
 
     const sorters = {
       name: (a, b) => compareStrings(a.name, b.name),
+      nomeFantasia: (a, b) => compareStrings(a.nomeFantasia, b.nomeFantasia),
       documento: (a, b) => compareStrings(a.documento, b.documento),
       tipoPessoa: (a, b) => compareStrings(a.tipoPessoa, b.tipoPessoa),
       status: (a, b) => compareStrings(a.status, b.status),
@@ -111,7 +115,9 @@ export default function ClientesReportPage() {
       uf: (a, b) => compareStrings(a.uf, b.uf),
     };
 
-    const sorter = sorters[sortConfig.column];
+    const defaultSortColumn = systemSettings?.exibicaoNomeCliente === 'nomeFantasia' ? 'nomeFantasia' : 'name';
+    const activeColumn = sortConfig.column ?? defaultSortColumn;
+    const sorter = sorters[activeColumn];
     if (sorter) {
       dataToSort.sort((a, b) =>
         sortConfig.direction === 'asc' ? sorter(a, b) : sorter(b, a)
@@ -119,7 +125,7 @@ export default function ClientesReportPage() {
     }
 
     return dataToSort;
-  }, [filteredData, sortConfig]);
+  }, [filteredData, sortConfig, systemSettings]);
 
   const toggleColumn = (id) => {
     setSelectedColumns((prev) =>

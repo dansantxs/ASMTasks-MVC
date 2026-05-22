@@ -44,6 +44,11 @@ const getTipoCor = (tipo) => {
 
 const HISTORICO_PAGINA = 5;
 
+function resolverNomeCliente(tarefa, exibicao) {
+  if (exibicao === 'nomeFantasia' && tarefa?.clienteNomeFantasia) return tarefa.clienteNomeFantasia;
+  return tarefa?.clienteNome ?? '—';
+}
+
 export default function DialogoVisualizarTarefa({
   open,
   onOpenChange,
@@ -57,6 +62,7 @@ export default function DialogoVisualizarTarefa({
   isPausando,
   onTrocarColaborador,
   isTrocando,
+  exibicaoNomeCliente = 'razaoSocial',
 }) {
   const [dialogoPausaAberto, setDialogoPausaAberto] = useState(false);
   const [anexosAbertos, setAnexosAbertos] = useState(false);
@@ -162,7 +168,7 @@ export default function DialogoVisualizarTarefa({
     <Dialog.Root open={open} onOpenChange={handleOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/50 z-50" />
-        <Dialog.Content className="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
+        <Dialog.Content aria-describedby={undefined} className="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
           <div
             className="h-1.5 rounded-t-xl flex-shrink-0"
             style={{ backgroundColor: tarefa.prioridadeCor ?? '#e5e7eb' }}
@@ -225,7 +231,7 @@ export default function DialogoVisualizarTarefa({
                   <Building2 className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
                   <div>
                     <p className="text-xs text-gray-400">Cliente</p>
-                    <p className="text-sm text-gray-700">{tarefa.clienteNome}</p>
+                    <p className="text-sm text-gray-700">{resolverNomeCliente(tarefa, exibicaoNomeCliente)}</p>
                   </div>
                 </div>
               </div>
@@ -435,6 +441,11 @@ export default function DialogoVisualizarTarefa({
                 >
                   <Paperclip className="h-3.5 w-3.5" />
                   Arquivos
+                  {tarefa.quantidadeAnexos > 0 && (
+                    <span className="inline-flex items-center justify-center rounded-full bg-orange-500 text-white text-[10px] font-medium h-4 min-w-[1rem] px-1">
+                      {tarefa.quantidadeAnexos}
+                    </span>
+                  )}
                 </Button>
               </div>
               <Button variant="outline" onClick={() => onOpenChange(false)}>

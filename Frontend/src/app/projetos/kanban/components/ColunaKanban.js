@@ -6,7 +6,12 @@ import { GripVertical, CheckCircle2 } from 'lucide-react';
 import { cn } from '../../../../components/ui/form/utils';
 import CartaoTarefa from './CartaoTarefa';
 
-export default function ColunaKanban({ etapaId, titulo, tarefas, ehAdmin, colaboradorLogadoId, isBacklog, isEtapaFinal, onVisualizarTarefa }) {
+function resolverNomeCliente(tarefa, exibicao) {
+  if (exibicao === 'nomeFantasia' && tarefa.clienteNomeFantasia) return tarefa.clienteNomeFantasia;
+  return tarefa.clienteNome;
+}
+
+export default function ColunaKanban({ etapaId, titulo, tarefas, ehAdmin, colaboradorLogadoId, isBacklog, isEtapaFinal, onVisualizarTarefa, exibicaoNomeCliente = 'razaoSocial' }) {
   const podeMoverTarefa = (tarefa) => {
     if (isBacklog && !ehAdmin) return false;
     return (
@@ -86,6 +91,7 @@ export default function ColunaKanban({ etapaId, titulo, tarefas, ehAdmin, colabo
             tarefa={tarefa}
             podeMover={podeMoverTarefa(tarefa)}
             onVisualizar={onVisualizarTarefa}
+            nomeCliente={resolverNomeCliente(tarefa, exibicaoNomeCliente)}
           />
         ))}
 

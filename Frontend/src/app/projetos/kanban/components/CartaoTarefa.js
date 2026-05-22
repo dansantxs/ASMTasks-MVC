@@ -2,10 +2,10 @@
 
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, User, Folder, Building2, Eye } from 'lucide-react';
+import { GripVertical, User, Folder, Building2, Eye, Paperclip } from 'lucide-react';
 import { cn } from '../../../../components/ui/form/utils';
 
-export default function CartaoTarefa({ tarefa, podeMover, onVisualizar }) {
+export default function CartaoTarefa({ tarefa, podeMover, onVisualizar, nomeCliente }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `tarefa-${tarefa.id}`,
     data: { type: 'tarefa', tarefa },
@@ -63,17 +63,25 @@ export default function CartaoTarefa({ tarefa, podeMover, onVisualizar }) {
               <Folder className="h-3 w-3 flex-shrink-0" />
               {tarefa.projetoTitulo}
             </p>
-            <p className="text-xs text-gray-400 truncate flex items-center gap-1" title={tarefa.clienteNome}>
+            <p className="text-xs text-gray-400 truncate flex items-center gap-1" title={nomeCliente ?? tarefa.clienteNome}>
               <Building2 className="h-3 w-3 flex-shrink-0" />
-              {tarefa.clienteNome}
+              {nomeCliente ?? tarefa.clienteNome}
             </p>
           </div>
 
-          <div className="mt-2 flex items-center gap-1">
-            <User className="h-3 w-3 text-gray-400 flex-shrink-0" />
-            <span className="text-xs text-gray-500 truncate">
-              {tarefa.colaboradorResponsavelNome ?? 'Sem responsável'}
-            </span>
+          <div className="mt-2 flex items-center justify-between gap-1">
+            <div className="flex items-center gap-1 min-w-0">
+              <User className="h-3 w-3 text-gray-400 flex-shrink-0" />
+              <span className="text-xs text-gray-500 truncate">
+                {tarefa.colaboradorResponsavelNome ?? 'Sem responsável'}
+              </span>
+            </div>
+            {tarefa.quantidadeAnexos > 0 && (
+              <div className="flex items-center gap-0.5 flex-shrink-0 text-gray-400" title={`${tarefa.quantidadeAnexos} anexo(s)`}>
+                <Paperclip className="h-3 w-3" />
+                <span className="text-xs">{tarefa.quantidadeAnexos}</span>
+              </div>
+            )}
           </div>
         </div>
       </div>

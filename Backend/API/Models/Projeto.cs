@@ -66,9 +66,12 @@ namespace API.Models
                         throw new ValidationException($"A etapa da tarefa '{tarefa.Titulo}' e invalida ou esta inativa.");
                 }
 
-                var setor = await Setor.ObterPorIdAsync(dbContext, tarefa.SetorId);
-                if (setor == null || !setor.Ativo)
-                    throw new ValidationException($"O setor da tarefa '{tarefa.Titulo}' e invalido ou esta inativo.");
+                if (tarefa.SetorId.HasValue)
+                {
+                    var setor = await Setor.ObterPorIdAsync(dbContext, tarefa.SetorId.Value);
+                    if (setor == null || !setor.Ativo)
+                        throw new ValidationException($"O setor da tarefa '{tarefa.Titulo}' e invalido ou esta inativo.");
+                }
             }
         }
 

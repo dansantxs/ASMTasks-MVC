@@ -27,6 +27,7 @@ const columns = [
   { id: 'clienteNome', label: 'Cliente' },
   { id: 'colaboradorNome', label: 'Colaborador' },
   { id: 'etapaNome', label: 'Etapa' },
+  { id: 'observacao', label: 'Observação' },
 ];
 
 const reportTitle = 'Relatório de Histórico de Tarefas';
@@ -121,6 +122,13 @@ export default function HistoricoTarefasReportPage() {
   );
   const clientes = useMemo(() => clientesRaw.filter((c) => c.ativo !== false), [clientesRaw]);
 
+  const exibicaoNomeCliente = systemSettings?.exibicaoNomeCliente ?? 'razaoSocial';
+
+  function resolverNomeCliente(item) {
+    if (exibicaoNomeCliente === 'nomeFantasia' && item.clienteNomeFantasia) return item.clienteNomeFantasia;
+    return item.clienteNome ?? ' ';
+  }
+
   const data = useMemo(() => {
     const tarefas = historicoTarefasApi.map((item) => ({
       id: `t-${item.id}`,
@@ -131,9 +139,10 @@ export default function HistoricoTarefasReportPage() {
       tarefaId: item.tarefaId,
       tarefaTitulo: item.tarefaTitulo ?? ' ',
       projetoTitulo: item.projetoTitulo ?? ' ',
-      clienteNome: item.clienteNome ?? ' ',
+      clienteNome: resolverNomeCliente(item),
       colaboradorNome: item.colaboradorNome ?? ' ',
       etapaNome: item.etapaNome ?? ' ',
+      observacao: item.observacao ?? ' ',
     }));
 
     const projetos = historicoProjetosApi.map((item) => ({
@@ -145,13 +154,14 @@ export default function HistoricoTarefasReportPage() {
       tarefaId: null,
       tarefaTitulo: '—',
       projetoTitulo: item.projetoTitulo ?? ' ',
-      clienteNome: item.clienteNome ?? ' ',
+      clienteNome: resolverNomeCliente(item),
       colaboradorNome: item.realizadoPorColaboradorNome ?? ' ',
       etapaNome: '—',
+      observacao: ' ',
     }));
 
     return [...tarefas, ...projetos];
-  }, [historicoTarefasApi, historicoProjetosApi]);
+  }, [historicoTarefasApi, historicoProjetosApi, exibicaoNomeCliente]);
 
   const filteredData = useMemo(
     () =>
@@ -187,6 +197,7 @@ export default function HistoricoTarefasReportPage() {
       clienteNome: (a, b) => compareStrings(a.clienteNome, b.clienteNome),
       colaboradorNome: (a, b) => compareStrings(a.colaboradorNome, b.colaboradorNome),
       etapaNome: (a, b) => compareStrings(a.etapaNome, b.etapaNome),
+      observacao: (a, b) => compareStrings(a.observacao, b.observacao),
     };
     const sorter = sorters[sortConfig.column];
     if (sorter) {

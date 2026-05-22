@@ -11,5 +11,6 @@ namespace API.DTOs.Projetos
         public int? RealizadoPorColaboradorId { get; set; }
         public string? RealizadoPorColaboradorNome { get; set; }
         public DateTime DataHoraAcao { get; set; }
+        public string? ClienteNomeFantasia { get; set; }
     }
 }

@@ -11,6 +11,7 @@ import { DialogoConfirmarExclusao } from './components/DialogoConfirmarExclusao'
 import AlternarVisualizacao from '../../../components/AlternarVisualizacao';
 import TourGuia from '../../../components/TourGuia';
 import { getClientes, criarCliente, atualizarCliente, inativarCliente, reativarCliente } from './api/cliente';
+import { configuracoesPadrao, useConfiguracoesSistema } from '../../../services/configuracoes/api';
 
 export default function ClientesPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -20,6 +21,7 @@ export default function ClientesPage() {
   const [modoVisualizacao, setModoVisualizacao] = useState('cards');
 
   const queryClient = useQueryClient();
+  const { data: systemSettings = configuracoesPadrao } = useConfiguracoesSistema();
 
   const { data: clientesApi = [], isLoading: loadingClientes } = useQuery({
     queryKey: ["clientes"],
@@ -48,6 +50,7 @@ export default function ClientesPage() {
     hasActiveTasks: c.possuiTarefasAtivas ?? false,
     matrizId: c.matrizId ?? null,
     nomeMatriz: c.nomeMatriz ?? null,
+    nomeFantasiaMatriz: c.nomeFantasiaMatriz ?? null,
   }));
 
   const criar = useMutation({
@@ -336,6 +339,7 @@ export default function ClientesPage() {
           aoVisualizar={(c) => { setClienteSelecionado(c); setIsViewDialogOpen(true); }}
           aoReativar={handleReativarCliente}
           modoVisualizacao={modoVisualizacao}
+          exibicaoNomeCliente={systemSettings.exibicaoNomeCliente ?? 'razaoSocial'}
         />
 
         <FormularioCliente
@@ -357,6 +361,7 @@ export default function ClientesPage() {
           open={isViewDialogOpen}
           onOpenChange={setIsViewDialogOpen}
           cliente={clienteSelecionado}
+          exibicaoNomeCliente={systemSettings.exibicaoNomeCliente ?? 'razaoSocial'}
         />
 
         <Toaster position="top-right" />

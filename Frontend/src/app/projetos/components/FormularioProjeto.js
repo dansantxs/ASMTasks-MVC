@@ -36,6 +36,7 @@ function criarTarefaDoProjeto(tarefa) {
     descricao: tarefa?.descricao ?? '',
     prioridadeId: tarefa?.prioridadeId ? String(tarefa.prioridadeId) : '',
     setorId: tarefa?.setorId ? String(tarefa.setorId) : '',
+    quantidadeAnexos: tarefa?.quantidadeAnexos ?? 0,
   };
 }
 
@@ -154,6 +155,11 @@ function CartaoTarefa({ tarefa, index, prioridadesAtivas, setoresAtivos, errors,
             >
               <Paperclip className="h-3 w-3" />
               Arquivos
+              {tarefa.quantidadeAnexos > 0 && (
+                <span className="ml-0.5 inline-flex items-center justify-center rounded-full bg-orange-500 text-white text-[10px] font-medium h-4 min-w-[1rem] px-1">
+                  {tarefa.quantidadeAnexos}
+                </span>
+              )}
             </button>
           ) : (
             <div className="space-y-1">
@@ -283,12 +289,22 @@ export default function FormularioProjeto({
 
   // Em edição, garante que o cliente atual apareça mesmo que inativo ou filial
   const clientesParaSelecao = useMemo(() => {
-    if (!isEditMode || !dadosIniciais?.clienteId) return clientesMatrizes;
-    const jaIncluso = clientesMatrizes.some((c) => String(c.id) === String(dadosIniciais.clienteId));
-    if (jaIncluso) return clientesMatrizes;
-    const clienteAtual = clientes.find((c) => String(c.id) === String(dadosIniciais.clienteId));
-    return clienteAtual ? [...clientesMatrizes, clienteAtual] : clientesMatrizes;
-  }, [isEditMode, clientesMatrizes, clientes, dadosIniciais?.clienteId]);
+    let lista;
+    if (!isEditMode || !dadosIniciais?.clienteId) {
+      lista = clientesMatrizes;
+    } else {
+      const jaIncluso = clientesMatrizes.some((c) => String(c.id) === String(dadosIniciais.clienteId));
+      if (jaIncluso) {
+        lista = clientesMatrizes;
+      } else {
+        const clienteAtual = clientes.find((c) => String(c.id) === String(dadosIniciais.clienteId));
+        lista = clienteAtual ? [...clientesMatrizes, clienteAtual] : clientesMatrizes;
+      }
+    }
+    return [...lista].sort((a, b) =>
+      resolverNomeCliente(a).localeCompare(resolverNomeCliente(b), 'pt-BR', { sensitivity: 'base' })
+    );
+  }, [isEditMode, clientesMatrizes, clientes, dadosIniciais?.clienteId, resolverNomeCliente]);
   const setoresAtivos = useMemo(() => setores.filter((item) => item.ativo), [setores]);
   const prioridadesAtivas = useMemo(() => prioridades.filter((item) => item.ativo), [prioridades]);
 

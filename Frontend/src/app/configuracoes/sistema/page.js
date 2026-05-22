@@ -638,7 +638,7 @@ export default function ConfiguracoesSistemaPage() {
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="text-sm text-muted-foreground">
-                Define qual nome é exibido nas seleções de cliente espalhadas pelo sistema (projetos, atendimentos, relatórios). Se optar por Nome Fantasia e o cliente não tiver um cadastrado, o sistema usa a Razão Social como alternativa.
+                Define qual nome do cliente é exibido em todo o sistema: seleções, cards do Kanban, relatórios e ordenação das listas. Se optar por Nome Fantasia e o cliente não tiver um cadastrado, o sistema usa a Razão Social como alternativa.
               </p>
               <div className="flex flex-col gap-3 sm:flex-row sm:gap-6">
                 <label className="flex items-center gap-2 cursor-pointer">
