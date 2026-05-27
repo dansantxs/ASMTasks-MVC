@@ -87,7 +87,11 @@ namespace API.Controllers
                         ColaboradorResponsavelId = t.ColaboradorResponsavelId,
                         DataHoraAtribuicao = t.DataHoraAtribuicao,
                         EtapaId = t.EtapaId,
-                        SetorId = t.SetorId
+                        SetorId = t.SetorId,
+                        TempoExecucaoValor = t.TempoExecucaoValor,
+                        TempoExecucaoUnidade = t.TempoExecucaoUnidade,
+                        TempoTesteValor = t.TempoTesteValor,
+                        TempoTesteUnidade = t.TempoTesteUnidade
                     })]
                 };
 
@@ -154,7 +158,11 @@ namespace API.Controllers
                     Titulo = t.Titulo,
                     Descricao = t.Descricao,
                     PrioridadeId = t.PrioridadeId,
-                    SetorId = t.SetorId
+                    SetorId = t.SetorId,
+                    TempoExecucaoValor = t.TempoExecucaoValor,
+                    TempoExecucaoUnidade = t.TempoExecucaoUnidade,
+                    TempoTesteValor = t.TempoTesteValor,
+                    TempoTesteUnidade = t.TempoTesteUnidade
                 })];
 
                 await projeto.AtualizarAsync(_dbContext);
@@ -397,38 +405,34 @@ namespace API.Controllers
                     return NotFound(new { erro = "Tarefa não encontrada." });
 
                 var agora = DateTime.Now;
+                bool etapaMudou = request.EtapaId != estadoAtual.EtapaId;
+                bool colaboradorMudou = request.ColaboradorResponsavelId != estadoAtual.ColaboradorResponsavelId;
 
-                if (request.EtapaId != estadoAtual.EtapaId)
+                // 1. Finaliza elaboração em andamento quando a etapa muda
+                if (etapaMudou && estadoAtual.DataHoraInicio.HasValue)
                 {
-                    if (estadoAtual.DataHoraInicio.HasValue)
-                    {
-                        await _projetosDAO.InserirHistoricoAsync(_dbContext, new ProjetoTarefaHistorico
-                        {
-                            TarefaId = id,
-                            Tipo = 'F',
-                            DataHoraAcao = agora,
-                            RealizadoPorColaboradorId = colaboradorLogado
-                        });
-                    }
-
                     await _projetosDAO.InserirHistoricoAsync(_dbContext, new ProjetoTarefaHistorico
                     {
                         TarefaId = id,
-                        Tipo = 'E',
-                        EtapaId = request.EtapaId,
+                        Tipo = 'F',
                         DataHoraAcao = agora,
                         RealizadoPorColaboradorId = colaboradorLogado
                     });
                 }
 
-                if (request.ColaboradorResponsavelId != estadoAtual.ColaboradorResponsavelId)
+                // 2. Troca de colaborador: gravada ANTES da mudança de etapa
+                if (colaboradorMudou)
                 {
-                    if (estadoAtual.DataHoraInicio.HasValue && request.EtapaId == estadoAtual.EtapaId)
+                    // Pausa elaboração em andamento apenas se a etapa não mudou
+                    // (quando a etapa muda, o 'F' acima já encerra a elaboração)
+                    if (estadoAtual.DataHoraInicio.HasValue && !etapaMudou)
                     {
                         await _projetosDAO.InserirHistoricoAsync(_dbContext, new ProjetoTarefaHistorico
                         {
                             TarefaId = id,
                             Tipo = 'P',
+                            ColaboradorId = estadoAtual.ColaboradorResponsavelId,
+                            EtapaId = estadoAtual.EtapaId,
                             Observacao = "Troca de colaborador",
                             DataHoraAcao = agora,
                             RealizadoPorColaboradorId = colaboradorLogado
@@ -440,6 +444,21 @@ namespace API.Controllers
                         TarefaId = id,
                         Tipo = 'A',
                         ColaboradorId = request.ColaboradorResponsavelId,
+                        EtapaId = request.EtapaId,
+                        DataHoraAcao = agora,
+                        RealizadoPorColaboradorId = colaboradorLogado
+                    });
+                }
+
+                // 3. Mudança de etapa: gravada por último, já com ColaboradorId preenchido
+                if (etapaMudou)
+                {
+                    await _projetosDAO.InserirHistoricoAsync(_dbContext, new ProjetoTarefaHistorico
+                    {
+                        TarefaId = id,
+                        Tipo = 'E',
+                        EtapaId = request.EtapaId,
+                        ColaboradorId = estadoAtual.ColaboradorResponsavelId,
                         DataHoraAcao = agora,
                         RealizadoPorColaboradorId = colaboradorLogado
                     });
@@ -697,8 +716,10 @@ namespace API.Controllers
             [FromQuery] int? colaboradorId,
             [FromQuery] int? projetoId,
             [FromQuery] int? clienteId,
+            [FromQuery] int? etapaId,
             [FromQuery] DateTime? dataInicio,
-            [FromQuery] DateTime? dataFim)
+            [FromQuery] DateTime? dataFim,
+            [FromQuery] bool ultimaOcorrencia = false)
         {
             try
             {
@@ -706,16 +727,18 @@ namespace API.Controllers
                 if (!string.IsNullOrEmpty(tipo) && tipo.Length == 1)
                     tipoChar = tipo[0];
 
-                var resultado = await _projetosDAO.ObterRelatorioHistoricoAsync(
+                var (registros, totalTarefas) = await _projetosDAO.ObterRelatorioHistoricoAsync(
                     _dbContext,
                     tipoChar,
                     colaboradorId,
                     projetoId,
                     clienteId,
+                    etapaId,
                     dataInicio,
-                    dataFim);
+                    dataFim,
+                    ultimaOcorrencia);
 
-                return Ok(resultado);
+                return Ok(new { registros, totalTarefas });
             }
             catch (Exception ex)
             {
@@ -922,7 +945,11 @@ namespace API.Controllers
                     ColaboradorResponsavelId = t.ColaboradorResponsavelId,
                     DataHoraAtribuicao = t.DataHoraAtribuicao,
                     EtapaId = t.EtapaId,
-                    QuantidadeAnexos = t.QuantidadeAnexos
+                    QuantidadeAnexos = t.QuantidadeAnexos,
+                    TempoExecucaoValor = t.TempoExecucaoValor,
+                    TempoExecucaoUnidade = t.TempoExecucaoUnidade,
+                    TempoTesteValor = t.TempoTesteValor,
+                    TempoTesteUnidade = t.TempoTesteUnidade
                 })]
             };
         }

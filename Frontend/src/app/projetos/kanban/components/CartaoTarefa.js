@@ -47,16 +47,34 @@ export default function CartaoTarefa({ tarefa, podeMover, onVisualizar, nomeClie
             </button>
           </div>
 
-          {tarefa.prioridadeNome && (
-            <div className="mt-1.5">
+          <div className="mt-1.5 flex flex-wrap items-center gap-1">
+            {tarefa.prioridadeNome && (
               <span
                 className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium text-white"
                 style={{ backgroundColor: corBorda }}
               >
                 {tarefa.prioridadeNome}
               </span>
-            </div>
-          )}
+            )}
+            {tarefa.statusAtual === 'Em andamento' && (
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">
+                <span className="h-1.5 w-1.5 rounded-full bg-green-500 flex-shrink-0" />
+                Em andamento
+              </span>
+            )}
+            {tarefa.statusAtual === 'Pausada' && (
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-700">
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-500 flex-shrink-0" />
+                Pausada
+              </span>
+            )}
+            {tarefa.statusAtual === 'Ociosa' && (
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-500">
+                <span className="h-1.5 w-1.5 rounded-full bg-gray-400 flex-shrink-0" />
+                Ociosa
+              </span>
+            )}
+          </div>
 
           <div className="mt-2 space-y-1">
             <p className="text-xs text-gray-500 truncate flex items-center gap-1" title={tarefa.projetoTitulo}>

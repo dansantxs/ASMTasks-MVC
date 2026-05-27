@@ -33,6 +33,7 @@ export default function EtapasPage() {
     active: e.ativo,
     hasActiveTasks: e.possuiTarefasAtivas ?? false,
     isFinalStage: e.ehEtapaFinal ?? false,
+    isTestStage: e.ehEtapaTeste ?? false,
   }));
 
   const criar = useMutation({
@@ -79,6 +80,7 @@ export default function EtapasPage() {
       nome: stageData.name,
       descricao: stageData.description,
       ehEtapaFinal: stageData.isFinalStage ?? false,
+      ehEtapaTeste: stageData.isTestStage ?? false,
     };
     if (etapaSelecionada) atualizar.mutate({ id: etapaSelecionada.id, data: dataAPI });
     else criar.mutate(dataAPI);

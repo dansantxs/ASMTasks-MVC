@@ -52,6 +52,8 @@ export async function getHistoricoTarefas(params = {}) {
   if (params.colaboradorId && params.colaboradorId !== 'todos') query.set('colaboradorId', params.colaboradorId);
   if (params.projetoId && params.projetoId !== 'todos') query.set('projetoId', params.projetoId);
   if (params.clienteId && params.clienteId !== 'todos') query.set('clienteId', params.clienteId);
+  if (params.etapaId && params.etapaId !== 'todos') query.set('etapaId', params.etapaId);
+  if (params.ultimaOcorrencia) query.set('ultimaOcorrencia', 'true');
   if (params.dataInicio) query.set('dataInicio', params.dataInicio);
   if (params.dataFim) query.set('dataFim', params.dataFim);
 
@@ -60,5 +62,19 @@ export async function getHistoricoTarefas(params = {}) {
     ? `/projetos/tarefas/relatorio-historico?${suffix}`
     : '/projetos/tarefas/relatorio-historico';
   const res = await requisicaoApi(url, { cache: 'no-store' });
-  return handleResponse(res);
+  const text = await res.text();
+  let data = null;
+  try { data = text ? JSON.parse(text) : null; } catch {}
+  if (!res.ok) {
+    let msg = 'Erro inesperado.';
+    if (data) {
+      if (data.erro) msg = data.erro;
+      else if (data.message) msg = data.message;
+      else if (data.errors) { const flat = Object.values(data.errors).flat(); if (flat.length) msg = flat.join('\n'); }
+    }
+    const error = new Error(msg); error.status = res.status; error.data = data; throw error;
+  }
+  if (res.status === 204 || !data) return { registros: [], totalTarefas: 0 };
+  if (Array.isArray(data)) return { registros: data, totalTarefas: data.length };
+  return { registros: Array.isArray(data.registros) ? data.registros : [], totalTarefas: data.totalTarefas ?? 0 };
 }

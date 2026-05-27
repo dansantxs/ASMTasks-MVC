@@ -44,7 +44,8 @@ namespace API.Controllers
                     Nome = request.Nome,
                     Descricao = request.Descricao,
                     Ordem = request.Ordem,
-                    EhEtapaFinal = request.EhEtapaFinal
+                    EhEtapaFinal = request.EhEtapaFinal,
+                    EhEtapaTeste = request.EhEtapaTeste
                 };
 
                 var id = await etapa.CriarAsync(dbContext);
@@ -89,6 +90,7 @@ namespace API.Controllers
                 etapa.Descricao = request.Descricao;
                 etapa.Ordem = request.Ordem;
                 etapa.EhEtapaFinal = request.EhEtapaFinal;
+                etapa.EhEtapaTeste = request.EhEtapaTeste;
 
                 await etapa.AtualizarAsync(dbContext);
                 return NoContent();
@@ -206,7 +208,8 @@ namespace API.Controllers
                 Ativo = etapa.Ativo,
                 PossuiTarefasAtivas = false,
                 Ordem = etapa.Ordem,
-                EhEtapaFinal = etapa.EhEtapaFinal
+                EhEtapaFinal = etapa.EhEtapaFinal,
+                EhEtapaTeste = etapa.EhEtapaTeste
             });
 
             return Ok(response);
@@ -236,7 +239,8 @@ namespace API.Controllers
                 Ativo = etapa.Ativo,
                 PossuiTarefasAtivas = false,
                 Ordem = etapa.Ordem,
-                EhEtapaFinal = etapa.EhEtapaFinal
+                EhEtapaFinal = etapa.EhEtapaFinal,
+                EhEtapaTeste = etapa.EhEtapaTeste
             };
 
             return Ok(response);

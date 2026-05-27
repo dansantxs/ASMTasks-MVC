@@ -25,7 +25,7 @@ function gerarTempId() {
 }
 
 function criarTarefaInicial(setorId = '') {
-  return { _tempId: gerarTempId(), titulo: '', descricao: '', prioridadeId: '', setorId: setorId ? String(setorId) : '' };
+  return { _tempId: gerarTempId(), titulo: '', descricao: '', prioridadeId: '', setorId: setorId ? String(setorId) : '', tempoExecucaoValor: '', tempoExecucaoUnidade: 'H', tempoTesteValor: '', tempoTesteUnidade: 'H' };
 }
 
 function criarTarefaDoProjeto(tarefa) {
@@ -37,6 +37,10 @@ function criarTarefaDoProjeto(tarefa) {
     prioridadeId: tarefa?.prioridadeId ? String(tarefa.prioridadeId) : '',
     setorId: tarefa?.setorId ? String(tarefa.setorId) : '',
     quantidadeAnexos: tarefa?.quantidadeAnexos ?? 0,
+    tempoExecucaoValor: tarefa?.tempoExecucaoValor != null ? String(tarefa.tempoExecucaoValor) : '',
+    tempoExecucaoUnidade: tarefa?.tempoExecucaoUnidade ?? 'H',
+    tempoTesteValor: tarefa?.tempoTesteValor != null ? String(tarefa.tempoTesteValor) : '',
+    tempoTesteUnidade: tarefa?.tempoTesteUnidade ?? 'H',
   };
 }
 
@@ -46,6 +50,7 @@ function criarFormularioInicial() {
 
 function CartaoTarefa({ tarefa, index, prioridadesAtivas, setoresAtivos, errors, onChange, onRemove, totalTarefas, onAbrirCriarPrioridade, onAbrirAnexos, arquivosPendentes = [], onAdicionarArquivos, onRemoverArquivo }) {
   const [showDesc, setShowDesc] = useState(Boolean(tarefa.descricao));
+  const [showTempo, setShowTempo] = useState(Boolean(tarefa.tempoExecucaoValor || tarefa.tempoTesteValor));
   const inputArquivoRef = useRef(null);
   const prioridadeSelecionada = prioridadesAtivas.find((p) => String(p.id) === tarefa.prioridadeId);
   const cor = prioridadeSelecionada?.cor;
@@ -128,13 +133,15 @@ function CartaoTarefa({ tarefa, index, prioridadesAtivas, setoresAtivos, errors,
               className="text-sm resize-none"
             />
           ) : (
-            <button
-              type="button"
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-              onClick={() => setShowDesc(true)}
-            >
-              + Adicionar descrição
-            </button>
+            <div>
+              <button
+                type="button"
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                onClick={() => setShowDesc(true)}
+              >
+                + Adicionar descrição
+              </button>
+            </div>
           )}
 
           {(errors?.titulo || errors?.prioridadeId || errors?.setorId) && (
@@ -142,6 +149,59 @@ function CartaoTarefa({ tarefa, index, prioridadesAtivas, setoresAtivos, errors,
               {errors.titulo && <p className="text-xs text-destructive">{errors.titulo}</p>}
               {errors.prioridadeId && <p className="text-xs text-destructive">{errors.prioridadeId}</p>}
               {errors.setorId && <p className="text-xs text-destructive">{errors.setorId}</p>}
+            </div>
+          )}
+
+          {showTempo ? (
+            <div className="space-y-1">
+              <div className="flex items-center gap-1">
+                <span className="text-xs text-muted-foreground w-[64px] shrink-0">Execução:</span>
+                <Input
+                  type="number"
+                  min="1"
+                  value={tarefa.tempoExecucaoValor}
+                  onChange={(e) => onChange(index, 'tempoExecucaoValor', e.target.value)}
+                  placeholder="—"
+                  className="h-7 text-xs w-14 shrink-0"
+                />
+                <Select value={tarefa.tempoExecucaoUnidade || 'H'} onValueChange={(v) => onChange(index, 'tempoExecucaoUnidade', v)}>
+                  <SelectTrigger className="h-7 text-xs flex-1"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="D">Dias</SelectItem>
+                    <SelectItem value="H">Horas</SelectItem>
+                    <SelectItem value="M">Minutos</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-xs text-muted-foreground w-[64px] shrink-0">Teste:</span>
+                <Input
+                  type="number"
+                  min="1"
+                  value={tarefa.tempoTesteValor}
+                  onChange={(e) => onChange(index, 'tempoTesteValor', e.target.value)}
+                  placeholder="—"
+                  className="h-7 text-xs w-14 shrink-0"
+                />
+                <Select value={tarefa.tempoTesteUnidade || 'H'} onValueChange={(v) => onChange(index, 'tempoTesteUnidade', v)}>
+                  <SelectTrigger className="h-7 text-xs flex-1"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="D">Dias</SelectItem>
+                    <SelectItem value="H">Horas</SelectItem>
+                    <SelectItem value="M">Minutos</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <button
+                type="button"
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                onClick={() => setShowTempo(true)}
+              >
+                + Adicionar tempo de execução/teste
+              </button>
             </div>
           )}
 
@@ -394,6 +454,10 @@ export default function FormularioProjeto({
         descricao: t.descricao.trim() || null,
         prioridadeId: t.prioridadeId ? Number(t.prioridadeId) : null,
         setorId: t.setorId ? Number(t.setorId) : null,
+        tempoExecucaoValor: t.tempoExecucaoValor ? Number(t.tempoExecucaoValor) : null,
+        tempoExecucaoUnidade: t.tempoExecucaoValor ? (t.tempoExecucaoUnidade || 'H') : null,
+        tempoTesteValor: t.tempoTesteValor ? Number(t.tempoTesteValor) : null,
+        tempoTesteUnidade: t.tempoTesteValor ? (t.tempoTesteUnidade || 'H') : null,
       })),
       arquivos,
     );
@@ -498,6 +562,10 @@ export default function FormularioProjeto({
           descricao: tarefa.descricao.trim() || null,
           prioridadeId: Number(tarefa.prioridadeId),
           setorId: tarefa.setorId ? Number(tarefa.setorId) : null,
+          tempoExecucaoValor: tarefa.tempoExecucaoValor ? Number(tarefa.tempoExecucaoValor) : null,
+          tempoExecucaoUnidade: tarefa.tempoExecucaoValor ? (tarefa.tempoExecucaoUnidade || 'H') : null,
+          tempoTesteValor: tarefa.tempoTesteValor ? Number(tarefa.tempoTesteValor) : null,
+          tempoTesteUnidade: tarefa.tempoTesteValor ? (tarefa.tempoTesteUnidade || 'H') : null,
         })),
       },
       pendingFilesByIndex,

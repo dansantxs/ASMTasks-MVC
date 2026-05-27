@@ -124,7 +124,11 @@ namespace API.DB.DAOs
                             Titulo = @Titulo,
                             Descricao = @Descricao,
                             PrioridadeId = @PrioridadeId,
-                            SetorId = @SetorId
+                            SetorId = @SetorId,
+                            TempoExecucaoValor = @TempoExecucaoValor,
+                            TempoExecucaoUnidade = @TempoExecucaoUnidade,
+                            TempoTesteValor = @TempoTesteValor,
+                            TempoTesteUnidade = @TempoTesteUnidade
                         WHERE Id = @Id AND ProjetoId = @ProjetoId;
                     ";
                     updateCmd.Parameters.AddWithValue("@Id", tarefa.Id);
@@ -133,6 +137,10 @@ namespace API.DB.DAOs
                     updateCmd.Parameters.AddWithValue("@Descricao", (object?)tarefa.Descricao ?? DBNull.Value);
                     updateCmd.Parameters.AddWithValue("@PrioridadeId", tarefa.PrioridadeId);
                     updateCmd.Parameters.AddWithValue("@SetorId", (object?)tarefa.SetorId ?? DBNull.Value);
+                    updateCmd.Parameters.AddWithValue("@TempoExecucaoValor", (object?)tarefa.TempoExecucaoValor ?? DBNull.Value);
+                    updateCmd.Parameters.AddWithValue("@TempoExecucaoUnidade", (object?)tarefa.TempoExecucaoUnidade ?? DBNull.Value);
+                    updateCmd.Parameters.AddWithValue("@TempoTesteValor", (object?)tarefa.TempoTesteValor ?? DBNull.Value);
+                    updateCmd.Parameters.AddWithValue("@TempoTesteUnidade", (object?)tarefa.TempoTesteUnidade ?? DBNull.Value);
                     await updateCmd.ExecuteNonQueryAsync();
                 }
 
@@ -415,7 +423,9 @@ namespace API.DB.DAOs
                         VALUES
                         (@TarefaId, 'I', @ColaboradorId,
                          (SELECT Nome FROM Colaborador WHERE Id = @ColaboradorId),
-                         NULL, NULL, @DataHoraAcao);
+                         (SELECT pt.EtapaId FROM ProjetoTarefa pt WHERE pt.Id = @TarefaId),
+                         (SELECT e.Nome FROM ProjetoTarefa pt LEFT JOIN Etapa e ON pt.EtapaId = e.Id WHERE pt.Id = @TarefaId),
+                         @DataHoraAcao);
                     ";
                     histCmd.Parameters.AddWithValue("@TarefaId", tarefaId);
                     histCmd.Parameters.AddWithValue("@ColaboradorId", colaboradorId);
@@ -467,7 +477,9 @@ namespace API.DB.DAOs
                         VALUES
                         (@TarefaId, 'P', @ColaboradorId,
                          (SELECT Nome FROM Colaborador WHERE Id = @ColaboradorId),
-                         NULL, NULL, @Observacao, @DataHoraAcao);
+                         (SELECT pt.EtapaId FROM ProjetoTarefa pt WHERE pt.Id = @TarefaId),
+                         (SELECT e.Nome FROM ProjetoTarefa pt LEFT JOIN Etapa e ON pt.EtapaId = e.Id WHERE pt.Id = @TarefaId),
+                         @Observacao, @DataHoraAcao);
                     ";
                     histCmd.Parameters.AddWithValue("@TarefaId", tarefaId);
                     histCmd.Parameters.AddWithValue("@ColaboradorId", colaboradorId);
@@ -523,21 +535,60 @@ namespace API.DB.DAOs
             return lista;
         }
 
-        public async Task<IEnumerable<TarefaHistoricoRelatorioResponse>> ObterRelatorioHistoricoAsync(
+        public async Task<(IEnumerable<TarefaHistoricoRelatorioResponse> Registros, int TotalTarefas)> ObterRelatorioHistoricoAsync(
             DBContext dbContext,
             char? tipo,
             int? colaboradorId,
             int? projetoId,
             int? clienteId,
+            int? etapaId,
             DateTime? dataInicio,
-            DateTime? dataFim)
+            DateTime? dataFim,
+            bool ultimaOcorrencia = false)
         {
             var lista = new List<TarefaHistoricoRelatorioResponse>();
 
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
 
-            var sql = new System.Text.StringBuilder(@"
+            var filtros = new System.Text.StringBuilder("WHERE 1 = 1");
+            if (tipo.HasValue)
+            {
+                filtros.Append(" AND h.Tipo = @Tipo");
+                cmd.Parameters.AddWithValue("@Tipo", tipo.Value.ToString());
+            }
+            if (colaboradorId.HasValue)
+            {
+                filtros.Append(" AND h.ColaboradorId = @ColaboradorId");
+                cmd.Parameters.AddWithValue("@ColaboradorId", colaboradorId.Value);
+            }
+            if (projetoId.HasValue)
+            {
+                filtros.Append(" AND p.Id = @ProjetoId");
+                cmd.Parameters.AddWithValue("@ProjetoId", projetoId.Value);
+            }
+            if (clienteId.HasValue)
+            {
+                filtros.Append(" AND c.Id = @ClienteId");
+                cmd.Parameters.AddWithValue("@ClienteId", clienteId.Value);
+            }
+            if (etapaId.HasValue)
+            {
+                filtros.Append(" AND h.EtapaId = @EtapaId");
+                cmd.Parameters.AddWithValue("@EtapaId", etapaId.Value);
+            }
+            if (dataInicio.HasValue)
+            {
+                filtros.Append(" AND h.DataHoraAcao >= @DataInicio");
+                cmd.Parameters.AddWithValue("@DataInicio", dataInicio.Value);
+            }
+            if (dataFim.HasValue)
+            {
+                filtros.Append(" AND h.DataHoraAcao <= @DataFim");
+                cmd.Parameters.AddWithValue("@DataFim", dataFim.Value);
+            }
+
+            string baseSelect = @"
                 SELECT
                     h.Id,
                     h.TarefaId,
@@ -560,47 +611,39 @@ namespace API.DB.DAOs
                 INNER JOIN ProjetoTarefa pt ON h.TarefaId = pt.Id
                 INNER JOIN Projeto p ON pt.ProjetoId = p.Id
                 INNER JOIN Cliente c ON p.ClienteId = c.Id
-                WHERE 1 = 1
-            ");
+            ";
 
-            if (tipo.HasValue)
+            string sqlQuery;
+            if (ultimaOcorrencia)
             {
-                sql.Append(" AND h.Tipo = @Tipo");
-                cmd.Parameters.AddWithValue("@Tipo", tipo.Value.ToString());
+                sqlQuery = $@"
+                    WITH Ranked AS (
+                        SELECT h.Id, h.TarefaId, pt.Titulo AS TarefaTitulo,
+                               p.Id AS ProjetoId, p.Titulo AS ProjetoTitulo,
+                               c.Id AS ClienteId, c.Nome AS ClienteNome, c.NomeFantasia AS ClienteNomeFantasia,
+                               h.Tipo, h.ColaboradorId, h.ColaboradorNome,
+                               h.EtapaId, h.EtapaNome, h.Observacao, h.DataHoraAcao,
+                               h.RealizadoPorColaboradorId, h.RealizadoPorColaboradorNome,
+                               ROW_NUMBER() OVER (PARTITION BY h.TarefaId, h.EtapaId ORDER BY h.DataHoraAcao DESC) AS rn
+                        FROM ProjetoTarefaHistorico h
+                        INNER JOIN ProjetoTarefa pt ON h.TarefaId = pt.Id
+                        INNER JOIN Projeto p ON pt.ProjetoId = p.Id
+                        INNER JOIN Cliente c ON p.ClienteId = c.Id
+                        {filtros}
+                    )
+                    SELECT Id, TarefaId, TarefaTitulo, ProjetoId, ProjetoTitulo, ClienteId, ClienteNome, ClienteNomeFantasia,
+                           Tipo, ColaboradorId, ColaboradorNome, EtapaId, EtapaNome, Observacao, DataHoraAcao,
+                           RealizadoPorColaboradorId, RealizadoPorColaboradorNome
+                    FROM Ranked WHERE rn = 1
+                    ORDER BY DataHoraAcao DESC;
+                ";
+            }
+            else
+            {
+                sqlQuery = baseSelect + filtros + " ORDER BY h.DataHoraAcao DESC;";
             }
 
-            if (colaboradorId.HasValue)
-            {
-                sql.Append(" AND h.ColaboradorId = @ColaboradorId");
-                cmd.Parameters.AddWithValue("@ColaboradorId", colaboradorId.Value);
-            }
-
-            if (projetoId.HasValue)
-            {
-                sql.Append(" AND p.Id = @ProjetoId");
-                cmd.Parameters.AddWithValue("@ProjetoId", projetoId.Value);
-            }
-
-            if (clienteId.HasValue)
-            {
-                sql.Append(" AND c.Id = @ClienteId");
-                cmd.Parameters.AddWithValue("@ClienteId", clienteId.Value);
-            }
-
-            if (dataInicio.HasValue)
-            {
-                sql.Append(" AND h.DataHoraAcao >= @DataInicio");
-                cmd.Parameters.AddWithValue("@DataInicio", dataInicio.Value);
-            }
-
-            if (dataFim.HasValue)
-            {
-                sql.Append(" AND h.DataHoraAcao <= @DataFim");
-                cmd.Parameters.AddWithValue("@DataFim", dataFim.Value);
-            }
-
-            sql.Append(" ORDER BY h.DataHoraAcao DESC;");
-            cmd.CommandText = sql.ToString();
+            cmd.CommandText = sqlQuery;
 
             await using var dr = await cmd.ExecuteReaderAsync();
             while (await dr.ReadAsync())
@@ -627,7 +670,8 @@ namespace API.DB.DAOs
                 });
             }
 
-            return lista;
+            int totalTarefas = lista.Select(r => r.TarefaId).Distinct().Count();
+            return (lista, totalTarefas);
         }
 
         public async Task<IEnumerable<TarefaKanbanResponse>> ObterTarefasKanbanAsync(
@@ -662,7 +706,16 @@ namespace API.DB.DAOs
                     pt.DataHoraInicio,
                     pt.SetorId,
                     c.NomeFantasia AS ClienteNomeFantasia,
-                    (SELECT COUNT(*) FROM ProjetoTarefaAnexo WHERE TarefaId = pt.Id) AS QuantidadeAnexos
+                    (SELECT COUNT(*) FROM ProjetoTarefaAnexo WHERE TarefaId = pt.Id) AS QuantidadeAnexos,
+                    pt.TempoExecucaoValor,
+                    pt.TempoExecucaoUnidade,
+                    pt.TempoTesteValor,
+                    pt.TempoTesteUnidade,
+                    CASE
+                        WHEN pt.DataHoraInicio IS NOT NULL THEN 'Em andamento'
+                        WHEN EXISTS (SELECT 1 FROM ProjetoTarefaHistorico h WHERE h.TarefaId = pt.Id AND h.Tipo = 'P') THEN 'Pausada'
+                        ELSE 'Ociosa'
+                    END AS StatusAtual
                 FROM ProjetoTarefa pt
                 INNER JOIN Projeto p ON pt.ProjetoId = p.Id
                 INNER JOIN Cliente c ON p.ClienteId = c.Id
@@ -736,6 +789,11 @@ namespace API.DB.DAOs
                     SetorId = dr["SetorId"] == DBNull.Value ? null : (int?)Convert.ToInt32(dr["SetorId"]),
                     QuantidadeAnexos = Convert.ToInt32(dr["QuantidadeAnexos"]),
                     ClienteNomeFantasia = dr["ClienteNomeFantasia"] == DBNull.Value ? null : dr["ClienteNomeFantasia"].ToString(),
+                    TempoExecucaoValor = dr["TempoExecucaoValor"] == DBNull.Value ? null : (int?)Convert.ToInt32(dr["TempoExecucaoValor"]),
+                    TempoExecucaoUnidade = dr["TempoExecucaoUnidade"] == DBNull.Value ? null : dr["TempoExecucaoUnidade"].ToString(),
+                    TempoTesteValor = dr["TempoTesteValor"] == DBNull.Value ? null : (int?)Convert.ToInt32(dr["TempoTesteValor"]),
+                    TempoTesteUnidade = dr["TempoTesteUnidade"] == DBNull.Value ? null : dr["TempoTesteUnidade"].ToString(),
+                    StatusAtual = dr["StatusAtual"].ToString() ?? "Ociosa",
                 });
             }
 
@@ -928,9 +986,9 @@ namespace API.DB.DAOs
                 cmd.Transaction = transaction;
                 cmd.CommandText = @"
                     INSERT INTO ProjetoTarefa
-                    (ProjetoId, Titulo, Descricao, PrioridadeId, ColaboradorResponsavelId, DataHoraAtribuicao, EtapaId, SetorId)
+                    (ProjetoId, Titulo, Descricao, PrioridadeId, ColaboradorResponsavelId, DataHoraAtribuicao, EtapaId, SetorId, TempoExecucaoValor, TempoExecucaoUnidade, TempoTesteValor, TempoTesteUnidade)
                     VALUES
-                    (@ProjetoId, @Titulo, @Descricao, @PrioridadeId, @ColaboradorResponsavelId, @DataHoraAtribuicao, @EtapaId, @SetorId);
+                    (@ProjetoId, @Titulo, @Descricao, @PrioridadeId, @ColaboradorResponsavelId, @DataHoraAtribuicao, @EtapaId, @SetorId, @TempoExecucaoValor, @TempoExecucaoUnidade, @TempoTesteValor, @TempoTesteUnidade);
                     SELECT CAST(SCOPE_IDENTITY() AS int);
                 ";
 
@@ -942,6 +1000,10 @@ namespace API.DB.DAOs
                 cmd.Parameters.AddWithValue("@DataHoraAtribuicao", (object?)tarefa.DataHoraAtribuicao ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@EtapaId", (object?)tarefa.EtapaId ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@SetorId", (object?)tarefa.SetorId ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@TempoExecucaoValor", (object?)tarefa.TempoExecucaoValor ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@TempoExecucaoUnidade", (object?)tarefa.TempoExecucaoUnidade ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@TempoTesteValor", (object?)tarefa.TempoTesteValor ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@TempoTesteUnidade", (object?)tarefa.TempoTesteUnidade ?? DBNull.Value);
 
                 var result = await cmd.ExecuteScalarAsync();
                 tarefa.Id = Convert.ToInt32(result);
@@ -956,6 +1018,7 @@ namespace API.DB.DAOs
             await using var cmd = connection.CreateCommand();
             cmd.CommandText = @"
                 SELECT Id, ProjetoId, Titulo, Descricao, PrioridadeId, ColaboradorResponsavelId, DataHoraAtribuicao, EtapaId, DataHoraInicio, SetorId,
+                       TempoExecucaoValor, TempoExecucaoUnidade, TempoTesteValor, TempoTesteUnidade,
                        (SELECT COUNT(*) FROM ProjetoTarefaAnexo WHERE TarefaId = pt.Id) AS QuantidadeAnexos
                 FROM ProjetoTarefa pt
                 WHERE ProjetoId = @ProjetoId
@@ -986,7 +1049,11 @@ namespace API.DB.DAOs
                         ? null
                         : Convert.ToDateTime(dr["DataHoraInicio"]),
                     SetorId = dr["SetorId"] == DBNull.Value ? null : (int?)Convert.ToInt32(dr["SetorId"]),
-                    QuantidadeAnexos = Convert.ToInt32(dr["QuantidadeAnexos"])
+                    QuantidadeAnexos = Convert.ToInt32(dr["QuantidadeAnexos"]),
+                    TempoExecucaoValor = dr["TempoExecucaoValor"] == DBNull.Value ? null : (int?)Convert.ToInt32(dr["TempoExecucaoValor"]),
+                    TempoExecucaoUnidade = dr["TempoExecucaoUnidade"] == DBNull.Value ? null : dr["TempoExecucaoUnidade"].ToString(),
+                    TempoTesteValor = dr["TempoTesteValor"] == DBNull.Value ? null : (int?)Convert.ToInt32(dr["TempoTesteValor"]),
+                    TempoTesteUnidade = dr["TempoTesteUnidade"] == DBNull.Value ? null : dr["TempoTesteUnidade"].ToString()
                 });
             }
 

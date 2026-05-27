@@ -15,6 +15,10 @@ namespace API.Models
         public DateTime? DataHoraInicio { get; set; }
         public int? SetorId { get; set; }
         public int QuantidadeAnexos { get; set; }
+        public int? TempoExecucaoValor { get; set; }
+        public string? TempoExecucaoUnidade { get; set; }
+        public int? TempoTesteValor { get; set; }
+        public string? TempoTesteUnidade { get; set; }
 
         public void ValidarDados()
         {

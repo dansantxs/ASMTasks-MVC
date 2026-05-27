@@ -1,4 +1,4 @@
-export const VERSAO_ATUAL = '1.2.0';
+export const VERSAO_ATUAL = '1.3.0';
 
 /**
  * Regra de versionamento (major.minor.patch):
@@ -11,6 +11,25 @@ export const VERSAO_ATUAL = '1.2.0';
  *  2. Adicione uma nova entrada NO INÍCIO do array CHANGELOG.
  */
 export const CHANGELOG = [
+  {
+    versao: '1.3.0',
+    data: '2026-05-27',
+    titulo: 'Tempo de Execução, Status Visual e Melhorias no Dashboard e Relatório',
+    mudancas: [
+      'Tarefas agora suportam Tempo de Execução e Tempo de Teste (valor + unidade: Dias/Horas/Minutos)',
+      'Etapas podem ser marcadas como Etapa de Teste — o tempo acumulado nessas etapas é contabilizado separadamente',
+      'Kanban: badge visual de status por tarefa — Em andamento (verde), Pausada (âmbar) ou Ociosa (cinza)',
+      'Kanban: detalhe da tarefa exibe o tempo de execução e de teste configurados',
+      'Dashboard: novos indicadores — Tarefas em Atraso (Execução), Tarefas em Atraso (Teste) e Tarefas Ociosas',
+      'Relatório de histórico de tarefas: novo filtro por Etapa',
+      'Relatório de histórico de tarefas: toggle "Última ocorrência por tarefa/etapa"',
+      'Relatório de histórico de tarefas: contagem de tarefas distintas exibida na tela, no PDF e no Excel',
+      'Dashboard: ao passar o mouse nos indicadores "Em Atraso — Execução", "Em Atraso — Teste" e "Tarefas Ociosas" (quando valor > 0), exibe lista das tarefas com colaborador e etapa',
+      'Correção: filtro por etapa no relatório de histórico de tarefas não exibia mais eventos de "Projeto Concluído" sem etapa associada',
+      'Correção: eventos de Início e Pausa de elaboração agora registram a etapa atual da tarefa no histórico, permitindo filtrar por colaborador + etapa no relatório',
+      'Correção: eventos de Mudança de Etapa agora registram o colaborador responsável; quando etapa e colaborador mudam simultaneamente, a atribuição é gravada antes da mudança de etapa',
+    ],
+  },
   {
     versao: '1.2.0',
     data: '2026-05-22',

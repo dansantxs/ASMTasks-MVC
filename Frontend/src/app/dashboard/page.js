@@ -19,6 +19,7 @@ import {
   Clock,
   PackageX,
   UserX,
+  TimerOff,
 } from 'lucide-react';
 import { getDashboard } from './api/dashboard';
 import { useUsuarioAtual } from '../../hooks/useUsuarioAtual';
@@ -36,6 +37,36 @@ function CardKPI({ icone: Icone, titulo, valor, corIcone, corFundo, destaque, su
           {valor}{sufixo && <span className="text-base font-medium text-gray-500 ml-1">{sufixo}</span>}
         </p>
       </div>
+    </div>
+  );
+}
+
+function CardKPIComLista({ icone: Icone, titulo, valor, corIcone, corFundo, destaque, lista = [] }) {
+  const [aberto, setAberto] = useState(false);
+
+  return (
+    <div
+      className={`relative rounded-xl border bg-white p-5 flex items-center gap-4 shadow-sm ${destaque ? 'ring-2 ring-red-400' : ''}`}
+      onMouseEnter={() => { if (valor > 0) setAberto(true); }}
+      onMouseLeave={() => setAberto(false)}
+    >
+      <div className={`p-3 rounded-lg ${corFundo} shrink-0`}>
+        <Icone className={`h-6 w-6 ${corIcone}`} />
+      </div>
+      <div className="min-w-0">
+        <p className="text-sm text-gray-500 leading-tight">{titulo}</p>
+        <p className="text-2xl font-bold text-gray-800">{valor}</p>
+      </div>
+      {aberto && lista.length > 0 && (
+        <div className="absolute left-0 top-full mt-2 z-50 w-80 bg-white border rounded-xl shadow-xl p-3 max-h-64 overflow-y-auto">
+          {lista.map((t) => (
+            <div key={t.id} className="py-2 border-b last:border-0">
+              <p className="text-xs font-semibold text-gray-800 truncate" title={t.titulo}>{t.titulo}</p>
+              <p className="text-xs text-gray-500 mt-0.5">{t.colaboradorNome ?? '—'} · {t.etapaNome ?? '—'}</p>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -472,6 +503,36 @@ export default function DashboardPage() {
               destaque={tarefas.semResponsavel > 0}
             />
           )}
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+          <CardKPIComLista
+            icone={AlertTriangle}
+            titulo="Em Atraso — Execução"
+            valor={tarefas.tarefasExecucaoEmAtraso ?? 0}
+            corIcone={(tarefas.tarefasExecucaoEmAtraso ?? 0) > 0 ? 'text-red-600' : 'text-gray-400'}
+            corFundo={(tarefas.tarefasExecucaoEmAtraso ?? 0) > 0 ? 'bg-red-50' : 'bg-gray-100'}
+            destaque={(tarefas.tarefasExecucaoEmAtraso ?? 0) > 0}
+            lista={tarefas.tarefasExecucaoEmAtrasoLista ?? []}
+          />
+          <CardKPIComLista
+            icone={AlertTriangle}
+            titulo="Em Atraso — Teste"
+            valor={tarefas.tarefasTesteEmAtraso ?? 0}
+            corIcone={(tarefas.tarefasTesteEmAtraso ?? 0) > 0 ? 'text-blue-600' : 'text-gray-400'}
+            corFundo={(tarefas.tarefasTesteEmAtraso ?? 0) > 0 ? 'bg-blue-50' : 'bg-gray-100'}
+            destaque={(tarefas.tarefasTesteEmAtraso ?? 0) > 0}
+            lista={tarefas.tarefasTesteEmAtrasoLista ?? []}
+          />
+          <CardKPIComLista
+            icone={TimerOff}
+            titulo="Tarefas Ociosas"
+            valor={tarefas.tarefasOciosas ?? 0}
+            corIcone={(tarefas.tarefasOciosas ?? 0) > 0 ? 'text-amber-600' : 'text-gray-400'}
+            corFundo={(tarefas.tarefasOciosas ?? 0) > 0 ? 'bg-amber-50' : 'bg-gray-100'}
+            destaque={false}
+            lista={tarefas.tarefasOciosasList ?? []}
+          />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

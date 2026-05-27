@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Badge } from '../../../components/ui/base/badge';
 import { Button } from '../../../components/ui/base/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../../../components/ui/base/dialog';
-import { Copy, FileText, FolderKanban, Loader2, Paperclip, Pencil, RefreshCw, RotateCcw, Trash2 } from 'lucide-react';
+import { Clock, Copy, FileText, FolderKanban, Loader2, Paperclip, Pencil, RefreshCw, RotateCcw, Trash2 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { configuracoesPadrao, useConfiguracoesSistema } from '../../../services/configuracoes/api';
@@ -31,6 +31,11 @@ function formatarData(value) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '-';
   return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(date);
+}
+
+const UNIDADE_LABEL = { D: 'Dias', H: 'Horas', M: 'Minutos' };
+function formatarTempo(valor, unidade) {
+  return valor ? `${valor} ${UNIDADE_LABEL[unidade] ?? unidade}` : null;
 }
 
 function normalizarTexto(value) {
@@ -466,6 +471,22 @@ export default function DialogoVisualizarProjeto({
                       )}
                       {tarefaSetorNome && (
                         <p className="text-xs text-muted-foreground">Setor: {tarefaSetorNome}</p>
+                      )}
+                      {(task.tempoExecucaoValor || task.tempoTesteValor) && (
+                        <div className="flex flex-wrap gap-x-3 gap-y-0.5">
+                          {task.tempoExecucaoValor && (
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                              <Clock className="h-3 w-3 shrink-0" />
+                              <span>Execução: {formatarTempo(task.tempoExecucaoValor, task.tempoExecucaoUnidade)}</span>
+                            </div>
+                          )}
+                          {task.tempoTesteValor && (
+                            <div className="flex items-center gap-1 text-xs text-blue-500">
+                              <Clock className="h-3 w-3 shrink-0" />
+                              <span>Teste: {formatarTempo(task.tempoTesteValor, task.tempoTesteUnidade)}</span>
+                            </div>
+                          )}
+                        </div>
                       )}
                       <div className="mt-auto pt-1 flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2">

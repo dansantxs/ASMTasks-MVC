@@ -21,5 +21,10 @@ namespace API.DTOs.Projetos
         public int? SetorId { get; set; }
     public int QuantidadeAnexos { get; set; }
     public string? ClienteNomeFantasia { get; set; }
+    public string StatusAtual { get; set; } = "Ociosa";
+    public int? TempoExecucaoValor { get; set; }
+    public string? TempoExecucaoUnidade { get; set; }
+    public int? TempoTesteValor { get; set; }
+    public string? TempoTesteUnidade { get; set; }
     }
 }

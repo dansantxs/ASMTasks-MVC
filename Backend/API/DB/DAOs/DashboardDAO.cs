@@ -359,6 +359,164 @@ namespace API.DB.DAOs
             }
             dto.TarefasBacklog = Convert.ToInt32(await cmd.ExecuteScalarAsync() ?? 0);
 
+            // Tarefas em atraso por tempo de execução
+            cmd.Parameters.Clear();
+            cmd.CommandText = @"
+                WITH ExecHistory AS (
+                    SELECT h.TarefaId, h.DataHoraAcao, h.Tipo,
+                           LEAD(h.DataHoraAcao) OVER (PARTITION BY h.TarefaId ORDER BY h.DataHoraAcao) AS NextTs
+                    FROM ProjetoTarefaHistorico h
+                    WHERE h.Tipo IN ('I', 'P')
+                ),
+                ExecMin AS (
+                    SELECT TarefaId, SUM(DATEDIFF(MINUTE, DataHoraAcao, NextTs)) AS MinExec
+                    FROM ExecHistory WHERE Tipo = 'I' AND NextTs IS NOT NULL
+                    GROUP BY TarefaId
+                ),
+                TotalMin AS (
+                    SELECT t.Id,
+                           t.Titulo,
+                           col.Nome AS ColaboradorNome,
+                           e.Nome AS EtapaNome,
+                           COALESCE(em.MinExec, 0) +
+                           CASE WHEN t.DataHoraInicio IS NOT NULL THEN DATEDIFF(MINUTE, t.DataHoraInicio, GETDATE()) ELSE 0 END AS TotalMinExec,
+                           CASE t.TempoExecucaoUnidade
+                               WHEN 'D' THEN t.TempoExecucaoValor * 1440
+                               WHEN 'H' THEN t.TempoExecucaoValor * 60
+                               ELSE t.TempoExecucaoValor
+                           END AS LimiteMin
+                    FROM ProjetoTarefa t
+                    INNER JOIN Projeto pr ON pr.Id = t.ProjetoId AND pr.Ativo = 1 AND pr.Concluido = 0
+                    LEFT JOIN ExecMin em ON em.TarefaId = t.Id
+                    LEFT JOIN Colaborador col ON col.Id = t.ColaboradorResponsavelId
+                    LEFT JOIN Etapa e ON e.Id = t.EtapaId
+                    WHERE t.TempoExecucaoValor IS NOT NULL
+                )
+                SELECT Id, Titulo, ColaboradorNome, EtapaNome FROM TotalMin WHERE TotalMinExec > LimiteMin ORDER BY Titulo
+            ";
+            await using (var reader = await cmd.ExecuteReaderAsync())
+            {
+                while (await reader.ReadAsync())
+                    dto.TarefasExecucaoEmAtrasoLista.Add(new TarefaAlertaDTO
+                    {
+                        Id = reader.GetInt32(0),
+                        Titulo = reader.GetString(1),
+                        ColaboradorNome = reader.IsDBNull(2) ? null : reader.GetString(2),
+                        EtapaNome = reader.IsDBNull(3) ? null : reader.GetString(3)
+                    });
+            }
+            dto.TarefasExecucaoEmAtraso = dto.TarefasExecucaoEmAtrasoLista.Count;
+
+            // Tarefas em atraso por tempo de teste
+            cmd.Parameters.Clear();
+            cmd.CommandText = @"
+                WITH StageIntervals AS (
+                    SELECT h.TarefaId, h.DataHoraAcao AS StageStart,
+                           LEAD(h.DataHoraAcao) OVER (PARTITION BY h.TarefaId ORDER BY h.DataHoraAcao) AS StageEnd
+                    FROM ProjetoTarefaHistorico h
+                    INNER JOIN Etapa e ON e.Id = h.EtapaId AND e.EhEtapaTeste = 1
+                    WHERE h.Tipo = 'E'
+                ),
+                ExecHistory AS (
+                    SELECT h.TarefaId, h.DataHoraAcao, h.Tipo,
+                           LEAD(h.DataHoraAcao) OVER (PARTITION BY h.TarefaId ORDER BY h.DataHoraAcao) AS NextTs
+                    FROM ProjetoTarefaHistorico h
+                    WHERE h.Tipo IN ('I', 'P')
+                ),
+                ExecIntervals AS (
+                    SELECT TarefaId, DataHoraAcao AS ExecStart, NextTs AS ExecEnd
+                    FROM ExecHistory WHERE Tipo = 'I' AND NextTs IS NOT NULL
+                ),
+                TestMin AS (
+                    SELECT si.TarefaId,
+                           SUM(DATEDIFF(MINUTE,
+                               CASE WHEN ei.ExecStart > si.StageStart THEN ei.ExecStart ELSE si.StageStart END,
+                               CASE WHEN ei.ExecEnd < COALESCE(si.StageEnd, GETDATE()) THEN ei.ExecEnd ELSE COALESCE(si.StageEnd, GETDATE()) END
+                           )) AS MinTeste
+                    FROM StageIntervals si
+                    INNER JOIN ExecIntervals ei ON ei.TarefaId = si.TarefaId
+                        AND ei.ExecStart < COALESCE(si.StageEnd, GETDATE())
+                        AND ei.ExecEnd > si.StageStart
+                    GROUP BY si.TarefaId
+                ),
+                TotalTestMin AS (
+                    SELECT t.Id,
+                           t.Titulo,
+                           col.Nome AS ColaboradorNome,
+                           e.Nome AS EtapaNome,
+                           COALESCE(tm.MinTeste, 0) AS TotalMinTeste,
+                           CASE t.TempoTesteUnidade
+                               WHEN 'D' THEN t.TempoTesteValor * 1440
+                               WHEN 'H' THEN t.TempoTesteValor * 60
+                               ELSE t.TempoTesteValor
+                           END AS LimiteMin
+                    FROM ProjetoTarefa t
+                    INNER JOIN Projeto pr ON pr.Id = t.ProjetoId AND pr.Ativo = 1 AND pr.Concluido = 0
+                    LEFT JOIN TestMin tm ON tm.TarefaId = t.Id
+                    LEFT JOIN Colaborador col ON col.Id = t.ColaboradorResponsavelId
+                    LEFT JOIN Etapa e ON e.Id = t.EtapaId
+                    WHERE t.TempoTesteValor IS NOT NULL
+                )
+                SELECT Id, Titulo, ColaboradorNome, EtapaNome FROM TotalTestMin WHERE TotalMinTeste > LimiteMin ORDER BY Titulo
+            ";
+            await using (var reader2 = await cmd.ExecuteReaderAsync())
+            {
+                while (await reader2.ReadAsync())
+                    dto.TarefasTesteEmAtrasoLista.Add(new TarefaAlertaDTO
+                    {
+                        Id = reader2.GetInt32(0),
+                        Titulo = reader2.GetString(1),
+                        ColaboradorNome = reader2.IsDBNull(2) ? null : reader2.GetString(2),
+                        EtapaNome = reader2.IsDBNull(3) ? null : reader2.GetString(3)
+                    });
+            }
+            dto.TarefasTesteEmAtraso = dto.TarefasTesteEmAtrasoLista.Count;
+
+            // Tarefas ociosas (nunca iniciadas: sem histórico 'I' nem 'P', com etapa definida)
+            cmd.Parameters.Clear();
+            if (filtrarPorColaborador)
+            {
+                cmd.CommandText = @"
+                    SELECT t.Id, t.Titulo, col.Nome AS ColaboradorNome, e.Nome AS EtapaNome
+                    FROM ProjetoTarefa t
+                    INNER JOIN Projeto pr ON pr.Id = t.ProjetoId AND pr.Ativo = 1 AND pr.Concluido = 0
+                    LEFT JOIN Colaborador col ON col.Id = t.ColaboradorResponsavelId
+                    LEFT JOIN Etapa e ON e.Id = t.EtapaId
+                    WHERE t.EtapaId IS NOT NULL
+                      AND t.DataHoraInicio IS NULL
+                      AND t.ColaboradorResponsavelId = @ColaboradorId
+                      AND NOT EXISTS (SELECT 1 FROM ProjetoTarefaHistorico h WHERE h.TarefaId = t.Id AND h.Tipo IN ('I', 'P'))
+                    ORDER BY t.Titulo
+                ";
+                cmd.Parameters.AddWithValue("@ColaboradorId", colaboradorId);
+            }
+            else
+            {
+                cmd.CommandText = @"
+                    SELECT t.Id, t.Titulo, col.Nome AS ColaboradorNome, e.Nome AS EtapaNome
+                    FROM ProjetoTarefa t
+                    INNER JOIN Projeto pr ON pr.Id = t.ProjetoId AND pr.Ativo = 1 AND pr.Concluido = 0
+                    LEFT JOIN Colaborador col ON col.Id = t.ColaboradorResponsavelId
+                    LEFT JOIN Etapa e ON e.Id = t.EtapaId
+                    WHERE t.EtapaId IS NOT NULL
+                      AND t.DataHoraInicio IS NULL
+                      AND NOT EXISTS (SELECT 1 FROM ProjetoTarefaHistorico h WHERE h.TarefaId = t.Id AND h.Tipo IN ('I', 'P'))
+                    ORDER BY t.Titulo
+                ";
+            }
+            await using (var reader3 = await cmd.ExecuteReaderAsync())
+            {
+                while (await reader3.ReadAsync())
+                    dto.TarefasOciosasList.Add(new TarefaAlertaDTO
+                    {
+                        Id = reader3.GetInt32(0),
+                        Titulo = reader3.GetString(1),
+                        ColaboradorNome = reader3.IsDBNull(2) ? null : reader3.GetString(2),
+                        EtapaNome = reader3.IsDBNull(3) ? null : reader3.GetString(3)
+                    });
+            }
+            dto.TarefasOciosas = dto.TarefasOciosasList.Count;
+
             return dto;
         }
 

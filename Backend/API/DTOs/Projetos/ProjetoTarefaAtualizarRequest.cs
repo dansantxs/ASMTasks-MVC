@@ -18,5 +18,13 @@ namespace API.DTOs.Projetos
 
         [Range(1, int.MaxValue)]
         public int? SetorId { get; set; }
+
+        [Range(1, int.MaxValue)]
+        public int? TempoExecucaoValor { get; set; }
+        public string? TempoExecucaoUnidade { get; set; }
+
+        [Range(1, int.MaxValue)]
+        public int? TempoTesteValor { get; set; }
+        public string? TempoTesteUnidade { get; set; }
     }
 }

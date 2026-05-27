@@ -21,6 +21,7 @@ export default function FormularioEtapa({
     description: '',
     active: true,
     isFinalStage: false,
+    isTestStage: false,
   });
   const [errors, setErrors] = useState({});
 
@@ -31,6 +32,7 @@ export default function FormularioEtapa({
         description: etapa.description || '',
         active: etapa.active,
         isFinalStage: etapa.isFinalStage ?? false,
+        isTestStage: etapa.isTestStage ?? false,
       });
     } else {
       setFormData({
@@ -38,6 +40,7 @@ export default function FormularioEtapa({
         description: '',
         active: true,
         isFinalStage: false,
+        isTestStage: false,
       });
     }
     setErrors({});
@@ -124,6 +127,26 @@ export default function FormularioEtapa({
                   id="isFinalStage"
                   checked={formData.isFinalStage}
                   onCheckedChange={(v) => setFormData(prev => ({ ...prev, isFinalStage: v }))}
+                  disabled={desabilitado}
+                />
+              </div>
+            );
+          })()}
+
+          {(() => {
+            const outraEtapaTeste = etapasExistentes.some(
+              (e) => e.isTestStage && e.id !== (etapa?.id ?? null)
+            );
+            const desabilitado = outraEtapaTeste && !formData.isTestStage;
+            return (
+              <div className={`flex items-center justify-between rounded-lg border p-3 ${desabilitado ? 'bg-gray-50 border-gray-200 opacity-60' : 'bg-blue-50 border-blue-200'}`}>
+                <Label htmlFor="isTestStage" className={`text-sm font-medium cursor-pointer ${desabilitado ? 'text-gray-500' : 'text-blue-800'}`}>
+                  Etapa de Teste
+                </Label>
+                <Switch
+                  id="isTestStage"
+                  checked={formData.isTestStage}
+                  onCheckedChange={(v) => setFormData(prev => ({ ...prev, isTestStage: v }))}
                   disabled={desabilitado}
                 />
               </div>

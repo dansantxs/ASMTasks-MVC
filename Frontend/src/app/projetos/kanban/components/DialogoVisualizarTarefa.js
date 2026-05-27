@@ -44,6 +44,10 @@ const getTipoCor = (tipo) => {
 
 const HISTORICO_PAGINA = 5;
 
+const UNIDADE_LABEL = { D: 'Dias', H: 'Horas', M: 'Minutos' };
+const formatarTempo = (valor, unidade) =>
+  valor ? `${valor} ${UNIDADE_LABEL[unidade] ?? unidade}` : null;
+
 function resolverNomeCliente(tarefa, exibicao) {
   if (exibicao === 'nomeFantasia' && tarefa?.clienteNomeFantasia) return tarefa.clienteNomeFantasia;
   return tarefa?.clienteNome ?? '—';
@@ -235,6 +239,30 @@ export default function DialogoVisualizarTarefa({
                   </div>
                 </div>
               </div>
+
+              {/* Tempo de execução/teste */}
+              {(tarefa.tempoExecucaoValor || tarefa.tempoTesteValor) && (
+                <div className="grid grid-cols-2 gap-3">
+                  {tarefa.tempoExecucaoValor && (
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
+                      <div>
+                        <p className="text-xs text-gray-400">Tempo de execução</p>
+                        <p className="text-sm text-gray-700">{formatarTempo(tarefa.tempoExecucaoValor, tarefa.tempoExecucaoUnidade)}</p>
+                      </div>
+                    </div>
+                  )}
+                  {tarefa.tempoTesteValor && (
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-3.5 w-3.5 text-blue-400 flex-shrink-0" />
+                      <div>
+                        <p className="text-xs text-gray-400">Tempo de teste</p>
+                        <p className="text-sm text-gray-700">{formatarTempo(tarefa.tempoTesteValor, tarefa.tempoTesteUnidade)}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Trocar responsável */}
               {podeTrocarResponsavel && (

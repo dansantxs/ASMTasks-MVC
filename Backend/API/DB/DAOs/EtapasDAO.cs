@@ -9,8 +9,8 @@ namespace API.DB.DAOs
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
             cmd.CommandText = @"
-                INSERT INTO Etapa (Nome, Descricao, Ativo, Ordem, EhEtapaFinal)
-                VALUES (@Nome, @Descricao, @Ativo, @Ordem, @EhEtapaFinal);
+                INSERT INTO Etapa (Nome, Descricao, Ativo, Ordem, EhEtapaFinal, EhEtapaTeste)
+                VALUES (@Nome, @Descricao, @Ativo, @Ordem, @EhEtapaFinal, @EhEtapaTeste);
                 SELECT CAST(SCOPE_IDENTITY() AS int);
             ";
 
@@ -19,6 +19,7 @@ namespace API.DB.DAOs
             cmd.Parameters.AddWithValue("@Ativo", etapa.Ativo);
             cmd.Parameters.AddWithValue("@Ordem", etapa.Ordem);
             cmd.Parameters.AddWithValue("@EhEtapaFinal", etapa.EhEtapaFinal);
+            cmd.Parameters.AddWithValue("@EhEtapaTeste", etapa.EhEtapaTeste);
 
             var result = await cmd.ExecuteScalarAsync();
             etapa.Id = Convert.ToInt32(result);
@@ -31,13 +32,14 @@ namespace API.DB.DAOs
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
             cmd.CommandText = @"UPDATE Etapa
-                                SET Nome = @Nome, Descricao = @Descricao, Ordem = @Ordem, EhEtapaFinal = @EhEtapaFinal
+                                SET Nome = @Nome, Descricao = @Descricao, Ordem = @Ordem, EhEtapaFinal = @EhEtapaFinal, EhEtapaTeste = @EhEtapaTeste
                                 WHERE Id = @Id";
             cmd.Parameters.AddWithValue("@Id", etapa.Id);
             cmd.Parameters.AddWithValue("@Nome", etapa.Nome);
             cmd.Parameters.AddWithValue("@Descricao", (object?)etapa.Descricao ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Ordem", etapa.Ordem);
             cmd.Parameters.AddWithValue("@EhEtapaFinal", etapa.EhEtapaFinal);
+            cmd.Parameters.AddWithValue("@EhEtapaTeste", etapa.EhEtapaTeste);
 
             int linhas = await cmd.ExecuteNonQueryAsync();
             return linhas > 0;
@@ -48,6 +50,15 @@ namespace API.DB.DAOs
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
             cmd.CommandText = "UPDATE Etapa SET EhEtapaFinal = 0 WHERE EhEtapaFinal = 1 AND (@ExcluirId IS NULL OR Id <> @ExcluirId)";
+            cmd.Parameters.AddWithValue("@ExcluirId", (object?)excluirId ?? DBNull.Value);
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        public async Task DesmarcarEtapaTesteAsync(DBContext dbContext, int? excluirId)
+        {
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = "UPDATE Etapa SET EhEtapaTeste = 0 WHERE EhEtapaTeste = 1 AND (@ExcluirId IS NULL OR Id <> @ExcluirId)";
             cmd.Parameters.AddWithValue("@ExcluirId", (object?)excluirId ?? DBNull.Value);
             await cmd.ExecuteNonQueryAsync();
         }
@@ -95,7 +106,7 @@ namespace API.DB.DAOs
 
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = "SELECT Id, Nome, Descricao, Ativo, Ordem, EhEtapaFinal FROM Etapa ORDER BY EhEtapaFinal, Ordem, Id";
+            cmd.CommandText = "SELECT Id, Nome, Descricao, Ativo, Ordem, EhEtapaFinal, EhEtapaTeste FROM Etapa ORDER BY EhEtapaFinal, Ordem, Id";
 
             await using var dr = await cmd.ExecuteReaderAsync();
             while (await dr.ReadAsync())
@@ -107,7 +118,8 @@ namespace API.DB.DAOs
                     Descricao = dr["Descricao"]?.ToString(),
                     Ativo = Convert.ToBoolean(dr["Ativo"]),
                     Ordem = Convert.ToInt32(dr["Ordem"]),
-                    EhEtapaFinal = Convert.ToBoolean(dr["EhEtapaFinal"])
+                    EhEtapaFinal = Convert.ToBoolean(dr["EhEtapaFinal"]),
+                    EhEtapaTeste = Convert.ToBoolean(dr["EhEtapaTeste"])
                 };
                 etapaes.Add(etapa);
             }
@@ -121,7 +133,7 @@ namespace API.DB.DAOs
 
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = "SELECT Id, Nome, Descricao, Ativo, Ordem, EhEtapaFinal FROM Etapa WHERE Id = @Id";
+            cmd.CommandText = "SELECT Id, Nome, Descricao, Ativo, Ordem, EhEtapaFinal, EhEtapaTeste FROM Etapa WHERE Id = @Id";
             cmd.Parameters.AddWithValue("@Id", id);
 
             await using var dr = await cmd.ExecuteReaderAsync();
@@ -134,7 +146,8 @@ namespace API.DB.DAOs
                     Descricao = dr["Descricao"]?.ToString(),
                     Ativo = Convert.ToBoolean(dr["Ativo"]),
                     Ordem = Convert.ToInt32(dr["Ordem"]),
-                    EhEtapaFinal = Convert.ToBoolean(dr["EhEtapaFinal"])
+                    EhEtapaFinal = Convert.ToBoolean(dr["EhEtapaFinal"]),
+                    EhEtapaTeste = Convert.ToBoolean(dr["EhEtapaTeste"])
                 };
             }
 

@@ -50,8 +50,22 @@ namespace API.DTOs.Dashboard
         public int ConcluidasMes { get; set; }
         public int SemResponsavel { get; set; }
         public int TarefasBacklog { get; set; }
+        public int TarefasExecucaoEmAtraso { get; set; }
+        public int TarefasTesteEmAtraso { get; set; }
+        public int TarefasOciosas { get; set; }
+        public List<TarefaAlertaDTO> TarefasExecucaoEmAtrasoLista { get; set; } = new();
+        public List<TarefaAlertaDTO> TarefasTesteEmAtrasoLista { get; set; } = new();
+        public List<TarefaAlertaDTO> TarefasOciosasList { get; set; } = new();
         public List<TarefaPorEtapaDTO> PorEtapa { get; set; } = new();
         public List<TarefaPorPrioridadeDTO> PorPrioridade { get; set; } = new();
+    }
+
+    public class TarefaAlertaDTO
+    {
+        public int Id { get; set; }
+        public string Titulo { get; set; } = "";
+        public string? ColaboradorNome { get; set; }
+        public string? EtapaNome { get; set; }
     }
 
     public class TarefaPorEtapaDTO

@@ -27,7 +27,7 @@ function BadgeVersao({ versao, atual }) {
 export default function ModalNovidadesVersao({ aberto, aoFechar, versaoAtual }) {
   return (
     <Dialog open={aberto} onOpenChange={(v) => !v && aoFechar()}>
-      <DialogContent className="max-w-lg max-h-[80vh] flex flex-col p-0 gap-0">
+      <DialogContent aria-describedby={undefined} className="max-w-lg max-h-[80vh] flex flex-col p-0 gap-0">
         <DialogHeader className="px-6 pt-6 pb-4 border-b border-gray-100 shrink-0">
           <div className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-brand-blue" />

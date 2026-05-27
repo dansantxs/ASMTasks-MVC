@@ -11,7 +11,7 @@ import { Input } from '../../../../components/ui/form/input';
 import { Badge } from '../../../../components/ui/base/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../../components/ui/layout/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../../components/ui/layout/table';
-import { Search, Edit, Trash2, Eye, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { Search, Edit, Trash2, Eye, RefreshCw, CheckCircle2, FlaskConical } from 'lucide-react';
 
 export default function ListaEtapas({
   etapas,
@@ -34,7 +34,7 @@ export default function ListaEtapas({
   const etapasInativas = filteredEtapas.filter((etapa) => !etapa.active);
 
   const EtapaCard = ({ etapa }) => (
-    <Card key={etapa.id} className={`hover:shadow-md transition-shadow border-l-4 ${etapa.isFinalStage ? 'border-l-green-500' : 'border-l-brand-blue'}`}>
+    <Card key={etapa.id} className={`hover:shadow-md transition-shadow border-l-4 ${etapa.isFinalStage ? 'border-l-green-500' : etapa.isTestStage ? 'border-l-blue-500' : 'border-l-brand-blue'}`}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 min-w-0">
@@ -43,6 +43,12 @@ export default function ListaEtapas({
               <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700 flex-shrink-0">
                 <CheckCircle2 className="h-3 w-3" />
                 Final
+              </span>
+            )}
+            {etapa.isTestStage && (
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700 flex-shrink-0">
+                <FlaskConical className="h-3 w-3" />
+                Teste
               </span>
             )}
           </div>
@@ -108,6 +114,12 @@ export default function ListaEtapas({
             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">
               <CheckCircle2 className="h-3 w-3" />
               Final
+            </span>
+          )}
+          {etapa.isTestStage && (
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">
+              <FlaskConical className="h-3 w-3" />
+              Teste
             </span>
           )}
         </div>

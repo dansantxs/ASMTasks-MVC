@@ -16,7 +16,7 @@ import { configuracoesPadrao, useConfiguracoesSistema } from '../../../services/
 import { obterRodapeRelatorio, obterLogotipo } from '../../../services/configuracoes/reportBranding';
 import TourGuia from '../../../components/TourGuia';
 import { getHistoricoTarefas, getHistoricoProjetosRelatorio } from './api/historicoTarefas';
-import { getColaboradoresKanban, getProjetosKanban, getClientesKanban } from '../../projetos/kanban/api/kanban';
+import { getColaboradoresKanban, getProjetosKanban, getClientesKanban, getEtapasKanban } from '../../projetos/kanban/api/kanban';
 
 const columns = [
   { id: 'dataHoraAcao', label: 'Data/Hora' },
@@ -72,6 +72,8 @@ export default function HistoricoTarefasReportPage() {
   const [clienteFilter, setClienteFilter] = useState('todos');
   const [dataInicioFilter, setDataInicioFilter] = useState('');
   const [dataFimFilter, setDataFimFilter] = useState('');
+  const [etapaFilter, setEtapaFilter] = useState('todos');
+  const [ultimaOcorrencia, setUltimaOcorrencia] = useState(false);
   const [sortConfig, setSortConfig] = useState({ column: 'dataHoraAcao', direction: 'desc' });
   const [selectedColumns, setSelectedColumns] = useState(columns.map((c) => c.id));
   const { data: systemSettings = configuracoesPadrao } = useConfiguracoesSistema();
@@ -82,13 +84,15 @@ export default function HistoricoTarefasReportPage() {
       colaboradorId: colaboradorFilter,
       projetoId: projetoFilter,
       clienteId: clienteFilter,
+      etapaId: etapaFilter,
+      ultimaOcorrencia,
       dataInicio: toIsoStartOfDay(dataInicioFilter),
       dataFim: toIsoEndOfDay(dataFimFilter),
     }),
-    [tipoFilter, colaboradorFilter, projetoFilter, clienteFilter, dataInicioFilter, dataFimFilter]
+    [tipoFilter, colaboradorFilter, projetoFilter, clienteFilter, etapaFilter, ultimaOcorrencia, dataInicioFilter, dataFimFilter]
   );
 
-  const { data: historicoTarefasApi = [], isLoading: isLoadingTarefas } = useQuery({
+  const { data: historicoTarefasApi = { registros: [], totalTarefas: 0 }, isLoading: isLoadingTarefas } = useQuery({
     queryKey: ['relatorio-historico-tarefas', queryParams],
     queryFn: () => getHistoricoTarefas(queryParams),
   });
@@ -115,12 +119,19 @@ export default function HistoricoTarefasReportPage() {
     queryFn: getClientesKanban,
   });
 
+  const { data: etapasRaw = [] } = useQuery({
+    queryKey: ['relatorio-tarefas-etapas'],
+    queryFn: getEtapasKanban,
+  });
+
   const colaboradores = useMemo(() => colaboradoresRaw.filter((c) => c.ativo !== false), [colaboradoresRaw]);
   const projetos = useMemo(
     () => projetosRaw.filter((p) => p.ativo !== false).map((p) => ({ ...p, nome: p.titulo })),
     [projetosRaw]
   );
   const clientes = useMemo(() => clientesRaw.filter((c) => c.ativo !== false), [clientesRaw]);
+  const etapas = useMemo(() => etapasRaw.filter((e) => e.ativo !== false), [etapasRaw]);
+  const totalTarefas = historicoTarefasApi.totalTarefas ?? 0;
 
   const exibicaoNomeCliente = systemSettings?.exibicaoNomeCliente ?? 'razaoSocial';
 
@@ -130,7 +141,7 @@ export default function HistoricoTarefasReportPage() {
   }
 
   const data = useMemo(() => {
-    const tarefas = historicoTarefasApi.map((item) => ({
+    const tarefas = (historicoTarefasApi.registros ?? []).map((item) => ({
       id: `t-${item.id}`,
       rawDataHoraAcao: item.dataHoraAcao ? new Date(item.dataHoraAcao) : null,
       dataHoraAcao: formatDateTime(item.dataHoraAcao),
@@ -145,7 +156,7 @@ export default function HistoricoTarefasReportPage() {
       observacao: item.observacao ?? ' ',
     }));
 
-    const projetos = historicoProjetosApi.map((item) => ({
+    const projetos = etapaFilter !== 'todos' ? [] : historicoProjetosApi.map((item) => ({
       id: `p-${item.id}`,
       rawDataHoraAcao: item.dataHoraAcao ? new Date(item.dataHoraAcao) : null,
       dataHoraAcao: formatDateTime(item.dataHoraAcao),
@@ -161,7 +172,7 @@ export default function HistoricoTarefasReportPage() {
     }));
 
     return [...tarefas, ...projetos];
-  }, [historicoTarefasApi, historicoProjetosApi, exibicaoNomeCliente]);
+  }, [historicoTarefasApi, historicoProjetosApi, exibicaoNomeCliente, etapaFilter]);
 
   const filteredData = useMemo(
     () =>
@@ -232,12 +243,19 @@ export default function HistoricoTarefasReportPage() {
         ? null
         : clientes.find((c) => c.id === Number(clienteFilter))?.nome ?? `#${clienteFilter}`;
 
+    const etapaNome =
+      etapaFilter === 'todos'
+        ? null
+        : etapas.find((e) => e.id === Number(etapaFilter))?.nome ?? `#${etapaFilter}`;
+
     const filters = [
       search ? `Busca: ${search}` : null,
       tipoFilter !== 'todos' ? `Ação: ${getTipoLabel(tipoFilter)}` : null,
       colaboradorNome ? `Colaborador: ${colaboradorNome}` : null,
       projetoNome ? `Projeto: ${projetoNome}` : null,
       clienteNome ? `Cliente: ${clienteNome}` : null,
+      etapaNome ? `Etapa: ${etapaNome}` : null,
+      ultimaOcorrencia ? 'Última ocorrência por tarefa/etapa' : null,
       dataInicioFilter ? `Data início: ${new Date(`${dataInicioFilter}T00:00:00`).toLocaleDateString('pt-BR')}` : null,
       dataFimFilter ? `Data fim: ${new Date(`${dataFimFilter}T00:00:00`).toLocaleDateString('pt-BR')}` : null,
     ].filter(Boolean);
@@ -260,9 +278,10 @@ export default function HistoricoTarefasReportPage() {
     const footerLines = obterRodapeRelatorio(systemSettings);
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
+    const countLine = `Total: ${sortedData.length} registro(s) | ${totalTarefas} tarefa(s) distinta(s)`;
     const filtersLines = doc.splitTextToSize(`Filtros: ${filtersSummary}`, pageWidth - 70);
     const columnsLines = doc.splitTextToSize(columnsSummary, pageWidth - 70);
-    const headerEndY = 30 + filtersLines.length * 6 + columnsLines.length * 6;
+    const headerEndY = 30 + 6 + filtersLines.length * 6 + columnsLines.length * 6;
 
     autoTable(doc, {
       head: [activeColumns.map((c) => c.label)],
@@ -276,8 +295,9 @@ export default function HistoricoTarefasReportPage() {
         if (logoDataUrl) doc.addImage(logoDataUrl, 'PNG', pageWidth - 50, 10, 36, 28);
         doc.setFontSize(9);
         doc.text(`Data de emissão: ${emissionDate}`, 14, 24);
-        doc.text(filtersLines, 14, 30);
-        doc.text(columnsLines, 14, 30 + filtersLines.length * 6);
+        doc.text(countLine, 14, 30);
+        doc.text(filtersLines, 14, 36);
+        doc.text(columnsLines, 14, 36 + filtersLines.length * 6);
         doc.setDrawColor(200);
         doc.line(14, pageHeight - 18, pageWidth - 14, pageHeight - 18);
         doc.setFontSize(8);
@@ -302,6 +322,7 @@ export default function HistoricoTarefasReportPage() {
     const headerRows = [
       [reportTitle],
       [`Data de emissão: ${emissionDate}`],
+      [`Total: ${sortedData.length} registro(s) | ${totalTarefas} tarefa(s) distinta(s)`],
       [`Filtros: ${filtersSummary}`],
       [columnsSummary],
       [],
@@ -319,6 +340,7 @@ export default function HistoricoTarefasReportPage() {
         { s: { r: 1, c: 0 }, e: { r: 1, c: lastColumnIndex } },
         { s: { r: 2, c: 0 }, e: { r: 2, c: lastColumnIndex } },
         { s: { r: 3, c: 0 }, e: { r: 3, c: lastColumnIndex } },
+        { s: { r: 4, c: 0 }, e: { r: 4, c: lastColumnIndex } },
       ];
     }
 
@@ -460,6 +482,32 @@ export default function HistoricoTarefasReportPage() {
                   </Select>
                 </div>
                 <div>
+                  <Label>Etapa</Label>
+                  <Select value={etapaFilter} onValueChange={setEtapaFilter}>
+                    <SelectTrigger><SelectValue placeholder="Etapa" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todas</SelectItem>
+                      {etapas.map((e) => (
+                        <SelectItem key={e.id} value={String(e.id)}>{e.nome}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex flex-col justify-end">
+                  <label className="flex items-center gap-2 cursor-pointer select-none h-10 px-3 rounded-md border border-input bg-background text-sm">
+                    <input
+                      type="checkbox"
+                      checked={ultimaOcorrencia}
+                      onChange={(e) => setUltimaOcorrencia(e.target.checked)}
+                      className="rounded"
+                    />
+                    Última ocorrência
+                  </label>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
                   <Label>Data início</Label>
                   <Input type="date" value={dataInicioFilter} onChange={(e) => setDataInicioFilter(e.target.value)} />
                 </div>
@@ -492,7 +540,14 @@ export default function HistoricoTarefasReportPage() {
 
         <Card id="tour-relatorio-tabela">
           <CardHeader>
-            <CardTitle>{filteredData.length} resultado(s)</CardTitle>
+            <CardTitle className="flex items-center justify-between flex-wrap gap-2">
+              <span>{filteredData.length} registro(s)</span>
+              {totalTarefas > 0 && (
+                <span className="text-sm font-normal text-muted-foreground">
+                  {totalTarefas} tarefa(s) distinta(s) no servidor
+                </span>
+              )}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">

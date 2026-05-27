@@ -15,5 +15,6 @@ namespace API.DTOs.Etapas
         public int Ordem { get; set; } = 0;
 
         public bool EhEtapaFinal { get; set; } = false;
+        public bool EhEtapaTeste { get; set; } = false;
     }
 }

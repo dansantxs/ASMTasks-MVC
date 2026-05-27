@@ -14,6 +14,7 @@ namespace API.Models
         public bool Ativo { get; set; } = true;
         public int Ordem { get; set; } = 0;
         public bool EhEtapaFinal { get; set; } = false;
+        public bool EhEtapaTeste { get; set; } = false;
 
         public async Task<int> CriarAsync(DBContext dbContext)
         {
@@ -28,6 +29,9 @@ namespace API.Models
             if (EhEtapaFinal)
                 await _etapasDAO.DesmarcarEtapaFinalAsync(dbContext, null);
 
+            if (EhEtapaTeste)
+                await _etapasDAO.DesmarcarEtapaTesteAsync(dbContext, null);
+
             return await _etapasDAO.CriarAsync(dbContext, this);
         }
 
@@ -41,6 +45,9 @@ namespace API.Models
 
             if (EhEtapaFinal)
                 await _etapasDAO.DesmarcarEtapaFinalAsync(dbContext, Id);
+
+            if (EhEtapaTeste)
+                await _etapasDAO.DesmarcarEtapaTesteAsync(dbContext, Id);
 
             var atualizado = await _etapasDAO.AtualizarAsync(dbContext, this);
             if (!atualizado)
