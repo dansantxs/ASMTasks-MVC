@@ -70,11 +70,17 @@ export default function KanbanPage() {
     [projetosRaw]
   );
 
-  // Clientes que possuem ao menos um projeto ativo — independente de estarem ativos ou não
+  // Clientes que possuem ao menos um projeto ativo — nome exibido conforme parametrização
   const clientesFiltrados = useMemo(() => {
     const clienteIdsComProjeto = new Set(projetosAtivos.map((p) => p.clienteId));
-    return clientesRaw.filter((c) => clienteIdsComProjeto.has(c.id));
-  }, [clientesRaw, projetosAtivos]);
+    return clientesRaw
+      .filter((c) => clienteIdsComProjeto.has(c.id))
+      .map((c) => ({
+        ...c,
+        nome: exibicaoNomeCliente === 'nomeFantasia' && c.nomeFantasia ? c.nomeFantasia : c.nome,
+      }))
+      .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }));
+  }, [clientesRaw, projetosAtivos, exibicaoNomeCliente]);
 
   const colaboradoresAtivos = useMemo(() => colaboradores.filter((c) => c.ativo !== false), [colaboradores]);
 

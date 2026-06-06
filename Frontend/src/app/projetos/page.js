@@ -548,6 +548,7 @@ export default function ProjetosPage() {
           clientes={clientes}
           aoConfirmar={(id, clienteIds) => duplicar.mutate({ id, clienteIds })}
           salvando={duplicar.isPending}
+          exibicaoNomeCliente={config.exibicaoNomeCliente ?? 'razaoSocial'}
         />
 
         <Toaster position="top-right" />

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Search } from 'lucide-react';
 import {
@@ -110,11 +110,17 @@ const mascararRG = (value) =>
 const mascararInscricaoEstadual = (value) =>
   value.replace(/\D/g, '').substring(0, 20);
 
+function resolverNomeMatriz(m, exibicao) {
+  if (exibicao === 'nomeFantasia' && m.nomeFantasia) return m.nomeFantasia;
+  return m.nome;
+}
+
 export default function FormularioCliente({
   open,
   onOpenChange,
   cliente,
-  aoSalvar
+  aoSalvar,
+  exibicaoNomeCliente = 'razaoSocial',
 }) {
   const [formData, setFormData] = useState({
     nome: '',
@@ -142,12 +148,21 @@ export default function FormularioCliente({
   const [buscandoCep, setBuscandoCep] = useState(false);
   const [modalMatrizAberto, setModalMatrizAberto] = useState(false);
 
-  const { data: matrizes = [] } = useQuery({
+  const { data: matrizesRaw = [] } = useQuery({
     queryKey: ['clientes-matrizes'],
     queryFn: getClientesMatrizes,
     enabled: open,
     staleTime: 2 * 60 * 1000,
   });
+
+  const matrizes = useMemo(
+    () => [...matrizesRaw].sort((a, b) =>
+      resolverNomeMatriz(a, exibicaoNomeCliente).localeCompare(
+        resolverNomeMatriz(b, exibicaoNomeCliente), 'pt-BR', { sensitivity: 'base' }
+      )
+    ),
+    [matrizesRaw, exibicaoNomeCliente]
+  );
 
   const documentoRef = useRef(null);
   const rgRef = useRef(null);
@@ -505,7 +520,7 @@ export default function FormularioCliente({
                       setFormData(prev => ({
                         ...prev,
                         matrizId: Number(value),
-                        nomeMatrizSelecionada: m ? (m.nomeFantasia || m.nome) : prev.nomeMatrizSelecionada,
+                        nomeMatrizSelecionada: m ? resolverNomeMatriz(m, exibicaoNomeCliente) : prev.nomeMatrizSelecionada,
                       }));
                     }}
                   >
@@ -516,7 +531,7 @@ export default function FormularioCliente({
                       <SelectItem value="__none__">Nenhuma</SelectItem>
                       {matrizes.map((m) => (
                         <SelectItem key={m.id} value={String(m.id)}>
-                          {m.nomeFantasia || m.nome}
+                          {resolverNomeMatriz(m, exibicaoNomeCliente)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -541,10 +556,11 @@ export default function FormularioCliente({
             onOpenChange={setModalMatrizAberto}
             clienteIdAtual={cliente?.id ? Number(cliente.id) : null}
             matrizes={matrizes}
+            exibicaoNomeCliente={exibicaoNomeCliente}
             onSelect={(m) => setFormData(prev => ({
               ...prev,
               matrizId: m.id,
-              nomeMatrizSelecionada: m.nomeFantasia || m.nome
+              nomeMatrizSelecionada: resolverNomeMatriz(m, exibicaoNomeCliente)
             }))}
           />
 

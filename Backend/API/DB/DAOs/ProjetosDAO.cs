@@ -713,7 +713,15 @@ namespace API.DB.DAOs
                     pt.TempoTesteUnidade,
                     CASE
                         WHEN pt.DataHoraInicio IS NOT NULL THEN 'Em andamento'
-                        WHEN EXISTS (SELECT 1 FROM ProjetoTarefaHistorico h WHERE h.TarefaId = pt.Id AND h.Tipo = 'P') THEN 'Pausada'
+                        WHEN EXISTS (
+                            SELECT 1 FROM ProjetoTarefaHistorico h
+                            WHERE h.TarefaId = pt.Id AND h.Tipo = 'P'
+                            AND h.DataHoraAcao > COALESCE(
+                                (SELECT MAX(h2.DataHoraAcao) FROM ProjetoTarefaHistorico h2
+                                 WHERE h2.TarefaId = pt.Id AND h2.Tipo = 'E'),
+                                '1900-01-01'
+                            )
+                        ) THEN 'Pausada'
                         ELSE 'Ociosa'
                     END AS StatusAtual
                 FROM ProjetoTarefa pt

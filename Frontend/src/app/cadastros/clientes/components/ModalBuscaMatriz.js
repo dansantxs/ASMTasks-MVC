@@ -22,7 +22,12 @@ function formatarDocumento(documento, tipoPessoa) {
   return documento;
 }
 
-export default function ModalBuscaMatriz({ open, onOpenChange, onSelect, matrizes = [], clienteIdAtual = null }) {
+function resolverNome(m, exibicao) {
+  if (exibicao === 'nomeFantasia' && m.nomeFantasia) return m.nomeFantasia;
+  return m.nome;
+}
+
+export default function ModalBuscaMatriz({ open, onOpenChange, onSelect, matrizes = [], clienteIdAtual = null, exibicaoNomeCliente = 'razaoSocial' }) {
   const [termo, setTermo] = useState('');
 
   const candidatas = useMemo(
@@ -34,12 +39,13 @@ export default function ModalBuscaMatriz({ open, onOpenChange, onSelect, matrize
     const t = termo.trim().toLowerCase();
     if (!t) return candidatas;
     return candidatas.filter((c) => {
-      const nome = (c.nomeFantasia || c.nome || '').toLowerCase();
+      const nomePrincipal = resolverNome(c, exibicaoNomeCliente).toLowerCase();
       const razao = (c.nome || '').toLowerCase();
+      const nomeFantasia = (c.nomeFantasia || '').toLowerCase();
       const doc = (c.documento || '').replace(/\D/g, '');
-      return nome.includes(t) || razao.includes(t) || doc.includes(t);
+      return nomePrincipal.includes(t) || razao.includes(t) || nomeFantasia.includes(t) || doc.includes(t);
     });
-  }, [candidatas, termo]);
+  }, [candidatas, termo, exibicaoNomeCliente]);
 
   const handleSelecionar = (matriz) => {
     onSelect(matriz);
@@ -86,13 +92,16 @@ export default function ModalBuscaMatriz({ open, onOpenChange, onSelect, matrize
               onClick={() => handleSelecionar(m)}
               className="w-full text-left px-4 py-3 hover:bg-muted/50 transition-colors focus:outline-none focus:bg-muted/50"
             >
-              <p className="font-medium text-sm">{m.nomeFantasia || m.nome}</p>
+              <p className="font-medium text-sm">{resolverNome(m, exibicaoNomeCliente)}</p>
               <p className="text-xs text-muted-foreground mt-0.5">
                 {formatarDocumento(m.documento, m.tipoPessoa)}
                 {m.cidade && ` · ${m.cidade}${m.uf ? `/${m.uf}` : ''}`}
               </p>
-              {m.nomeFantasia && (
+              {exibicaoNomeCliente === 'nomeFantasia' && m.nomeFantasia && m.nomeFantasia !== m.nome && (
                 <p className="text-xs text-muted-foreground">Razão Social: {m.nome}</p>
+              )}
+              {exibicaoNomeCliente !== 'nomeFantasia' && m.nomeFantasia && (
+                <p className="text-xs text-muted-foreground">Nome Fantasia: {m.nomeFantasia}</p>
               )}
             </button>
           ))}

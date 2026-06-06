@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   CalendarCheck,
@@ -43,12 +43,22 @@ function CardKPI({ icone: Icone, titulo, valor, corIcone, corFundo, destaque, su
 
 function CardKPIComLista({ icone: Icone, titulo, valor, corIcone, corFundo, destaque, lista = [] }) {
   const [aberto, setAberto] = useState(false);
+  const timerRef = useRef(null);
+
+  const aoEntrar = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (valor > 0) setAberto(true);
+  };
+
+  const aoSair = () => {
+    timerRef.current = setTimeout(() => setAberto(false), 150);
+  };
 
   return (
     <div
       className={`relative rounded-xl border bg-white p-5 flex items-center gap-4 shadow-sm ${destaque ? 'ring-2 ring-red-400' : ''}`}
-      onMouseEnter={() => { if (valor > 0) setAberto(true); }}
-      onMouseLeave={() => setAberto(false)}
+      onMouseEnter={aoEntrar}
+      onMouseLeave={aoSair}
     >
       <div className={`p-3 rounded-lg ${corFundo} shrink-0`}>
         <Icone className={`h-6 w-6 ${corIcone}`} />
@@ -58,7 +68,11 @@ function CardKPIComLista({ icone: Icone, titulo, valor, corIcone, corFundo, dest
         <p className="text-2xl font-bold text-gray-800">{valor}</p>
       </div>
       {aberto && lista.length > 0 && (
-        <div className="absolute left-0 top-full mt-2 z-50 w-80 bg-white border rounded-xl shadow-xl p-3 max-h-64 overflow-y-auto">
+        <div
+          className="absolute left-0 top-full mt-2 z-50 w-80 bg-white border rounded-xl shadow-xl p-3 max-h-64 overflow-y-auto"
+          onMouseEnter={aoEntrar}
+          onMouseLeave={aoSair}
+        >
           {lista.map((t) => (
             <div key={t.id} className="py-2 border-b last:border-0">
               <p className="text-xs font-semibold text-gray-800 truncate" title={t.titulo}>{t.titulo}</p>

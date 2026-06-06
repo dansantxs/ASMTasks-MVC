@@ -347,6 +347,7 @@ export default function ClientesPage() {
           onOpenChange={setIsFormOpen}
           cliente={clienteSelecionado}
           aoSalvar={handleSalvarCliente}
+          exibicaoNomeCliente={systemSettings.exibicaoNomeCliente ?? 'razaoSocial'}
         />
 
         <DialogoConfirmarExclusao

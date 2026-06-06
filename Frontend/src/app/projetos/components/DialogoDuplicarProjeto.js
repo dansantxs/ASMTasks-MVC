@@ -13,7 +13,12 @@ function normalizarTexto(value) {
     .toLowerCase();
 }
 
-export default function DialogoDuplicarProjeto({ open, onOpenChange, projeto, clientes, aoConfirmar, salvando }) {
+function resolverNomeCliente(c, exibicao) {
+  if (exibicao === 'nomeFantasia' && c.nomeFantasia) return c.nomeFantasia;
+  return c.nome;
+}
+
+export default function DialogoDuplicarProjeto({ open, onOpenChange, projeto, clientes, aoConfirmar, salvando, exibicaoNomeCliente = 'razaoSocial' }) {
   const [busca, setBusca] = useState('');
   const [selecionados, setSelecionados] = useState(new Set());
 
@@ -25,15 +30,23 @@ export default function DialogoDuplicarProjeto({ open, onOpenChange, projeto, cl
   }, [open]);
 
   const clientesAtivos = useMemo(
-    () => clientes.filter((c) => c.ativo !== false),
-    [clientes]
+    () => [...clientes.filter((c) => c.ativo !== false)].sort((a, b) =>
+      resolverNomeCliente(a, exibicaoNomeCliente).localeCompare(
+        resolverNomeCliente(b, exibicaoNomeCliente), 'pt-BR', { sensitivity: 'base' }
+      )
+    ),
+    [clientes, exibicaoNomeCliente]
   );
 
   const clientesFiltrados = useMemo(() => {
     const termo = normalizarTexto(busca.trim());
     if (!termo) return clientesAtivos;
-    return clientesAtivos.filter((c) => normalizarTexto(c.nome).includes(termo));
-  }, [clientesAtivos, busca]);
+    return clientesAtivos.filter((c) =>
+      normalizarTexto(resolverNomeCliente(c, exibicaoNomeCliente)).includes(termo) ||
+      normalizarTexto(c.nome).includes(termo) ||
+      normalizarTexto(c.nomeFantasia ?? '').includes(termo)
+    );
+  }, [clientesAtivos, busca, exibicaoNomeCliente]);
 
   if (!projeto) return null;
 
@@ -141,7 +154,7 @@ export default function DialogoDuplicarProjeto({ open, onOpenChange, projeto, cl
                     >
                       {marcado && <Check className="h-3 w-3 text-white" strokeWidth={3} />}
                     </span>
-                    <span className={marcado ? 'font-medium' : ''}>{cliente.nome}</span>
+                    <span className={marcado ? 'font-medium' : ''}>{resolverNomeCliente(cliente, exibicaoNomeCliente)}</span>
                   </button>
                 );
               })

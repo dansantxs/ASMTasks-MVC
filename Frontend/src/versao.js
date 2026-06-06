@@ -1,4 +1,4 @@
-export const VERSAO_ATUAL = '1.3.0';
+export const VERSAO_ATUAL = '1.3.1';
 
 /**
  * Regra de versionamento (major.minor.patch):
@@ -11,6 +11,20 @@ export const VERSAO_ATUAL = '1.3.0';
  *  2. Adicione uma nova entrada NO INÍCIO do array CHANGELOG.
  */
 export const CHANGELOG = [
+  {
+    versao: '1.3.1',
+    data: '2026-06-06',
+    titulo: 'Correções de Status, Dashboard e Combos de Cliente',
+    mudancas: [
+      'Correção: tarefa pausada que tem sua etapa trocada agora aparece como Ociosa (não mais Pausada)',
+      'Correção: lista de tarefas exibida ao passar o mouse nos indicadores do Dashboard agora permite rolar com a barra de rolagem sem fechar a lista',
+      'Correção: combo de Empresa Matriz no cadastro de clientes agora exibe e ordena conforme a configuração de Razão Social / Nome Fantasia do sistema',
+      'Correção: modal de busca de Matriz no cadastro de clientes agora exibe conforme parametrização',
+      'Correção: lista de clientes no diálogo de duplicação de projeto agora exibe e ordena conforme parametrização',
+      'Correção: filtro de Cliente no Quadro Kanban agora exibe e ordena conforme parametrização',
+      'Sessão ampliada: token de autenticação agora expira em 4 horas (antes 2 horas)',
+    ],
+  },
   {
     versao: '1.3.0',
     data: '2026-05-27',
