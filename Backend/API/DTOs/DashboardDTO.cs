@@ -18,6 +18,13 @@ namespace API.DTOs.Dashboard
         public string ColaboradorNome { get; set; } = "";
     }
 
+    public class DashboardItemListaDTO
+    {
+        public int Id { get; set; }
+        public string Titulo { get; set; } = "";
+        public string? Info { get; set; }
+    }
+
     public class DashboardAtendimentosDTO
     {
         public int Hoje { get; set; }
@@ -26,6 +33,10 @@ namespace API.DTOs.Dashboard
         public int RealizadosMes { get; set; }
         public List<TendenciaMensalDTO> Tendencia { get; set; } = new();
         public List<ProximoAtendimentoDTO> Proximos { get; set; } = new();
+        public List<DashboardItemListaDTO> HojeLista { get; set; } = new();
+        public List<DashboardItemListaDTO> PendentesLista { get; set; } = new();
+        public List<DashboardItemListaDTO> EmAtrasoLista { get; set; } = new();
+        public List<DashboardItemListaDTO> RealizadosMesLista { get; set; } = new();
     }
 
     public class TendenciaMensalDTO
@@ -56,6 +67,9 @@ namespace API.DTOs.Dashboard
         public List<TarefaAlertaDTO> TarefasExecucaoEmAtrasoLista { get; set; } = new();
         public List<TarefaAlertaDTO> TarefasTesteEmAtrasoLista { get; set; } = new();
         public List<TarefaAlertaDTO> TarefasOciosasList { get; set; } = new();
+        public List<DashboardItemListaDTO> EmAndamentoLista { get; set; } = new();
+        public List<DashboardItemListaDTO> ConcluidasMesLista { get; set; } = new();
+        public List<DashboardItemListaDTO> SemResponsavelLista { get; set; } = new();
         public List<TarefaPorEtapaDTO> PorEtapa { get; set; } = new();
         public List<TarefaPorPrioridadeDTO> PorPrioridade { get; set; } = new();
     }
@@ -89,6 +103,9 @@ namespace API.DTOs.Dashboard
         public int Ativos { get; set; }
         public int ConcluidosMes { get; set; }
         public int CadastradosHoje { get; set; }
+        public List<DashboardItemListaDTO> AtivoLista { get; set; } = new();
+        public List<DashboardItemListaDTO> ConcluidosMesLista { get; set; } = new();
+        public List<DashboardItemListaDTO> CadastradosHojeLista { get; set; } = new();
     }
 
     public class DashboardColaboradoresDTO

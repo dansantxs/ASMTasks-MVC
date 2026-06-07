@@ -380,7 +380,7 @@ export default function FormularioProjeto({
       const novasTarefas = prev.tarefas.map((tarefa, i) => (i === index ? { ...tarefa, [field]: value } : tarefa));
       const novoFormData = { ...prev, tarefas: novasTarefas };
       if (index === 0 && field === 'titulo' && sincronizarTitulo) novoFormData.titulo = value;
-      if (index === 0 && field === 'descricao' && sincronizarDescricao) novoFormData.descricao = value;
+      if (index === 0 && field === 'descricao' && sincronizarDescricao && sincronizarTitulo) novoFormData.descricao = value;
       return novoFormData;
     });
   };
@@ -601,6 +601,7 @@ export default function FormularioProjeto({
                     value={formData.titulo}
                     onChange={(e) => {
                       setSincronizarTitulo(false);
+                      setSincronizarDescricao(false);
                       setFormData((prev) => ({ ...prev, titulo: e.target.value }));
                     }}
                     placeholder="Ex.: Implantação do módulo comercial"
@@ -625,7 +626,7 @@ export default function FormularioProjeto({
                     rows={3}
                     className="resize-none"
                   />
-                  {sincronizarDescricao && !isEditMode && (
+                  {sincronizarDescricao && sincronizarTitulo && !isEditMode && (
                     <p className="text-xs text-muted-foreground">Sincronizado com a descrição da tarefa</p>
                   )}
                 </div>

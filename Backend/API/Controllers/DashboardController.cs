@@ -28,8 +28,9 @@ namespace API.Controllers
                 if (!ehAdministrador)
                     colaboradorId = null;
 
+                var config = await new ConfiguracoesSistemaDAO().ObterAsync(dbContext);
                 var dao = new DashboardDAO();
-                var dashboard = await dao.ObterDashboardAsync(dbContext, colaboradorIdLogado, ehAdministrador, colaboradorId);
+                var dashboard = await dao.ObterDashboardAsync(dbContext, colaboradorIdLogado, ehAdministrador, colaboradorId, config.ExibicaoNomeCliente);
 
                 return Ok(dashboard);
             }

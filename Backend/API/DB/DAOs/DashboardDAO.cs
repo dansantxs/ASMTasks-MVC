@@ -9,7 +9,8 @@ namespace API.DB.DAOs
             DBContext dbContext,
             int colaboradorIdLogado,
             bool ehAdministrador,
-            int? filtroColaboradorId)
+            int? filtroColaboradorId,
+            string exibicaoNomeCliente = "razaoSocial")
         {
             await using var con = await dbContext.GetConnectionAsync();
 
@@ -17,15 +18,16 @@ namespace API.DB.DAOs
             int idParaFiltro = (ehAdministrador && filtroColaboradorId.HasValue)
                 ? filtroColaboradorId.Value
                 : colaboradorIdLogado;
+            bool usarNomeFantasia = exibicaoNomeCliente == "nomeFantasia";
 
             var resultado = new DashboardDTO { EhAdministrador = ehAdministrador };
 
-            resultado.Atendimentos = await ObterAtendimentosAsync(con, idParaFiltro, filtrarPorColaborador);
+            resultado.Atendimentos = await ObterAtendimentosAsync(con, idParaFiltro, filtrarPorColaborador, usarNomeFantasia);
             resultado.Tarefas = await ObterTarefasAsync(con, idParaFiltro, filtrarPorColaborador, ehAdministrador && !filtroColaboradorId.HasValue);
 
             if (ehAdministrador)
             {
-                resultado.Projetos = await ObterProjetosAsync(con);
+                resultado.Projetos = await ObterProjetosAsync(con, usarNomeFantasia);
                 resultado.Colaboradores = await ObterColaboradoresAsync(con);
                 resultado.ProjetosSemMovimentacao = await ObterProjetosSemMovimentacaoAsync(con);
                 resultado.ColaboradoresDisponiveis = await ObterColaboradoresDisponiveisAsync(con);
@@ -45,7 +47,7 @@ namespace API.DB.DAOs
         }
 
         private async Task<DashboardAtendimentosDTO> ObterAtendimentosAsync(
-            SqlConnection con, int colaboradorId, bool filtrarPorColaborador)
+            SqlConnection con, int colaboradorId, bool filtrarPorColaborador, bool usarNomeFantasia)
         {
             var dto = new DashboardAtendimentosDTO();
             await using var cmd = con.CreateCommand();
@@ -181,6 +183,138 @@ namespace API.DB.DAOs
                         DataHoraInicio = reader.GetDateTime(3)
                     });
                 }
+            }
+
+            // Lista: Agendados Hoje
+            cmd.Parameters.Clear();
+            if (filtrarPorColaborador)
+            {
+                cmd.CommandText = @"
+                    SELECT a.Id, a.Titulo, c.Nome, c.NomeFantasia
+                    FROM Atendimento a
+                    INNER JOIN AtendimentoColaborador ac ON ac.AtendimentoId = a.Id
+                    INNER JOIN Cliente c ON c.Id = a.ClienteId
+                    WHERE a.Status = 'A'
+                      AND CAST(a.DataHoraInicio AS DATE) = CAST(GETDATE() AS DATE)
+                      AND ac.ColaboradorId = @ColaboradorId
+                    ORDER BY a.DataHoraInicio
+                ";
+                cmd.Parameters.AddWithValue("@ColaboradorId", colaboradorId);
+            }
+            else
+            {
+                cmd.CommandText = @"
+                    SELECT a.Id, a.Titulo, c.Nome, c.NomeFantasia
+                    FROM Atendimento a
+                    INNER JOIN Cliente c ON c.Id = a.ClienteId
+                    WHERE a.Status = 'A'
+                      AND CAST(a.DataHoraInicio AS DATE) = CAST(GETDATE() AS DATE)
+                    ORDER BY a.DataHoraInicio
+                ";
+            }
+            await using (var rHoje = await cmd.ExecuteReaderAsync())
+            {
+                while (await rHoje.ReadAsync())
+                    dto.HojeLista.Add(new DashboardItemListaDTO { Id = rHoje.GetInt32(0), Titulo = rHoje.GetString(1), Info = usarNomeFantasia && !rHoje.IsDBNull(3) ? rHoje.GetString(3) : rHoje.GetString(2) });
+            }
+
+            // Lista: Pendentes (Status='A')
+            cmd.Parameters.Clear();
+            if (filtrarPorColaborador)
+            {
+                cmd.CommandText = @"
+                    SELECT a.Id, a.Titulo, c.Nome, c.NomeFantasia
+                    FROM Atendimento a
+                    INNER JOIN AtendimentoColaborador ac ON ac.AtendimentoId = a.Id
+                    INNER JOIN Cliente c ON c.Id = a.ClienteId
+                    WHERE a.Status = 'A'
+                      AND ac.ColaboradorId = @ColaboradorId
+                    ORDER BY a.DataHoraInicio
+                ";
+                cmd.Parameters.AddWithValue("@ColaboradorId", colaboradorId);
+            }
+            else
+            {
+                cmd.CommandText = @"
+                    SELECT a.Id, a.Titulo, c.Nome, c.NomeFantasia
+                    FROM Atendimento a
+                    INNER JOIN Cliente c ON c.Id = a.ClienteId
+                    WHERE a.Status = 'A'
+                    ORDER BY a.DataHoraInicio
+                ";
+            }
+            await using (var rPend = await cmd.ExecuteReaderAsync())
+            {
+                while (await rPend.ReadAsync())
+                    dto.PendentesLista.Add(new DashboardItemListaDTO { Id = rPend.GetInt32(0), Titulo = rPend.GetString(1), Info = usarNomeFantasia && !rPend.IsDBNull(3) ? rPend.GetString(3) : rPend.GetString(2) });
+            }
+
+            // Lista: Em Atraso
+            cmd.Parameters.Clear();
+            if (filtrarPorColaborador)
+            {
+                cmd.CommandText = @"
+                    SELECT a.Id, a.Titulo, c.Nome, c.NomeFantasia
+                    FROM Atendimento a
+                    INNER JOIN AtendimentoColaborador ac ON ac.AtendimentoId = a.Id
+                    INNER JOIN Cliente c ON c.Id = a.ClienteId
+                    WHERE a.Status = 'A'
+                      AND a.DataHoraFim IS NOT NULL AND a.DataHoraFim < GETDATE()
+                      AND ac.ColaboradorId = @ColaboradorId
+                    ORDER BY a.DataHoraFim
+                ";
+                cmd.Parameters.AddWithValue("@ColaboradorId", colaboradorId);
+            }
+            else
+            {
+                cmd.CommandText = @"
+                    SELECT a.Id, a.Titulo, c.Nome, c.NomeFantasia
+                    FROM Atendimento a
+                    INNER JOIN Cliente c ON c.Id = a.ClienteId
+                    WHERE a.Status = 'A'
+                      AND a.DataHoraFim IS NOT NULL AND a.DataHoraFim < GETDATE()
+                    ORDER BY a.DataHoraFim
+                ";
+            }
+            await using (var rAtr = await cmd.ExecuteReaderAsync())
+            {
+                while (await rAtr.ReadAsync())
+                    dto.EmAtrasoLista.Add(new DashboardItemListaDTO { Id = rAtr.GetInt32(0), Titulo = rAtr.GetString(1), Info = usarNomeFantasia && !rAtr.IsDBNull(3) ? rAtr.GetString(3) : rAtr.GetString(2) });
+            }
+
+            // Lista: Realizados Este Mês (TOP 30)
+            cmd.Parameters.Clear();
+            if (filtrarPorColaborador)
+            {
+                cmd.CommandText = @"
+                    SELECT TOP 30 a.Id, a.Titulo, c.Nome, c.NomeFantasia
+                    FROM Atendimento a
+                    INNER JOIN AtendimentoColaborador ac ON ac.AtendimentoId = a.Id
+                    INNER JOIN Cliente c ON c.Id = a.ClienteId
+                    WHERE a.Status = 'R'
+                      AND MONTH(a.DataHoraConclusao) = MONTH(GETDATE())
+                      AND YEAR(a.DataHoraConclusao) = YEAR(GETDATE())
+                      AND ac.ColaboradorId = @ColaboradorId
+                    ORDER BY a.DataHoraConclusao DESC
+                ";
+                cmd.Parameters.AddWithValue("@ColaboradorId", colaboradorId);
+            }
+            else
+            {
+                cmd.CommandText = @"
+                    SELECT TOP 30 a.Id, a.Titulo, c.Nome, c.NomeFantasia
+                    FROM Atendimento a
+                    INNER JOIN Cliente c ON c.Id = a.ClienteId
+                    WHERE a.Status = 'R'
+                      AND MONTH(a.DataHoraConclusao) = MONTH(GETDATE())
+                      AND YEAR(a.DataHoraConclusao) = YEAR(GETDATE())
+                    ORDER BY a.DataHoraConclusao DESC
+                ";
+            }
+            await using (var rReal = await cmd.ExecuteReaderAsync())
+            {
+                while (await rReal.ReadAsync())
+                    dto.RealizadosMesLista.Add(new DashboardItemListaDTO { Id = rReal.GetInt32(0), Titulo = rReal.GetString(1), Info = usarNomeFantasia && !rReal.IsDBNull(3) ? rReal.GetString(3) : rReal.GetString(2) });
             }
 
             return dto;
@@ -517,12 +651,118 @@ namespace API.DB.DAOs
             }
             dto.TarefasOciosas = dto.TarefasOciosasList.Count;
 
+            // Lista: Em Andamento (TOP 30)
+            cmd.Parameters.Clear();
+            if (filtrarPorColaborador)
+            {
+                cmd.CommandText = @"
+                    SELECT TOP 30 t.Id, t.Titulo, col.Nome, e.Nome
+                    FROM ProjetoTarefa t
+                    INNER JOIN Projeto pr ON pr.Id = t.ProjetoId AND pr.Ativo = 1 AND pr.Concluido = 0
+                    LEFT JOIN Colaborador col ON col.Id = t.ColaboradorResponsavelId
+                    LEFT JOIN Etapa e ON e.Id = t.EtapaId
+                    WHERE t.ColaboradorResponsavelId = @ColaboradorId
+                    ORDER BY t.Titulo
+                ";
+                cmd.Parameters.AddWithValue("@ColaboradorId", colaboradorId);
+            }
+            else
+            {
+                cmd.CommandText = @"
+                    SELECT TOP 30 t.Id, t.Titulo, col.Nome, e.Nome
+                    FROM ProjetoTarefa t
+                    INNER JOIN Projeto pr ON pr.Id = t.ProjetoId AND pr.Ativo = 1 AND pr.Concluido = 0
+                    LEFT JOIN Colaborador col ON col.Id = t.ColaboradorResponsavelId
+                    LEFT JOIN Etapa e ON e.Id = t.EtapaId
+                    ORDER BY t.Titulo
+                ";
+            }
+            await using (var rEm = await cmd.ExecuteReaderAsync())
+            {
+                while (await rEm.ReadAsync())
+                {
+                    var col = rEm.IsDBNull(2) ? null : rEm.GetString(2);
+                    var eta = rEm.IsDBNull(3) ? null : rEm.GetString(3);
+                    var parts = new[] { col, eta }.Where(s => s != null);
+                    dto.EmAndamentoLista.Add(new DashboardItemListaDTO { Id = rEm.GetInt32(0), Titulo = rEm.GetString(1), Info = string.Join(" · ", parts) is string i && i.Length > 0 ? i : null });
+                }
+            }
+
+            // Lista: Concluídas Este Mês (TOP 30)
+            cmd.Parameters.Clear();
+            if (filtrarPorColaborador)
+            {
+                cmd.CommandText = @"
+                    SELECT DISTINCT TOP 30 t.Id, t.Titulo, col.Nome, p.Titulo
+                    FROM ProjetoTarefaHistorico h
+                    INNER JOIN ProjetoTarefa t ON t.Id = h.TarefaId
+                    INNER JOIN Etapa e ON e.Id = h.EtapaId AND e.EhEtapaFinal = 1
+                    INNER JOIN Projeto p ON p.Id = t.ProjetoId
+                    LEFT JOIN Colaborador col ON col.Id = t.ColaboradorResponsavelId
+                    WHERE h.Tipo = 'E'
+                      AND MONTH(h.DataHoraAcao) = MONTH(GETDATE())
+                      AND YEAR(h.DataHoraAcao) = YEAR(GETDATE())
+                      AND t.ColaboradorResponsavelId = @ColaboradorId
+                    ORDER BY t.Titulo
+                ";
+                cmd.Parameters.AddWithValue("@ColaboradorId", colaboradorId);
+            }
+            else
+            {
+                cmd.CommandText = @"
+                    SELECT DISTINCT TOP 30 t.Id, t.Titulo, col.Nome, p.Titulo
+                    FROM ProjetoTarefaHistorico h
+                    INNER JOIN ProjetoTarefa t ON t.Id = h.TarefaId
+                    INNER JOIN Etapa e ON e.Id = h.EtapaId AND e.EhEtapaFinal = 1
+                    INNER JOIN Projeto p ON p.Id = t.ProjetoId
+                    LEFT JOIN Colaborador col ON col.Id = t.ColaboradorResponsavelId
+                    WHERE h.Tipo = 'E'
+                      AND MONTH(h.DataHoraAcao) = MONTH(GETDATE())
+                      AND YEAR(h.DataHoraAcao) = YEAR(GETDATE())
+                    ORDER BY t.Titulo
+                ";
+            }
+            await using (var rConc = await cmd.ExecuteReaderAsync())
+            {
+                while (await rConc.ReadAsync())
+                {
+                    var col = rConc.IsDBNull(2) ? null : rConc.GetString(2);
+                    var proj = rConc.IsDBNull(3) ? null : rConc.GetString(3);
+                    var parts = new[] { col, proj }.Where(s => s != null);
+                    dto.ConcluidasMesLista.Add(new DashboardItemListaDTO { Id = rConc.GetInt32(0), Titulo = rConc.GetString(1), Info = string.Join(" · ", parts) is string i && i.Length > 0 ? i : null });
+                }
+            }
+
+            // Lista: Sem Responsável (admin global)
+            if (incluirSemResponsavel)
+            {
+                cmd.Parameters.Clear();
+                cmd.CommandText = @"
+                    SELECT TOP 30 t.Id, t.Titulo, pr.Titulo, e.Nome
+                    FROM ProjetoTarefa t
+                    INNER JOIN Projeto pr ON pr.Id = t.ProjetoId AND pr.Ativo = 1 AND pr.Concluido = 0
+                    LEFT JOIN Etapa e ON e.Id = t.EtapaId
+                    WHERE t.ColaboradorResponsavelId IS NULL
+                    ORDER BY t.Titulo
+                ";
+                await using var rSemResp = await cmd.ExecuteReaderAsync();
+                while (await rSemResp.ReadAsync())
+                {
+                    var proj = rSemResp.IsDBNull(2) ? null : rSemResp.GetString(2);
+                    var eta = rSemResp.IsDBNull(3) ? null : rSemResp.GetString(3);
+                    var parts = new[] { proj, eta }.Where(s => s != null);
+                    dto.SemResponsavelLista.Add(new DashboardItemListaDTO { Id = rSemResp.GetInt32(0), Titulo = rSemResp.GetString(1), Info = string.Join(" · ", parts) is string i && i.Length > 0 ? i : null });
+                }
+            }
+
             return dto;
         }
 
-        private async Task<DashboardProjetosDTO> ObterProjetosAsync(SqlConnection con)
+        private async Task<DashboardProjetosDTO> ObterProjetosAsync(SqlConnection con, bool usarNomeFantasia)
         {
+            var dto = new DashboardProjetosDTO();
             await using var cmd = con.CreateCommand();
+
             cmd.CommandText = @"
                 SELECT
                     SUM(CASE WHEN Ativo = 1 AND Concluido = 0 THEN 1 ELSE 0 END),
@@ -532,19 +772,61 @@ namespace API.DB.DAOs
                     SUM(CASE WHEN CAST(DataCadastro AS DATE) = CAST(GETDATE() AS DATE) THEN 1 ELSE 0 END)
                 FROM Projeto
             ";
-
-            await using var reader = await cmd.ExecuteReaderAsync();
-            if (await reader.ReadAsync())
+            await using (var reader = await cmd.ExecuteReaderAsync())
             {
-                return new DashboardProjetosDTO
+                if (await reader.ReadAsync())
                 {
-                    Ativos = reader.IsDBNull(0) ? 0 : reader.GetInt32(0),
-                    ConcluidosMes = reader.IsDBNull(1) ? 0 : reader.GetInt32(1),
-                    CadastradosHoje = reader.IsDBNull(2) ? 0 : reader.GetInt32(2)
-                };
+                    dto.Ativos = reader.IsDBNull(0) ? 0 : reader.GetInt32(0);
+                    dto.ConcluidosMes = reader.IsDBNull(1) ? 0 : reader.GetInt32(1);
+                    dto.CadastradosHoje = reader.IsDBNull(2) ? 0 : reader.GetInt32(2);
+                }
             }
 
-            return new DashboardProjetosDTO();
+            // Lista: Projetos Ativos (TOP 30)
+            cmd.CommandText = @"
+                SELECT TOP 30 p.Id, p.Titulo, c.Nome, c.NomeFantasia
+                FROM Projeto p
+                INNER JOIN Cliente c ON c.Id = p.ClienteId
+                WHERE p.Ativo = 1 AND p.Concluido = 0
+                ORDER BY p.DataCadastro DESC
+            ";
+            await using (var rAtivos = await cmd.ExecuteReaderAsync())
+            {
+                while (await rAtivos.ReadAsync())
+                    dto.AtivoLista.Add(new DashboardItemListaDTO { Id = rAtivos.GetInt32(0), Titulo = rAtivos.GetString(1), Info = usarNomeFantasia && !rAtivos.IsDBNull(3) ? rAtivos.GetString(3) : rAtivos.GetString(2) });
+            }
+
+            // Lista: Concluídos Este Mês
+            cmd.CommandText = @"
+                SELECT p.Id, p.Titulo, c.Nome, c.NomeFantasia
+                FROM Projeto p
+                INNER JOIN Cliente c ON c.Id = p.ClienteId
+                WHERE p.Concluido = 1
+                  AND MONTH(p.DataCadastro) = MONTH(GETDATE())
+                  AND YEAR(p.DataCadastro) = YEAR(GETDATE())
+                ORDER BY p.DataCadastro DESC
+            ";
+            await using (var rConc = await cmd.ExecuteReaderAsync())
+            {
+                while (await rConc.ReadAsync())
+                    dto.ConcluidosMesLista.Add(new DashboardItemListaDTO { Id = rConc.GetInt32(0), Titulo = rConc.GetString(1), Info = usarNomeFantasia && !rConc.IsDBNull(3) ? rConc.GetString(3) : rConc.GetString(2) });
+            }
+
+            // Lista: Cadastrados Hoje
+            cmd.CommandText = @"
+                SELECT p.Id, p.Titulo, c.Nome, c.NomeFantasia
+                FROM Projeto p
+                INNER JOIN Cliente c ON c.Id = p.ClienteId
+                WHERE CAST(p.DataCadastro AS DATE) = CAST(GETDATE() AS DATE)
+                ORDER BY p.DataCadastro DESC
+            ";
+            await using (var rHoje = await cmd.ExecuteReaderAsync())
+            {
+                while (await rHoje.ReadAsync())
+                    dto.CadastradosHojeLista.Add(new DashboardItemListaDTO { Id = rHoje.GetInt32(0), Titulo = rHoje.GetString(1), Info = usarNomeFantasia && !rHoje.IsDBNull(3) ? rHoje.GetString(3) : rHoje.GetString(2) });
+            }
+
+            return dto;
         }
 
         private async Task<DashboardColaboradoresDTO> ObterColaboradoresAsync(SqlConnection con)

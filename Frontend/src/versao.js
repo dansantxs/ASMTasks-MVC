@@ -23,6 +23,9 @@ export const CHANGELOG = [
       'Correção: lista de clientes no diálogo de duplicação de projeto agora exibe e ordena conforme parametrização',
       'Correção: filtro de Cliente no Quadro Kanban agora exibe e ordena conforme parametrização',
       'Sessão ampliada: token de autenticação agora expira em 4 horas (antes 2 horas)',
+      'Correção: no formulário de projeto, ao digitar um título diferente para o projeto, a descrição deixa de ser sincronizada com a tarefa',
+      'Dashboard: todos os indicadores agora exibem lista detalhada ao passar o mouse (atendimentos, tarefas e projetos)',
+      'Correção: nome do cliente nas listas do Dashboard respeita a configuração de Razão Social / Nome Fantasia',
     ],
   },
   {

@@ -41,7 +41,7 @@ function CardKPI({ icone: Icone, titulo, valor, corIcone, corFundo, destaque, su
   );
 }
 
-function CardKPIComLista({ icone: Icone, titulo, valor, corIcone, corFundo, destaque, lista = [] }) {
+function CardKPIComLista({ icone: Icone, titulo, valor, corIcone, corFundo, destaque, lista = [], renderLinha2 }) {
   const [aberto, setAberto] = useState(false);
   const timerRef = useRef(null);
 
@@ -53,6 +53,9 @@ function CardKPIComLista({ icone: Icone, titulo, valor, corIcone, corFundo, dest
   const aoSair = () => {
     timerRef.current = setTimeout(() => setAberto(false), 150);
   };
+
+  const linha2Default = (t) => `${t.colaboradorNome ?? '—'} · ${t.etapaNome ?? '—'}`;
+  const getLinha2 = renderLinha2 ?? linha2Default;
 
   return (
     <div
@@ -76,7 +79,7 @@ function CardKPIComLista({ icone: Icone, titulo, valor, corIcone, corFundo, dest
           {lista.map((t) => (
             <div key={t.id} className="py-2 border-b last:border-0">
               <p className="text-xs font-semibold text-gray-800 truncate" title={t.titulo}>{t.titulo}</p>
-              <p className="text-xs text-gray-500 mt-0.5">{t.colaboradorNome ?? '—'} · {t.etapaNome ?? '—'}</p>
+              <p className="text-xs text-gray-500 mt-0.5">{getLinha2(t)}</p>
             </div>
           ))}
         </div>
@@ -432,34 +435,42 @@ export default function DashboardPage() {
         </h2>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <CardKPI
+          <CardKPIComLista
             icone={CalendarCheck}
             titulo="Agendados Hoje"
             valor={atendimentos.hoje}
             corIcone="text-blue-600"
             corFundo="bg-blue-50"
+            lista={atendimentos.hojeLista ?? []}
+            renderLinha2={(t) => t.info ?? '—'}
           />
-          <CardKPI
+          <CardKPIComLista
             icone={CalendarClock}
             titulo="Pendentes (total)"
             valor={atendimentos.agendados}
             corIcone="text-amber-600"
             corFundo="bg-amber-50"
+            lista={atendimentos.pendentesLista ?? []}
+            renderLinha2={(t) => t.info ?? '—'}
           />
-          <CardKPI
+          <CardKPIComLista
             icone={AlertTriangle}
             titulo="Em Atraso"
             valor={atendimentos.emAtraso}
             corIcone="text-red-600"
             corFundo="bg-red-50"
             destaque={atendimentos.emAtraso > 0}
+            lista={atendimentos.emAtrasoLista ?? []}
+            renderLinha2={(t) => t.info ?? '—'}
           />
-          <CardKPI
+          <CardKPIComLista
             icone={CheckCircle2}
             titulo="Realizados Este Mês"
             valor={atendimentos.realizadosMes}
             corIcone="text-emerald-600"
             corFundo="bg-emerald-50"
+            lista={atendimentos.realizadosMesLista ?? []}
+            renderLinha2={(t) => t.info ?? '—'}
           />
         </div>
 
@@ -493,28 +504,34 @@ export default function DashboardPage() {
         </h2>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
-          <CardKPI
+          <CardKPIComLista
             icone={ClipboardList}
             titulo="Em Andamento"
             valor={tarefas.total}
             corIcone="text-violet-600"
             corFundo="bg-violet-50"
+            lista={tarefas.emAndamentoLista ?? []}
+            renderLinha2={(t) => t.info ?? '—'}
           />
-          <CardKPI
+          <CardKPIComLista
             icone={ClipboardCheck}
             titulo="Concluídas Este Mês"
             valor={tarefas.concluidasMes}
             corIcone="text-emerald-600"
             corFundo="bg-emerald-50"
+            lista={tarefas.concluidasMesLista ?? []}
+            renderLinha2={(t) => t.info ?? '—'}
           />
           {ehAdministrador && !filtro && (
-            <CardKPI
+            <CardKPIComLista
               icone={UserMinus}
               titulo="Sem Responsável"
               valor={tarefas.semResponsavel}
               corIcone={tarefas.semResponsavel > 0 ? 'text-orange-500' : 'text-gray-400'}
               corFundo={tarefas.semResponsavel > 0 ? 'bg-orange-50' : 'bg-gray-100'}
               destaque={tarefas.semResponsavel > 0}
+              lista={tarefas.semResponsavelLista ?? []}
+              renderLinha2={(t) => t.info ?? '—'}
             />
           )}
         </div>
@@ -601,26 +618,32 @@ export default function DashboardPage() {
               Projetos
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <CardKPI
+              <CardKPIComLista
                 icone={CalendarCheck}
                 titulo="Cadastrados Hoje"
                 valor={projetos.cadastradosHoje}
                 corIcone="text-blue-600"
                 corFundo="bg-blue-50"
+                lista={projetos.cadastradosHojeLista ?? []}
+                renderLinha2={(t) => t.info ?? '—'}
               />
-              <CardKPI
+              <CardKPIComLista
                 icone={FolderOpen}
                 titulo="Projetos Ativos"
                 valor={projetos.ativos}
                 corIcone="text-teal-600"
                 corFundo="bg-teal-50"
+                lista={projetos.ativoLista ?? []}
+                renderLinha2={(t) => t.info ?? '—'}
               />
-              <CardKPI
+              <CardKPIComLista
                 icone={FolderCheck}
                 titulo="Concluídos Este Mês"
                 valor={projetos.concluidosMes}
                 corIcone="text-emerald-600"
                 corFundo="bg-emerald-50"
+                lista={projetos.concluidosMesLista ?? []}
+                renderLinha2={(t) => t.info ?? '—'}
               />
             </div>
           </section>
