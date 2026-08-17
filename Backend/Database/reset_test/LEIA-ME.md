@@ -15,23 +15,27 @@ usuários, níveis de acesso, etapas, prioridades e configuração do sistema).
 | `00_verificacao_ativo.sql` | (Opcional, só leitura) Lista os clientes inativos hoje, para conferir o que mudou. |
 | `01_reset_movimentacao.sql` | Apaga projetos, tarefas e atendimentos (e logs/histórico) na ordem correta de FK e rezera os contadores. |
 | `02_reimport_clientes.sql` | Limpa a tabela `Cliente` e reimporta **1384 clientes** convertidos do `cliente.sql`, religando as matrizes. |
+| `03_excluir_registros.sql` | (Opcional) Exclui **de verdade** (DELETE) etapas e clientes — você edita os nomes/documentos. Roda depois do `01`. |
+| `04_duplicar_test_para_prod.md` | (Opcional) Passo a passo para deixar **produção igual ao teste** (restore do backup do teste em `ASMTasksProd`). |
 
 ### Sobre a conversão dos clientes
 O `cliente.sql` é um export do ERP legado (colunas `CLI_*`) e **não roda direto**
 no ASMTasks. O `02_reimport_clientes.sql` já vem com os dados **convertidos** para
-o schema do sistema. A conversão foi validada contra o `seed.sql` (cidade, UF,
-documento, tipo de pessoa e data de cadastro batem 100%; as poucas diferenças de
-nome/e-mail/endereço são clientes que foram **atualizados no ERP** desde o seed).
+o schema do sistema. A conversão foi validada contra o `seed.sql` (documento, tipo de
+pessoa e data de cadastro batem 100%; as poucas diferenças de nome/e-mail/endereço são
+clientes que foram **atualizados no ERP** desde o seed). As **cidades** foram
+**recalculadas** (ver abaixo), pois as do seed estavam erradas.
 
 - **Status ativo/inativo** vem do ERP (`CLI_STATUS = 9` → inativo). Como o
   `cliente.sql` é o export atual, ele já reflete os clientes inativados no meio
   tempo. Há **8 clientes** cujo status havia sido editado só no ASMTasks e diverge
   do ERP — eles estão listados no comentário do `00_verificacao_ativo.sql`. Após o
   import, **o valor do ERP prevalece**; ajuste manualmente se quiser manter algum.
-- **453 clientes ficam sem Cidade** (o código de município não estava no dicionário
-  do seed). A **UF é sempre preenchida**. Isso reproduz a mesma lacuna do seed atual
-  (que já tinha 438 sem cidade). Rodar `SELECT ... WHERE Cidade IS NULL` depois para
-  preencher, se desejar.
+- **Cidade** é resolvida pelo **código IBGE** guardado em `CLI_CIDENT`. Assim **1382 dos
+  1384** clientes recebem a cidade **correta**; só **2** (código IBGE `3546108`, CEP
+  15785-000) ficam sem cidade. A **UF é sempre preenchida**. Isto **corrige** as cidades
+  erradas do seed original (que tinha ~547 clientes marcados como "Bastos" por default e
+  vários municípios trocados — conferido pelo CEP).
 
 ## Passo a passo (PowerShell como Administrador, no servidor)
 
