@@ -114,10 +114,6 @@ export default function LoginPage() {
             </Button>
           </form>
         </div>
-
-        <p className="text-center text-xs text-muted-foreground mt-6">
-          © {new Date().getFullYear()} ASM Tasks
-        </p>
       </div>
     </div>
   );
