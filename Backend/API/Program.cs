@@ -174,6 +174,10 @@ builder.Services.AddScoped<NotificacoesDAO>();
 builder.Services.AddScoped<AtendimentoNotificacaoProcessor>();
 builder.Services.AddHostedService<AtendimentoNotificacaoBackgroundService>();
 
+builder.Services.AddSingleton<SessaoAtivaTracker>();
+builder.Services.AddScoped<SessaoExpiradaProcessor>();
+builder.Services.AddHostedService<SessaoExpiradaBackgroundService>();
+
 var app = builder.Build();
 
 // Necessário para que Request.IsHttps e RemoteIpAddress reflitam os valores originais

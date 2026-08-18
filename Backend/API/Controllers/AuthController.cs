@@ -1,6 +1,7 @@
 using API.DB;
 using API.DTOs.Auth;
 using API.Models;
+using API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -15,7 +16,7 @@ namespace API.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-    public class AuthController(DBContext dbContext, IConfiguration configuration) : ControllerBase
+    public class AuthController(DBContext dbContext, IConfiguration configuration, SessaoAtivaTracker sessaoAtivaTracker) : ControllerBase
     {
 
         [HttpPost("login")]
@@ -33,10 +34,12 @@ namespace API.Controllers
             var jwtKey = configuration["Jwt:Key"] ?? "***REMOVED***";
             var jwtIssuer = configuration["Jwt:Issuer"] ?? "ASMTasks";
             var jwtAudience = configuration["Jwt:Audience"] ?? "ASMTasks.Frontend";
-            var expirationMinutes = int.TryParse(configuration["Jwt:ExpirationMinutes"], out var parsedExp) ? parsedExp : 120;
+            var expirationMinutes = int.TryParse(configuration["Jwt:ExpirationMinutes"], out var parsedExp) ? parsedExp : 240;
 
             var expiresAt = DateTime.UtcNow.AddMinutes(expirationMinutes);
             var token = GerarToken(usuario, jwtKey, jwtIssuer, jwtAudience, expiresAt);
+
+            sessaoAtivaTracker.RegistrarSessao(usuario.Id, expiresAt);
 
             // SameSite=None é necessário quando frontend e backend estão em origens distintas (dev).
             // Em produção, com mesmo domínio, defina Jwt:SameSite=Strict no appsettings.
@@ -73,6 +76,10 @@ namespace API.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public IActionResult Logout()
         {
+            var usuarioIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (int.TryParse(usuarioIdClaim, out var usuarioId))
+                sessaoAtivaTracker.RemoverSessao(usuarioId);
+
             var sameSiteConfig = configuration["Jwt:SameSite"] ?? "None";
             var sameSiteMode = sameSiteConfig.Equals("Strict", StringComparison.OrdinalIgnoreCase)
                 ? SameSiteMode.Strict

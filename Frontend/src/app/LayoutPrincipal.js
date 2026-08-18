@@ -6,10 +6,7 @@ import { useEffect, useState } from "react";
 import { Menu } from "lucide-react";
 import {
   limparSessao,
-  obterLimiteInatividadeMs,
-  obterSessaoArmazenada,
   isSessaoValida,
-  registrarAtividadeSessao,
 } from "../services/auth/session";
 import { useUsuarioAtual } from "../hooks/useUsuarioAtual";
 import { obterRotaPadrao, obterPermissaoPorRota, temPermissao } from "../services/auth/permissions";
@@ -84,25 +81,17 @@ export default function LayoutPrincipal({ children }) {
     setAutenticacaoVerificada(true);
   }, [paginaLogin, pathname, router, usuario, carregandoUsuario]);
 
+  // Verifica periodicamente apenas a expiração real do token (sem logout por inatividade).
   useEffect(() => {
     if (paginaLogin || !autenticacaoVerificada) return;
 
-    const atualizarAtividade = () => registrarAtividadeSessao();
-    const eventos = ["mousemove", "keydown", "click", "scroll", "touchstart"];
-    eventos.forEach((nomeEvento) => window.addEventListener(nomeEvento, atualizarAtividade));
-
     const intervalo = setInterval(() => {
-      const sessaoArmazenada = obterSessaoArmazenada();
-      const ultimaAtividade = sessaoArmazenada?.ultimoAcessoEm ?? 0;
-      if (Date.now() - ultimaAtividade > obterLimiteInatividadeMs()) {
+      if (!isSessaoValida()) {
         handleSair();
       }
-    }, 15000);
+    }, 30000);
 
-    return () => {
-      clearInterval(intervalo);
-      eventos.forEach((nomeEvento) => window.removeEventListener(nomeEvento, atualizarAtividade));
-    };
+    return () => clearInterval(intervalo);
   }, [paginaLogin, autenticacaoVerificada]);
 
   useEffect(() => {

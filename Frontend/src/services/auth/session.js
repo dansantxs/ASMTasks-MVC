@@ -1,7 +1,6 @@
 'use client';
 
 const CHAVE_ARMAZENAMENTO = 'asm_auth_session';
-const LIMITE_INATIVIDADE_MS = 30 * 60 * 1000;
 
 export function obterSessaoArmazenada() {
   if (typeof window === 'undefined') return null;
@@ -22,7 +21,6 @@ export function salvarSessao(respostaLogin) {
 
   const sessao = {
     expiraEm: respostaLogin.expiraEm,
-    ultimoAcessoEm: Date.now(),
   };
 
   localStorage.setItem(CHAVE_ARMAZENAMENTO, JSON.stringify(sessao));
@@ -33,6 +31,8 @@ export function limparSessao() {
   localStorage.removeItem(CHAVE_ARMAZENAMENTO);
 }
 
+// A sessão só é considerada inválida quando o token realmente expira (Jwt:ExpirationMinutes no backend).
+// Não há mais logout por inatividade — o cronômetro de tarefas cobre a pausa automática nesse cenário.
 export function isSessaoValida() {
   const sessao = obterSessaoArmazenada();
   if (!sessao?.expiraEm) return false;
@@ -43,22 +43,5 @@ export function isSessaoValida() {
     return false;
   }
 
-  if (Date.now() - (sessao.ultimoAcessoEm ?? 0) > LIMITE_INATIVIDADE_MS) {
-    limparSessao();
-    return false;
-  }
-
   return true;
-}
-
-export function registrarAtividadeSessao() {
-  const sessao = obterSessaoArmazenada();
-  if (!sessao) return;
-
-  sessao.ultimoAcessoEm = Date.now();
-  localStorage.setItem(CHAVE_ARMAZENAMENTO, JSON.stringify(sessao));
-}
-
-export function obterLimiteInatividadeMs() {
-  return LIMITE_INATIVIDADE_MS;
 }

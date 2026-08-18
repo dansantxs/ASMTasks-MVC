@@ -506,6 +506,24 @@ namespace API.DB.DAOs
             }
         }
 
+        public async Task<IEnumerable<int>> ObterTarefasEmAndamentoPorColaboradorAsync(DBContext dbContext, int colaboradorId)
+        {
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = @"
+                SELECT Id FROM ProjetoTarefa
+                WHERE ColaboradorResponsavelId = @ColaboradorId
+                AND DataHoraInicio IS NOT NULL;
+            ";
+            cmd.Parameters.AddWithValue("@ColaboradorId", colaboradorId);
+
+            var ids = new List<int>();
+            await using var reader = await cmd.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+                ids.Add(reader.GetInt32(0));
+            return ids;
+        }
+
         public async Task<IEnumerable<ProjetoTarefaHistoricoResponse>> ObterHistoricoTarefaAsync(DBContext dbContext, int tarefaId)
         {
             var lista = new List<ProjetoTarefaHistoricoResponse>();
