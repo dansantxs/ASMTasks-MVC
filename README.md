@@ -57,17 +57,18 @@ Edite `appsettings.Development.json`:
 {
   "StringConexao": "Server=localhost;Database=ASMTasks;User Id=sa;Password=SuaSenha;TrustServerCertificate=True;",
   "CorsOrigens": "http://localhost:3000",
+  "AllowedHosts": "*",
   "Jwt": {
     "Key": "uma-chave-secreta-com-no-minimo-32-caracteres",
     "Issuer": "ASMTasks",
     "Audience": "ASMTasks.Frontend",
-    "ExpirationMinutes": 120,
-    "SameSite": "None"
+    "ExpirationMinutes": 240,
+    "SameSite": "Strict"
   }
 }
 ```
 
-> A `Jwt.Key` deve ter no mínimo 32 caracteres.
+> A `Jwt.Key` deve ter no mínimo 32 caracteres. O token expira em `ExpirationMinutes` (padrão: 240 = 4 horas).
 
 Inicie a API:
 
@@ -75,7 +76,9 @@ Inicie a API:
 dotnet run --launch-profile https
 ```
 
-A API ficará disponível em `https://localhost:7199`. A documentação Swagger estará em `https://localhost:7199/swagger`.
+A API ficará disponível em `https://localhost:7199` (Swagger em `https://localhost:7199/swagger`). O perfil `https` também expõe a API em `http://localhost:5273`.
+
+> **Em desenvolvimento, prefira a URL HTTP (`http://localhost:5273`) no frontend.** Misturar o frontend em `http://localhost:3000` com a API em `https` causa conflito no esquema de cookies de autenticação (login não persiste). Veja o passo 3.
 
 ### 3. Frontend (Next.js)
 
@@ -89,10 +92,10 @@ Copie o arquivo de exemplo de variáveis de ambiente:
 copy .env.local.example .env.local
 ```
 
-Edite `.env.local` se a URL da API for diferente de `https://localhost:7199/api`:
+Edite `.env.local` conforme a URL da API. Em desenvolvimento, use a URL **HTTP** para evitar conflito no esquema de cookies (frontend HTTP → API HTTP):
 
 ```env
-NEXT_PUBLIC_API_URL=https://localhost:7199/api
+NEXT_PUBLIC_API_URL=http://localhost:5273/api
 ```
 
 Instale as dependências e inicie:
@@ -103,6 +106,61 @@ npm run dev
 ```
 
 O frontend ficará disponível em `http://localhost:3000`.
+
+---
+
+## Execução com Docker
+
+O projeto inclui `Dockerfile`s para o backend e o frontend e arquivos Compose para diferentes cenários:
+
+| Arquivo | Uso |
+|---------|-----|
+| `docker-compose.yml` | Base (SQL Server + backend + frontend). Não sobe portas sozinho. |
+| `docker-compose.dev.yml` | Desenvolvimento — publica as portas (`sqlserver` 1433, `backend` 5000→8080, `frontend` 3000). |
+| `docker-compose.prod.yml` | Produção — `restart: unless-stopped` e túnel Cloudflare opcional (profile `cloudflare`). |
+| `docker-compose.demo.yml` | Demonstração via túnel Cloudflare com URL temporária. |
+
+No container, o backend escuta em `8080` e o frontend em `3000`.
+
+### Variáveis de ambiente
+
+Copie o exemplo correspondente e ajuste os valores (senha do SQL Server, `JWT_KEY` com no mínimo 32 caracteres, origens de CORS, etc.):
+
+```bash
+cp .env.dev.example .env.dev      # desenvolvimento
+cp .env.prod.example .env.prod    # produção
+```
+
+### Somente o banco no Docker
+
+Útil para rodar backend/frontend localmente (fora do container) e manter só o SQL Server em container:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev up -d sqlserver
+```
+
+Detalhes de restauração de backup `.bak` e acesso via SSMS / Azure Data Studio em
+[`Backend/Database/BANCO-LOCAL-DOCKER.md`](Backend/Database/BANCO-LOCAL-DOCKER.md).
+
+### Stack completa (dev)
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev up -d --build
+```
+
+Frontend em `http://localhost:3000` e API em `http://localhost:5000`.
+
+### Produção
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.prod up -d --build
+# Com o túnel Cloudflare (requer CLOUDFLARE_TUNNEL_TOKEN no .env.prod):
+docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.prod --profile cloudflare up -d --build
+```
+
+> O schema e os dados iniciais precisam ser aplicados ao banco em container na
+> primeira execução (`schema.sql` e `seed.sql`) — veja a seção
+> [Instalação manual](#1-banco-de-dados) e o guia de banco no Docker acima.
 
 ---
 
@@ -124,12 +182,19 @@ Troque a senha após o primeiro acesso.
 ```
 ASMTasks-MVC/
 ├── Backend/
-│   ├── API/              # ASP.NET Core 9 — API REST
-│   └── Database/
-│       ├── schema.sql    # Criação do banco e tabelas
-│       └── seed.sql      # Dados iniciais
-├── Frontend/             # Next.js 16 — interface web
-├── Documentação/         # ERS, diagramas de classe e BD
-├── setup.ps1             # Script de instalação automatizada
+│   ├── API/                    # ASP.NET Core 9 — API REST
+│   ├── Database/
+│   │   ├── schema.sql          # Criação do banco e tabelas
+│   │   └── seed.sql            # Dados iniciais
+│   └── Dockerfile              # Imagem do backend
+├── Frontend/                   # Next.js 16 — interface web (+ Dockerfile)
+├── Documentação/               # ERS, diagramas de classe e BD
+├── docker-compose.yml          # Base (SQL Server + backend + frontend)
+├── docker-compose.dev.yml      # Override de desenvolvimento
+├── docker-compose.prod.yml     # Override de produção (+ Cloudflare)
+├── docker-compose.demo.yml     # Override de demonstração
+├── .env.dev.example            # Variáveis de ambiente (dev)
+├── .env.prod.example           # Variáveis de ambiente (produção)
+├── setup.ps1                   # Script de instalação automatizada
 └── README.md
 ```
