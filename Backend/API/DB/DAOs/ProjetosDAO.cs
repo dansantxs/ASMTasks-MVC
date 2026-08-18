@@ -524,6 +524,33 @@ namespace API.DB.DAOs
             return ids;
         }
 
+        public async Task<TarefaEmAndamentoResponse?> ObterTarefaEmAndamentoDetalhadaAsync(DBContext dbContext, int colaboradorId)
+        {
+            await using var con = await dbContext.GetConnectionAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = @"
+                SELECT TOP 1 pt.Id, pt.Titulo, p.Titulo AS ProjetoTitulo, pt.DataHoraInicio
+                FROM ProjetoTarefa pt
+                INNER JOIN Projeto p ON pt.ProjetoId = p.Id
+                WHERE pt.ColaboradorResponsavelId = @ColaboradorId
+                AND pt.DataHoraInicio IS NOT NULL
+                ORDER BY pt.DataHoraInicio DESC;
+            ";
+            cmd.Parameters.AddWithValue("@ColaboradorId", colaboradorId);
+
+            await using var reader = await cmd.ExecuteReaderAsync();
+            if (!await reader.ReadAsync())
+                return null;
+
+            return new TarefaEmAndamentoResponse
+            {
+                Id = reader.GetInt32(0),
+                Titulo = reader.GetString(1),
+                ProjetoTitulo = reader.GetString(2),
+                DataHoraInicio = reader.GetDateTime(3)
+            };
+        }
+
         public async Task<IEnumerable<ProjetoTarefaHistoricoResponse>> ObterHistoricoTarefaAsync(DBContext dbContext, int tarefaId)
         {
             var lista = new List<ProjetoTarefaHistoricoResponse>();

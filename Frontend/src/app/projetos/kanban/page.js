@@ -113,6 +113,7 @@ export default function KanbanPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['kanban-tarefas'] });
       queryClient.invalidateQueries({ queryKey: ['tarefa-historico'] });
+      queryClient.invalidateQueries({ queryKey: ['tarefa-em-andamento'] });
       toast.success('Tarefa iniciada com sucesso.');
     },
     onError: (error) => toast.error(error?.message ?? 'Erro ao iniciar tarefa.'),
@@ -123,6 +124,7 @@ export default function KanbanPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['kanban-tarefas'] });
       queryClient.invalidateQueries({ queryKey: ['tarefa-historico'] });
+      queryClient.invalidateQueries({ queryKey: ['tarefa-em-andamento'] });
       toast.success('Tarefa pausada com sucesso.');
     },
     onError: (error) => toast.error(error?.message ?? 'Erro ao pausar tarefa.'),

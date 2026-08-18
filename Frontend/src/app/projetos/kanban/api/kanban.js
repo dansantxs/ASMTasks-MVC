@@ -92,6 +92,11 @@ export async function iniciarTarefa(tarefaId) {
   return handleResponse(res);
 }
 
+export async function getMinhaTarefaEmAndamento() {
+  const res = await requisicaoApi('/projetos/tarefas/minha-atual', { cache: 'no-store' });
+  return handleResponse(res);
+}
+
 export async function pausarTarefa(tarefaId, observacao) {
   const res = await requisicaoApi(`/projetos/tarefas/${tarefaId}/pausar`, {
     method: 'POST',

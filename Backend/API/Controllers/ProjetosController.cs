@@ -645,6 +645,26 @@ namespace API.Controllers
             }
         }
 
+        [HttpGet("tarefas/minha-atual")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> ObterMinhaTarefaEmAndamento()
+        {
+            try
+            {
+                var colaboradorLogado = ObterColaboradorIdLogado();
+                var tarefa = await _projetosDAO.ObterTarefaEmAndamentoDetalhadaAsync(_dbContext, colaboradorLogado);
+                return Ok(tarefa);
+            }
+            catch (ValidationException ex)
+            {
+                return BadRequest(new { erro = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { erro = "Erro ao obter tarefa em andamento." });
+            }
+        }
+
         [HttpGet("historico-relatorio")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> ObterRelatorioHistoricoProjeto(

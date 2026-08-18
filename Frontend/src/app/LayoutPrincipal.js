@@ -1,6 +1,7 @@
 'use client';
 
 import { BarraLateral } from "../components/BarraLateral";
+import CronometroTarefa from "../components/CronometroTarefa";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Menu } from "lucide-react";
@@ -142,6 +143,8 @@ export default function LayoutPrincipal({ children }) {
         </div>
         {children}
       </main>
+
+      <CronometroTarefa enabled={autenticacaoVerificada} />
     </div>
   );
 }
