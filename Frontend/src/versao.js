@@ -1,4 +1,4 @@
-export const VERSAO_ATUAL = '1.3.1';
+export const VERSAO_ATUAL = '1.3.2';
 
 /**
  * Regra de versionamento (major.minor.patch):
@@ -11,6 +11,19 @@ export const VERSAO_ATUAL = '1.3.1';
  *  2. Adicione uma nova entrada NO INÍCIO do array CHANGELOG.
  */
 export const CHANGELOG = [
+  {
+    versao: '1.3.2',
+    data: '2026-08-18',
+    titulo: 'Compatibilidade com Chrome 109 / Windows 7 e Desempenho',
+    mudancas: [
+      'Correção: bugs visuais no Google Chrome 109 (Windows 7) — cabeçalhos de tabela, dropdowns e cores apareciam quebrados. As cores modernas (oklch/color-mix) agora têm equivalente compatível com o navegador',
+      'Desempenho: ao trabalhar com clientes que têm muitos lançamentos, a listagem de projetos passou a ser paginada (30 por página), reduzindo a lentidão',
+      'Desempenho: Quadro Kanban otimizado — arrastar tarefas ficou mais fluido em quadros com muitas tarefas',
+      'Desempenho: telas deixam de refazer buscas desnecessárias ao alternar janelas/abas, reduzindo o reprocessamento de listas grandes',
+      'Desempenho: listagem de projetos no servidor otimizada (uma única consulta de tarefas em vez de uma por projeto)',
+      'Tela de login: removido o rodapé de direitos autorais',
+    ],
+  },
   {
     versao: '1.3.1',
     data: '2026-06-06',
