@@ -1,11 +1,12 @@
 'use client';
 
+import { memo } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, User, Folder, Building2, Eye, Paperclip } from 'lucide-react';
 import { cn } from '../../../../components/ui/form/utils';
 
-export default function CartaoTarefa({ tarefa, podeMover, onVisualizar, nomeCliente }) {
+function CartaoTarefa({ tarefa, podeMover, onVisualizar, nomeCliente }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `tarefa-${tarefa.id}`,
     data: { type: 'tarefa', tarefa },
@@ -106,3 +107,7 @@ export default function CartaoTarefa({ tarefa, podeMover, onVisualizar, nomeClie
     </div>
   );
 }
+
+// memo: durante o arraste (e outras mudancas de estado no quadro) so re-renderiza
+// o cartao cujas props realmente mudaram, em vez de todos os cartoes de uma vez.
+export default memo(CartaoTarefa);

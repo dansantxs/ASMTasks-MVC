@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, CheckCircle2 } from 'lucide-react';
@@ -11,7 +12,7 @@ function resolverNomeCliente(tarefa, exibicao) {
   return tarefa.clienteNome;
 }
 
-export default function ColunaKanban({ etapaId, titulo, tarefas, ehAdmin, colaboradorLogadoId, isBacklog, isEtapaFinal, onVisualizarTarefa, exibicaoNomeCliente = 'razaoSocial' }) {
+function ColunaKanban({ etapaId, titulo, tarefas, ehAdmin, colaboradorLogadoId, isBacklog, isEtapaFinal, onVisualizarTarefa, exibicaoNomeCliente = 'razaoSocial' }) {
   const podeMoverTarefa = (tarefa) => {
     if (isBacklog && !ehAdmin) return false;
     return (
@@ -111,3 +112,7 @@ export default function ColunaKanban({ etapaId, titulo, tarefas, ehAdmin, colabo
     </div>
   );
 }
+
+// memo: com o Map de tarefas por etapa memoizado no QuadroKanban, cada coluna so
+// re-renderiza quando as suas proprias tarefas mudam (nao a cada arraste global).
+export default memo(ColunaKanban);

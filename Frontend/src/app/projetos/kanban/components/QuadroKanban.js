@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core';
 import ColunaKanban from './ColunaKanban';
 import CartaoTarefa from './CartaoTarefa';
@@ -27,17 +27,37 @@ export default function QuadroKanban({ tarefas, etapas, colaboradores, colaborad
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
 
-  const etapasOrdenadas = [...etapas.filter((e) => e.ativo)].sort((a, b) => {
-    if (a.ehEtapaFinal !== b.ehEtapaFinal) return a.ehEtapaFinal ? 1 : -1;
-    return a.ordem - b.ordem;
-  });
+  const etapasOrdenadas = useMemo(
+    () =>
+      [...etapas.filter((e) => e.ativo)].sort((a, b) => {
+        if (a.ehEtapaFinal !== b.ehEtapaFinal) return a.ehEtapaFinal ? 1 : -1;
+        return a.ordem - b.ordem;
+      }),
+    [etapas]
+  );
 
-  const colunas = [COLUNA_BACKLOG, ...etapasOrdenadas];
+  const colunas = useMemo(() => [COLUNA_BACKLOG, ...etapasOrdenadas], [etapasOrdenadas]);
 
-  const tarefasPorEtapa = (etapaId) =>
-    tarefas
-      .filter((t) => (t.etapaId ?? null) === (etapaId ?? null))
-      .sort((a, b) => (a.prioridadeOrdem ?? 0) - (b.prioridadeOrdem ?? 0));
+  // Agrupa e ordena as tarefas por etapa uma unica vez por mudanca de `tarefas`,
+  // em vez de refazer filter+sort para cada coluna a cada render. Cada bucket
+  // mantem a mesma referencia entre renders, permitindo que ColunaKanban (memo)
+  // pule re-renderizacoes desnecessarias durante o arraste.
+  const tarefasPorEtapaMap = useMemo(() => {
+    const mapa = new Map();
+    for (const tarefa of tarefas) {
+      const chave = tarefa.etapaId ?? null;
+      const bucket = mapa.get(chave);
+      if (bucket) bucket.push(tarefa);
+      else mapa.set(chave, [tarefa]);
+    }
+    for (const bucket of mapa.values()) {
+      bucket.sort((a, b) => (a.prioridadeOrdem ?? 0) - (b.prioridadeOrdem ?? 0));
+    }
+    return mapa;
+  }, [tarefas]);
+
+  const EMPTY = useMemo(() => [], []);
+  const tarefasPorEtapa = (etapaId) => tarefasPorEtapaMap.get(etapaId ?? null) ?? EMPTY;
 
   // Detecção de colisão customizada: tarefas só caem em zonas de tarefa, colunas só caem em zonas de coluna
   const collisionDetection = useCallback((args) => {

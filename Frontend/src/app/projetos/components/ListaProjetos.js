@@ -35,6 +35,10 @@ const ABAS = [
   { id: 'inativos', label: 'Inativos', badgeClass: '' },
 ];
 
+// Quantos projetos mostrar por pagina. Evita montar centenas de nos no DOM de
+// uma vez (pesado em clientes com muitos lancamentos, sobretudo no Chrome 109).
+const PAGINA_TAMANHO = 30;
+
 export default function ListaProjetos({
   projetos,
   clientesById,
@@ -44,6 +48,7 @@ export default function ListaProjetos({
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [abaAtiva, setAbaAtiva] = useState('ativos');
+  const [pagina, setPagina] = useState(1);
 
   const projetosAtivos = useMemo(
     () => projetos.filter((p) => p.ativo && !p.concluido),
@@ -80,6 +85,14 @@ export default function ListaProjetos({
       return titulo.includes(term) || descricao.includes(term) || clienteNome.includes(term);
     });
   }, [abaAtiva, searchTerm, projetosAtivos, projetosConcluidos, projetosInativos, clientesById]);
+
+  const totalPaginas = Math.max(1, Math.ceil(projetosDaAba.length / PAGINA_TAMANHO));
+  // Clamp: apos filtrar/buscar, a pagina atual pode nao existir mais.
+  const paginaAtual = Math.min(pagina, totalPaginas);
+  const projetosPaginados = useMemo(
+    () => projetosDaAba.slice((paginaAtual - 1) * PAGINA_TAMANHO, paginaAtual * PAGINA_TAMANHO),
+    [projetosDaAba, paginaAtual]
+  );
 
   const renderProjectCard = (project) => {
     const clienteNome = clientesById.get(project.clienteId) ?? `Cliente #${project.clienteId}`;
@@ -169,7 +182,7 @@ export default function ListaProjetos({
         {ABAS.map((aba) => (
           <button
             key={aba.id}
-            onClick={() => { setAbaAtiva(aba.id); setSearchTerm(''); }}
+            onClick={() => { setAbaAtiva(aba.id); setSearchTerm(''); setPagina(1); }}
             className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
               abaAtiva === aba.id
                 ? 'border-brand-blue text-brand-blue'
@@ -192,7 +205,7 @@ export default function ListaProjetos({
         <Input
           className="pl-10"
           value={searchTerm}
-          onChange={(event) => setSearchTerm(event.target.value)}
+          onChange={(event) => { setSearchTerm(event.target.value); setPagina(1); }}
           placeholder="Buscar por título ou cliente..."
         />
       </div>
@@ -213,7 +226,7 @@ export default function ListaProjetos({
         </div>
       ) : modoVisualizacao === 'cards' ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {projetosDaAba.map(renderProjectCard)}
+          {projetosPaginados.map(renderProjectCard)}
         </div>
       ) : (
         <div className="border rounded-lg overflow-hidden">
@@ -229,9 +242,41 @@ export default function ListaProjetos({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {projetosDaAba.map(renderProjectRow)}
+              {projetosPaginados.map(renderProjectRow)}
             </TableBody>
           </Table>
+        </div>
+      )}
+
+      {/* Paginacao */}
+      {totalPaginas > 1 && (
+        <div className="flex items-center justify-between gap-4 mt-4">
+          <p className="text-sm text-muted-foreground">
+            Mostrando {(paginaAtual - 1) * PAGINA_TAMANHO + 1}
+            {'–'}
+            {Math.min(paginaAtual * PAGINA_TAMANHO, projetosDaAba.length)} de {projetosDaAba.length}
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPagina((p) => Math.max(1, p - 1))}
+              disabled={paginaAtual <= 1}
+            >
+              Anterior
+            </Button>
+            <span className="text-sm text-muted-foreground whitespace-nowrap">
+              Página {paginaAtual} de {totalPaginas}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPagina((p) => Math.min(totalPaginas, p + 1))}
+              disabled={paginaAtual >= totalPaginas}
+            >
+              Próxima
+            </Button>
+          </div>
         </div>
       )}
       </div>

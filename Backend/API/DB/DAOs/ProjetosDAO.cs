@@ -199,8 +199,15 @@ namespace API.DB.DAOs
                 }
             }
 
+            // Carrega as tarefas de TODOS os projetos em uma unica consulta e agrupa
+            // em memoria, em vez de disparar uma consulta por projeto (N+1). Isso
+            // reduz drasticamente o tempo do endpoint de listagem para clientes com
+            // muitos projetos/lancamentos. O resultado e identico ao anterior.
+            var tarefasPorProjeto = await ObterTarefasAgrupadasPorProjetoAsync(con);
             foreach (var projeto in lista)
-                projeto.Tarefas = (await ObterTarefasPorProjetoIdAsync(con, projeto.Id)).ToList();
+                projeto.Tarefas = tarefasPorProjeto.TryGetValue(projeto.Id, out var tarefas)
+                    ? tarefas
+                    : new List<ProjetoTarefa>();
 
             return lista;
         }
@@ -1017,6 +1024,62 @@ namespace API.DB.DAOs
                 tarefa.Id = Convert.ToInt32(result);
                 tarefa.ProjetoId = projetoId;
             }
+        }
+
+        // Versao em lote: retorna as tarefas de todos os projetos agrupadas por
+        // ProjetoId, com uma unica ida ao banco (evita o N+1 em ObterTodosAsync).
+        private static async Task<Dictionary<int, List<ProjetoTarefa>>> ObterTarefasAgrupadasPorProjetoAsync(SqlConnection connection)
+        {
+            var mapa = new Dictionary<int, List<ProjetoTarefa>>();
+
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"
+                SELECT Id, ProjetoId, Titulo, Descricao, PrioridadeId, ColaboradorResponsavelId, DataHoraAtribuicao, EtapaId, DataHoraInicio, SetorId,
+                       TempoExecucaoValor, TempoExecucaoUnidade, TempoTesteValor, TempoTesteUnidade,
+                       (SELECT COUNT(*) FROM ProjetoTarefaAnexo WHERE TarefaId = pt.Id) AS QuantidadeAnexos
+                FROM ProjetoTarefa pt
+                ORDER BY pt.ProjetoId, pt.Id;
+            ";
+
+            await using var dr = await cmd.ExecuteReaderAsync();
+            while (await dr.ReadAsync())
+            {
+                var tarefa = new ProjetoTarefa
+                {
+                    Id = Convert.ToInt32(dr["Id"]),
+                    ProjetoId = Convert.ToInt32(dr["ProjetoId"]),
+                    Titulo = dr["Titulo"]?.ToString() ?? string.Empty,
+                    Descricao = dr["Descricao"] == DBNull.Value ? null : dr["Descricao"].ToString(),
+                    PrioridadeId = Convert.ToInt32(dr["PrioridadeId"]),
+                    ColaboradorResponsavelId = dr["ColaboradorResponsavelId"] == DBNull.Value
+                        ? null
+                        : Convert.ToInt32(dr["ColaboradorResponsavelId"]),
+                    DataHoraAtribuicao = dr["DataHoraAtribuicao"] == DBNull.Value
+                        ? null
+                        : Convert.ToDateTime(dr["DataHoraAtribuicao"]),
+                    EtapaId = dr["EtapaId"] == DBNull.Value
+                        ? null
+                        : Convert.ToInt32(dr["EtapaId"]),
+                    DataHoraInicio = dr["DataHoraInicio"] == DBNull.Value
+                        ? null
+                        : Convert.ToDateTime(dr["DataHoraInicio"]),
+                    SetorId = dr["SetorId"] == DBNull.Value ? null : (int?)Convert.ToInt32(dr["SetorId"]),
+                    QuantidadeAnexos = Convert.ToInt32(dr["QuantidadeAnexos"]),
+                    TempoExecucaoValor = dr["TempoExecucaoValor"] == DBNull.Value ? null : (int?)Convert.ToInt32(dr["TempoExecucaoValor"]),
+                    TempoExecucaoUnidade = dr["TempoExecucaoUnidade"] == DBNull.Value ? null : dr["TempoExecucaoUnidade"].ToString(),
+                    TempoTesteValor = dr["TempoTesteValor"] == DBNull.Value ? null : (int?)Convert.ToInt32(dr["TempoTesteValor"]),
+                    TempoTesteUnidade = dr["TempoTesteUnidade"] == DBNull.Value ? null : dr["TempoTesteUnidade"].ToString()
+                };
+
+                if (!mapa.TryGetValue(tarefa.ProjetoId, out var bucket))
+                {
+                    bucket = new List<ProjetoTarefa>();
+                    mapa[tarefa.ProjetoId] = bucket;
+                }
+                bucket.Add(tarefa);
+            }
+
+            return mapa;
         }
 
         private static async Task<IEnumerable<ProjetoTarefa>> ObterTarefasPorProjetoIdAsync(SqlConnection connection, int projetoId)
