@@ -18,6 +18,11 @@ Execute o script de setup na raiz do projeto:
 
 O script configura o backend, aplica o banco de dados e prepara o frontend automaticamente.
 
+> **Banco no Docker (dev):** para rodar só o SQL Server em container na sua
+> máquina — inclusive restaurando um backup `.bak` do servidor e visualizando os
+> dados no SSMS / Azure Data Studio — veja
+> [`Backend/Database/BANCO-LOCAL-DOCKER.md`](Backend/Database/BANCO-LOCAL-DOCKER.md).
+
 ---
 
 ## Instalação manual
