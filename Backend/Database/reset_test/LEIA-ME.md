@@ -17,6 +17,28 @@ usuários, níveis de acesso, etapas, prioridades e configuração do sistema).
 | `02_reimport_clientes.sql` | Limpa a tabela `Cliente` e reimporta **1384 clientes** convertidos do `cliente.sql`, religando as matrizes. |
 | `03_excluir_registros.sql` | (Opcional) Exclui **de verdade** (DELETE) etapas e clientes — você edita os nomes/documentos. Roda depois do `01`. |
 | `04_duplicar_test_para_prod.md` | (Opcional) Passo a passo para deixar **produção igual ao teste** (restore do backup do teste em `ASMTasksProd`). |
+| `05_corrigir_matriz.sql` | Corrige vínculos de matriz inválidos (auto-referência por documento duplicado). Rode no **teste e na produção**. |
+
+## Correção de bugs pós-importação
+
+Com os dados reais apareceram 3 bugs, já corrigidos:
+
+1. **Matriz em branco** (cliente-matriz aparecia em branco e sumia da lista) — causado por
+   documentos duplicados que geravam auto-referência de `MatrizId`. Rode o **`05_corrigir_matriz.sql`**
+   nos dois bancos (teste e produção):
+   ```powershell
+   # exemplo para o TESTE (troque para prod: -d ASMTasksProd e o container/senha de prod)
+   docker cp "$dir\05_corrigir_matriz.sql" "asmtasks-test-sqlserver-1:/tmp/05.sql"
+   docker exec asmtasks-test-sqlserver-1 /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa `
+       -P "<SENHA>" -d ASMTasksTest -i /tmp/05.sql -No
+   ```
+2. **Não salvava cliente com mais de um e-mail** e **3. Visualização com textos sobrepostos** —
+   correções no frontend. Para aplicar, faça `git pull` e **rebuild** dos containers:
+   ```powershell
+   docker compose --project-name asmtasks-test --env-file .env.test `
+       -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+   # e o mesmo para asmtasks-prod / .env.prod
+   ```
 
 ### Sobre a conversão dos clientes
 O `cliente.sql` é um export do ERP legado (colunas `CLI_*`) e **não roda direto**

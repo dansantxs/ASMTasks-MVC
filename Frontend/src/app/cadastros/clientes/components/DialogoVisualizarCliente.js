@@ -152,11 +152,11 @@ function InfoSection({ title, icon, children }) {
 
 function InfoField({ label, value, icon, mono, color }) {
   return (
-    <div>
+    <div className="min-w-0">
       <p className="text-muted-foreground text-xs">{label}</p>
-      <div className="flex items-center gap-1">
-        {icon && <span className="text-muted-foreground">{icon}</span>}
-        <p className={`text-sm leading-tight ${mono ? 'font-mono text-xs' : ''} ${color || ''}`}>
+      <div className="flex items-start gap-1 min-w-0">
+        {icon && <span className="text-muted-foreground shrink-0 mt-0.5">{icon}</span>}
+        <p className={`text-sm leading-tight min-w-0 break-words ${mono ? 'font-mono text-xs' : ''} ${color || ''}`}>
           {value ?? ' '}
         </p>
       </div>

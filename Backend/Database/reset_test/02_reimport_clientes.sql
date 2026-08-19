@@ -1406,7 +1406,6 @@ UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'22.530.985/0001-08' ORDER BY Id) WHERE Documento = N'26.750.152/0001-03' AND MatrizId IS NULL; -- filial CLI_CODCLI=115 -> matriz CLI_CODCLI=522
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'26.456.167/0001-55' ORDER BY Id) WHERE Documento = N'10.357.097/0001-48' AND MatrizId IS NULL; -- filial CLI_CODCLI=140 -> matriz CLI_CODCLI=664
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.728.921/0001-87' ORDER BY Id) WHERE Documento = N'08.452.290/0001-16' AND MatrizId IS NULL; -- filial CLI_CODCLI=141 -> matriz CLI_CODCLI=693
-UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'16.965.664/0001-25' ORDER BY Id) WHERE Documento = N'16.965.664/0001-25' AND MatrizId IS NULL; -- filial CLI_CODCLI=177 -> matriz CLI_CODCLI=319
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'01.810.714/0001-28' ORDER BY Id) WHERE Documento = N'15.131.025/0001-00' AND MatrizId IS NULL; -- filial CLI_CODCLI=183 -> matriz CLI_CODCLI=237
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.076.260/0001-52' ORDER BY Id) WHERE Documento = N'13.453.316/0001-80' AND MatrizId IS NULL; -- filial CLI_CODCLI=184 -> matriz CLI_CODCLI=295
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'10.334.723/0001-80' ORDER BY Id) WHERE Documento = N'14.914.101/0001-82' AND MatrizId IS NULL; -- filial CLI_CODCLI=185 -> matriz CLI_CODCLI=567
@@ -1459,7 +1458,6 @@ UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'14.499.785/0001-01' ORDER BY Id) WHERE Documento = N'62.703.830/0001-32' AND MatrizId IS NULL; -- filial CLI_CODCLI=521 -> matriz CLI_CODCLI=322
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.921.706/0001-35' ORDER BY Id) WHERE Documento = N'07.921.706/0002-16' AND MatrizId IS NULL; -- filial CLI_CODCLI=523 -> matriz CLI_CODCLI=262
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'15.754.030/0001-60' ORDER BY Id) WHERE Documento = N'01.983.024/0001-70' AND MatrizId IS NULL; -- filial CLI_CODCLI=527 -> matriz CLI_CODCLI=250
-UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'04.583.006/0001-90' ORDER BY Id) WHERE Documento = N'04.583.006/0001-90' AND MatrizId IS NULL; -- filial CLI_CODCLI=538 -> matriz CLI_CODCLI=533
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'11.184.403/0001-54' ORDER BY Id) WHERE Documento = N'05.020.396/0001-52' AND MatrizId IS NULL; -- filial CLI_CODCLI=548 -> matriz CLI_CODCLI=246
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.005.424/0009-08' ORDER BY Id) WHERE Documento = N'26.882.438/0001-34' AND MatrizId IS NULL; -- filial CLI_CODCLI=581 -> matriz CLI_CODCLI=482
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'10.232.496/0001-82' ORDER BY Id) WHERE Documento = N'08.013.317/0002-55' AND MatrizId IS NULL; -- filial CLI_CODCLI=585 -> matriz CLI_CODCLI=239
@@ -1478,7 +1476,6 @@ UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'379.503.838-36' ORDER BY Id) WHERE Documento = N'54.427.851/0001-44' AND MatrizId IS NULL; -- filial CLI_CODCLI=661 -> matriz CLI_CODCLI=676
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'379.503.838-36' ORDER BY Id) WHERE Documento = N'18.463.060/0001-06' AND MatrizId IS NULL; -- filial CLI_CODCLI=662 -> matriz CLI_CODCLI=676
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.023.912/0001-90' ORDER BY Id) WHERE Documento = N'08.023.912/0002-71' AND MatrizId IS NULL; -- filial CLI_CODCLI=663 -> matriz CLI_CODCLI=261
-UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'24.166.015/0001-92' ORDER BY Id) WHERE Documento = N'24.166.015/0001-92' AND MatrizId IS NULL; -- filial CLI_CODCLI=665 -> matriz CLI_CODCLI=252
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'06.020.781/0001-62' ORDER BY Id) WHERE Documento = N'06.020.781/0002-43' AND MatrizId IS NULL; -- filial CLI_CODCLI=666 -> matriz CLI_CODCLI=122
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.927.465/0001-02' ORDER BY Id) WHERE Documento = N'27.663.270/0002-10' AND MatrizId IS NULL; -- filial CLI_CODCLI=669 -> matriz CLI_CODCLI=127
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.921.713/0001-37' ORDER BY Id) WHERE Documento = N'07.934.679/0001-35' AND MatrizId IS NULL; -- filial CLI_CODCLI=678 -> matriz CLI_CODCLI=677
@@ -1543,10 +1540,8 @@ UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.948.278/0001-34' ORDER BY Id) WHERE Documento = N'60.440.815/0002-02' AND MatrizId IS NULL; -- filial CLI_CODCLI=853 -> matriz CLI_CODCLI=286
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.023.912/0001-90' ORDER BY Id) WHERE Documento = N'08.023.912/0003-52' AND MatrizId IS NULL; -- filial CLI_CODCLI=856 -> matriz CLI_CODCLI=261
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'11.184.403/0001-54' ORDER BY Id) WHERE Documento = N'35.961.011/0001-12' AND MatrizId IS NULL; -- filial CLI_CODCLI=860 -> matriz CLI_CODCLI=246
-UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'33.358.938/0001-37' ORDER BY Id) WHERE Documento = N'33.358.938/0001-37' AND MatrizId IS NULL; -- filial CLI_CODCLI=866 -> matriz CLI_CODCLI=171
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'24.166.015/0001-92' ORDER BY Id) WHERE Documento = N'37.490.476/0001-68' AND MatrizId IS NULL; -- filial CLI_CODCLI=874 -> matriz CLI_CODCLI=252
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'12.439.399/0001-90' ORDER BY Id) WHERE Documento = N'37.382.021/0001-29' AND MatrizId IS NULL; -- filial CLI_CODCLI=881 -> matriz CLI_CODCLI=510
-UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.076.260/0001-52' ORDER BY Id) WHERE Documento = N'08.076.260/0001-52' AND MatrizId IS NULL; -- filial CLI_CODCLI=891 -> matriz CLI_CODCLI=295
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.023.912/0001-90' ORDER BY Id) WHERE Documento = N'08.023.912/0005-14' AND MatrizId IS NULL; -- filial CLI_CODCLI=896 -> matriz CLI_CODCLI=261
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'38.075.931/0001-21' ORDER BY Id) WHERE Documento = N'39.235.430/0001-28' AND MatrizId IS NULL; -- filial CLI_CODCLI=900 -> matriz CLI_CODCLI=884
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'04.135.712/0001-79' ORDER BY Id) WHERE Documento = N'38.731.110/0001-04' AND MatrizId IS NULL; -- filial CLI_CODCLI=904 -> matriz CLI_CODCLI=137
@@ -1592,7 +1587,6 @@ UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.939.399/0004-62' ORDER BY Id) WHERE Documento = N'07.939.399/0024-06' AND MatrizId IS NULL; -- filial CLI_CODCLI=970 -> matriz CLI_CODCLI=144
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'13.517.810/0001-61' ORDER BY Id) WHERE Documento = N'40.854.904/0001-07' AND MatrizId IS NULL; -- filial CLI_CODCLI=971 -> matriz CLI_CODCLI=337
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.216.683/0005-54' ORDER BY Id) WHERE Documento = N'08.216.683/0009-88' AND MatrizId IS NULL; -- filial CLI_CODCLI=974 -> matriz CLI_CODCLI=142
-UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'378.595.363-15' ORDER BY Id) WHERE Documento = N'378.595.363-15' AND MatrizId IS NULL; -- filial CLI_CODCLI=975 -> matriz CLI_CODCLI=631
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.023.912/0001-90' ORDER BY Id) WHERE Documento = N'41.260.311/0002-58' AND MatrizId IS NULL; -- filial CLI_CODCLI=980 -> matriz CLI_CODCLI=261
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.410.306/0001-65' ORDER BY Id) WHERE Documento = N'265.919.010-00' AND MatrizId IS NULL; -- filial CLI_CODCLI=988 -> matriz CLI_CODCLI=516
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'837.858.096-20' ORDER BY Id) WHERE Documento = N'41.488.158/0001-30' AND MatrizId IS NULL; -- filial CLI_CODCLI=991 -> matriz CLI_CODCLI=517
@@ -1723,7 +1717,6 @@ UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'04.545.573/0001-51' ORDER BY Id) WHERE Documento = N'303.570.898-39' AND MatrizId IS NULL; -- filial CLI_CODCLI=1295 -> matriz CLI_CODCLI=1048
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'41.642.878/0001-08' ORDER BY Id) WHERE Documento = N'57.565.231/0001-60' AND MatrizId IS NULL; -- filial CLI_CODCLI=1296 -> matriz CLI_CODCLI=1014
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'17.232.965/0001-02' ORDER BY Id) WHERE Documento = N'17.232.965/0003-74' AND MatrizId IS NULL; -- filial CLI_CODCLI=1297 -> matriz CLI_CODCLI=335
-UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'537.267.827-53' ORDER BY Id) WHERE Documento = N'537.267.827-53' AND MatrizId IS NULL; -- filial CLI_CODCLI=1301 -> matriz CLI_CODCLI=1299
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'705.654.906-30' ORDER BY Id) WHERE Documento = N'57.733.276/0001-04' AND MatrizId IS NULL; -- filial CLI_CODCLI=1302 -> matriz CLI_CODCLI=807
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.949.363/0001-17' ORDER BY Id) WHERE Documento = N'07.949.363/0002-06' AND MatrizId IS NULL; -- filial CLI_CODCLI=1305 -> matriz CLI_CODCLI=277
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.949.363/0001-17' ORDER BY Id) WHERE Documento = N'07.949.363/0014-31' AND MatrizId IS NULL; -- filial CLI_CODCLI=1306 -> matriz CLI_CODCLI=277
@@ -1736,7 +1729,6 @@ UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'21.868.825/0001-00' ORDER BY Id) WHERE Documento = N'56.021.153/0001-70' AND MatrizId IS NULL; -- filial CLI_CODCLI=1347 -> matriz CLI_CODCLI=1346
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.230.847/0001-74' ORDER BY Id) WHERE Documento = N'08.231.654/0001-38' AND MatrizId IS NULL; -- filial CLI_CODCLI=1353 -> matriz CLI_CODCLI=730
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'080.233.576-46' ORDER BY Id) WHERE Documento = N'53.277.727/0001-87' AND MatrizId IS NULL; -- filial CLI_CODCLI=1354 -> matriz CLI_CODCLI=1103
-UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'088.012.976-02' ORDER BY Id) WHERE Documento = N'088.012.976-02' AND MatrizId IS NULL; -- filial CLI_CODCLI=1357 -> matriz CLI_CODCLI=1277
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'476.573.839-68' ORDER BY Id) WHERE Documento = N'59.932.562/0001-16' AND MatrizId IS NULL; -- filial CLI_CODCLI=1359 -> matriz CLI_CODCLI=815
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.023.912/0001-90' ORDER BY Id) WHERE Documento = N'41.260.311/0008-43' AND MatrizId IS NULL; -- filial CLI_CODCLI=1366 -> matriz CLI_CODCLI=261
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'33.466.729/0001-07' ORDER BY Id) WHERE Documento = N'60.982.156/0001-47' AND MatrizId IS NULL; -- filial CLI_CODCLI=1370 -> matriz CLI_CODCLI=780
@@ -1758,14 +1750,6 @@ UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'07.968.661/0002-35' ORDER BY Id) WHERE Documento = N'07.968.661/0005-88' AND MatrizId IS NULL; -- filial CLI_CODCLI=1421 -> matriz CLI_CODCLI=276
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'21.257.788/0001-96' ORDER BY Id) WHERE Documento = N'50.618.949/0001-28' AND MatrizId IS NULL; -- filial CLI_CODCLI=1426 -> matriz CLI_CODCLI=869
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'41.740.270/0001-16' ORDER BY Id) WHERE Documento = N'11.353.655/0001-60' AND MatrizId IS NULL; -- filial CLI_CODCLI=1427 -> matriz CLI_CODCLI=987
-UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'451.140.646-49' ORDER BY Id) WHERE Documento = N'451.140.646-49' AND MatrizId IS NULL; -- filial CLI_CODCLI=1429 -> matriz CLI_CODCLI=1379
-UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'451.140.646-49' ORDER BY Id) WHERE Documento = N'451.140.646-49' AND MatrizId IS NULL; -- filial CLI_CODCLI=1430 -> matriz CLI_CODCLI=1379
-UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'451.140.646-49' ORDER BY Id) WHERE Documento = N'451.140.646-49' AND MatrizId IS NULL; -- filial CLI_CODCLI=1431 -> matriz CLI_CODCLI=1379
-UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'451.140.646-49' ORDER BY Id) WHERE Documento = N'451.140.646-49' AND MatrizId IS NULL; -- filial CLI_CODCLI=1432 -> matriz CLI_CODCLI=1379
-UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'451.140.646-49' ORDER BY Id) WHERE Documento = N'451.140.646-49' AND MatrizId IS NULL; -- filial CLI_CODCLI=1433 -> matriz CLI_CODCLI=1379
-UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'451.140.646-49' ORDER BY Id) WHERE Documento = N'451.140.646-49' AND MatrizId IS NULL; -- filial CLI_CODCLI=1434 -> matriz CLI_CODCLI=1379
-UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'451.140.646-49' ORDER BY Id) WHERE Documento = N'451.140.646-49' AND MatrizId IS NULL; -- filial CLI_CODCLI=1435 -> matriz CLI_CODCLI=1379
-UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'451.140.646-49' ORDER BY Id) WHERE Documento = N'451.140.646-49' AND MatrizId IS NULL; -- filial CLI_CODCLI=1436 -> matriz CLI_CODCLI=1379
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'451.140.646-49' ORDER BY Id) WHERE Documento = N'102.983.836-40' AND MatrizId IS NULL; -- filial CLI_CODCLI=1437 -> matriz CLI_CODCLI=1379
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'08.005.424/0009-08' ORDER BY Id) WHERE Documento = N'08.005.424/0014-75' AND MatrizId IS NULL; -- filial CLI_CODCLI=1446 -> matriz CLI_CODCLI=482
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'37.904.522/0001-28' ORDER BY Id) WHERE Documento = N'63.847.055/0001-51' AND MatrizId IS NULL; -- filial CLI_CODCLI=1448 -> matriz CLI_CODCLI=880
@@ -1815,6 +1799,13 @@ UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'44.937.731/0001-33' ORDER BY Id) WHERE Documento = N'44.937.731/0002-14' AND MatrizId IS NULL;
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'40.171.467/0001-19' ORDER BY Id) WHERE Documento = N'40.171.467/0003-80' AND MatrizId IS NULL;
 UPDATE Cliente SET MatrizId = (SELECT TOP 1 Id FROM Cliente WHERE Documento = N'40.171.467/0001-19' ORDER BY Id) WHERE Documento = N'40.171.467/0004-61' AND MatrizId IS NULL;
+
+-- Sanidade dos vinculos de matriz (documentos duplicados podem gerar lixo)
+UPDATE Cliente SET MatrizId = NULL WHERE MatrizId = Id;                        -- auto-referencias
+UPDATE Cliente SET MatrizId = NULL
+ WHERE MatrizId IS NOT NULL AND MatrizId NOT IN (SELECT Id FROM Cliente);       -- orfaos
+UPDATE Cliente SET MatrizId = NULL
+ WHERE Id IN (SELECT DISTINCT MatrizId FROM Cliente WHERE MatrizId IS NOT NULL); -- matriz nao e' filial
 
 COMMIT;
 PRINT 'Reimportacao de clientes concluida.';
