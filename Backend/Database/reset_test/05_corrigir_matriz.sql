@@ -36,10 +36,10 @@ PRINT 'Vinculos de matriz corrigidos.';
 
 -- Conferencia (deve retornar 0 nas tres)
 SELECT
-    SUM(CASE WHEN MatrizId = Id THEN 1 ELSE 0 END) AS AutoReferencias,
-    SUM(CASE WHEN MatrizId IS NOT NULL
-              AND MatrizId NOT IN (SELECT Id FROM Cliente) THEN 1 ELSE 0 END) AS Orfaos,
+    (SELECT COUNT(*) FROM Cliente WHERE MatrizId = Id) AS AutoReferencias,
     (SELECT COUNT(*) FROM Cliente c
-      WHERE c.Id IN (SELECT DISTINCT MatrizId FROM Cliente WHERE MatrizId IS NOT NULL)
-        AND c.MatrizId IS NOT NULL) AS MatrizesQueSaoFilhas
-FROM Cliente;
+       WHERE c.MatrizId IS NOT NULL
+         AND NOT EXISTS (SELECT 1 FROM Cliente m WHERE m.Id = c.MatrizId)) AS Orfaos,
+    (SELECT COUNT(*) FROM Cliente c
+       WHERE c.MatrizId IS NOT NULL
+         AND EXISTS (SELECT 1 FROM Cliente f WHERE f.MatrizId = c.Id)) AS MatrizesQueSaoFilhas;
