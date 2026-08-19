@@ -20,7 +20,8 @@ namespace API.DTOs.Clientes
         [StringLength(30)]
         public string? InscricaoEstadual { get; set; }
 
-        [EmailAddress]
+        // Sem [EmailAddress]: o campo aceita mais de um e-mail (separados por ; ou ,),
+        // como vem do ERP. A validacao de e-mail unico rejeitaria varios enderecos.
         [StringLength(200)]
         public string? Email { get; set; }
 
