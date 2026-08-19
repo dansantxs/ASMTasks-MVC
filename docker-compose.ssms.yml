@@ -1,0 +1,26 @@
+# Override opcional para acessar o SQL Server (container) pelo SSMS / Azure Data Studio.
+#
+# O compose de producao/teste NAO publica a porta do banco no host por seguranca.
+# Este arquivo publica a porta 1433 do container na porta 14333 da sua maquina,
+# apenas enquanto voce precisar inspecionar os dados.
+#
+# Uso (ambiente de TESTE):
+#   docker compose --project-name asmtasks-test --env-file .env.test `
+#     -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.ssms.yml up -d sqlserver
+#
+# Depois conecte no SSMS:
+#   Nome do servidor : localhost,14333
+#   Autenticacao     : Autenticacao do SQL Server
+#   Login            : sa
+#   Senha            : o DB_PASSWORD do .env.test
+#   Trust server certificate : marcado
+#
+# Para PARAR de expor a porta, suba de novo SEM este arquivo:
+#   docker compose --project-name asmtasks-test --env-file .env.test `
+#     -f docker-compose.yml -f docker-compose.prod.yml up -d sqlserver
+#
+# Ajuste PORT_DB no .env se 14333 estiver em uso.
+services:
+  sqlserver:
+    ports:
+      - "${PORT_DB:-14333}:1433"
