@@ -1,4 +1,4 @@
-export const VERSAO_ATUAL = '1.3.3';
+export const VERSAO_ATUAL = '1.4.0';
 
 /**
  * Regra de versionamento (major.minor.patch):
@@ -11,6 +11,15 @@ export const VERSAO_ATUAL = '1.3.3';
  *  2. Adicione uma nova entrada NO INÍCIO do array CHANGELOG.
  */
 export const CHANGELOG = [
+  {
+    versao: '1.4.0',
+    data: '2026-08-19',
+    titulo: 'Cronômetro Flutuante da Tarefa em Execução',
+    mudancas: [
+      'Nova barra flutuante, visível em qualquer tela do sistema, mostrando o cronômetro da tarefa em execução com opção de pausar direto por ali',
+      'Novo botão para abrir o cronômetro em uma mini-janela sempre no topo (Picture-in-Picture), que continua visível mesmo com o navegador minimizado — disponível no Chrome e Edge',
+    ],
+  },
   {
     versao: '1.3.3',
     data: '2026-08-19',
