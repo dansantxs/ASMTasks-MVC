@@ -164,6 +164,16 @@ export default function FormularioCliente({
     [matrizesRaw, exibicaoNomeCliente]
   );
 
+  // Usa o matrizId so' se ele existir na lista de matrizes elegiveis.
+  // Se apontar para algo invalido (ex.: auto-referencia/duplicado), trata como "Nenhuma"
+  // para nao ficar em branco e para o salvamento corrigir o vinculo.
+  const matrizIdEfetivo = useMemo(() => {
+    if (!formData.matrizId) return null;
+    return matrizes.some(m => String(m.id) === String(formData.matrizId))
+      ? formData.matrizId
+      : null;
+  }, [formData.matrizId, matrizes]);
+
   const documentoRef = useRef(null);
   const rgRef = useRef(null);
   const ieRef = useRef(null);
@@ -364,7 +374,7 @@ export default function FormularioCliente({
       numero: parseInt(formData.numero) || null,
       site: formData.site || null,
       dataReferencia: formData.dataReferencia || null,
-      matrizId: formData.matrizId || null
+      matrizId: matrizIdEfetivo || null
     };
 
     aoSalvar(dataToSave);
@@ -510,7 +520,7 @@ export default function FormularioCliente({
                 <Label>Empresa Matriz</Label>
                 <div className="flex gap-2">
                   <Select
-                    value={formData.matrizId ? String(formData.matrizId) : '__none__'}
+                    value={matrizIdEfetivo ? String(matrizIdEfetivo) : '__none__'}
                     onValueChange={(value) => {
                       if (value === '__none__') {
                         setFormData(prev => ({ ...prev, matrizId: null, nomeMatrizSelecionada: '' }));
