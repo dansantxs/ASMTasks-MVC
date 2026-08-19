@@ -571,10 +571,12 @@ export default function FormularioCliente({
                 <Label htmlFor="email">E-mail</Label>
                 <Input
                   id="email"
-                  type="email"
+                  type="text"
+                  inputMode="email"
                   value={formData.email}
                   onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                  placeholder="exemplo@dominio.com"
+                  placeholder="exemplo@dominio.com; outro@dominio.com"
+                  title="Aceita mais de um e-mail, separados por ; ou ,"
                 />
               </div>
 

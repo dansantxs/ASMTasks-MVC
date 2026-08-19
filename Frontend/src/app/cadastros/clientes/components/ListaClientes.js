@@ -92,7 +92,7 @@ export default function ListaClientes({
             </p>
           )}
           {cliente.email && (
-            <p>
+            <p className="break-words">
               <span className="font-medium">Email:</span> {cliente.email}
             </p>
           )}
