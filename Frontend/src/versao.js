@@ -1,4 +1,4 @@
-export const VERSAO_ATUAL = '1.3.2';
+export const VERSAO_ATUAL = '1.3.3';
 
 /**
  * Regra de versionamento (major.minor.patch):
@@ -11,6 +11,16 @@ export const VERSAO_ATUAL = '1.3.2';
  *  2. Adicione uma nova entrada NO INÍCIO do array CHANGELOG.
  */
 export const CHANGELOG = [
+  {
+    versao: '1.3.3',
+    data: '2026-08-19',
+    titulo: 'Correção de Sessão Expirando Cedo Demais',
+    mudancas: [
+      'Correção: sessão não durava mais o tempo esperado — havia um logout automático por 30 min de inatividade que derrubava o usuário antes do token expirar',
+      'Sessão agora dura exatamente o tempo do token de autenticação (4 horas), sem logout por inatividade',
+      'Se a sessão expirar sem logout manual, qualquer tarefa deixada em andamento é pausada automaticamente (ex.: esqueceu de pausar antes do almoço ou ao sair)',
+    ],
+  },
   {
     versao: '1.3.2',
     data: '2026-08-18',
