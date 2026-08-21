@@ -1,4 +1,4 @@
-export const VERSAO_ATUAL = '1.5.0';
+export const VERSAO_ATUAL = '1.5.1';
 
 /**
  * Regra de versionamento (major.minor.patch):
@@ -11,6 +11,14 @@ export const VERSAO_ATUAL = '1.5.0';
  *  2. Adicione uma nova entrada NO INÍCIO do array CHANGELOG.
  */
 export const CHANGELOG = [
+  {
+    versao: '1.5.1',
+    data: '2026-08-21',
+    titulo: 'Correção de Conflito de Horário em Atendimentos',
+    mudancas: [
+      'Correção: a verificação de conflito de horário na agenda de atendimentos não considera mais atendimentos já concluídos, apenas os agendados',
+    ],
+  },
   {
     versao: '1.5.0',
     data: '2026-08-21',
