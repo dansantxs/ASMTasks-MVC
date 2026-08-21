@@ -1,4 +1,4 @@
-export const VERSAO_ATUAL = '1.4.0';
+export const VERSAO_ATUAL = '1.4.1';
 
 /**
  * Regra de versionamento (major.minor.patch):
@@ -11,6 +11,16 @@ export const VERSAO_ATUAL = '1.4.0';
  *  2. Adicione uma nova entrada NO INÍCIO do array CHANGELOG.
  */
 export const CHANGELOG = [
+  {
+    versao: '1.4.1',
+    data: '2026-08-21',
+    titulo: 'Organização de Documentação e Banco de Dados',
+    mudancas: [
+      'Documentação: todos os comandos PowerShell usados no dia a dia (setup, subir containers, atualizar o servidor, backup, restore e console SQL) agora estão reunidos em um único guia (GUIA-POWERSHELL.md)',
+      'Banco de dados: correção do script de criação do banco (schema.sql) — um banco novo criado do zero já nasce com as colunas de Tempo de Execução/Teste e Etapa de Teste, sem precisar de migration separada',
+      'Limpeza: removidos scripts e migrations já aplicados que não eram mais necessários no repositório',
+    ],
+  },
   {
     versao: '1.4.0',
     data: '2026-08-19',

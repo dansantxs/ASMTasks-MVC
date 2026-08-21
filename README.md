@@ -18,10 +18,8 @@ Execute o script de setup na raiz do projeto:
 
 O script configura o backend, aplica o banco de dados e prepara o frontend automaticamente.
 
-> **Banco no Docker (dev):** para rodar só o SQL Server em container na sua
-> máquina — inclusive restaurando um backup `.bak` do servidor e visualizando os
-> dados no SSMS / Azure Data Studio — veja
-> [`Backend/Database/BANCO-LOCAL-DOCKER.md`](Backend/Database/BANCO-LOCAL-DOCKER.md).
+> **Comandos PowerShell (setup, containers, deploy, backup, restore, console SQL):**
+> veja o guia único em [`GUIA-POWERSHELL.md`](GUIA-POWERSHELL.md).
 
 ---
 
@@ -140,7 +138,7 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.d
 ```
 
 Detalhes de restauração de backup `.bak` e acesso via SSMS / Azure Data Studio em
-[`Backend/Database/BANCO-LOCAL-DOCKER.md`](Backend/Database/BANCO-LOCAL-DOCKER.md).
+[`GUIA-POWERSHELL.md`](GUIA-POWERSHELL.md).
 
 ### Stack completa (dev)
 
@@ -160,7 +158,7 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.
 
 > O schema e os dados iniciais precisam ser aplicados ao banco em container na
 > primeira execução (`schema.sql` e `seed.sql`) — veja a seção
-> [Instalação manual](#1-banco-de-dados) e o guia de banco no Docker acima.
+> [Instalação manual](#1-banco-de-dados) e o [`GUIA-POWERSHELL.md`](GUIA-POWERSHELL.md).
 
 ---
 
@@ -196,5 +194,6 @@ ASMTasks-MVC/
 ├── .env.dev.example            # Variáveis de ambiente (dev)
 ├── .env.prod.example           # Variáveis de ambiente (produção)
 ├── setup.ps1                   # Script de instalação automatizada
+├── GUIA-POWERSHELL.md          # Guia único: setup, containers, deploy, backup, restore, console SQL
 └── README.md
 ```
