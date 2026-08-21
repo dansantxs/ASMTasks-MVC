@@ -104,7 +104,7 @@ namespace API.Models
                 throw new ValidationException("O limite de tamanho para Excel deve ser entre 1 e 500 MB.");
 
             if (AnexoLimiteDocumentoMB.HasValue && (AnexoLimiteDocumentoMB.Value <= 0 || AnexoLimiteDocumentoMB.Value > 500))
-                throw new ValidationException("O limite de tamanho para XML/OFX/Retorno bancário deve ser entre 1 e 500 MB.");
+                throw new ValidationException("O limite de tamanho para XML/OFX/REM/RET deve ser entre 1 e 500 MB.");
         }
 
         public bool PossuiConfiguracaoEmailCompleta()

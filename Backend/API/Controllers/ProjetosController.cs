@@ -26,15 +26,15 @@ namespace API.Controllers
             "application/vnd.ms-excel"                                            // .xls
         ];
 
-        // Arquivos de texto (XML e retorno/remessa bancária) não têm Content-Type
+        // Arquivos de texto (XML, OFX, REM e RET) não têm Content-Type
         // confiável no navegador (costuma vir vazio ou application/octet-stream),
         // então são identificados pela extensão, não pelo que o navegador declarou.
         private static readonly Dictionary<string, string> _extensoesTextoPermitidas = new()
         {
             [".xml"] = "text/xml",
             [".ofx"] = "application/x-ofx",
-            [".ret"] = "text/plain", // retorno bancário (CNAB)
-            [".rem"] = "text/plain", // remessa bancária (CNAB)
+            [".ret"] = "text/plain", // RET (CNAB)
+            [".rem"] = "text/plain", // REM (CNAB)
         };
 
         // Assinaturas de magic bytes por tipo MIME: cada entrada é uma lista de prefixos válidos.
@@ -802,7 +802,7 @@ namespace API.Controllers
             var contentType = ehArquivoTexto ? contentTypeTexto! : arquivo.ContentType.ToLower();
 
             if (!ehArquivoTexto && !_tiposArquivoPermitidos.Contains(contentType))
-                return BadRequest(new { erro = "Tipo de arquivo não permitido. São aceitos: JPEG, PNG, GIF, WebP, PDF, Excel (XLS/XLSX), XML, OFX e retorno bancário (REM/RET)." });
+                return BadRequest(new { erro = "Tipo de arquivo não permitido. São aceitos: JPEG, PNG, GIF, WebP, PDF, Excel (XLS/XLSX), XML, OFX, REM e RET." });
 
             try
             {

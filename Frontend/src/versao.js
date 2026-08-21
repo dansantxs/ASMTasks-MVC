@@ -14,10 +14,10 @@ export const CHANGELOG = [
   {
     versao: '1.5.0',
     data: '2026-08-21',
-    titulo: 'Anexos de XML, OFX e Retorno Bancário',
+    titulo: 'Anexos de XML, OFX, REM e RET',
     mudancas: [
-      'Anexos de tarefa agora aceitam também arquivos XML, OFX e de retorno/remessa bancária (REM/RET), além de imagens, PDF e Excel',
-      'Configurações do sistema: novo campo de limite de tamanho específico para XML/OFX/Retorno bancário, seguindo o mesmo padrão de imagens, PDF e Excel',
+      'Anexos de tarefa agora aceitam também arquivos XML, OFX, REM e RET, além de imagens, PDF e Excel',
+      'Configurações do sistema: novo campo de limite de tamanho específico para XML/OFX/REM/RET, seguindo o mesmo padrão de imagens, PDF e Excel',
     ],
   },
   {

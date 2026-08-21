@@ -21,7 +21,7 @@ const TIPOS_ACEITOS = [
   'application/x-ofx',
 ];
 
-// .ret/.rem (retorno/remessa bancária) não têm Content-Type padrão no navegador
+// .ret/.rem (REM e RET) não têm Content-Type padrão no navegador
 // — são aceitos só pela extensão do arquivo.
 const EXTENSOES_TEXTO_ACEITAS = ['.xml', '.ofx', '.ret', '.rem'];
 
@@ -363,7 +363,7 @@ export default function DialogoAnexosTarefa({ open, onOpenChange, tarefaId, tare
                 {uploadando ? 'Enviando...' : 'Adicionar arquivo'}
               </button>
               <p className="text-xs text-gray-400 text-center mt-1.5">
-                JPEG, PNG, GIF, WebP, PDF, Excel (XLS/XLSX), XML, OFX ou retorno bancário (REM/RET) · máx. {config?.anexoTamanhoMaximoMB ?? 20} MB
+                JPEG, PNG, GIF, WebP, PDF, Excel (XLS/XLSX), XML, OFX, REM ou RET · máx. {config?.anexoTamanhoMaximoMB ?? 20} MB
               </p>
             </div>
           </Dialog.Content>

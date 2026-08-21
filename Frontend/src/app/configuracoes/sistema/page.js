@@ -626,7 +626,7 @@ export default function ConfiguracoesSistemaPage() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="anexoLimiteDocumentoMB">Limite para XML/OFX/Retorno bancário (MB)</Label>
+                  <Label htmlFor="anexoLimiteDocumentoMB">Limite para XML/OFX/REM/RET (MB)</Label>
                   <Input
                     id="anexoLimiteDocumentoMB"
                     type="number"
