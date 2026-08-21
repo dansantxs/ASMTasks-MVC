@@ -58,6 +58,7 @@ namespace API.Controllers
                     AnexoLimiteImagemMB = request.AnexoLimiteImagemMB,
                     AnexoLimitePdfMB = request.AnexoLimitePdfMB,
                     AnexoLimiteExcelMB = request.AnexoLimiteExcelMB,
+                    AnexoLimiteDocumentoMB = request.AnexoLimiteDocumentoMB,
                     ExibicaoNomeCliente = request.ExibicaoNomeCliente == "nomeFantasia" ? "nomeFantasia" : "razaoSocial"
                 };
 
@@ -110,6 +111,7 @@ namespace API.Controllers
                 AnexoLimiteImagemMB = configuracao.AnexoLimiteImagemMB,
                 AnexoLimitePdfMB = configuracao.AnexoLimitePdfMB,
                 AnexoLimiteExcelMB = configuracao.AnexoLimiteExcelMB,
+                AnexoLimiteDocumentoMB = configuracao.AnexoLimiteDocumentoMB,
                 ExibicaoNomeCliente = configuracao.ExibicaoNomeCliente
             };
         }

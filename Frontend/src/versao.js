@@ -1,4 +1,4 @@
-export const VERSAO_ATUAL = '1.4.1';
+export const VERSAO_ATUAL = '1.5.0';
 
 /**
  * Regra de versionamento (major.minor.patch):
@@ -11,6 +11,15 @@ export const VERSAO_ATUAL = '1.4.1';
  *  2. Adicione uma nova entrada NO INÍCIO do array CHANGELOG.
  */
 export const CHANGELOG = [
+  {
+    versao: '1.5.0',
+    data: '2026-08-21',
+    titulo: 'Anexos de XML, OFX, REM e RET',
+    mudancas: [
+      'Anexos de tarefa agora aceitam também arquivos XML, OFX, REM e RET, além de imagens, PDF e Excel',
+      'Configurações do sistema: novo campo de limite de tamanho específico para XML/OFX/REM/RET, seguindo o mesmo padrão de imagens, PDF e Excel',
+    ],
+  },
   {
     versao: '1.4.1',
     data: '2026-08-21',

@@ -38,6 +38,7 @@ namespace API.Models
         public int? AnexoLimiteImagemMB { get; set; }
         public int? AnexoLimitePdfMB { get; set; }
         public int? AnexoLimiteExcelMB { get; set; }
+        public int? AnexoLimiteDocumentoMB { get; set; }
 
         public string ExibicaoNomeCliente { get; set; } = "razaoSocial";
 
@@ -101,6 +102,9 @@ namespace API.Models
 
             if (AnexoLimiteExcelMB.HasValue && (AnexoLimiteExcelMB.Value <= 0 || AnexoLimiteExcelMB.Value > 500))
                 throw new ValidationException("O limite de tamanho para Excel deve ser entre 1 e 500 MB.");
+
+            if (AnexoLimiteDocumentoMB.HasValue && (AnexoLimiteDocumentoMB.Value <= 0 || AnexoLimiteDocumentoMB.Value > 500))
+                throw new ValidationException("O limite de tamanho para XML/OFX/REM/RET deve ser entre 1 e 500 MB.");
         }
 
         public bool PossuiConfiguracaoEmailCompleta()

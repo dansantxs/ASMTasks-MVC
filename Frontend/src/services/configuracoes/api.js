@@ -29,6 +29,7 @@ export const configuracoesPadrao = {
   anexoLimiteImagemMB: null,
   anexoLimitePdfMB: null,
   anexoLimiteExcelMB: null,
+  anexoLimiteDocumentoMB: null,
   exibicaoNomeCliente: 'razaoSocial',
 };
 
@@ -86,6 +87,7 @@ function normalizarConfiguracoes(dados) {
     anexoLimiteImagemMB: mesclado.anexoLimiteImagemMB ?? null,
     anexoLimitePdfMB: mesclado.anexoLimitePdfMB ?? null,
     anexoLimiteExcelMB: mesclado.anexoLimiteExcelMB ?? null,
+    anexoLimiteDocumentoMB: mesclado.anexoLimiteDocumentoMB ?? null,
     exibicaoNomeCliente: mesclado.exibicaoNomeCliente === 'nomeFantasia' ? 'nomeFantasia' : 'razaoSocial',
   };
 }
