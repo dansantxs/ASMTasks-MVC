@@ -31,6 +31,7 @@ import { cadastroItems, relatorioItems } from '../utils/menuItems';
 import { temPermissao, permissoesTelas } from '../services/auth/permissions';
 import { respostaPadraoNotificacoes, buscarNotificacoes, marcarNotificacaoLida } from '../services/notificacoes/api';
 import { useConfiguracoesSistema } from '../services/configuracoes/api';
+import { solicitarPermissaoNotificacao, exibirNotificacaoNativa } from '../utils/notificacoesNavegador';
 import { toast } from 'sonner';
 
 function formatarDataHora(valor) {
@@ -164,6 +165,10 @@ export function BarraLateral({ caminhoAtual, aoNavegar, aoAlternarRecolhimento, 
   const notificacoes = dadosNotificacoes.itens ?? [];
 
   useEffect(() => {
+    solicitarPermissaoNotificacao();
+  }, []);
+
+  useEffect(() => {
     const naoLidas = notificacoes.filter((item) => !item.lida);
     const jaRastreadas = idsNaoLidasNotificadasRef.current;
 
@@ -178,6 +183,9 @@ export function BarraLateral({ caminhoAtual, aoNavegar, aoAlternarRecolhimento, 
       jaRastreadas.add(item.id);
       toast(item.titulo || 'Lembrete de atendimento', {
         description: item.mensagem || 'Você recebeu uma nova notificação.',
+      });
+      exibirNotificacaoNativa(item.titulo || 'Lembrete de atendimento', {
+        body: item.mensagem || 'Você recebeu uma nova notificação.',
       });
     });
 

@@ -1,4 +1,4 @@
-export const VERSAO_ATUAL = '1.4.0';
+export const VERSAO_ATUAL = '1.5.0';
 
 /**
  * Regra de versionamento (major.minor.patch):
@@ -11,6 +11,14 @@ export const VERSAO_ATUAL = '1.4.0';
  *  2. Adicione uma nova entrada NO INÍCIO do array CHANGELOG.
  */
 export const CHANGELOG = [
+  {
+    versao: '1.5.0',
+    data: '2026-08-21',
+    titulo: 'Notificação Nativa do Windows/Navegador',
+    mudancas: [
+      'Notificações do sistema agora também aparecem como notificação nativa do Windows (via Chrome/Edge) quando a aba estiver em segundo plano — pede permissão do navegador na primeira vez',
+    ],
+  },
   {
     versao: '1.4.0',
     data: '2026-08-19',
