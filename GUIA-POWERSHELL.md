@@ -7,6 +7,56 @@ antigos `BANCO-LOCAL-DOCKER.md`, `BACKUP-AUTOMATICO.md` e `DB-CONSOLE.md`
 
 ---
 
+## 0. Antes de tudo: liberar a execução de scripts (execution policy)
+
+Numa máquina Windows recém-configurada, o PowerShell **bloqueia** os `.ps1`
+deste projeto e mostra um erro assim:
+
+```
+.\restore-local.ps1 : O arquivo ...\restore-local.ps1 não pode ser carregado.
+O arquivo ...\restore-local.ps1 não está assinado digitalmente.
+Não é possível executar este script no sistema atual.
+    + FullyQualifiedErrorId : UnauthorizedAccess
+```
+
+Isso é a *execution policy* do PowerShell, não um problema do script. Os
+scripts do projeto não têm assinatura digital, então a política padrão os
+recusa. Também aparece o erro `CommandNotFoundException` (`.\restore-local.ps1`
+não é reconhecido) quando você **não está na pasta do script** — nesse caso
+basta `cd` para a pasta certa (ex.: `cd Backend\Database`) antes de rodar.
+
+Escolha **uma** das opções abaixo (da mais recomendada para a menos):
+
+```powershell
+# A) Liberar só o seu usuário, uma vez (recomendado, permanente).
+#    RemoteSigned permite scripts locais e exige assinatura só para os baixados.
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+# responda "S" (Sim) quando perguntar.
+
+# B) Liberar só a janela atual do PowerShell (temporário, não altera nada global).
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+#    ...e então rode o script normalmente nesta mesma janela.
+
+# C) Rodar um script específico sem mudar política nenhuma.
+powershell -ExecutionPolicy Bypass -File .\restore-local.ps1 -BakPath "C:\...\backup.bak"
+```
+
+> **Arquivo baixado / vindo do GitHub (Mark of the Web):** se, mesmo com a
+> política em `RemoteSigned`, o script continuar sendo recusado por "não estar
+> assinado", ele veio marcado como baixado da internet. Desmarque com
+> `Unblock-File`:
+>
+> ```powershell
+> # um arquivo
+> Unblock-File .\restore-local.ps1
+> # ou todos os scripts do projeto de uma vez
+> Get-ChildItem -Recurse -Filter *.ps1 | Unblock-File
+> ```
+
+Para conferir a política atual: `Get-ExecutionPolicy -List`.
+
+---
+
 ## 1. Setup inicial (ambiente de desenvolvimento local)
 
 Na raiz do repositório:
