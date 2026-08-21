@@ -1,4 +1,4 @@
-export const VERSAO_ATUAL = '1.4.0';
+export const VERSAO_ATUAL = '1.5.0';
 
 /**
  * Regra de versionamento (major.minor.patch):
@@ -11,6 +11,14 @@ export const VERSAO_ATUAL = '1.4.0';
  *  2. Adicione uma nova entrada NO INÍCIO do array CHANGELOG.
  */
 export const CHANGELOG = [
+  {
+    versao: '1.5.0',
+    data: '2026-08-21',
+    titulo: 'Anexos de XML, OFX e Retorno Bancário',
+    mudancas: [
+      'Anexos de tarefa agora aceitam também arquivos XML, OFX e de retorno/remessa bancária (REM/RET), além de imagens, PDF e Excel',
+    ],
+  },
   {
     versao: '1.4.0',
     data: '2026-08-19',

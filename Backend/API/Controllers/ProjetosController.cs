@@ -26,6 +26,17 @@ namespace API.Controllers
             "application/vnd.ms-excel"                                            // .xls
         ];
 
+        // Arquivos de texto (XML e retorno/remessa bancária) não têm Content-Type
+        // confiável no navegador (costuma vir vazio ou application/octet-stream),
+        // então são identificados pela extensão, não pelo que o navegador declarou.
+        private static readonly Dictionary<string, string> _extensoesTextoPermitidas = new()
+        {
+            [".xml"] = "text/xml",
+            [".ofx"] = "application/x-ofx",
+            [".ret"] = "text/plain", // retorno bancário (CNAB)
+            [".rem"] = "text/plain", // remessa bancária (CNAB)
+        };
+
         // Assinaturas de magic bytes por tipo MIME: cada entrada é uma lista de prefixos válidos.
         private static readonly Dictionary<string, byte[][]> _magicBytes = new()
         {
@@ -43,6 +54,13 @@ namespace API.Controllers
             if (!_magicBytes.TryGetValue(contentType, out var assinaturas))
                 return false;
             return assinaturas.Any(sig => cabecalho.Length >= sig.Length && sig.SequenceEqual(cabecalho[..sig.Length]));
+        }
+
+        // Para arquivos de texto não há magic bytes binários: valida só que o
+        // conteúdo não é binário (sem byte nulo), rejeitando disfarces de .exe/.zip etc.
+        private static bool ValidarConteudoTexto(byte[] conteudo)
+        {
+            return conteudo.Length > 0 && !conteudo.Contains((byte)0);
         }
 
         private static long ObterLimiteTamanhoBytes(ConfiguracaoSistema config, string contentType)
@@ -777,10 +795,12 @@ namespace API.Controllers
             if (arquivo == null || arquivo.Length == 0)
                 return BadRequest(new { erro = "Nenhum arquivo enviado." });
 
-            var contentType = arquivo.ContentType.ToLower();
+            var extensao = Path.GetExtension(arquivo.FileName ?? string.Empty).ToLowerInvariant();
+            var ehArquivoTexto = _extensoesTextoPermitidas.TryGetValue(extensao, out var contentTypeTexto);
+            var contentType = ehArquivoTexto ? contentTypeTexto! : arquivo.ContentType.ToLower();
 
-            if (!_tiposArquivoPermitidos.Contains(contentType))
-                return BadRequest(new { erro = "Tipo de arquivo não permitido. São aceitos: JPEG, PNG, GIF, WebP, PDF e Excel (XLS/XLSX)." });
+            if (!ehArquivoTexto && !_tiposArquivoPermitidos.Contains(contentType))
+                return BadRequest(new { erro = "Tipo de arquivo não permitido. São aceitos: JPEG, PNG, GIF, WebP, PDF, Excel (XLS/XLSX), XML, OFX e retorno bancário (REM/RET)." });
 
             try
             {
@@ -798,7 +818,7 @@ namespace API.Controllers
                 var cabecalho = new byte[Math.Min(12, (int)memStream.Length)];
                 _ = await memStream.ReadAsync(cabecalho);
 
-                if (!ValidarMagicBytes(cabecalho, contentType))
+                if (ehArquivoTexto ? !ValidarConteudoTexto(memStream.ToArray()) : !ValidarMagicBytes(cabecalho, contentType))
                     return BadRequest(new { erro = "O conteúdo do arquivo não corresponde ao tipo declarado." });
 
                 var existe = await _projetosDAO.TarefaExisteAsync(_dbContext, id);
