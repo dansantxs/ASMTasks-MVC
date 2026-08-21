@@ -178,6 +178,7 @@ export default function DialogoAnexosTarefa({ open, onOpenChange, tarefaId, tare
     if (ct === 'application/pdf') return config?.anexoLimitePdfMB ?? config?.anexoTamanhoMaximoMB ?? 20;
     if (ct === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || ct === 'application/vnd.ms-excel')
       return config?.anexoLimiteExcelMB ?? config?.anexoTamanhoMaximoMB ?? 20;
+    if (isArquivoTexto(ct, file.name)) return config?.anexoLimiteDocumentoMB ?? config?.anexoTamanhoMaximoMB ?? 20;
     return config?.anexoTamanhoMaximoMB ?? 20;
   };
 

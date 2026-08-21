@@ -588,7 +588,7 @@ export default function ConfiguracoesSistemaPage() {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                 <div>
                   <Label htmlFor="anexoLimiteImagemMB">Limite para imagens (MB)</Label>
                   <Input
@@ -623,6 +623,18 @@ export default function ConfiguracoesSistemaPage() {
                     placeholder={`Padrão: ${form.anexoTamanhoMaximoMB ?? 20} MB`}
                     value={form.anexoLimiteExcelMB ?? ''}
                     onChange={(e) => setForm((prev) => ({ ...prev, anexoLimiteExcelMB: e.target.value === '' ? null : Number(e.target.value) }))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="anexoLimiteDocumentoMB">Limite para XML/OFX/Retorno bancário (MB)</Label>
+                  <Input
+                    id="anexoLimiteDocumentoMB"
+                    type="number"
+                    min="1"
+                    max="500"
+                    placeholder={`Padrão: ${form.anexoTamanhoMaximoMB ?? 20} MB`}
+                    value={form.anexoLimiteDocumentoMB ?? ''}
+                    onChange={(e) => setForm((prev) => ({ ...prev, anexoLimiteDocumentoMB: e.target.value === '' ? null : Number(e.target.value) }))}
                   />
                 </div>
               </div>

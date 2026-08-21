@@ -63,16 +63,18 @@ namespace API.Controllers
             return conteudo.Length > 0 && !conteudo.Contains((byte)0);
         }
 
-        private static long ObterLimiteTamanhoBytes(ConfiguracaoSistema config, string contentType)
+        private static long ObterLimiteTamanhoBytes(ConfiguracaoSistema config, string contentType, bool ehArquivoTexto)
         {
-            int? limiteMb = contentType.StartsWith("image/")
-                ? config.AnexoLimiteImagemMB
-                : contentType == "application/pdf"
-                    ? config.AnexoLimitePdfMB
-                    : (contentType == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                       || contentType == "application/vnd.ms-excel")
-                        ? config.AnexoLimiteExcelMB
-                        : null;
+            int? limiteMb = ehArquivoTexto
+                ? config.AnexoLimiteDocumentoMB
+                : contentType.StartsWith("image/")
+                    ? config.AnexoLimiteImagemMB
+                    : contentType == "application/pdf"
+                        ? config.AnexoLimitePdfMB
+                        : (contentType == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                           || contentType == "application/vnd.ms-excel")
+                            ? config.AnexoLimiteExcelMB
+                            : null;
 
             var mb = limiteMb is > 0 ? limiteMb.Value
                    : config.AnexoTamanhoMaximoMB > 0 ? config.AnexoTamanhoMaximoMB
@@ -805,7 +807,7 @@ namespace API.Controllers
             try
             {
                 var config = await ConfiguracaoSistema.ObterAsync(_dbContext);
-                var tamanhoMaximo = ObterLimiteTamanhoBytes(config, contentType);
+                var tamanhoMaximo = ObterLimiteTamanhoBytes(config, contentType, ehArquivoTexto);
 
                 if (arquivo.Length > tamanhoMaximo)
                     return BadRequest(new { erro = $"O arquivo excede o tamanho máximo de {tamanhoMaximo / (1024 * 1024)} MB para este tipo." });
