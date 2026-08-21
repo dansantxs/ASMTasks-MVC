@@ -347,6 +347,7 @@ namespace API.DB.DAOs
                 FROM Atendimento a
                 INNER JOIN AtendimentoColaborador ac ON ac.AtendimentoId = a.Id
                 WHERE ac.ColaboradorId = @ColaboradorId
+                  AND a.Status <> 'R'
                   AND (@AtendimentoIdIgnorar IS NULL OR a.Id <> @AtendimentoIdIgnorar)
                   AND @NovoInicio < COALESCE(a.DataHoraFim, DATEADD(MINUTE, 1, a.DataHoraInicio))
                   AND a.DataHoraInicio < COALESCE(@NovoFim, DATEADD(MINUTE, 1, @NovoInicio));

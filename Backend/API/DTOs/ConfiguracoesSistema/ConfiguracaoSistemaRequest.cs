@@ -76,6 +76,9 @@ namespace API.DTOs.ConfiguracoesSistema
         [Range(1, 500)]
         public int? AnexoLimiteExcelMB { get; set; }
 
+        [Range(1, 500)]
+        public int? AnexoLimiteDocumentoMB { get; set; }
+
         [StringLength(20)]
         public string? ExibicaoNomeCliente { get; set; }
     }

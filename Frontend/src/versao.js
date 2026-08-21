@@ -1,4 +1,4 @@
-export const VERSAO_ATUAL = '1.5.0';
+export const VERSAO_ATUAL = '1.6.0';
 
 /**
  * Regra de versionamento (major.minor.patch):
@@ -12,11 +12,32 @@ export const VERSAO_ATUAL = '1.5.0';
  */
 export const CHANGELOG = [
   {
-    versao: '1.5.0',
+    versao: '1.6.0',
     data: '2026-08-21',
     titulo: 'Notificação Nativa do Windows/Navegador',
     mudancas: [
       'Notificações do sistema agora também aparecem como notificação nativa do Windows (via Chrome/Edge) quando a aba estiver em segundo plano — pede permissão do navegador na primeira vez',
+      'Correção: notificação marcada como lida agora some da lista, em vez de continuar aparecendo com a etiqueta "Lida" para sempre',
+    ],
+  },
+  {
+    versao: '1.5.0',
+    data: '2026-08-21',
+    titulo: 'Anexos de XML, OFX, REM e RET',
+    mudancas: [
+      'Anexos de tarefa agora aceitam também arquivos XML, OFX, REM e RET, além de imagens, PDF e Excel',
+      'Configurações do sistema: novo campo de limite de tamanho específico para XML/OFX/REM/RET, seguindo o mesmo padrão de imagens, PDF e Excel',
+      'Correção: a verificação de conflito de horário na agenda de atendimentos não considera mais atendimentos já concluídos, apenas os agendados',
+    ],
+  },
+  {
+    versao: '1.4.1',
+    data: '2026-08-21',
+    titulo: 'Organização de Documentação e Banco de Dados',
+    mudancas: [
+      'Documentação: todos os comandos PowerShell usados no dia a dia (setup, subir containers, atualizar o servidor, backup, restore e console SQL) agora estão reunidos em um único guia (GUIA-POWERSHELL.md)',
+      'Banco de dados: correção do script de criação do banco (schema.sql) — um banco novo criado do zero já nasce com as colunas de Tempo de Execução/Teste e Etapa de Teste, sem precisar de migration separada',
+      'Limpeza: removidos scripts e migrations já aplicados que não eram mais necessários no repositório',
     ],
   },
   {

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { X, Upload, Trash2, ZoomIn, Paperclip, FileText, Table2 } from 'lucide-react';
+import { X, Upload, Trash2, ZoomIn, Paperclip, FileText, Table2, FileCode } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { getAnexosTarefa, uploadAnexoTarefa, deletarAnexoTarefa, fetchAnexoComoBlob } from '../kanban/api/kanban';
@@ -16,9 +16,21 @@ const TIPOS_ACEITOS = [
   'application/pdf',
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   'application/vnd.ms-excel',
+  'text/xml',
+  'application/xml',
+  'application/x-ofx',
 ];
 
-const ACCEPT_INPUT = TIPOS_ACEITOS.join(',');
+// .ret/.rem (REM e RET) não têm Content-Type padrão no navegador
+// — são aceitos só pela extensão do arquivo.
+const EXTENSOES_TEXTO_ACEITAS = ['.xml', '.ofx', '.ret', '.rem'];
+
+const ACCEPT_INPUT = [...TIPOS_ACEITOS, ...EXTENSOES_TEXTO_ACEITAS].join(',');
+
+function obterExtensao(nomeArquivo) {
+  const idx = nomeArquivo.lastIndexOf('.');
+  return idx === -1 ? '' : nomeArquivo.slice(idx).toLowerCase();
+}
 
 function isPdf(contentType) {
   return contentType === 'application/pdf';
@@ -29,6 +41,11 @@ function isExcel(contentType) {
     contentType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
     contentType === 'application/vnd.ms-excel'
   );
+}
+
+function isArquivoTexto(contentType, nomeArquivo = '') {
+  if (contentType === 'text/xml' || contentType === 'application/xml' || contentType === 'application/x-ofx') return true;
+  return EXTENSOES_TEXTO_ACEITAS.includes(obterExtensao(nomeArquivo));
 }
 
 function AnexoImagem({ anexoId, nomeOriginal, className = '', onClick }) {
@@ -119,6 +136,34 @@ function AnexoExcel({ anexoId, nomeOriginal, className = '' }) {
   );
 }
 
+function AnexoArquivoTexto({ anexoId, nomeOriginal, className = '' }) {
+  const handleBaixar = async () => {
+    try {
+      const blob = await fetchAnexoComoBlob(anexoId);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = nomeOriginal;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch {
+      toast.error('Erro ao baixar o arquivo.');
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleBaixar}
+      className={`flex flex-col items-center justify-center gap-1 bg-blue-50 hover:bg-blue-100 rounded border border-blue-200 transition-colors ${className}`}
+      title={`Baixar ${nomeOriginal}`}
+    >
+      <FileCode className="h-6 w-6 text-blue-500" />
+      <span className="text-xs text-blue-700 font-medium px-1 text-center line-clamp-2 break-all">{nomeOriginal}</span>
+    </button>
+  );
+}
+
 export default function DialogoAnexosTarefa({ open, onOpenChange, tarefaId, tarefaTitulo }) {
   const queryClient = useQueryClient();
   const inputRef = useRef(null);
@@ -133,6 +178,7 @@ export default function DialogoAnexosTarefa({ open, onOpenChange, tarefaId, tare
     if (ct === 'application/pdf') return config?.anexoLimitePdfMB ?? config?.anexoTamanhoMaximoMB ?? 20;
     if (ct === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || ct === 'application/vnd.ms-excel')
       return config?.anexoLimiteExcelMB ?? config?.anexoTamanhoMaximoMB ?? 20;
+    if (isArquivoTexto(ct, file.name)) return config?.anexoLimiteDocumentoMB ?? config?.anexoTamanhoMaximoMB ?? 20;
     return config?.anexoTamanhoMaximoMB ?? 20;
   };
 
@@ -153,7 +199,8 @@ export default function DialogoAnexosTarefa({ open, onOpenChange, tarefaId, tare
     if (!files.length) return;
 
     for (const file of files) {
-      if (!TIPOS_ACEITOS.includes(file.type)) {
+      const aceito = TIPOS_ACEITOS.includes(file.type) || EXTENSOES_TEXTO_ACEITAS.includes(obterExtensao(file.name));
+      if (!aceito) {
         toast.error(`Tipo não permitido: ${file.name}`);
         return;
       }
@@ -259,6 +306,12 @@ export default function DialogoAnexosTarefa({ open, onOpenChange, tarefaId, tare
                           nomeOriginal={anexo.nomeOriginal}
                           className="w-full h-full"
                         />
+                      ) : isArquivoTexto(anexo.contentType, anexo.nomeOriginal) ? (
+                        <AnexoArquivoTexto
+                          anexoId={anexo.id}
+                          nomeOriginal={anexo.nomeOriginal}
+                          className="w-full h-full"
+                        />
                       ) : (
                         <AnexoImagem
                           anexoId={anexo.id}
@@ -275,7 +328,7 @@ export default function DialogoAnexosTarefa({ open, onOpenChange, tarefaId, tare
                       >
                         <Trash2 className="h-3 w-3" />
                       </button>
-                      {!isPdf(anexo.contentType) && !isExcel(anexo.contentType) && (
+                      {!isPdf(anexo.contentType) && !isExcel(anexo.contentType) && !isArquivoTexto(anexo.contentType, anexo.nomeOriginal) && (
                         <button
                           type="button"
                           onClick={() => setImagemAmpliada(anexo)}
@@ -310,7 +363,7 @@ export default function DialogoAnexosTarefa({ open, onOpenChange, tarefaId, tare
                 {uploadando ? 'Enviando...' : 'Adicionar arquivo'}
               </button>
               <p className="text-xs text-gray-400 text-center mt-1.5">
-                JPEG, PNG, GIF, WebP, PDF ou Excel (XLS/XLSX) · máx. {config?.anexoTamanhoMaximoMB ?? 20} MB
+                JPEG, PNG, GIF, WebP, PDF, Excel (XLS/XLSX), XML, OFX, REM ou RET · máx. {config?.anexoTamanhoMaximoMB ?? 20} MB
               </p>
             </div>
           </Dialog.Content>
