@@ -18,6 +18,12 @@ Execute o script de setup na raiz do projeto:
 
 O script configura o backend, aplica o banco de dados e prepara o frontend automaticamente.
 
+> **O PowerShell recusou o script** com "não está assinado digitalmente"
+> (`UnauthorizedAccess`)? É a *execution policy* padrão do Windows. Rode
+> `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned` uma
+> vez (ou veja a [seção 0 do guia](GUIA-POWERSHELL.md#0-antes-de-tudo-liberar-a-execução-de-scripts-execution-policy))
+> e execute o `.\setup.ps1` de novo.
+
 > **Comandos PowerShell (setup, containers, deploy, backup, restore, console SQL):**
 > veja o guia único em [`GUIA-POWERSHELL.md`](GUIA-POWERSHELL.md).
 
