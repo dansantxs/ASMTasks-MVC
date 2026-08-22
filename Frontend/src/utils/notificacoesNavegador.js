@@ -15,10 +15,8 @@ export function solicitarPermissaoNotificacao() {
 
 export async function exibirNotificacaoNativa(titulo, { body } = {}) {
   if (!suportado() || Notification.permission !== 'granted') return;
-  // Se a aba já está em foco, o toast interno já avisa — evita duplicar.
-  if (!document.hidden && document.hasFocus()) return;
 
-  const opcoes = { body, icon: ICONE, badge: ICONE, tag: 'asmtasks-notificacao' };
+  const opcoes = { body, icon: ICONE, badge: ICONE, tag: `asmtasks-notificacao-${Date.now()}` };
 
   try {
     if (navigator.serviceWorker) {
