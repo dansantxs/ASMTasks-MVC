@@ -1,4 +1,4 @@
-export const VERSAO_ATUAL = '1.6.0';
+export const VERSAO_ATUAL = '1.5.0';
 
 /**
  * Regra de versionamento (major.minor.patch):
@@ -13,14 +13,20 @@ export const VERSAO_ATUAL = '1.6.0';
 export const CHANGELOG = [
   {
     versao: '1.5.0',
-    data: '2026-08-21',
-    titulo: 'Anexos Bancários, Notificação Nativa e Correções',
+    data: '2026-08-24',
+    titulo: 'Anexos Bancários, Notificação Nativa, Ordenação de Listas e Agenda de Atendimentos',
     mudancas: [
       'Anexos de tarefa agora aceitam também arquivos XML, OFX, REM e RET, além de imagens, PDF e Excel',
       'Configurações do sistema: novo campo de limite de tamanho específico para XML/OFX/REM/RET, seguindo o mesmo padrão de imagens, PDF e Excel',
       'Notificações do sistema agora também aparecem como notificação nativa do Windows (via Chrome/Edge) — pede permissão do navegador na primeira vez',
       'Correção: a verificação de conflito de horário na agenda de atendimentos não considera mais atendimentos já concluídos, apenas os agendados',
       'Correção: notificação marcada como lida agora some da lista, em vez de continuar aparecendo com a etiqueta "Lida" para sempre',
+      'Cliente: lista de busca (lupa) nas telas de Atendimento e Projeto, e o combo de cliente do Atendimento, agora exibem os clientes em ordem alfabética, respeitando a configuração de Razão Social / Nome Fantasia',
+      'Atendimentos: o horário inicial de um novo atendimento agora vem preenchido com o horário atual, dentro do expediente configurado',
+      'Atendimentos: novo campo "Sem horário de término", para apagar/deixar em branco o horário final do atendimento',
+      'Kanban: lista de colaboradores no filtro e na atribuição de responsável da tarefa agora aparece em ordem alfabética',
+      'Kanban: filtro de projeto agora aparece em ordem alfabética',
+      'Kanban: filtro de colaborador ganhou a opção "Sem responsável", para listar tarefas sem responsável atribuído',
     ],
   },
   {
