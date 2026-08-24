@@ -14,20 +14,13 @@ export const CHANGELOG = [
   {
     versao: '1.6.0',
     data: '2026-08-21',
-    titulo: 'Notificação Nativa do Windows/Navegador',
-    mudancas: [
-      'Notificações do sistema agora também aparecem como notificação nativa do Windows (via Chrome/Edge) quando a aba estiver em segundo plano — pede permissão do navegador na primeira vez',
-      'Correção: notificação marcada como lida agora some da lista, em vez de continuar aparecendo com a etiqueta "Lida" para sempre',
-    ],
-  },
-  {
-    versao: '1.5.0',
-    data: '2026-08-21',
-    titulo: 'Anexos de XML, OFX, REM e RET',
+    titulo: 'Anexos Bancários, Notificação Nativa e Correções',
     mudancas: [
       'Anexos de tarefa agora aceitam também arquivos XML, OFX, REM e RET, além de imagens, PDF e Excel',
       'Configurações do sistema: novo campo de limite de tamanho específico para XML/OFX/REM/RET, seguindo o mesmo padrão de imagens, PDF e Excel',
+      'Notificações do sistema agora também aparecem como notificação nativa do Windows (via Chrome/Edge) — pede permissão do navegador na primeira vez',
       'Correção: a verificação de conflito de horário na agenda de atendimentos não considera mais atendimentos já concluídos, apenas os agendados',
+      'Correção: notificação marcada como lida agora some da lista, em vez de continuar aparecendo com a etiqueta "Lida" para sempre',
     ],
   },
   {
