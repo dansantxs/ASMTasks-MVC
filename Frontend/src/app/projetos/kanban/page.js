@@ -82,12 +82,20 @@ export default function KanbanPage() {
       .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }));
   }, [clientesRaw, projetosAtivos, exibicaoNomeCliente]);
 
-  const colaboradoresAtivos = useMemo(() => colaboradores.filter((c) => c.ativo !== false), [colaboradores]);
+  const colaboradoresAtivos = useMemo(
+    () =>
+      colaboradores
+        .filter((c) => c.ativo !== false)
+        .sort((a, b) => (a.nome ?? '').localeCompare(b.nome ?? '', 'pt-BR', { sensitivity: 'base' })),
+    [colaboradores]
+  );
 
   // Colaboradores para o filtro: ativos + inativos que ainda têm tarefas no quadro
   const colaboradoresParaFiltro = useMemo(() => {
     const idsComTarefas = new Set(tarefas.map((t) => t.colaboradorResponsavelId).filter(Boolean));
-    return colaboradores.filter((c) => c.ativo !== false || idsComTarefas.has(c.id));
+    return colaboradores
+      .filter((c) => c.ativo !== false || idsComTarefas.has(c.id))
+      .sort((a, b) => (a.nome ?? '').localeCompare(b.nome ?? '', 'pt-BR', { sensitivity: 'base' }));
   }, [colaboradores, tarefas]);
 
   const mover = useMutation({
