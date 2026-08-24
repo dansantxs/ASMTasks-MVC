@@ -31,6 +31,7 @@ import { cadastroItems, relatorioItems } from '../utils/menuItems';
 import { temPermissao, permissoesTelas } from '../services/auth/permissions';
 import { respostaPadraoNotificacoes, buscarNotificacoes, marcarNotificacaoLida } from '../services/notificacoes/api';
 import { useConfiguracoesSistema } from '../services/configuracoes/api';
+import { solicitarPermissaoNotificacao, exibirNotificacaoNativa } from '../utils/notificacoesNavegador';
 import { toast } from 'sonner';
 
 function formatarDataHora(valor) {
@@ -162,6 +163,11 @@ export function BarraLateral({ caminhoAtual, aoNavegar, aoAlternarRecolhimento, 
 
   const quantidadeNaoLidas = dadosNotificacoes.quantidadeNaoLidas ?? 0;
   const notificacoes = dadosNotificacoes.itens ?? [];
+  const notificacoesNaoLidas = notificacoes.filter((item) => !item.lida);
+
+  useEffect(() => {
+    solicitarPermissaoNotificacao();
+  }, []);
 
   useEffect(() => {
     const naoLidas = notificacoes.filter((item) => !item.lida);
@@ -178,6 +184,9 @@ export function BarraLateral({ caminhoAtual, aoNavegar, aoAlternarRecolhimento, 
       jaRastreadas.add(item.id);
       toast(item.titulo || 'Lembrete de atendimento', {
         description: item.mensagem || 'Você recebeu uma nova notificação.',
+      });
+      exibirNotificacaoNativa(item.titulo || 'Lembrete de atendimento', {
+        body: item.mensagem || 'Você recebeu uma nova notificação.',
       });
     });
 
@@ -610,18 +619,15 @@ export function BarraLateral({ caminhoAtual, aoNavegar, aoAlternarRecolhimento, 
                 <div className="px-4 py-6 text-sm text-gray-500">Carregando notificações...</div>
               )}
 
-              {!carregandoNotificacoes && notificacoes.length === 0 && (
-                <div className="px-4 py-6 text-sm text-gray-500">Nenhuma notificação recebida até o momento.</div>
+              {!carregandoNotificacoes && notificacoesNaoLidas.length === 0 && (
+                <div className="px-4 py-6 text-sm text-gray-500">Nenhuma notificação pendente.</div>
               )}
 
               {!carregandoNotificacoes &&
-                notificacoes.map((notificacao) => (
+                notificacoesNaoLidas.map((notificacao) => (
                   <div
                     key={notificacao.id}
-                    className={cn(
-                      'px-4 py-3 border-b border-gray-100',
-                      !notificacao.lida && 'bg-slate-50'
-                    )}
+                    className="px-4 py-3 border-b border-gray-100 bg-slate-50"
                   >
                     <p className="text-sm font-medium text-slate-900">{notificacao.titulo}</p>
                     <p className="text-sm text-gray-600 mt-1">{notificacao.mensagem}</p>
@@ -631,26 +637,22 @@ export function BarraLateral({ caminhoAtual, aoNavegar, aoAlternarRecolhimento, 
                         {formatarDataHora(notificacao.dataNotificacao)}
                       </span>
 
-                      {notificacao.lida ? (
-                        <span className="text-xs font-medium text-emerald-600">Lida</span>
-                      ) : (
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          disabled={
-                            mutacaoMarcarComoLida.isPending &&
-                            idNotificacaoSendoMarcada === notificacao.id
-                          }
-                          onClick={() => handleMarcarComoLida(notificacao.id)}
-                        >
-                          <Check className="h-3.5 w-3.5" />
-                          {mutacaoMarcarComoLida.isPending &&
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        disabled={
+                          mutacaoMarcarComoLida.isPending &&
                           idNotificacaoSendoMarcada === notificacao.id
-                            ? 'Marcando...'
-                            : 'Marcar como lida'}
-                        </Button>
-                      )}
+                        }
+                        onClick={() => handleMarcarComoLida(notificacao.id)}
+                      >
+                        <Check className="h-3.5 w-3.5" />
+                        {mutacaoMarcarComoLida.isPending &&
+                        idNotificacaoSendoMarcada === notificacao.id
+                          ? 'Marcando...'
+                          : 'Marcar como lida'}
+                      </Button>
                     </div>
                   </div>
                 ))}
