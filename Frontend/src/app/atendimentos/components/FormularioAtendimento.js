@@ -372,7 +372,13 @@ export default function FormularioAtendimento({
                     checked={semHorarioFim}
                     onCheckedChange={(marcado) => {
                       setSemHorarioFim(marcado);
-                      if (marcado) setDadosFormulario((prev) => ({ ...prev, dataHoraFim: '' }));
+                      setDadosFormulario((prev) => {
+                        if (marcado) return { ...prev, dataHoraFim: '' };
+                        if (!prev.dataHoraInicio) return prev;
+                        const fim = new Date(prev.dataHoraInicio);
+                        fim.setHours(fim.getHours() + 1);
+                        return { ...prev, dataHoraFim: paraValorDatetimeLocal(fim) };
+                      });
                     }}
                   />
                   Sem horário de término
