@@ -66,7 +66,11 @@ export default function KanbanPage() {
 
   // Apenas projetos ativos e não concluídos — normaliza titulo → nome para o filtro
   const projetosAtivos = useMemo(
-    () => projetosRaw.filter((p) => p.ativo !== false && !p.concluido).map((p) => ({ ...p, nome: p.titulo })),
+    () =>
+      projetosRaw
+        .filter((p) => p.ativo !== false && !p.concluido)
+        .map((p) => ({ ...p, nome: p.titulo }))
+        .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' })),
     [projetosRaw]
   );
 
