@@ -13,6 +13,7 @@ import { Button } from '../../../components/ui/base/button';
 import { Input } from '../../../components/ui/form/input';
 import { Label } from '../../../components/ui/form/label';
 import { Textarea } from '../../../components/ui/form/textarea';
+import { Switch } from '../../../components/ui/form/switch';
 import {
   Select,
   SelectContent,
@@ -82,6 +83,7 @@ export default function FormularioAtendimento({
   });
   const [erros, setErros] = useState({});
   const [configsNotificacao, setConfigsNotificacao] = useState([]);
+  const [semHorarioFim, setSemHorarioFim] = useState(false);
   const [showModalBuscaCliente, setShowModalBuscaCliente] = useState(false);
   const [showModalNovoCliente, setShowModalNovoCliente] = useState(false);
   const { data: config = configuracoesPadrao } = useConfiguracoesSistema();
@@ -126,6 +128,7 @@ export default function FormularioAtendimento({
       setConfigsNotificacao(
         (atendimento.notificacoesMinutosAntecedencia ?? []).map(minutosParaConfigNotificacao)
       );
+      setSemHorarioFim(!atendimento.dataHoraFim);
       setErros({});
       return;
     }
@@ -157,6 +160,7 @@ export default function FormularioAtendimento({
       notificacoesMinutosAntecedencia: [],
     });
     setConfigsNotificacao([]);
+    setSemHorarioFim(false);
     setErros({});
   }, [open, atendimento, horaFimAgenda, horaInicioAgenda]);
 
@@ -364,11 +368,30 @@ export default function FormularioAtendimento({
             </div>
 
             <div>
-              <Label htmlFor="dataHoraFim">Data/hora fim</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="dataHoraFim">Data/hora fim</Label>
+                <label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer select-none">
+                  <Switch
+                    checked={semHorarioFim}
+                    onCheckedChange={(marcado) => {
+                      setSemHorarioFim(marcado);
+                      setDadosFormulario((prev) => {
+                        if (marcado) return { ...prev, dataHoraFim: '' };
+                        if (!prev.dataHoraInicio) return prev;
+                        const fim = new Date(prev.dataHoraInicio);
+                        fim.setHours(fim.getHours() + 1);
+                        return { ...prev, dataHoraFim: paraValorDatetimeLocal(fim) };
+                      });
+                    }}
+                  />
+                  Sem horário de término
+                </label>
+              </div>
               <Input
                 id="dataHoraFim"
                 type="datetime-local"
                 value={dadosFormulario.dataHoraFim}
+                disabled={semHorarioFim}
                 onChange={(e) => setDadosFormulario((prev) => ({ ...prev, dataHoraFim: e.target.value }))}
                 className={erros.dataHoraFim ? 'border-destructive' : ''}
               />
