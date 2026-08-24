@@ -12,6 +12,19 @@ export const VERSAO_ATUAL = '1.6.0';
  */
 export const CHANGELOG = [
   {
+    versao: '1.6.0',
+    data: '2026-08-24',
+    titulo: 'Ordenação de Listas e Ajustes na Agenda de Atendimentos',
+    mudancas: [
+      'Cliente: lista de busca (lupa) nas telas de Atendimento e Projeto, e o combo de cliente do Atendimento, agora exibem os clientes em ordem alfabética, respeitando a configuração de Razão Social / Nome Fantasia',
+      'Atendimentos: o horário inicial de um novo atendimento agora vem preenchido com o horário atual, dentro do expediente configurado',
+      'Atendimentos: novo campo "Sem horário de término", para apagar/deixar em branco o horário final do atendimento',
+      'Kanban: lista de colaboradores no filtro e na atribuição de responsável da tarefa agora aparece em ordem alfabética',
+      'Kanban: filtro de projeto agora aparece em ordem alfabética',
+      'Kanban: filtro de colaborador ganhou a opção "Sem responsável", para listar tarefas sem responsável atribuído',
+    ],
+  },
+  {
     versao: '1.5.0',
     data: '2026-08-21',
     titulo: 'Anexos Bancários, Notificação Nativa e Correções',
