@@ -138,7 +138,7 @@ export default function FormularioAtendimento({
       base.setDate(base.getDate() + 1);
       base.setHours(Math.floor(minutosInicio / 60), minutosInicio % 60, 0, 0);
     } else {
-      const proximoSlot = Math.max(minutosInicio, Math.ceil(minutosAtuais / 60) * 60);
+      const proximoSlot = Math.max(minutosInicio, minutosAtuais);
       base.setHours(Math.floor(proximoSlot / 60), proximoSlot % 60, 0, 0);
     }
     const fim = new Date(base);
