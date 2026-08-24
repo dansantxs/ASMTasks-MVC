@@ -1,0 +1,39 @@
+# Override de HTTPS interno (Opção B) — adiciona um proxy reverso Caddy.
+#
+# Combine com o compose base e o de produção:
+#
+#   docker compose -f docker-compose.yml \
+#                  -f docker-compose.prod.yml \
+#                  -f docker-compose.https.yml \
+#                  --env-file .env.prod up -d --build
+#
+# Depois acesse:  https://<SITE_ADDRESS>   (ex.: https://10.1.1.200)
+#
+# Requisitos no .env.prod:
+#   SITE_ADDRESS=https://10.1.1.200        # IP ou nome interno do servidor
+#   CORS_ORIGINS=https://10.1.1.200        # mesma origem do SITE_ADDRESS
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "${PORT_HTTP:-80}:80"
+      - "${PORT_HTTPS:-443}:443"
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-https://10.1.1.200}
+      TZ: America/Sao_Paulo
+    volumes:
+      - ./Caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - asmtasks
+    depends_on:
+      - frontend
+    restart: unless-stopped
+
+volumes:
+  # Persiste a CA interna e os certificados. NÃO apague este volume: se a CA
+  # raiz for regerada, será preciso reinstalar o certificado em cada máquina.
+  caddy_data:
+  caddy_config:

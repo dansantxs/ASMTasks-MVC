@@ -98,6 +98,9 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.
 # Produção com túnel Cloudflare (requer CLOUDFLARE_TUNNEL_TOKEN no .env.prod)
 docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.prod --profile cloudflare up -d --build
 
+# Produção com HTTPS na rede interna (proxy Caddy) — ver seção "HTTPS na rede interna"
+docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.https.yml --env-file .env.prod up -d --build
+
 # Parar (mantém os dados no volume)
 docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev stop
 
@@ -276,3 +279,64 @@ docker exec asmtasks-test-sqlserver-1 /opt/mssql-tools18/bin/sqlcmd -S localhost
 # Forçar leitura UTF-8 no sqlcmd (se acento sair errado)
 docker exec asmtasks-test-sqlserver-1 /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "SENHA" -d ASMTasksTest -i /tmp/meu_script.sql -No -f 65001
 ```
+
+## 8. HTTPS na rede interna (remover o aviso "Não seguro")
+
+Acessar o sistema por `http://IP:porta` faz o navegador exibir **"Não seguro"**,
+porque a conexão não é criptografada. Para servir por **HTTPS** dentro da rede,
+o projeto inclui um proxy reverso **Caddy** (`docker-compose.https.yml`) que gera
+um certificado a partir de uma **CA interna** — sem depender da internet.
+
+### Passo 1 — Configurar e subir
+
+No `.env.prod`, defina o endereço de acesso (IP ou nome interno do servidor) e
+alinhe o CORS ao mesmo endereço:
+
+```env
+SITE_ADDRESS=https://10.1.1.200
+CORS_ORIGINS=https://10.1.1.200
+```
+
+Suba a stack com o override de HTTPS:
+
+```powershell
+docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.https.yml --env-file .env.prod up -d --build
+```
+
+Acesse **`https://10.1.1.200`**. Já funciona, mas o navegador ainda avisa que o
+certificado não é confiável — porque a CA interna do Caddy ainda não está
+instalada nas máquinas. O passo 2 resolve isso.
+
+### Passo 2 — Instalar a CA interna nas máquinas (cadeado verde)
+
+Extraia o certificado raiz gerado pelo Caddy (uma vez, no servidor):
+
+```powershell
+docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.https.yml --env-file .env.prod cp caddy:/data/caddy/pki/authorities/local/root.crt .\asmtasks-ca.crt
+```
+
+Copie `asmtasks-ca.crt` para cada máquina que acessa o sistema e instale como
+**Autoridade de Certificação Raiz Confiável**, no computador local:
+
+```powershell
+# Executar o PowerShell como Administrador
+Import-Certificate -FilePath .\asmtasks-ca.crt -CertStoreLocation Cert:\LocalMachine\Root
+```
+
+> Alternativa manual: duplo clique no `.crt` → **Instalar Certificado** →
+> **Computador Local** → **Colocar todos os certificados no repositório a seguir**
+> → **Autoridades de Certificação Raiz Confiáveis**.
+
+Feche e reabra o Chrome. Ao acessar `https://10.1.1.200`, o cadeado aparece e o
+aviso "Não seguro" some.
+
+### Observações
+
+- **Não apague o volume `caddy_data`** (`down -v`). Ele guarda a CA raiz; se ela
+  for regerada, o certificado precisa ser reinstalado em todas as máquinas.
+- Depois de migrar para HTTPS, use sempre `https://10.1.1.200`. A porta HTTP
+  antiga do frontend (ex.: `:3001`) pode continuar publicada pelo override de
+  produção; se quiser forçar somente HTTPS, remova o mapeamento de porta do
+  serviço `frontend` no `docker-compose.prod.yml`.
+- Para acesso **externo** (fora da rede), prefira o túnel Cloudflare (seção 2),
+  que emite certificado público válido automaticamente.

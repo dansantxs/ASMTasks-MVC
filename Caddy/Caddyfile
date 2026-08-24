@@ -1,0 +1,32 @@
+# Caddyfile — Proxy reverso HTTPS para a rede interna (Opção B)
+#
+# O Caddy fica na frente do frontend (Next.js), servindo a interface e a API
+# (/api é repassado pelo próprio Next para o backend) na MESMA origem, agora
+# sob HTTPS. O certificado é emitido pela CA interna do Caddy (`tls internal`),
+# válida para nomes internos e IPs de rede local.
+#
+# Para o cadeado ficar verde (sem aviso "Não seguro"), a CA raiz do Caddy
+# precisa ser instalada em cada máquina que acessa o sistema. Veja o passo a
+# passo em GUIA-POWERSHELL.md ("HTTPS na rede interna").
+#
+# O endereço do site vem da variável SITE_ADDRESS (definida no .env.prod).
+# Ex.: https://10.1.1.200  ou  https://asmtasks.suaempresa.local
+
+{
+	# Rede interna: não há emissão pública via ACME/Let's Encrypt.
+	admin off
+}
+
+{$SITE_ADDRESS:https://10.1.1.200} {
+	# Certificado local emitido pela CA interna do Caddy (funciona para IP e nomes .local).
+	tls internal
+
+	encode zstd gzip
+
+	# Repassa o esquema/host originais para que o backend enxergue HTTPS
+	# (cookie de autenticação marcado como Secure) via UseForwardedHeaders.
+	reverse_proxy frontend:3000 {
+		header_up X-Forwarded-Proto {scheme}
+		header_up X-Forwarded-Host {host}
+	}
+}

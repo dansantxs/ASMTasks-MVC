@@ -122,6 +122,7 @@ O projeto inclui `Dockerfile`s para o backend e o frontend e arquivos Compose pa
 | `docker-compose.yml` | Base (SQL Server + backend + frontend). Não sobe portas sozinho. |
 | `docker-compose.dev.yml` | Desenvolvimento — publica as portas (`sqlserver` 1433, `backend` 5000→8080, `frontend` 3000). |
 | `docker-compose.prod.yml` | Produção — `restart: unless-stopped` e túnel Cloudflare opcional (profile `cloudflare`). |
+| `docker-compose.https.yml` | HTTPS na rede interna — proxy reverso Caddy com certificado da CA interna. |
 | `docker-compose.demo.yml` | Demonstração via túnel Cloudflare com URL temporária. |
 
 No container, o backend escuta em `8080` e o frontend em `3000`.
@@ -166,6 +167,34 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.
 > primeira execução (`schema.sql` e `seed.sql`) — veja a seção
 > [Instalação manual](#1-banco-de-dados) e o [`GUIA-POWERSHELL.md`](GUIA-POWERSHELL.md).
 
+### HTTPS na rede interna (remover o aviso "Não seguro")
+
+Ao acessar o sistema por `http://IP:porta` o navegador mostra **"Não seguro"**, pois
+a conexão não é criptografada. Para servir por **HTTPS** dentro da rede (sem depender
+da internet), suba o proxy reverso **Caddy** incluído no projeto:
+
+1. No `.env.prod`, defina o endereço de acesso (IP ou nome interno) e alinhe o CORS:
+
+   ```env
+   SITE_ADDRESS=https://10.1.1.200
+   CORS_ORIGINS=https://10.1.1.200
+   ```
+
+2. Suba a stack com o override de HTTPS:
+
+   ```bash
+   docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.https.yml \
+     --env-file .env.prod up -d --build
+   ```
+
+3. Acesse por **`https://10.1.1.200`**. O certificado é emitido por uma **CA interna**
+   do Caddy — para o cadeado ficar verde (sem aviso), instale essa CA em cada máquina
+   que acessa o sistema. Passo a passo no
+   [`GUIA-POWERSHELL.md`](GUIA-POWERSHELL.md#https-na-rede-interna).
+
+> Para acesso **externo** (fora da rede) com certificado público automático, use o
+> túnel Cloudflare (profile `cloudflare`) descrito acima, em vez do Caddy interno.
+
 ---
 
 ## Acesso inicial
@@ -196,7 +225,9 @@ ASMTasks-MVC/
 ├── docker-compose.yml          # Base (SQL Server + backend + frontend)
 ├── docker-compose.dev.yml      # Override de desenvolvimento
 ├── docker-compose.prod.yml     # Override de produção (+ Cloudflare)
+├── docker-compose.https.yml    # Override de HTTPS interno (proxy Caddy)
 ├── docker-compose.demo.yml     # Override de demonstração
+├── Caddy/Caddyfile             # Config do proxy reverso HTTPS interno
 ├── .env.dev.example            # Variáveis de ambiente (dev)
 ├── .env.prod.example           # Variáveis de ambiente (produção)
 ├── setup.ps1                   # Script de instalação automatizada
