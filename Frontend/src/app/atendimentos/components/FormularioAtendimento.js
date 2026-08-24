@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   Dialog,
@@ -95,15 +95,18 @@ export default function FormularioAtendimento({
     [colaboradores]
   );
 
-  const clientesAtivos = useMemo(
-    () => clientes.filter((c) => c.ativo && c.matrizId == null),
-    [clientes]
-  );
-
-  const resolverNomeCliente = (c) => {
+  const resolverNomeCliente = useCallback((c) => {
     if (config.exibicaoNomeCliente === 'nomeFantasia' && c.nomeFantasia) return c.nomeFantasia;
     return c.nome;
-  };
+  }, [config.exibicaoNomeCliente]);
+
+  const clientesAtivos = useMemo(
+    () =>
+      clientes
+        .filter((c) => c.ativo && c.matrizId == null)
+        .sort((a, b) => resolverNomeCliente(a).localeCompare(resolverNomeCliente(b), 'pt-BR', { sensitivity: 'base' })),
+    [clientes, resolverNomeCliente]
+  );
 
   useEffect(() => {
     if (!open) return;

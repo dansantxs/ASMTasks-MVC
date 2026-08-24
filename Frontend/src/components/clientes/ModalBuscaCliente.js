@@ -41,13 +41,17 @@ export default function ModalBuscaCliente({ open, onOpenChange, onSelect, exibic
 
   const filtradas = useMemo(() => {
     const t = termo.trim().toLowerCase();
-    if (!t) return matrizes;
-    return matrizes.filter((c) => {
-      const nome = resolverNome(c, exibicaoNomeCliente).toLowerCase();
-      const razao = (c.nome ?? '').toLowerCase();
-      const doc = (c.documento ?? '').replace(/\D/g, '');
-      return nome.includes(t) || razao.includes(t) || doc.includes(t);
-    });
+    const lista = !t
+      ? matrizes
+      : matrizes.filter((c) => {
+          const nome = resolverNome(c, exibicaoNomeCliente).toLowerCase();
+          const razao = (c.nome ?? '').toLowerCase();
+          const doc = (c.documento ?? '').replace(/\D/g, '');
+          return nome.includes(t) || razao.includes(t) || doc.includes(t);
+        });
+    return [...lista].sort((a, b) =>
+      resolverNome(a, exibicaoNomeCliente).localeCompare(resolverNome(b, exibicaoNomeCliente), 'pt-BR', { sensitivity: 'base' })
+    );
   }, [matrizes, termo, exibicaoNomeCliente]);
 
   const handleSelecionar = (cliente) => {
