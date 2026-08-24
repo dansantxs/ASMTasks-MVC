@@ -84,10 +84,13 @@ export default function KanbanPage() {
 
   const colaboradoresAtivos = useMemo(() => colaboradores.filter((c) => c.ativo !== false), [colaboradores]);
 
-  // Colaboradores para o filtro: ativos + inativos que ainda têm tarefas no quadro
+  // Colaboradores para o filtro: ativos + inativos que ainda têm tarefas no quadro,
+  // com item sintético "Sem responsável" (id 0, nunca existe em Colaborador) para
+  // filtrar tarefas sem responsável atribuído
   const colaboradoresParaFiltro = useMemo(() => {
     const idsComTarefas = new Set(tarefas.map((t) => t.colaboradorResponsavelId).filter(Boolean));
-    return colaboradores.filter((c) => c.ativo !== false || idsComTarefas.has(c.id));
+    const base = colaboradores.filter((c) => c.ativo !== false || idsComTarefas.has(c.id));
+    return [{ id: 0, nome: 'Sem responsável' }, ...base];
   }, [colaboradores, tarefas]);
 
   const mover = useMutation({

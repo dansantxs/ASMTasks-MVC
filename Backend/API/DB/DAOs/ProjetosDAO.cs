@@ -790,10 +790,24 @@ namespace API.DB.DAOs
 
             if (colaboradorIds != null && colaboradorIds.Length > 0)
             {
-                var colParams = colaboradorIds.Select((_, i) => $"@ColId{i}").ToList();
-                sql.Append($" AND pt.ColaboradorResponsavelId IN ({string.Join(",", colParams)})");
-                for (int i = 0; i < colaboradorIds.Length; i++)
-                    cmd.Parameters.AddWithValue($"@ColId{i}", colaboradorIds[i]);
+                // Id 0 é o sentinela do filtro "Sem responsável" (nunca existe em Colaborador,
+                // que é IDENTITY a partir de 1) e vira IS NULL, já que IN (...) nunca casa com NULL
+                var idsReais = colaboradorIds.Where(id => id != 0).ToArray();
+                var incluirSemResponsavel = colaboradorIds.Contains(0);
+                var condicoes = new List<string>();
+
+                if (idsReais.Length > 0)
+                {
+                    var colParams = idsReais.Select((_, i) => $"@ColId{i}").ToList();
+                    condicoes.Add($"pt.ColaboradorResponsavelId IN ({string.Join(",", colParams)})");
+                    for (int i = 0; i < idsReais.Length; i++)
+                        cmd.Parameters.AddWithValue($"@ColId{i}", idsReais[i]);
+                }
+                if (incluirSemResponsavel)
+                    condicoes.Add("pt.ColaboradorResponsavelId IS NULL");
+
+                if (condicoes.Count > 0)
+                    sql.Append($" AND ({string.Join(" OR ", condicoes)})");
             }
 
             if (projetoIds != null && projetoIds.Length > 0)
