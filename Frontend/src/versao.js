@@ -12,7 +12,7 @@ export const VERSAO_ATUAL = '1.6.0';
  */
 export const CHANGELOG = [
   {
-    versao: '1.6.0',
+    versao: '1.5.0',
     data: '2026-08-21',
     titulo: 'Anexos Bancários, Notificação Nativa e Correções',
     mudancas: [
