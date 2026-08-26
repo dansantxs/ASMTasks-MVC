@@ -124,21 +124,25 @@ export default function RelatorioComissaoPage() {
     return item.clienteNome ?? 'Sem cliente';
   }
 
-  // Cada linha é uma passagem de etapa (evento de mudança de etapa); agrupamos por tarefa logo abaixo
+  // Cada linha é uma passagem de etapa (evento de mudança de etapa); agrupamos por tarefa logo abaixo.
+  // Passagens sem colaborador responsável ficam de fora: relatório é base de cálculo de comissão,
+  // e sem responsável não há comissão a pagar.
   const linhas = useMemo(
     () =>
-      (historicoApi.registros ?? []).map((item) => ({
-        id: item.id,
-        tarefaId: item.tarefaId,
-        rawDataHoraAcao: item.dataHoraAcao ? new Date(item.dataHoraAcao) : null,
-        dataHoraAcao: formatDateTime(item.dataHoraAcao),
-        colaboradorNome: item.colaboradorNome ?? 'Sem responsável',
-        etapaNome: item.etapaNome ?? '—',
-        tarefaTitulo: item.tarefaTitulo ?? 'Sem título',
-        projetoTitulo: item.projetoTitulo ?? '—',
-        clienteNome: resolverNomeCliente(item),
-        observacao: item.observacao ?? ' ',
-      })),
+      (historicoApi.registros ?? [])
+        .filter((item) => item.colaboradorNome)
+        .map((item) => ({
+          id: item.id,
+          tarefaId: item.tarefaId,
+          rawDataHoraAcao: item.dataHoraAcao ? new Date(item.dataHoraAcao) : null,
+          dataHoraAcao: formatDateTime(item.dataHoraAcao),
+          colaboradorNome: item.colaboradorNome,
+          etapaNome: item.etapaNome ?? '—',
+          tarefaTitulo: item.tarefaTitulo ?? 'Sem título',
+          projetoTitulo: item.projetoTitulo ?? '—',
+          clienteNome: resolverNomeCliente(item),
+          observacao: item.observacao ?? ' ',
+        })),
     [historicoApi, exibicaoNomeCliente]
   );
 
