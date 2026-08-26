@@ -524,10 +524,12 @@ namespace API.DB.DAOs
                     LEFT JOIN ExecMin em ON em.TarefaId = t.Id
                     LEFT JOIN Colaborador col ON col.Id = t.ColaboradorResponsavelId
                     LEFT JOIN Etapa e ON e.Id = t.EtapaId
-                    WHERE t.TempoExecucaoValor IS NOT NULL
+                    WHERE t.TempoExecucaoValor IS NOT NULL" + (filtrarPorColaborador ? " AND t.ColaboradorResponsavelId = @ColaboradorId" : "") + @"
                 )
                 SELECT Id, Titulo, ColaboradorNome, EtapaNome FROM TotalMin WHERE TotalMinExec > LimiteMin ORDER BY Titulo
             ";
+            if (filtrarPorColaborador)
+                cmd.Parameters.AddWithValue("@ColaboradorId", colaboradorId);
             await using (var reader = await cmd.ExecuteReaderAsync())
             {
                 while (await reader.ReadAsync())
@@ -589,10 +591,12 @@ namespace API.DB.DAOs
                     LEFT JOIN TestMin tm ON tm.TarefaId = t.Id
                     LEFT JOIN Colaborador col ON col.Id = t.ColaboradorResponsavelId
                     LEFT JOIN Etapa e ON e.Id = t.EtapaId
-                    WHERE t.TempoTesteValor IS NOT NULL
+                    WHERE t.TempoTesteValor IS NOT NULL" + (filtrarPorColaborador ? " AND t.ColaboradorResponsavelId = @ColaboradorId" : "") + @"
                 )
                 SELECT Id, Titulo, ColaboradorNome, EtapaNome FROM TotalTestMin WHERE TotalMinTeste > LimiteMin ORDER BY Titulo
             ";
+            if (filtrarPorColaborador)
+                cmd.Parameters.AddWithValue("@ColaboradorId", colaboradorId);
             await using (var reader2 = await cmd.ExecuteReaderAsync())
             {
                 while (await reader2.ReadAsync())
