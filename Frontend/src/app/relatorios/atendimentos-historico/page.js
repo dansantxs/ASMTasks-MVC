@@ -414,9 +414,12 @@ export default function HistoricoAtendimentosReportPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="todos">Todos</SelectItem>
-                      {colaboradores.map((colaborador) => (
-                        <SelectItem key={colaborador.id} value={String(colaborador.id)}>{colaborador.nome}</SelectItem>
-                      ))}
+                      {colaboradores
+                        .slice()
+                        .sort((a, b) => (a.nome ?? '').localeCompare(b.nome ?? '', 'pt-BR', { sensitivity: 'base' }))
+                        .map((colaborador) => (
+                          <SelectItem key={colaborador.id} value={String(colaborador.id)}>{colaborador.nome}</SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
