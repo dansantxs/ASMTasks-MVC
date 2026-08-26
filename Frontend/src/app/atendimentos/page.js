@@ -508,6 +508,7 @@ export default function AgendaAtendimentosPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
                   {colaboradores
                     .filter((colaborador) => colaborador.ativo)
+                    .sort((a, b) => (a.nome ?? '').localeCompare(b.nome ?? '', 'pt-BR', { sensitivity: 'base' }))
                     .map((colaborador) => (
                       <label
                         key={colaborador.id}
