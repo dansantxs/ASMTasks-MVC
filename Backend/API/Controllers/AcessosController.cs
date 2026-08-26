@@ -38,6 +38,7 @@ namespace API.Controllers
                 new { chave = TelaPermissoes.RelatoriosSetores, label = "Relatorios - Setores" },
                 new { chave = TelaPermissoes.RelatoriosAtendimentosHistorico, label = "Relatorios - Historico de Atendimentos" },
                 new { chave = TelaPermissoes.RelatoriosProjetosHistorico, label = "Relatorios - Historico de Tarefas" },
+                new { chave = TelaPermissoes.RelatoriosComissao, label = "Relatorios - Comissao" },
                 new { chave = TelaPermissoes.AtendimentosAgenda, label = "Atendimento - Agenda" },
                 new { chave = TelaPermissoes.ProjetosCadastro, label = "Projetos - Cadastro" },
                 new { chave = TelaPermissoes.ProjetosKanban, label = "Projetos - Quadro Kanban" },

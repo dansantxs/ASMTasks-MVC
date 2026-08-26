@@ -1,4 +1,4 @@
-import { Briefcase, Building2, Flag, Handshake, History, Users, Workflow } from "lucide-react";
+import { Briefcase, Building2, DollarSign, Flag, Handshake, History, Users, Workflow } from "lucide-react";
 import { permissoesTelas } from "../services/auth/permissions";
 
 export const cadastroItems = [
@@ -19,4 +19,5 @@ export const relatorioItems = [
   { key: "setores", label: "Setores", icon: Building2, permission: permissoesTelas.relatoriosSetores },
   { key: "atendimentos-historico", label: "Histórico Atend.", icon: History, permission: permissoesTelas.relatoriosAtendimentosHistorico },
   { key: "projetos-historico", label: "Histórico Tarefas", icon: History, permission: permissoesTelas.relatoriosProjetosHistorico },
+  { key: "comissao", label: "Comissão", icon: DollarSign, permission: permissoesTelas.relatoriosComissao },
 ];
