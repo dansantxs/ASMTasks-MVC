@@ -14,9 +14,8 @@ export const CHANGELOG = [
   {
     versao: '1.6.0',
     data: '2026-08-26',
-    titulo: 'Relatório de Comissão, Correções de Sessão, Agenda e Dashboard',
+    titulo: 'Correções de Sessão, Agenda e Dashboard',
     mudancas: [
-      'Novo relatório de Comissão: mostra, para um período (com atalhos de mês atual/mês anterior), quais tarefas foram concluídas, por qual etapa passaram, qual colaborador foi responsável em cada uma, cliente e assunto da tarefa — com visão detalhada e visão resumida por colaborador, ambas exportáveis em Excel/PDF. Acesso restrito por padrão a administradores, liberável a outros níveis em Configurações > Acessos',
       'Correção: sessão às vezes expirava bem antes do tempo configurado — a rota de login calculava a validade do cookie de um jeito que podia cair num valor menor por engano; agora usa sempre o mesmo horário de expiração retornado pelo servidor',
       'Sessão ampliada: token de autenticação agora expira em 12 horas (antes 4 horas)',
       'Correção: ao cadastrar um novo atendimento no fim da tarde, o horário sugerido pulava para o dia seguinte cedo demais (até 1h antes do fim do expediente); agora só sugere o dia seguinte depois que o expediente realmente encerrar',
