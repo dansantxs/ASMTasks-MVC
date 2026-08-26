@@ -66,6 +66,7 @@ export default function FormularioAtendimento({
   clientes,
   colaboradores,
   atendimento,
+  colaboradorLogadoId,
   colaboradorLogadoNome,
   horaInicioAgenda,
   horaFimAgenda,
@@ -155,13 +156,13 @@ export default function FormularioAtendimento({
       clienteId: '',
       dataHoraInicio: paraValorDatetimeLocal(base),
       dataHoraFim: paraValorDatetimeLocal(fim),
-      colaboradoresIds: [],
+      colaboradoresIds: colaboradorLogadoId > 0 ? [colaboradorLogadoId] : [],
       notificacoesMinutosAntecedencia: [],
     });
     setConfigsNotificacao([]);
     setSemHorarioFim(false);
     setErros({});
-  }, [open, atendimento, horaFimAgenda, horaInicioAgenda]);
+  }, [open, atendimento, horaFimAgenda, horaInicioAgenda, colaboradorLogadoId]);
 
   const estaDentroAgenda = (valor) => {
     if (!valor) return true;

@@ -544,6 +544,7 @@ export default function AgendaAtendimentosPage() {
           clientes={clientes}
           colaboradores={colaboradores}
           atendimento={atendimentoSelecionado}
+          colaboradorLogadoId={colaboradorLogadoId}
           colaboradorLogadoNome={colaboradorLogadoNome}
           horaInicioAgenda={configuracoes.horaInicioAgenda}
           horaFimAgenda={configuracoes.horaFimAgenda}
