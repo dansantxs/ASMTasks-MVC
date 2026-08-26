@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/layout/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../components/ui/layout/table';
@@ -8,7 +8,7 @@ import { Label } from '../../../components/ui/form/label';
 import { Button } from '../../../components/ui/base/button';
 import { Input } from '../../../components/ui/form/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/form/select';
-import { DollarSign, FileSpreadsheet, FileText, Filter, History, Users } from 'lucide-react';
+import { DollarSign, FileSpreadsheet, FileText, Filter, ListChecks } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import XLSX from '@/utils/exceljs-compat';
@@ -17,20 +17,23 @@ import { obterRodapeRelatorio, obterLogotipo } from '../../../services/configura
 import { getHistoricoTarefas } from '../projetos-historico/api/historicoTarefas';
 import { getColaboradoresKanban, getClientesKanban } from '../../projetos/kanban/api/kanban';
 
-const colunasDetalhado = [
-  { id: 'dataHoraAcao', label: 'Data/Hora' },
-  { id: 'colaboradorNome', label: 'Colaborador' },
-  { id: 'etapaNome', label: 'Etapa' },
-  { id: 'tarefaTitulo', label: 'Tarefa' },
-  { id: 'projetoTitulo', label: 'Projeto' },
+// Colunas que formam o cabeçalho de cada grupo (cliente / projeto / tarefa)
+const colunasGrupo = [
   { id: 'clienteNome', label: 'Cliente' },
+  { id: 'projetoTitulo', label: 'Projeto' },
+  { id: 'tarefaTitulo', label: 'Tarefa' },
 ];
 
-const colunasResumo = [
-  { id: 'colaborador', label: 'Colaborador' },
-  { id: 'tarefasDistintas', label: 'Tarefas Distintas' },
-  { id: 'passagensEtapa', label: 'Passagens de Etapa' },
+// Colunas exibidas em cada linha de passagem de etapa, dentro do grupo
+const colunasLinha = [
+  { id: 'etapaNome', label: 'Etapa' },
+  { id: 'colaboradorNome', label: 'Colaborador' },
+  { id: 'dataHoraAcao', label: 'Data/Hora' },
+  { id: 'observacao', label: 'Observação' },
 ];
+
+const todasColunas = [...colunasGrupo, ...colunasLinha];
+const reportTitle = 'Relatório de Comissão';
 
 const formatDateTime = (value) =>
   value
@@ -54,10 +57,6 @@ function primeiroDiaDoMes(data) {
   return new Date(data.getFullYear(), data.getMonth(), 1);
 }
 
-function ultimoDiaDoMes(data) {
-  return new Date(data.getFullYear(), data.getMonth() + 1, 0);
-}
-
 function toIsoStartOfDay(dateValue) {
   if (!dateValue) return null;
   return new Date(`${dateValue}T00:00:00`).toISOString();
@@ -74,19 +73,8 @@ export default function RelatorioComissaoPage() {
   const [dataFimFilter, setDataFimFilter] = useState(() => paraInputDate(hoje));
   const [colaboradorFilter, setColaboradorFilter] = useState('todos');
   const [clienteFilter, setClienteFilter] = useState('todos');
-  const [aba, setAba] = useState('resumo');
+  const [selectedColumns, setSelectedColumns] = useState(todasColunas.map((c) => c.id));
   const { data: systemSettings = configuracoesPadrao } = useConfiguracoesSistema();
-
-  const aplicarMesAtual = () => {
-    setDataInicioFilter(paraInputDate(primeiroDiaDoMes(hoje)));
-    setDataFimFilter(paraInputDate(hoje));
-  };
-
-  const aplicarMesAnterior = () => {
-    const mesAnterior = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
-    setDataInicioFilter(paraInputDate(primeiroDiaDoMes(mesAnterior)));
-    setDataFimFilter(paraInputDate(ultimoDiaDoMes(mesAnterior)));
-  };
 
   const queryParams = useMemo(
     () => ({
@@ -133,51 +121,67 @@ export default function RelatorioComissaoPage() {
 
   function resolverNomeCliente(item) {
     if (exibicaoNomeCliente === 'nomeFantasia' && item.clienteNomeFantasia) return item.clienteNomeFantasia;
-    return item.clienteNome ?? ' ';
+    return item.clienteNome ?? 'Sem cliente';
   }
 
-  const detalhado = useMemo(
+  // Cada linha é uma passagem de etapa (evento de mudança de etapa); agrupamos por tarefa logo abaixo
+  const linhas = useMemo(
     () =>
-      (historicoApi.registros ?? [])
-        .map((item) => ({
-          id: item.id,
-          tarefaId: item.tarefaId,
-          rawDataHoraAcao: item.dataHoraAcao ? new Date(item.dataHoraAcao) : null,
-          dataHoraAcao: formatDateTime(item.dataHoraAcao),
-          colaboradorNome: item.colaboradorNome ?? ' ',
-          etapaNome: item.etapaNome ?? ' ',
-          tarefaTitulo: item.tarefaTitulo ?? ' ',
-          projetoTitulo: item.projetoTitulo ?? ' ',
-          clienteNome: resolverNomeCliente(item),
-        }))
-        .sort((a, b) => (b.rawDataHoraAcao ?? 0) - (a.rawDataHoraAcao ?? 0)),
+      (historicoApi.registros ?? []).map((item) => ({
+        id: item.id,
+        tarefaId: item.tarefaId,
+        rawDataHoraAcao: item.dataHoraAcao ? new Date(item.dataHoraAcao) : null,
+        dataHoraAcao: formatDateTime(item.dataHoraAcao),
+        colaboradorNome: item.colaboradorNome ?? 'Sem responsável',
+        etapaNome: item.etapaNome ?? '—',
+        tarefaTitulo: item.tarefaTitulo ?? 'Sem título',
+        projetoTitulo: item.projetoTitulo ?? '—',
+        clienteNome: resolverNomeCliente(item),
+        observacao: item.observacao ?? ' ',
+      })),
     [historicoApi, exibicaoNomeCliente]
   );
 
-  const resumo = useMemo(() => {
+  // Agrupamento: Cliente > Tarefa, com as passagens de etapa em ordem cronológica dentro de cada tarefa
+  const grupos = useMemo(() => {
     const mapa = new Map();
-    detalhado.forEach((item) => {
-      const chave = item.colaboradorNome;
-      if (!mapa.has(chave)) {
-        mapa.set(chave, { colaborador: chave, passagensEtapa: 0, tarefasIds: new Set() });
+    linhas.forEach((item) => {
+      if (!mapa.has(item.tarefaId)) {
+        mapa.set(item.tarefaId, {
+          tarefaId: item.tarefaId,
+          clienteNome: item.clienteNome,
+          projetoTitulo: item.projetoTitulo,
+          tarefaTitulo: item.tarefaTitulo,
+          itens: [],
+        });
       }
-      const entrada = mapa.get(chave);
-      entrada.passagensEtapa += 1;
-      if (item.tarefaId != null) entrada.tarefasIds.add(item.tarefaId);
+      mapa.get(item.tarefaId).itens.push(item);
     });
 
-    return Array.from(mapa.values())
-      .map((entrada) => ({
-        colaborador: entrada.colaborador,
-        tarefasDistintas: entrada.tarefasIds.size,
-        passagensEtapa: entrada.passagensEtapa,
-      }))
-      .sort((a, b) => a.colaborador.localeCompare(b.colaborador, 'pt-BR', { sensitivity: 'base' }));
-  }, [detalhado]);
+    const lista = Array.from(mapa.values());
+    lista.forEach((grupo) => grupo.itens.sort((a, b) => (a.rawDataHoraAcao ?? 0) - (b.rawDataHoraAcao ?? 0)));
+    lista.sort((a, b) => {
+      const porCliente = (a.clienteNome ?? '').localeCompare(b.clienteNome ?? '', 'pt-BR', { sensitivity: 'base' });
+      if (porCliente !== 0) return porCliente;
+      return (a.tarefaTitulo ?? '').localeCompare(b.tarefaTitulo ?? '', 'pt-BR', { sensitivity: 'base' });
+    });
+    return lista;
+  }, [linhas]);
 
-  const colunas = aba === 'resumo' ? colunasResumo : colunasDetalhado;
-  const linhas = aba === 'resumo' ? resumo : detalhado;
-  const reportTitle = `Relatório de Comissão — ${aba === 'resumo' ? 'Resumo por Colaborador' : 'Detalhado'}`;
+  const colunasLinhaAtivas = colunasLinha.filter((c) => selectedColumns.includes(c.id));
+  const numColunasLinha = Math.max(colunasLinhaAtivas.length, 1);
+
+  function buildGroupHeader(grupo) {
+    const partes = [];
+    if (selectedColumns.includes('clienteNome')) partes.push(grupo.clienteNome);
+    if (selectedColumns.includes('projetoTitulo')) partes.push(grupo.projetoTitulo);
+    if (selectedColumns.includes('tarefaTitulo')) partes.push(grupo.tarefaTitulo);
+    return partes.length > 0 ? partes.join(' — ') : `Tarefa #${grupo.tarefaId}`;
+  }
+
+  const toggleColumn = (id) => {
+    setSelectedColumns((prev) => (prev.includes(id) ? prev.filter((col) => col !== id) : [...prev, id]));
+  };
 
   const buildFiltersSummary = () => {
     const colaboradorNome =
@@ -202,18 +206,31 @@ export default function RelatorioComissaoPage() {
   const exportToPDF = async () => {
     const doc = new jsPDF();
     const filtersSummary = buildFiltersSummary();
-    const body = linhas.map((row) => colunas.map((col) => row[col.id] ?? ''));
     const emissionDate = new Date().toLocaleString('pt-BR');
     const logoDataUrl = await obterLogotipo(systemSettings);
     const footerLines = obterRodapeRelatorio(systemSettings);
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const countLine = `Total: ${linhas.length} registro(s)`;
+    const countLine = `Total: ${linhas.length} passagem(ns) de etapa em ${grupos.length} tarefa(s)`;
     const filtersLines = doc.splitTextToSize(`Filtros: ${filtersSummary}`, pageWidth - 70);
     const headerEndY = 30 + 6 + filtersLines.length * 6;
 
+    const body = [];
+    grupos.forEach((grupo) => {
+      body.push([
+        {
+          content: buildGroupHeader(grupo),
+          colSpan: numColunasLinha,
+          styles: { fontStyle: 'bold', fillColor: [230, 240, 250] },
+        },
+      ]);
+      grupo.itens.forEach((item) => {
+        body.push(colunasLinhaAtivas.map((col) => item[col.id] ?? ''));
+      });
+    });
+
     autoTable(doc, {
-      head: [colunas.map((c) => c.label)],
+      head: [colunasLinhaAtivas.map((c) => c.label)],
       body,
       styles: { fontSize: 8 },
       headStyles: { overflow: 'ellipsize' },
@@ -238,7 +255,7 @@ export default function RelatorioComissaoPage() {
       },
     });
 
-    doc.save(`relatorio-comissao-${aba}.pdf`);
+    doc.save('relatorio-comissao.pdf');
   };
 
   const exportToExcel = async () => {
@@ -249,29 +266,44 @@ export default function RelatorioComissaoPage() {
     const headerRows = [
       [reportTitle],
       [`Data de emissão: ${emissionDate}`],
-      [`Total: ${linhas.length} registro(s)`],
+      [`Total: ${linhas.length} passagem(ns) de etapa em ${grupos.length} tarefa(s)`],
       [`Filtros: ${filtersSummary}`],
       [],
-      colunas.map((c) => c.label),
+      colunasLinhaAtivas.map((c) => c.label),
     ];
 
-    const dataRows = linhas.map((row) => colunas.map((col) => row[col.id] ?? ''));
-    const footerRows = [[], ...footerLines.map((line) => [line])];
-    const worksheet = XLSX.utils.aoa_to_sheet([...headerRows, ...dataRows, ...footerRows]);
-
-    if (colunas.length > 1) {
-      const lastColumnIndex = colunas.length - 1;
-      worksheet['!merges'] = [
+    const merges = [];
+    if (numColunasLinha > 1) {
+      const lastColumnIndex = numColunasLinha - 1;
+      merges.push(
         { s: { r: 0, c: 0 }, e: { r: 0, c: lastColumnIndex } },
         { s: { r: 1, c: 0 }, e: { r: 1, c: lastColumnIndex } },
         { s: { r: 2, c: 0 }, e: { r: 2, c: lastColumnIndex } },
-        { s: { r: 3, c: 0 }, e: { r: 3, c: lastColumnIndex } },
-      ];
+        { s: { r: 3, c: 0 }, e: { r: 3, c: lastColumnIndex } }
+      );
     }
+
+    const dataRows = [];
+    let currentRow = headerRows.length;
+    grupos.forEach((grupo) => {
+      dataRows.push([buildGroupHeader(grupo)]);
+      if (numColunasLinha > 1) {
+        merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: numColunasLinha - 1 } });
+      }
+      currentRow += 1;
+      grupo.itens.forEach((item) => {
+        dataRows.push(colunasLinhaAtivas.map((col) => item[col.id] ?? ''));
+        currentRow += 1;
+      });
+    });
+
+    const footerRows = [[], ...footerLines.map((line) => [line])];
+    const worksheet = XLSX.utils.aoa_to_sheet([...headerRows, ...dataRows, ...footerRows]);
+    worksheet['!merges'] = merges;
 
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Comissão');
-    await XLSX.writeFile(workbook, `relatorio-comissao-${aba}.xlsx`);
+    await XLSX.writeFile(workbook, 'relatorio-comissao.xlsx');
   };
 
   if (isLoading) {
@@ -289,7 +321,7 @@ export default function RelatorioComissaoPage() {
             <div>
               <h1>Relatório de Comissão</h1>
               <p className="text-muted-foreground">
-                Tarefas concluídas no período, por colaborador e etapa — base para cálculo de comissão
+                Tarefas concluídas no período, agrupadas por cliente e tarefa, com as etapas e colaboradores responsáveis
               </p>
             </div>
           </div>
@@ -303,98 +335,106 @@ export default function RelatorioComissaoPage() {
           </div>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Filter className="h-5 w-5" /> Filtros
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div>
-                <Label>Data início</Label>
-                <Input type="date" value={dataInicioFilter} onChange={(e) => setDataInicioFilter(e.target.value)} />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Filter className="h-5 w-5" /> Filtros
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                  <Label>Data início</Label>
+                  <Input type="date" value={dataInicioFilter} onChange={(e) => setDataInicioFilter(e.target.value)} />
+                </div>
+                <div>
+                  <Label>Data fim</Label>
+                  <Input type="date" value={dataFimFilter} onChange={(e) => setDataFimFilter(e.target.value)} />
+                </div>
+                <div>
+                  <Label>Colaborador</Label>
+                  <Select value={colaboradorFilter} onValueChange={setColaboradorFilter}>
+                    <SelectTrigger><SelectValue placeholder="Colaborador" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos</SelectItem>
+                      {colaboradores.map((c) => (
+                        <SelectItem key={c.id} value={String(c.id)}>{c.nome}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Cliente</Label>
+                  <Select value={clienteFilter} onValueChange={setClienteFilter}>
+                    <SelectTrigger><SelectValue placeholder="Cliente" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos</SelectItem>
+                      {clientes.map((c) => (
+                        <SelectItem key={c.id} value={String(c.id)}>{c.nome}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div>
-                <Label>Data fim</Label>
-                <Input type="date" value={dataFimFilter} onChange={(e) => setDataFimFilter(e.target.value)} />
-              </div>
-              <div>
-                <Label>Colaborador</Label>
-                <Select value={colaboradorFilter} onValueChange={setColaboradorFilter}>
-                  <SelectTrigger><SelectValue placeholder="Colaborador" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="todos">Todos</SelectItem>
-                    {colaboradores.map((c) => (
-                      <SelectItem key={c.id} value={String(c.id)}>{c.nome}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Cliente</Label>
-                <Select value={clienteFilter} onValueChange={setClienteFilter}>
-                  <SelectTrigger><SelectValue placeholder="Cliente" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="todos">Todos</SelectItem>
-                    {clientes.map((c) => (
-                      <SelectItem key={c.id} value={String(c.id)}>{c.nome}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button type="button" variant="outline" size="sm" onClick={aplicarMesAtual}>Mês atual</Button>
-              <Button type="button" variant="outline" size="sm" onClick={aplicarMesAnterior}>Mês anterior</Button>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            variant={aba === 'resumo' ? 'default' : 'outline'}
-            className={aba === 'resumo' ? 'bg-brand-blue hover:bg-brand-blue-dark flex items-center gap-2' : 'flex items-center gap-2'}
-            onClick={() => setAba('resumo')}
-          >
-            <Users className="h-4 w-4" /> Resumo por Colaborador
-          </Button>
-          <Button
-            type="button"
-            variant={aba === 'detalhado' ? 'default' : 'outline'}
-            className={aba === 'detalhado' ? 'bg-brand-blue hover:bg-brand-blue-dark flex items-center gap-2' : 'flex items-center gap-2'}
-            onClick={() => setAba('detalhado')}
-          >
-            <History className="h-4 w-4" /> Detalhado
-          </Button>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><ListChecks className="h-5 w-5" /> Colunas</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-2 gap-2">
+              {todasColunas.map((col) => (
+                <label key={col.id} className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={selectedColumns.includes(col.id)}
+                    onChange={() => toggleColumn(col.id)}
+                  />
+                  <span>{col.label}</span>
+                </label>
+              ))}
+            </CardContent>
+          </Card>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>{linhas.length} registro(s)</CardTitle>
+            <CardTitle>
+              {linhas.length} passagem(ns) de etapa em {grupos.length} tarefa(s)
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-brand-blue/5">
-                    {colunas.map((col) => (
+                    {colunasLinhaAtivas.map((col) => (
                       <TableHead key={col.id} className="font-semibold text-brand-blue">{col.label}</TableHead>
                     ))}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {linhas.map((row, index) => (
-                    <TableRow key={aba === 'resumo' ? row.colaborador : row.id ?? index} className="hover:bg-muted/40">
-                      {colunas.map((col) => (
-                        <TableCell key={col.id}>{row[col.id]}</TableCell>
+                  {grupos.map((grupo) => (
+                    <Fragment key={grupo.tarefaId}>
+                      <TableRow className="bg-brand-blue/10 hover:bg-brand-blue/10">
+                        <TableCell colSpan={numColunasLinha} className="font-semibold text-brand-blue">
+                          {buildGroupHeader(grupo)}
+                        </TableCell>
+                      </TableRow>
+                      {grupo.itens.map((item) => (
+                        <TableRow key={item.id} className="hover:bg-muted/40">
+                          {colunasLinhaAtivas.map((col) => (
+                            <TableCell key={col.id}>{item[col.id]}</TableCell>
+                          ))}
+                        </TableRow>
                       ))}
-                    </TableRow>
+                    </Fragment>
                   ))}
-                  {linhas.length === 0 && (
+                  {grupos.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={colunas.length} className="text-center text-muted-foreground">
+                      <TableCell colSpan={numColunasLinha} className="text-center text-muted-foreground">
                         Nenhum registro encontrado com os filtros selecionados.
                       </TableCell>
                     </TableRow>
