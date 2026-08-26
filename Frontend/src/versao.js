@@ -1,4 +1,4 @@
-export const VERSAO_ATUAL = '1.5.0';
+export const VERSAO_ATUAL = '1.6.0';
 
 /**
  * Regra de versionamento (major.minor.patch):
@@ -11,6 +11,19 @@ export const VERSAO_ATUAL = '1.5.0';
  *  2. Adicione uma nova entrada NO INÍCIO do array CHANGELOG.
  */
 export const CHANGELOG = [
+  {
+    versao: '1.6.0',
+    data: '2026-08-26',
+    titulo: 'Correções de Sessão, Agenda e Dashboard',
+    mudancas: [
+      'Correção: sessão às vezes expirava bem antes do tempo configurado — a rota de login calculava a validade do cookie de um jeito que podia cair num valor menor por engano; agora usa sempre o mesmo horário de expiração retornado pelo servidor',
+      'Sessão ampliada: token de autenticação agora expira em 12 horas (antes 4 horas)',
+      'Correção: ao cadastrar um novo atendimento no fim da tarde, o horário sugerido pulava para o dia seguinte cedo demais (até 1h antes do fim do expediente); agora só sugere o dia seguinte depois que o expediente realmente encerrar',
+      'Correção: usuário comum via, nos indicadores "Em Atraso — Execução" e "Em Atraso — Teste" do Dashboard, tarefas atrasadas de outros colaboradores, não só as suas',
+      'Atendimentos: filtro de colaboradores da agenda e combo de usuário do relatório de histórico de atendimentos agora aparecem em ordem alfabética',
+      'Atendimentos: ao cadastrar um novo atendimento, o usuário logado já vem marcado na lista de colaboradores do atendimento',
+    ],
+  },
   {
     versao: '1.5.0',
     data: '2026-08-24',
