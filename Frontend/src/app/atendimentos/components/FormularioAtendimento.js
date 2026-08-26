@@ -138,9 +138,8 @@ export default function FormularioAtendimento({
     const minutosFim = converterHoraParaMinutos(horaFimAgenda, 1080);
     const agora = new Date();
     const minutosAtuais = agora.getHours() * 60 + agora.getMinutes();
-    const minutosMaxInicio = Math.max(minutosInicio, minutosFim - 60);
 
-    if (minutosAtuais > minutosMaxInicio) {
+    if (minutosAtuais >= minutosFim) {
       base.setDate(base.getDate() + 1);
       base.setHours(Math.floor(minutosInicio / 60), minutosInicio % 60, 0, 0);
     } else {
