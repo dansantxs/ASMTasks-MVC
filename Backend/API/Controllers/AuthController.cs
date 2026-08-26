@@ -34,7 +34,7 @@ namespace API.Controllers
             var jwtKey = configuration["Jwt:Key"] ?? "***REMOVED***";
             var jwtIssuer = configuration["Jwt:Issuer"] ?? "ASMTasks";
             var jwtAudience = configuration["Jwt:Audience"] ?? "ASMTasks.Frontend";
-            var expirationMinutes = int.TryParse(configuration["Jwt:ExpirationMinutes"], out var parsedExp) ? parsedExp : 240;
+            var expirationMinutes = int.TryParse(configuration["Jwt:ExpirationMinutes"], out var parsedExp) ? parsedExp : 720;
 
             var expiresAt = DateTime.UtcNow.AddMinutes(expirationMinutes);
             var token = GerarToken(usuario, jwtKey, jwtIssuer, jwtAudience, expiresAt);

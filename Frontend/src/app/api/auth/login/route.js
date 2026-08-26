@@ -51,7 +51,7 @@ export async function POST(request) {
       // não o Set-Cookie original do backend.
       sameSite: 'strict',
       path: '/',
-      ...(validExpires ? { expires: validExpires } : { maxAge: 60 * 60 * 4 }),
+      ...(validExpires ? { expires: validExpires } : { maxAge: 60 * 60 * 12 }),
     });
   }
 
