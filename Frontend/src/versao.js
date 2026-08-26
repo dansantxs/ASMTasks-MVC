@@ -1,4 +1,4 @@
-export const VERSAO_ATUAL = '1.5.0';
+export const VERSAO_ATUAL = '1.6.0';
 
 /**
  * Regra de versionamento (major.minor.patch):
@@ -11,6 +11,19 @@ export const VERSAO_ATUAL = '1.5.0';
  *  2. Adicione uma nova entrada NO INÍCIO do array CHANGELOG.
  */
 export const CHANGELOG = [
+  {
+    versao: '1.6.0',
+    data: '2026-08-26',
+    titulo: 'Relatório de Comissão, Correções de Sessão, Agenda e Dashboard',
+    mudancas: [
+      'Novo relatório de Comissão: mostra, para um período (com atalhos de mês atual/mês anterior), quais tarefas foram concluídas, por qual etapa passaram, qual colaborador foi responsável em cada uma, cliente e assunto da tarefa — com visão detalhada e visão resumida por colaborador, ambas exportáveis em Excel/PDF. Acesso restrito por padrão a administradores, liberável a outros níveis em Configurações > Acessos',
+      'Correção: sessão às vezes expirava bem antes das 4 horas configuradas — a rota de login calculava a validade do cookie de um jeito que podia cair num valor de 2 horas por engano; agora usa sempre o mesmo horário de expiração retornado pelo servidor',
+      'Correção: ao cadastrar um novo atendimento no fim da tarde, o horário sugerido pulava para o dia seguinte cedo demais (até 1h antes do fim do expediente); agora só sugere o dia seguinte depois que o expediente realmente encerrar',
+      'Correção: usuário comum via, nos indicadores "Em Atraso — Execução" e "Em Atraso — Teste" do Dashboard, tarefas atrasadas de outros colaboradores, não só as suas',
+      'Atendimentos: filtro de colaboradores da agenda e combo de usuário do relatório de histórico de atendimentos agora aparecem em ordem alfabética',
+      'Atendimentos: ao cadastrar um novo atendimento, o usuário logado já vem marcado na lista de colaboradores do atendimento',
+    ],
+  },
   {
     versao: '1.5.0',
     data: '2026-08-24',
