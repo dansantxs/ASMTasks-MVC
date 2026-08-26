@@ -40,16 +40,18 @@ export async function POST(request) {
 
   if (token) {
     const isHttps = request.headers.get('x-forwarded-proto') === 'https';
-    const expiresMatch = setCookieHeader?.match(/[Ee]xpires=([^;]+)/);
-    const expires = expiresMatch ? new Date(expiresMatch[1]) : undefined;
-    const validExpires = expires && !isNaN(expires.getTime()) ? expires : undefined;
+    const expiraEm = data?.expiraEm ? new Date(data.expiraEm) : undefined;
+    const validExpires = expiraEm && !isNaN(expiraEm.getTime()) ? expiraEm : undefined;
 
     response.cookies.set('asm_jwt', token, {
       httpOnly: true,
       secure: isHttps,
+      // Fixo em 'strict' (independente de Jwt:SameSite no backend): esta rota roda no
+      // mesmo domínio do frontend, então o cookie que o navegador de fato guarda é este,
+      // não o Set-Cookie original do backend.
       sameSite: 'strict',
       path: '/',
-      ...(validExpires ? { expires: validExpires } : { maxAge: 60 * 60 * 2 }),
+      ...(validExpires ? { expires: validExpires } : { maxAge: 60 * 60 * 4 }),
     });
   }
 

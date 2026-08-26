@@ -13,6 +13,8 @@ export async function POST(request) {
   response.cookies.set('asm_jwt', '', {
     httpOnly: true,
     secure: isHttps,
+    // Precisa ser igual ao sameSite usado em login/route.js, senão o navegador não
+    // reconhece como o mesmo cookie e não o apaga.
     sameSite: 'strict',
     path: '/',
     maxAge: 0,
