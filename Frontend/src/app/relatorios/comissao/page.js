@@ -76,15 +76,17 @@ export default function RelatorioComissaoPage() {
   const [selectedColumns, setSelectedColumns] = useState(todasColunas.map((c) => c.id));
   const { data: systemSettings = configuracoesPadrao } = useConfiguracoesSistema();
 
+  // Não filtra por tipo nem por colaborador no servidor: para saber quem ficou com uma etapa
+  // é preciso ver TODAS as reatribuições da tarefa (mudanças de etapa e de colaborador), mesmo
+  // as de outros colaboradores — filtrar por colaborador aqui perderia justamente os eventos
+  // necessários pra reconstruir a atribuição correta (ver `segmentos` abaixo).
   const queryParams = useMemo(
     () => ({
-      tipo: 'E',
-      colaboradorId: colaboradorFilter,
       clienteId: clienteFilter,
       dataInicio: toIsoStartOfDay(dataInicioFilter),
       dataFim: toIsoEndOfDay(dataFimFilter),
     }),
-    [colaboradorFilter, clienteFilter, dataInicioFilter, dataFimFilter]
+    [clienteFilter, dataInicioFilter, dataFimFilter]
   );
 
   const { data: historicoApi = { registros: [], totalTarefas: 0 }, isLoading } = useQuery({
@@ -131,26 +133,72 @@ export default function RelatorioComissaoPage() {
     [clientesRaw, exibicaoNomeCliente]
   );
 
-  // Cada linha é uma passagem de etapa (evento de mudança de etapa); agrupamos por tarefa logo abaixo.
-  // Passagens sem colaborador responsável ficam de fora: relatório é base de cálculo de comissão,
-  // e sem responsável não há comissão a pagar.
-  const linhas = useMemo(
-    () =>
-      (historicoApi.registros ?? [])
-        .filter((item) => item.colaboradorNome)
-        .map((item) => ({
-          id: item.id,
-          tarefaId: item.tarefaId,
-          rawDataHoraAcao: item.dataHoraAcao ? new Date(item.dataHoraAcao) : null,
-          dataHoraAcao: formatDateTime(item.dataHoraAcao),
-          colaboradorNome: item.colaboradorNome,
+  // Eventos de mudança de etapa ('E') e de reatribuição de colaborador ('A') de cada tarefa,
+  // em ordem cronológica — base para descobrir quem realmente ficou com cada etapa.
+  const eventosPorTarefa = useMemo(() => {
+    const mapa = new Map();
+    (historicoApi.registros ?? [])
+      .filter((item) => item.tipo === 'E' || item.tipo === 'A')
+      .forEach((item) => {
+        if (!mapa.has(item.tarefaId)) mapa.set(item.tarefaId, []);
+        mapa.get(item.tarefaId).push({
+          tipo: item.tipo,
+          dataHoraAcao: item.dataHoraAcao ? new Date(item.dataHoraAcao) : null,
+          colaboradorId: item.colaboradorId ?? null,
+          colaboradorNome: item.colaboradorNome ?? null,
           etapaNome: item.etapaNome ?? '—',
-          tarefaTitulo: item.tarefaTitulo ?? 'Sem título',
-          projetoTitulo: item.projetoTitulo ?? '—',
+          observacao: item.observacao ?? null,
           clienteNome: resolverNomeCliente(item),
-          observacao: item.observacao ?? ' ',
-        })),
-    [historicoApi, exibicaoNomeCliente]
+          projetoTitulo: item.projetoTitulo ?? '—',
+          tarefaTitulo: item.tarefaTitulo ?? 'Sem título',
+        });
+      });
+    mapa.forEach((eventos) => eventos.sort((a, b) => (a.dataHoraAcao ?? 0) - (b.dataHoraAcao ?? 0)));
+    return mapa;
+  }, [historicoApi, exibicaoNomeCliente]);
+
+  // Uma linha por passagem de etapa (cada evento 'E'), mas o colaborador creditado é o que
+  // estava responsável quando a tarefa SAIU daquela etapa — a última reatribuição ('A')
+  // registrada antes da próxima mudança de etapa — e não quem a recebeu ao entrar, já que
+  // pode ter sido reatribuída no meio do caminho. Passagens que terminam sem responsável
+  // ficam de fora: relatório é base de cálculo de comissão, sem responsável não há comissão.
+  const segmentos = useMemo(() => {
+    const resultado = [];
+    eventosPorTarefa.forEach((eventos, tarefaId) => {
+      const mudancasEtapa = eventos.filter((e) => e.tipo === 'E');
+      mudancasEtapa.forEach((entrada, index) => {
+        const fimJanela = mudancasEtapa[index + 1]?.dataHoraAcao ?? null;
+        const candidatos = eventos.filter(
+          (e) => e.dataHoraAcao && e.dataHoraAcao >= entrada.dataHoraAcao && (!fimJanela || e.dataHoraAcao < fimJanela)
+        );
+        const ultimo = candidatos.reduce(
+          (mais, atual) => (!mais || atual.dataHoraAcao >= mais.dataHoraAcao ? atual : mais),
+          null
+        );
+        if (!ultimo?.colaboradorNome) return;
+
+        resultado.push({
+          id: `${tarefaId}-${entrada.dataHoraAcao.getTime()}`,
+          tarefaId,
+          colaboradorId: ultimo.colaboradorId,
+          colaboradorNome: ultimo.colaboradorNome,
+          etapaNome: entrada.etapaNome,
+          rawDataHoraAcao: entrada.dataHoraAcao,
+          dataHoraAcao: formatDateTime(entrada.dataHoraAcao),
+          observacao: ultimo.observacao ?? ' ',
+          clienteNome: entrada.clienteNome,
+          projetoTitulo: entrada.projetoTitulo,
+          tarefaTitulo: entrada.tarefaTitulo,
+        });
+      });
+    });
+    return resultado;
+  }, [eventosPorTarefa]);
+
+  // Filtro de colaborador aplicado aqui (não no servidor) — depois da reconstrução acima
+  const linhas = useMemo(
+    () => (colaboradorFilter === 'todos' ? segmentos : segmentos.filter((s) => s.colaboradorId === Number(colaboradorFilter))),
+    [segmentos, colaboradorFilter]
   );
 
   // Agrupamento: Cliente > Tarefa, com as passagens de etapa em ordem cronológica dentro de cada tarefa
