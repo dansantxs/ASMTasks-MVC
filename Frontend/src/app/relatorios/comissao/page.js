@@ -134,7 +134,10 @@ export default function RelatorioComissaoPage() {
   );
 
   // Eventos de mudança de etapa ('E') e de reatribuição de colaborador ('A') de cada tarefa,
-  // em ordem cronológica — base para descobrir quem realmente ficou com cada etapa.
+  // em ordem cronológica — base para descobrir quem realmente ficou com cada etapa. Quando dois
+  // eventos têm o mesmo DataHoraAcao (comuns: atribuição e mudança de etapa gravadas na mesma
+  // ação do usuário), o Id (ordem de inserção) desempata — o sistema sempre grava a atribuição
+  // antes da mudança de etapa quando as duas acontecem juntas.
   const eventosPorTarefa = useMemo(() => {
     const mapa = new Map();
     (historicoApi.registros ?? [])
@@ -142,6 +145,7 @@ export default function RelatorioComissaoPage() {
       .forEach((item) => {
         if (!mapa.has(item.tarefaId)) mapa.set(item.tarefaId, []);
         mapa.get(item.tarefaId).push({
+          id: item.id,
           tipo: item.tipo,
           dataHoraAcao: item.dataHoraAcao ? new Date(item.dataHoraAcao) : null,
           colaboradorId: item.colaboradorId ?? null,
@@ -153,32 +157,38 @@ export default function RelatorioComissaoPage() {
           tarefaTitulo: item.tarefaTitulo ?? 'Sem título',
         });
       });
-    mapa.forEach((eventos) => eventos.sort((a, b) => (a.dataHoraAcao ?? 0) - (b.dataHoraAcao ?? 0)));
+    mapa.forEach((eventos) =>
+      eventos.sort((a, b) => (a.dataHoraAcao ?? 0) - (b.dataHoraAcao ?? 0) || (a.id ?? 0) - (b.id ?? 0))
+    );
     return mapa;
   }, [historicoApi, exibicaoNomeCliente]);
 
   // Uma linha por passagem de etapa (cada evento 'E'), mas o colaborador creditado é o que
   // estava responsável quando a tarefa SAIU daquela etapa — a última reatribuição ('A')
   // registrada antes da próxima mudança de etapa — e não quem a recebeu ao entrar, já que
-  // pode ter sido reatribuída no meio do caminho. Passagens que terminam sem responsável
-  // ficam de fora: relatório é base de cálculo de comissão, sem responsável não há comissão.
+  // pode ter sido reatribuída no meio do caminho. A "janela" de cada etapa vai até o próximo
+  // evento 'E' na lista já ordenada (não por comparação direta de datas, pra não perder
+  // eventos empatados no mesmo instante). Passagens que terminam sem responsável ficam de
+  // fora: relatório é base de cálculo de comissão, sem responsável não há comissão.
   const segmentos = useMemo(() => {
     const resultado = [];
     eventosPorTarefa.forEach((eventos, tarefaId) => {
-      const mudancasEtapa = eventos.filter((e) => e.tipo === 'E');
-      mudancasEtapa.forEach((entrada, index) => {
-        const fimJanela = mudancasEtapa[index + 1]?.dataHoraAcao ?? null;
-        const candidatos = eventos.filter(
-          (e) => e.dataHoraAcao && e.dataHoraAcao >= entrada.dataHoraAcao && (!fimJanela || e.dataHoraAcao < fimJanela)
-        );
-        const ultimo = candidatos.reduce(
-          (mais, atual) => (!mais || atual.dataHoraAcao >= mais.dataHoraAcao ? atual : mais),
-          null
-        );
+      eventos.forEach((entrada, index) => {
+        if (entrada.tipo !== 'E') return;
+
+        let fimIndex = eventos.length;
+        for (let i = index + 1; i < eventos.length; i += 1) {
+          if (eventos[i].tipo === 'E') {
+            fimIndex = i;
+            break;
+          }
+        }
+        const candidatos = eventos.slice(index, fimIndex);
+        const ultimo = candidatos[candidatos.length - 1];
         if (!ultimo?.colaboradorNome) return;
 
         resultado.push({
-          id: `${tarefaId}-${entrada.dataHoraAcao.getTime()}`,
+          id: `${tarefaId}-${entrada.id ?? index}`,
           tarefaId,
           colaboradorId: ultimo.colaboradorId,
           colaboradorNome: ultimo.colaboradorNome,
