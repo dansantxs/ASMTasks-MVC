@@ -163,44 +163,52 @@ export default function RelatorioComissaoPage() {
     return mapa;
   }, [historicoApi, exibicaoNomeCliente]);
 
-  // Uma linha por passagem de etapa (cada evento 'E'), mas o colaborador creditado é o que
-  // estava responsável quando a tarefa SAIU daquela etapa — a última reatribuição ('A')
-  // registrada antes da próxima mudança de etapa — e não quem a recebeu ao entrar, já que
-  // pode ter sido reatribuída no meio do caminho. A "janela" de cada etapa vai até o próximo
-  // evento 'E' na lista já ordenada (não por comparação direta de datas, pra não perder
-  // eventos empatados no mesmo instante). Passagens que terminam sem responsável ficam de
-  // fora: relatório é base de cálculo de comissão, sem responsável não há comissão.
+  // Uma linha por passagem de etapa. O ponto-chave (visto direto no código do backend que grava
+  // esses eventos, ProjetosController.MoverEtapa): o Colaborador gravado no evento 'E' (Mudança de
+  // Etapa) é sempre quem estava responsável na etapa que está sendo DEIXADA (o valor "antes" da
+  // troca), não quem está assumindo a nova etapa. Ou seja, cada evento 'E' fecha a etapa anterior
+  // e credita ela ao colaborador do PRÓPRIO evento — e abre uma nova etapa, cujo responsável só é
+  // conhecido pelos eventos 'A' (atribuição) seguintes, seja o que acompanha a própria mudança de
+  // etapa (mesma ação do usuário) ou uma reatribuição avulsa feita depois, já dentro da etapa.
+  // A última etapa (ainda "aberta", sem uma próxima mudança de etapa que a feche) é creditada ao
+  // último responsável conhecido no fim do período. Passagens sem responsável ficam de fora:
+  // relatório é base de cálculo de comissão, sem responsável não há comissão.
   const segmentos = useMemo(() => {
     const resultado = [];
     eventosPorTarefa.forEach((eventos, tarefaId) => {
-      eventos.forEach((entrada, index) => {
-        if (entrada.tipo !== 'E') return;
+      let etapaAberta = null; // { etapaNome, dataHoraAcao, ...contexto } — a etapa em andamento
+      let colaboradorAtual = null; // último responsável conhecido (atualizado por qualquer evento 'A')
 
-        let fimIndex = eventos.length;
-        for (let i = index + 1; i < eventos.length; i += 1) {
-          if (eventos[i].tipo === 'E') {
-            fimIndex = i;
-            break;
-          }
-        }
-        const candidatos = eventos.slice(index, fimIndex);
-        const ultimo = candidatos[candidatos.length - 1];
-        if (!ultimo?.colaboradorNome) return;
-
+      const fecharEtapa = (colaborador) => {
+        if (!etapaAberta || !colaborador?.colaboradorNome) return;
         resultado.push({
-          id: `${tarefaId}-${entrada.id ?? index}`,
+          id: `${tarefaId}-${etapaAberta.id}`,
           tarefaId,
-          colaboradorId: ultimo.colaboradorId,
-          colaboradorNome: ultimo.colaboradorNome,
-          etapaNome: entrada.etapaNome,
-          rawDataHoraAcao: entrada.dataHoraAcao,
-          dataHoraAcao: formatDateTime(entrada.dataHoraAcao),
-          observacao: ultimo.observacao ?? ' ',
-          clienteNome: entrada.clienteNome,
-          projetoTitulo: entrada.projetoTitulo,
-          tarefaTitulo: entrada.tarefaTitulo,
+          colaboradorId: colaborador.colaboradorId,
+          colaboradorNome: colaborador.colaboradorNome,
+          etapaNome: etapaAberta.etapaNome,
+          rawDataHoraAcao: etapaAberta.dataHoraAcao,
+          dataHoraAcao: formatDateTime(etapaAberta.dataHoraAcao),
+          observacao: colaborador.observacao ?? ' ',
+          clienteNome: etapaAberta.clienteNome,
+          projetoTitulo: etapaAberta.projetoTitulo,
+          tarefaTitulo: etapaAberta.tarefaTitulo,
         });
+      };
+
+      eventos.forEach((evento) => {
+        if (evento.tipo === 'A') {
+          colaboradorAtual = evento;
+          return;
+        }
+        // evento.tipo === 'E': fecha a etapa em andamento, creditando ao colaborador do PRÓPRIO
+        // evento 'E' (quem estava responsável antes desta troca — ver comentário acima)
+        fecharEtapa(evento);
+        etapaAberta = evento;
       });
+
+      // Etapa ainda aberta no fim do período: credita ao último responsável conhecido
+      fecharEtapa(colaboradorAtual);
     });
     return resultado;
   }, [eventosPorTarefa]);
