@@ -102,6 +102,20 @@ export default function RelatorioComissaoPage() {
     queryFn: getClientesKanban,
   });
 
+  const exibicaoNomeCliente = systemSettings?.exibicaoNomeCliente ?? 'razaoSocial';
+
+  // Cliente vindo do cadastro (id, nome, nomeFantasia) — usado no filtro
+  function resolverNomeClienteCadastro(cliente) {
+    if (exibicaoNomeCliente === 'nomeFantasia' && cliente.nomeFantasia) return cliente.nomeFantasia;
+    return cliente.nome ?? '';
+  }
+
+  // Cliente vindo do histórico de tarefas (clienteNome, clienteNomeFantasia) — usado nas linhas do relatório
+  function resolverNomeCliente(item) {
+    if (exibicaoNomeCliente === 'nomeFantasia' && item.clienteNomeFantasia) return item.clienteNomeFantasia;
+    return item.clienteNome ?? 'Sem cliente';
+  }
+
   const colaboradores = useMemo(
     () =>
       colaboradoresRaw
@@ -113,16 +127,9 @@ export default function RelatorioComissaoPage() {
     () =>
       clientesRaw
         .filter((c) => c.ativo !== false)
-        .sort((a, b) => (a.nome ?? '').localeCompare(b.nome ?? '', 'pt-BR', { sensitivity: 'base' })),
-    [clientesRaw]
+        .sort((a, b) => resolverNomeClienteCadastro(a).localeCompare(resolverNomeClienteCadastro(b), 'pt-BR', { sensitivity: 'base' })),
+    [clientesRaw, exibicaoNomeCliente]
   );
-
-  const exibicaoNomeCliente = systemSettings?.exibicaoNomeCliente ?? 'razaoSocial';
-
-  function resolverNomeCliente(item) {
-    if (exibicaoNomeCliente === 'nomeFantasia' && item.clienteNomeFantasia) return item.clienteNomeFantasia;
-    return item.clienteNome ?? 'Sem cliente';
-  }
 
   // Cada linha é uma passagem de etapa (evento de mudança de etapa); agrupamos por tarefa logo abaixo.
   // Passagens sem colaborador responsável ficam de fora: relatório é base de cálculo de comissão,
@@ -192,10 +199,13 @@ export default function RelatorioComissaoPage() {
       colaboradorFilter === 'todos'
         ? null
         : colaboradores.find((c) => c.id === Number(colaboradorFilter))?.nome ?? `#${colaboradorFilter}`;
+    const clienteEncontrado = clienteFilter === 'todos' ? null : clientes.find((c) => c.id === Number(clienteFilter));
     const clienteNome =
       clienteFilter === 'todos'
         ? null
-        : clientes.find((c) => c.id === Number(clienteFilter))?.nome ?? `#${clienteFilter}`;
+        : clienteEncontrado
+          ? resolverNomeClienteCadastro(clienteEncontrado)
+          : `#${clienteFilter}`;
 
     const filters = [
       dataInicioFilter ? `Data início: ${new Date(`${dataInicioFilter}T00:00:00`).toLocaleDateString('pt-BR')}` : null,
@@ -375,7 +385,7 @@ export default function RelatorioComissaoPage() {
                     <SelectContent>
                       <SelectItem value="todos">Todos</SelectItem>
                       {clientes.map((c) => (
-                        <SelectItem key={c.id} value={String(c.id)}>{c.nome}</SelectItem>
+                        <SelectItem key={c.id} value={String(c.id)}>{resolverNomeClienteCadastro(c)}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
