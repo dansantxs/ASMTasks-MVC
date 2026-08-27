@@ -15,7 +15,7 @@ import XLSX from '@/utils/exceljs-compat';
 import { configuracoesPadrao, useConfiguracoesSistema } from '../../../services/configuracoes/api';
 import { obterRodapeRelatorio, obterLogotipo } from '../../../services/configuracoes/reportBranding';
 import { getHistoricoTarefas } from '../projetos-historico/api/historicoTarefas';
-import { getColaboradoresKanban, getClientesKanban } from '../../projetos/kanban/api/kanban';
+import { getColaboradoresKanban, getClientesKanban, getEtapasKanban } from '../../projetos/kanban/api/kanban';
 
 // Colunas que formam o cabeçalho de cada grupo (cliente / projeto / tarefa)
 const colunasGrupo = [
@@ -104,6 +104,15 @@ export default function RelatorioComissaoPage() {
     queryFn: getClientesKanban,
   });
 
+  const { data: etapasRaw = [] } = useQuery({
+    queryKey: ['relatorio-comissao-etapas'],
+    queryFn: getEtapasKanban,
+  });
+
+  // Etapa marcada como final (Configurações > Etapas) — só entram no relatório as tarefas cuja
+  // última etapa conhecida no período é essa (comissão só faz sentido pra trabalho já concluído).
+  const etapaFinalId = useMemo(() => etapasRaw.find((e) => e.ehEtapaFinal)?.id ?? null, [etapasRaw]);
+
   const exibicaoNomeCliente = systemSettings?.exibicaoNomeCliente ?? 'razaoSocial';
 
   // Cliente vindo do cadastro (id, nome, nomeFantasia) — usado no filtro
@@ -150,6 +159,7 @@ export default function RelatorioComissaoPage() {
           dataHoraAcao: item.dataHoraAcao ? new Date(item.dataHoraAcao) : null,
           colaboradorId: item.colaboradorId ?? null,
           colaboradorNome: item.colaboradorNome ?? null,
+          etapaId: item.etapaId ?? null,
           etapaNome: item.etapaNome ?? '—',
           observacao: item.observacao ?? null,
           clienteNome: resolverNomeCliente(item),
@@ -186,6 +196,7 @@ export default function RelatorioComissaoPage() {
           tarefaId,
           colaboradorId: colaborador.colaboradorId,
           colaboradorNome: colaborador.colaboradorNome,
+          etapaId: etapaAberta.etapaId,
           etapaNome: etapaAberta.etapaNome,
           rawDataHoraAcao: etapaAberta.dataHoraAcao,
           dataHoraAcao: formatDateTime(etapaAberta.dataHoraAcao),
@@ -213,27 +224,45 @@ export default function RelatorioComissaoPage() {
     return resultado;
   }, [eventosPorTarefa]);
 
+  // Tarefas cuja última etapa conhecida no período é a etapa final — calculado a partir de
+  // `segmentos` (não filtrado por colaborador ainda), já que o último segmento de uma tarefa pode
+  // ter ficado com um colaborador diferente do que está selecionado no filtro.
+  const tarefasFinalizadas = useMemo(() => {
+    if (!etapaFinalId) return null; // nenhuma etapa marcada como final: não filtra
+    const ultimaEtapaPorTarefa = new Map();
+    segmentos.forEach((segmento) => ultimaEtapaPorTarefa.set(segmento.tarefaId, segmento.etapaId));
+    const set = new Set();
+    ultimaEtapaPorTarefa.forEach((etapaId, tarefaId) => {
+      if (etapaId === etapaFinalId) set.add(tarefaId);
+    });
+    return set;
+  }, [segmentos, etapaFinalId]);
+
   // Filtro de colaborador aplicado aqui (não no servidor) — depois da reconstrução acima
   const linhas = useMemo(
     () => (colaboradorFilter === 'todos' ? segmentos : segmentos.filter((s) => s.colaboradorId === Number(colaboradorFilter))),
     [segmentos, colaboradorFilter]
   );
 
-  // Agrupamento: Cliente > Tarefa, com as passagens de etapa em ordem cronológica dentro de cada tarefa
+  // Agrupamento: Cliente > Tarefa, com as passagens de etapa em ordem cronológica dentro de cada tarefa.
+  // Só entram tarefas que já chegaram na etapa final (ver `tarefasFinalizadas`) — comissão é sobre
+  // trabalho concluído, não sobre o que ainda está em andamento.
   const grupos = useMemo(() => {
     const mapa = new Map();
-    linhas.forEach((item) => {
-      if (!mapa.has(item.tarefaId)) {
-        mapa.set(item.tarefaId, {
-          tarefaId: item.tarefaId,
-          clienteNome: item.clienteNome,
-          projetoTitulo: item.projetoTitulo,
-          tarefaTitulo: item.tarefaTitulo,
-          itens: [],
-        });
-      }
-      mapa.get(item.tarefaId).itens.push(item);
-    });
+    linhas
+      .filter((item) => !tarefasFinalizadas || tarefasFinalizadas.has(item.tarefaId))
+      .forEach((item) => {
+        if (!mapa.has(item.tarefaId)) {
+          mapa.set(item.tarefaId, {
+            tarefaId: item.tarefaId,
+            clienteNome: item.clienteNome,
+            projetoTitulo: item.projetoTitulo,
+            tarefaTitulo: item.tarefaTitulo,
+            itens: [],
+          });
+        }
+        mapa.get(item.tarefaId).itens.push(item);
+      });
 
     const lista = Array.from(mapa.values());
     lista.forEach((grupo) => grupo.itens.sort((a, b) => (a.rawDataHoraAcao ?? 0) - (b.rawDataHoraAcao ?? 0)));
