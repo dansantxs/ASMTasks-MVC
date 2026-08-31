@@ -35,6 +35,12 @@ const colunasLinha = [
 const todasColunas = [...colunasGrupo, ...colunasLinha];
 const reportTitle = 'Relatório de Comissão';
 
+const criteriosOrdenacao = [
+  { id: 'cliente', label: 'Cliente' },
+  { id: 'tarefa', label: 'Tarefa' },
+  { id: 'dataConclusao', label: 'Data de conclusão' },
+];
+
 const formatDateTime = (value) =>
   value
     ? new Intl.DateTimeFormat('pt-BR', {
@@ -74,6 +80,7 @@ export default function RelatorioComissaoPage() {
   const [colaboradorFilter, setColaboradorFilter] = useState('todos');
   const [clienteFilter, setClienteFilter] = useState('todos');
   const [selectedColumns, setSelectedColumns] = useState(todasColunas.map((c) => c.id));
+  const [sortConfig, setSortConfig] = useState({ criterio: 'cliente', direction: 'asc' });
   const { data: systemSettings = configuracoesPadrao } = useConfiguracoesSistema();
 
   // Não filtra por tipo nem por colaborador no servidor: para saber quem ficou com uma etapa
@@ -265,14 +272,25 @@ export default function RelatorioComissaoPage() {
       });
 
     const lista = Array.from(mapa.values());
+    // Ordem cronológica das etapas dentro do grupo não é configurável — é o que dá sentido à
+    // sequência (quem pegou depois de quem). Só a ordem dos grupos entre si é ajustável (abaixo).
     lista.forEach((grupo) => grupo.itens.sort((a, b) => (a.rawDataHoraAcao ?? 0) - (b.rawDataHoraAcao ?? 0)));
-    lista.sort((a, b) => {
-      const porCliente = (a.clienteNome ?? '').localeCompare(b.clienteNome ?? '', 'pt-BR', { sensitivity: 'base' });
-      if (porCliente !== 0) return porCliente;
-      return (a.tarefaTitulo ?? '').localeCompare(b.tarefaTitulo ?? '', 'pt-BR', { sensitivity: 'base' });
-    });
     return lista;
   }, [linhas]);
+
+  // Como o relatório é agrupado (não uma tabela simples), não dá pra ordenar clicando em cabeçalho
+  // de coluna como nos outros relatórios — a ordenação aqui é de qual grupo (cliente/tarefa) vem
+  // primeiro.
+  const gruposOrdenados = useMemo(() => {
+    const dataConclusao = (grupo) => grupo.itens[grupo.itens.length - 1]?.rawDataHoraAcao ?? 0;
+    const comparadores = {
+      cliente: (a, b) => (a.clienteNome ?? '').localeCompare(b.clienteNome ?? '', 'pt-BR', { sensitivity: 'base' }),
+      tarefa: (a, b) => (a.tarefaTitulo ?? '').localeCompare(b.tarefaTitulo ?? '', 'pt-BR', { sensitivity: 'base' }),
+      dataConclusao: (a, b) => dataConclusao(a) - dataConclusao(b),
+    };
+    const comparar = comparadores[sortConfig.criterio] ?? comparadores.cliente;
+    return [...grupos].sort((a, b) => (sortConfig.direction === 'asc' ? comparar(a, b) : comparar(b, a)));
+  }, [grupos, sortConfig]);
 
   const colunasLinhaAtivas = colunasLinha.filter((c) => selectedColumns.includes(c.id));
   const numColunasLinha = Math.max(colunasLinhaAtivas.length, 1);
@@ -320,12 +338,12 @@ export default function RelatorioComissaoPage() {
     const footerLines = obterRodapeRelatorio(systemSettings);
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const countLine = `Total: ${linhas.length} passagem(ns) de etapa em ${grupos.length} tarefa(s)`;
+    const countLine = `Total: ${linhas.length} passagem(ns) de etapa em ${gruposOrdenados.length} tarefa(s)`;
     const filtersLines = doc.splitTextToSize(`Filtros: ${filtersSummary}`, pageWidth - 70);
     const headerEndY = 30 + 6 + filtersLines.length * 6;
 
     const body = [];
-    grupos.forEach((grupo) => {
+    gruposOrdenados.forEach((grupo) => {
       body.push([
         {
           content: buildGroupHeader(grupo),
@@ -375,7 +393,7 @@ export default function RelatorioComissaoPage() {
     const headerRows = [
       [reportTitle],
       [`Data de emissão: ${emissionDate}`],
-      [`Total: ${linhas.length} passagem(ns) de etapa em ${grupos.length} tarefa(s)`],
+      [`Total: ${linhas.length} passagem(ns) de etapa em ${gruposOrdenados.length} tarefa(s)`],
       [`Filtros: ${filtersSummary}`],
       [],
       colunasLinhaAtivas.map((c) => c.label),
@@ -394,7 +412,7 @@ export default function RelatorioComissaoPage() {
 
     const dataRows = [];
     let currentRow = headerRows.length;
-    grupos.forEach((grupo) => {
+    gruposOrdenados.forEach((grupo) => {
       dataRows.push([buildGroupHeader(grupo)]);
       if (numColunasLinha > 1) {
         merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: numColunasLinha - 1 } });
@@ -415,10 +433,9 @@ export default function RelatorioComissaoPage() {
     await XLSX.writeFile(workbook, 'relatorio-comissao.xlsx');
   };
 
-  if (isLoading) {
-    return <div className="p-6">Carregando relatório de comissão...</div>;
-  }
-
+  // Não retorna cedo em isLoading: isso desmontaria os campos de filtro (incluindo os de data) a
+  // cada busca — inclusive as disparadas por cada tecla digitada — fazendo o campo perder o foco.
+  // O carregamento é sinalizado dentro da tabela de resultados, mantendo os filtros montados.
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto py-8 px-4 space-y-4">
@@ -510,8 +527,33 @@ export default function RelatorioComissaoPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>
-              {linhas.length} passagem(ns) de etapa em {grupos.length} tarefa(s)
+            <CardTitle className="flex items-center justify-between flex-wrap gap-3">
+              <span>
+                {linhas.length} passagem(ns) de etapa em {gruposOrdenados.length} tarefa(s)
+              </span>
+              <div className="flex items-center gap-2 text-sm font-normal">
+                <Label className="whitespace-nowrap">Ordenar por</Label>
+                <Select
+                  value={sortConfig.criterio}
+                  onValueChange={(criterio) => setSortConfig((prev) => ({ ...prev, criterio }))}
+                >
+                  <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {criteriosOrdenacao.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSortConfig((prev) => ({ ...prev, direction: prev.direction === 'asc' ? 'desc' : 'asc' }))}
+                  title={sortConfig.direction === 'asc' ? 'Crescente' : 'Decrescente'}
+                >
+                  {sortConfig.direction === 'asc' ? '▲' : '▼'}
+                </Button>
+              </div>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -525,7 +567,14 @@ export default function RelatorioComissaoPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {grupos.map((grupo) => (
+                  {isLoading && (
+                    <TableRow>
+                      <TableCell colSpan={numColunasLinha} className="text-center text-muted-foreground">
+                        Carregando...
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {!isLoading && gruposOrdenados.map((grupo) => (
                     <Fragment key={grupo.tarefaId}>
                       <TableRow className="bg-brand-blue/10 hover:bg-brand-blue/10">
                         <TableCell colSpan={numColunasLinha} className="font-semibold text-brand-blue">
@@ -541,7 +590,7 @@ export default function RelatorioComissaoPage() {
                       ))}
                     </Fragment>
                   ))}
-                  {grupos.length === 0 && (
+                  {!isLoading && gruposOrdenados.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={numColunasLinha} className="text-center text-muted-foreground">
                         Nenhum registro encontrado com os filtros selecionados.
