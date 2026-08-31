@@ -169,6 +169,10 @@ namespace API.Controllers
                 if (projeto == null)
                     return NotFound(new { erro = "Projeto nao encontrado." });
 
+                // Tarefas novas adicionadas nesta edicao (inclusive via mesclagem) ficam
+                // atribuidas a quem esta editando; tarefas ja existentes preservam quem as lancou.
+                var colaboradorIdLogado = ObterColaboradorIdLogado();
+
                 projeto.Titulo = request.Titulo;
                 projeto.Descricao = request.Descricao;
                 projeto.ClienteId = request.ClienteId;
@@ -179,6 +183,7 @@ namespace API.Controllers
                     Descricao = t.Descricao,
                     PrioridadeId = t.PrioridadeId,
                     SetorId = t.SetorId,
+                    CadastradoPorColaboradorId = colaboradorIdLogado,
                     TempoExecucaoValor = t.TempoExecucaoValor,
                     TempoExecucaoUnidade = t.TempoExecucaoUnidade,
                     TempoTesteValor = t.TempoTesteValor,
