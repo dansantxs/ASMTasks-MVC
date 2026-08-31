@@ -5,6 +5,7 @@ namespace API.Models
         public int Id { get; set; }
         public int AtendimentoId { get; set; }
         public string AtendimentoTitulo { get; set; } = string.Empty;
+        public string? AtendimentoDescricao { get; set; }
         public int ClienteId { get; set; }
         public string ClienteNome { get; set; } = string.Empty;
         public char Tipo { get; set; }

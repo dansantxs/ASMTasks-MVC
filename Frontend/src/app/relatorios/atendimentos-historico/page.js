@@ -24,6 +24,7 @@ const columns = [
   { id: 'tipoLabel', label: 'Ação' },
   { id: 'atendimentoId', label: 'ID' },
   { id: 'atendimentoTitulo', label: 'Título do Atendimento' },
+  { id: 'atendimentoDescricao', label: 'Descrição do Atendimento' },
   { id: 'clienteNome', label: 'Cliente' },
   { id: 'colaboradorNome', label: 'Usuário' },
   { id: 'statusAtualLabel', label: 'Status Atual' },
@@ -125,6 +126,7 @@ export default function HistoricoAtendimentosReportPage() {
         tipoLabel: getTipoLabel(item.tipo),
         atendimentoId: item.atendimentoId,
         atendimentoTitulo: item.atendimentoTitulo ?? ' ',
+        atendimentoDescricao: item.atendimentoDescricao ?? ' ',
         clienteNome: item.clienteNome ?? ' ',
         colaboradorNome: item.colaboradorNome ?? ' ',
         statusAtual: item.atendimentoStatusAtual,
@@ -142,6 +144,7 @@ export default function HistoricoAtendimentosReportPage() {
 
         return (
           item.atendimentoTitulo.toLowerCase().includes(term) ||
+          item.atendimentoDescricao.toLowerCase().includes(term) ||
           item.observacao.toLowerCase().includes(term)
         );
       }),
@@ -165,6 +168,7 @@ export default function HistoricoAtendimentosReportPage() {
       tipoLabel: (a, b) => compareStrings(a.tipoLabel, b.tipoLabel),
       atendimentoId: (a, b) => compareNumbers(a.atendimentoId, b.atendimentoId),
       atendimentoTitulo: (a, b) => compareStrings(a.atendimentoTitulo, b.atendimentoTitulo),
+      atendimentoDescricao: (a, b) => compareStrings(a.atendimentoDescricao, b.atendimentoDescricao),
       clienteNome: (a, b) => compareStrings(a.clienteNome, b.clienteNome),
       colaboradorNome: (a, b) => compareStrings(a.colaboradorNome, b.colaboradorNome),
       statusAtualLabel: (a, b) => compareStrings(a.statusAtualLabel, b.statusAtualLabel),
@@ -387,7 +391,7 @@ export default function HistoricoAtendimentosReportPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="md:col-span-2">
                   <Label>Busca</Label>
-                  <Input placeholder="Título ou observação" value={search} onChange={(e) => setSearch(e.target.value)} />
+                  <Input placeholder="Título, descrição ou observação" value={search} onChange={(e) => setSearch(e.target.value)} />
                 </div>
                 <div>
                   <Label>Ação</Label>

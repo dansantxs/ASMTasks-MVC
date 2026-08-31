@@ -1,4 +1,4 @@
-export const VERSAO_ATUAL = '1.7.0';
+export const VERSAO_ATUAL = '1.8.0';
 
 /**
  * Regra de versionamento (major.minor.patch):
@@ -11,6 +11,14 @@ export const VERSAO_ATUAL = '1.7.0';
  *  2. Adicione uma nova entrada NO INÍCIO do array CHANGELOG.
  */
 export const CHANGELOG = [
+  {
+    versao: '1.8.0',
+    data: '2026-08-31',
+    titulo: 'Busca em Dropdowns, Filtros Combinados e Ajustes no Kanban, Projetos e Relatórios',
+    mudancas: [
+      'Relatório de Histórico de Atendimentos: nova coluna Descrição do Atendimento (também considerada na busca por texto)',
+    ],
+  },
   {
     versao: '1.7.0',
     data: '2026-08-31',
