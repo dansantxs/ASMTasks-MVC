@@ -17,6 +17,7 @@ import { obterRodapeRelatorio, obterLogotipo } from '../../../services/configura
 import TourGuia from '../../../components/TourGuia';
 import { getHistoricoTarefas, getHistoricoProjetosRelatorio } from './api/historicoTarefas';
 import { getColaboradoresKanban, getProjetosKanban, getClientesKanban, getEtapasKanban } from '../../projetos/kanban/api/kanban';
+import { useDebouncedValue } from '../../../hooks/useDebouncedValue';
 
 const columns = [
   { id: 'dataHoraAcao', label: 'Data/Hora' },
@@ -54,13 +55,22 @@ const getTipoLabel = (tipo) => {
   return tipo ?? ' ';
 };
 
+// Enquanto o usuário ainda está digitando o ano no <input type="date">, o navegador já reporta
+// um valor "completo" com o ano truncado (ex.: 0020-08-26 depois de digitar só "20") — sem essa
+// checagem, isso vira uma busca com uma data absurda a cada tecla, derrubando o backend com
+// "SqlDateTime overflow" antes do usuário terminar de digitar o ano.
+function anoCompleto(dateValue) {
+  const ano = Number(dateValue?.slice(0, 4));
+  return Number.isFinite(ano) && ano >= 1753;
+}
+
 function toIsoStartOfDay(dateValue) {
-  if (!dateValue) return null;
+  if (!dateValue || !anoCompleto(dateValue)) return null;
   return new Date(`${dateValue}T00:00:00`).toISOString();
 }
 
 function toIsoEndOfDay(dateValue) {
-  if (!dateValue) return null;
+  if (!dateValue || !anoCompleto(dateValue)) return null;
   return new Date(`${dateValue}T23:59:59`).toISOString();
 }
 
@@ -91,15 +101,18 @@ export default function HistoricoTarefasReportPage() {
     }),
     [tipoFilter, colaboradorFilter, projetoFilter, clienteFilter, etapaFilter, ultimaOcorrencia, dataInicioFilter, dataFimFilter]
   );
+  // Espera o filtro parar de mudar por um instante antes de buscar — evita disparar uma busca a
+  // cada tecla digitada (nas datas, isso também dava tempo pro ano ficar completo antes de valer).
+  const queryParamsDebounced = useDebouncedValue(queryParams, 400);
 
   const { data: historicoTarefasApi = { registros: [], totalTarefas: 0 }, isLoading: isLoadingTarefas } = useQuery({
-    queryKey: ['relatorio-historico-tarefas', queryParams],
-    queryFn: () => getHistoricoTarefas(queryParams),
+    queryKey: ['relatorio-historico-tarefas', queryParamsDebounced],
+    queryFn: () => getHistoricoTarefas(queryParamsDebounced),
   });
 
   const { data: historicoProjetosApi = [], isLoading: isLoadingProjetos } = useQuery({
-    queryKey: ['relatorio-historico-projetos', queryParams],
-    queryFn: () => getHistoricoProjetosRelatorio(queryParams),
+    queryKey: ['relatorio-historico-projetos', queryParamsDebounced],
+    queryFn: () => getHistoricoProjetosRelatorio(queryParamsDebounced),
   });
 
   const isLoading = isLoadingTarefas || isLoadingProjetos;

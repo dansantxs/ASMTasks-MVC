@@ -17,6 +17,7 @@ import { obterRodapeRelatorio, obterLogotipo } from '../../../services/configura
 import TourGuia from '../../../components/TourGuia';
 import { getHistoricoAtendimentos } from './api/historicoAtendimentos';
 import { getClientes, getColaboradores } from '../../atendimentos/api/atendimentos';
+import { useDebouncedValue } from '../../../hooks/useDebouncedValue';
 
 const columns = [
   { id: 'dataHoraAcao', label: 'Data/Hora' },
@@ -45,13 +46,22 @@ const formatDateTime = (value) =>
 const getTipoLabel = (tipo) => (tipo === 'C' ? 'Conclusão' : tipo === 'R' ? 'Reabertura' : ' ');
 const getStatusLabel = (status) => (status === 'R' ? 'Concluído' : status === 'A' ? 'Agendado' : status ?? ' ');
 
+// Enquanto o usuário ainda está digitando o ano no <input type="date">, o navegador já reporta
+// um valor "completo" com o ano truncado (ex.: 0020-08-26 depois de digitar só "20") — sem essa
+// checagem, isso vira uma busca com uma data absurda a cada tecla, derrubando o backend com
+// "SqlDateTime overflow" antes do usuário terminar de digitar o ano.
+function anoCompleto(dateValue) {
+  const ano = Number(dateValue?.slice(0, 4));
+  return Number.isFinite(ano) && ano >= 1753;
+}
+
 function toIsoStartOfDay(dateValue) {
-  if (!dateValue) return null;
+  if (!dateValue || !anoCompleto(dateValue)) return null;
   return new Date(`${dateValue}T00:00:00`).toISOString();
 }
 
 function toIsoEndOfDay(dateValue) {
-  if (!dateValue) return null;
+  if (!dateValue || !anoCompleto(dateValue)) return null;
   return new Date(`${dateValue}T23:59:59`).toISOString();
 }
 
@@ -76,10 +86,13 @@ export default function HistoricoAtendimentosReportPage() {
     }),
     [tipoFilter, clienteFilter, colaboradorFilter, dataInicioFilter, dataFimFilter]
   );
+  // Espera o filtro parar de mudar por um instante antes de buscar — evita disparar uma busca a
+  // cada tecla digitada (nas datas, isso também dava tempo pro ano ficar completo antes de valer).
+  const historicoQueryParamsDebounced = useDebouncedValue(historicoQueryParams, 400);
 
   const { data: historicoApi = [], isLoading } = useQuery({
-    queryKey: ['relatorio-historico-atendimentos', historicoQueryParams],
-    queryFn: () => getHistoricoAtendimentos(historicoQueryParams),
+    queryKey: ['relatorio-historico-atendimentos', historicoQueryParamsDebounced],
+    queryFn: () => getHistoricoAtendimentos(historicoQueryParamsDebounced),
   });
 
   const { data: clientesApi = [] } = useQuery({

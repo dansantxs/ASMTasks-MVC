@@ -16,6 +16,7 @@ import { configuracoesPadrao, useConfiguracoesSistema } from '../../../services/
 import { obterRodapeRelatorio, obterLogotipo } from '../../../services/configuracoes/reportBranding';
 import { getHistoricoTarefas } from '../projetos-historico/api/historicoTarefas';
 import { getColaboradoresKanban, getClientesKanban, getEtapasKanban } from '../../projetos/kanban/api/kanban';
+import { useDebouncedValue } from '../../../hooks/useDebouncedValue';
 
 // Colunas que formam o cabeçalho de cada grupo (cliente / projeto / tarefa)
 const colunasGrupo = [
@@ -63,13 +64,22 @@ function primeiroDiaDoMes(data) {
   return new Date(data.getFullYear(), data.getMonth(), 1);
 }
 
+// Enquanto o usuário ainda está digitando o ano no <input type="date">, o navegador já reporta
+// um valor "completo" com o ano truncado (ex.: 0020-08-26 depois de digitar só "20") — sem essa
+// checagem, isso vira uma busca com uma data absurda a cada tecla, derrubando o backend com
+// "SqlDateTime overflow" antes do usuário terminar de digitar o ano.
+function anoCompleto(dateValue) {
+  const ano = Number(dateValue?.slice(0, 4));
+  return Number.isFinite(ano) && ano >= 1753;
+}
+
 function toIsoStartOfDay(dateValue) {
-  if (!dateValue) return null;
+  if (!dateValue || !anoCompleto(dateValue)) return null;
   return new Date(`${dateValue}T00:00:00`).toISOString();
 }
 
 function toIsoEndOfDay(dateValue) {
-  if (!dateValue) return null;
+  if (!dateValue || !anoCompleto(dateValue)) return null;
   return new Date(`${dateValue}T23:59:59`).toISOString();
 }
 
@@ -95,10 +105,13 @@ export default function RelatorioComissaoPage() {
     }),
     [clienteFilter, dataInicioFilter, dataFimFilter]
   );
+  // Espera o filtro parar de mudar por um instante antes de buscar — evita disparar uma busca a
+  // cada tecla digitada (nas datas, isso também dava tempo pro ano ficar completo antes de valer).
+  const queryParamsDebounced = useDebouncedValue(queryParams, 400);
 
   const { data: historicoApi = { registros: [], totalTarefas: 0 }, isLoading } = useQuery({
-    queryKey: ['relatorio-comissao', queryParams],
-    queryFn: () => getHistoricoTarefas(queryParams),
+    queryKey: ['relatorio-comissao', queryParamsDebounced],
+    queryFn: () => getHistoricoTarefas(queryParamsDebounced),
   });
 
   const { data: colaboradoresRaw = [] } = useQuery({
