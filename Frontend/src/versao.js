@@ -1,4 +1,4 @@
-export const VERSAO_ATUAL = '1.6.0';
+export const VERSAO_ATUAL = '1.7.0';
 
 /**
  * Regra de versionamento (major.minor.patch):
@@ -11,6 +11,18 @@ export const VERSAO_ATUAL = '1.6.0';
  *  2. Adicione uma nova entrada NO INÍCIO do array CHANGELOG.
  */
 export const CHANGELOG = [
+  {
+    versao: '1.7.0',
+    data: '2026-08-31',
+    titulo: 'Relatório de Comissão',
+    mudancas: [
+      'Novo relatório de Comissão, em Relatórios: lista tarefas que já chegaram na etapa final e atendimentos concluídos no período, agrupados por cliente e tarefa/atendimento, mostrando cada etapa percorrida, o colaborador responsável e a data',
+      'Filtros por período, colaborador, cliente e tipo (Tarefas/Atendimentos), com seleção de colunas e ordenação, igual aos demais relatórios',
+      'Passagens de etapa sem responsável definido não aparecem no relatório, já que não geram comissão',
+      'Exportação em Excel e PDF',
+      'Correção: variável de ambiente do Docker sobrescrevia a duração da sessão configurada em 12 horas, fazendo o token expirar antes do esperado',
+    ],
+  },
   {
     versao: '1.6.0',
     data: '2026-08-26',
