@@ -333,11 +333,11 @@ export default function HistoricoAtendimentosReportPage() {
     });
   }, []);
 
-  if (isLoading) {
-    return <div className="p-6">Carregando relatório de histórico de atendimentos...</div>;
-  }
-
   const activeColumns = columns.filter((c) => selectedColumns.includes(c.id));
+
+  // Não retorna cedo em isLoading: isso desmontaria os campos de filtro (incluindo os de data) a
+  // cada busca — inclusive as disparadas por cada tecla digitada — fazendo o campo perder o foco.
+  // O carregamento é sinalizado dentro da tabela de resultados, mantendo os filtros montados.
 
   return (
     <div className="min-h-screen bg-background">
@@ -477,14 +477,21 @@ export default function HistoricoAtendimentosReportPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {sortedData.map((row) => (
+                  {isLoading && (
+                    <TableRow>
+                      <TableCell colSpan={activeColumns.length} className="text-center text-muted-foreground">
+                        Carregando...
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {!isLoading && sortedData.map((row) => (
                     <TableRow key={row.id} className="hover:bg-muted/40">
                       {activeColumns.map((col) => (
                         <TableCell key={col.id}>{row[col.id]}</TableCell>
                       ))}
                     </TableRow>
                   ))}
-                  {filteredData.length === 0 && (
+                  {!isLoading && filteredData.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={activeColumns.length} className="text-center text-muted-foreground">
                         Nenhum registro encontrado com os filtros selecionados.
