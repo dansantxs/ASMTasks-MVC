@@ -66,9 +66,6 @@ body {
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
-  --brand-blue: #1e3a8a;
-  --brand-blue-light: #3b82f6;
-  --brand-blue-dark: #1e40af;
 }
 
 .dark {
@@ -147,9 +144,20 @@ body {
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --color-brand-blue: var(--brand-blue);
-  --color-brand-blue-light: var(--brand-blue-light);
-  --color-brand-blue-dark: var(--brand-blue-dark);
+  /*
+   * As cores da marca precisam ser valores LITERAIS aqui (não `var(...)`).
+   * Utilitários com opacidade (ex.: `bg-brand-blue/10`) viram `color-mix()`, que
+   * só existe a partir do Chrome 111. No Chrome 109 (última versão no Windows 7) o
+   * Lightning CSS gera um fallback: se a cor é um literal, ele resolve o color-mix
+   * para um hex com alfa (#1e3a8a1a) — o tom translúcido correto; mas se a cor vem
+   * de uma `var()`, ele não consegue resolver e cai para a cor SÓLIDA (opaca),
+   * transformando os tons de fundo em blocos azuis maciços (e escondendo o texto
+   * `text-brand-blue` da mesma cor). Manter literal aqui evita esse bug visual.
+   * Brand-blue não tem variação no modo escuro, então inline é seguro.
+   */
+  --color-brand-blue: #1e3a8a;
+  --color-brand-blue-light: #3b82f6;
+  --color-brand-blue-dark: #1e40af;
 }
 
 @layer base {
