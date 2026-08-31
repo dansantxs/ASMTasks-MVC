@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useDebouncedValue } from '../../../hooks/useDebouncedValue';
 import { Kanban } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
 import { useUsuarioAtual } from '../../../hooks/useUsuarioAtual';
@@ -34,7 +35,20 @@ export default function KanbanPage() {
     colaboradorIds: colaboradorLogadoId ? [colaboradorLogadoId] : [],
     projetoIds: [],
     clienteIds: [],
+    busca: '',
   });
+
+  // A busca por texto é aplicada no cliente (todas as tarefas já vêm carregadas),
+  // então fica fora dos parâmetros enviados ao servidor / da chave da query.
+  const filtrosServidor = useMemo(
+    () => ({
+      colaboradorIds: filtros.colaboradorIds,
+      projetoIds: filtros.projetoIds,
+      clienteIds: filtros.clienteIds,
+    }),
+    [filtros.colaboradorIds, filtros.projetoIds, filtros.clienteIds]
+  );
+  const buscaDebounced = useDebouncedValue(filtros.busca, 250);
 
   const queryClient = useQueryClient();
 
@@ -59,10 +73,20 @@ export default function KanbanPage() {
   });
 
   const { data: tarefas = [], isLoading } = useQuery({
-    queryKey: ['kanban-tarefas', filtros],
-    queryFn: () => getTarefasKanban(filtros),
+    queryKey: ['kanban-tarefas', filtrosServidor],
+    queryFn: () => getTarefasKanban(filtrosServidor),
     refetchInterval: 30_000,
   });
+
+  const tarefasFiltradas = useMemo(() => {
+    const termo = (buscaDebounced ?? '').trim().toLowerCase();
+    if (!termo) return tarefas;
+    return tarefas.filter(
+      (t) =>
+        (t.titulo ?? '').toLowerCase().includes(termo) ||
+        (t.descricao ?? '').toLowerCase().includes(termo)
+    );
+  }, [tarefas, buscaDebounced]);
 
   // Apenas projetos ativos e não concluídos — normaliza titulo → nome para o filtro
   const projetosAtivos = useMemo(
@@ -356,7 +380,7 @@ export default function KanbanPage() {
         ) : (
           <div id="tour-kanban-quadro">
           <QuadroKanban
-            tarefas={tarefas}
+            tarefas={tarefasFiltradas}
             etapas={etapas}
             colaboradores={colaboradoresAtivos}
             colaboradorLogadoId={colaboradorLogadoId}

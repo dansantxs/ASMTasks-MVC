@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Filter, ChevronDown, X, Check } from 'lucide-react';
+import { Filter, ChevronDown, X, Check, Search } from 'lucide-react';
 import { Button } from '../../../../components/ui/base/button';
 import { cn } from '../../../../components/ui/form/utils';
 
@@ -101,7 +101,7 @@ export default function FiltrosKanban({
   clientes,
   ehAdmin,
 }) {
-  const { colaboradorIds, projetoIds, clienteIds } = filtros;
+  const { colaboradorIds, projetoIds, clienteIds, busca = '' } = filtros;
 
   // Para não-admins, o filtro de colaborador é "ativo" apenas quando difere do padrão (somente o próprio ID)
   const colaboradorFiltroAtivo = ehAdmin
@@ -111,6 +111,7 @@ export default function FiltrosKanban({
   const temFiltroAtivo =
     projetoIds.length > 0 ||
     clienteIds.length > 0 ||
+    busca.trim().length > 0 ||
     colaboradorFiltroAtivo;
 
   const limpar = () => {
@@ -118,6 +119,7 @@ export default function FiltrosKanban({
       colaboradorIds: ehAdmin ? [] : (colaboradorLogadoId ? [colaboradorLogadoId] : []),
       projetoIds: [],
       clienteIds: [],
+      busca: '',
     });
   };
 
@@ -126,6 +128,30 @@ export default function FiltrosKanban({
       <div className="flex items-center gap-1.5 text-sm font-medium text-gray-600">
         <Filter className="h-4 w-4" />
         <span>Filtros</span>
+      </div>
+
+      <div className="relative">
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400 pointer-events-none" />
+        <input
+          type="text"
+          value={busca}
+          onChange={(e) => aoAlterarFiltros({ ...filtros, busca: e.target.value })}
+          placeholder="Buscar tarefa..."
+          className={cn(
+            'text-sm border border-gray-200 rounded-lg pl-8 pr-7 py-1.5 bg-white w-[200px]',
+            'hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-blue',
+            busca.trim() && 'border-brand-blue bg-brand-blue/5'
+          )}
+        />
+        {busca && (
+          <button
+            type="button"
+            onClick={() => aoAlterarFiltros({ ...filtros, busca: '' })}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        )}
       </div>
 
       <MultiSelectDropdown
