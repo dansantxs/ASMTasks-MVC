@@ -74,6 +74,12 @@ export default function KanbanPage() {
     [projetosRaw]
   );
 
+  // Filtros combinados: o filtro de Projeto só lista projetos do(s) cliente(s) selecionado(s)
+  const projetosParaFiltro = useMemo(() => {
+    if (filtros.clienteIds.length === 0) return projetosAtivos;
+    return projetosAtivos.filter((p) => filtros.clienteIds.includes(p.clienteId));
+  }, [projetosAtivos, filtros.clienteIds]);
+
   // Clientes que possuem ao menos um projeto ativo — nome exibido conforme parametrização
   const clientesFiltrados = useMemo(() => {
     const clienteIdsComProjeto = new Set(projetosAtivos.map((p) => p.clienteId));
@@ -94,16 +100,55 @@ export default function KanbanPage() {
     [colaboradores]
   );
 
-  // Colaboradores para o filtro: ativos + inativos que ainda têm tarefas no quadro,
-  // com item sintético "Sem responsável" (id 0, nunca existe em Colaborador) para
-  // filtrar tarefas sem responsável atribuído
+  // Colaboradores para o filtro: por padrão, ativos + inativos que ainda têm tarefas no quadro.
+  // Quando há cliente e/ou projeto filtrado, restringe aos colaboradores responsáveis por
+  // alguma tarefa desse escopo. Item sintético "Sem responsável" (id 0, nunca existe em
+  // Colaborador) para filtrar tarefas sem responsável atribuído.
   const colaboradoresParaFiltro = useMemo(() => {
-    const idsComTarefas = new Set(tarefas.map((t) => t.colaboradorResponsavelId).filter(Boolean));
+    const { clienteIds, projetoIds } = filtros;
+    const escopado = clienteIds.length > 0 || projetoIds.length > 0;
+
+    let idsComTarefas;
+    let temSemResponsavel;
+    if (escopado) {
+      const tarefasEscopo = projetosAtivos
+        .filter(
+          (p) =>
+            (clienteIds.length === 0 || clienteIds.includes(p.clienteId)) &&
+            (projetoIds.length === 0 || projetoIds.includes(p.id))
+        )
+        .flatMap((p) => p.tarefas ?? []);
+      idsComTarefas = new Set(tarefasEscopo.map((t) => t.colaboradorResponsavelId).filter(Boolean));
+      temSemResponsavel = tarefasEscopo.some((t) => !t.colaboradorResponsavelId);
+    } else {
+      idsComTarefas = new Set(tarefas.map((t) => t.colaboradorResponsavelId).filter(Boolean));
+      temSemResponsavel = true;
+    }
+
     const base = colaboradores
-      .filter((c) => c.ativo !== false || idsComTarefas.has(c.id))
+      .filter((c) => (escopado ? idsComTarefas.has(c.id) : c.ativo !== false || idsComTarefas.has(c.id)))
       .sort((a, b) => (a.nome ?? '').localeCompare(b.nome ?? '', 'pt-BR', { sensitivity: 'base' }));
-    return [{ id: 0, nome: 'Sem responsável' }, ...base];
-  }, [colaboradores, tarefas]);
+
+    return temSemResponsavel ? [{ id: 0, nome: 'Sem responsável' }, ...base] : base;
+  }, [colaboradores, tarefas, projetosAtivos, filtros]);
+
+  // Ao restringir o filtro de cliente, descarta seleções de projeto que saíram do escopo
+  // (o filtro de colaborador é preservado para não afetar a visibilidade padrão do usuário)
+  const handleAlterarFiltros = useCallback(
+    (novos) => {
+      setFiltros((prev) => {
+        const next = { ...prev, ...novos };
+        if (next.clienteIds.length > 0 && next.projetoIds.length > 0) {
+          const projetosValidos = new Set(
+            projetosAtivos.filter((p) => next.clienteIds.includes(p.clienteId)).map((p) => p.id)
+          );
+          next.projetoIds = next.projetoIds.filter((id) => projetosValidos.has(id));
+        }
+        return next;
+      });
+    },
+    [projetosAtivos]
+  );
 
   const mover = useMutation({
     mutationFn: ({ tarefaId, etapaId, colaboradorResponsavelId }) =>
@@ -340,10 +385,10 @@ export default function KanbanPage() {
         <div className="mb-4">
           <FiltrosKanban
             filtros={filtros}
-            aoAlterarFiltros={setFiltros}
+            aoAlterarFiltros={handleAlterarFiltros}
             colaboradorLogadoId={colaboradorLogadoId}
             colaboradores={colaboradoresParaFiltro}
-            projetos={projetosAtivos}
+            projetos={projetosParaFiltro}
             clientes={clientesFiltrados}
             ehAdmin={ehAdmin}
           />
