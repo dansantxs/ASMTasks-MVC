@@ -16,7 +16,7 @@ export const CHANGELOG = [
     data: '2026-08-31',
     titulo: 'Busca em Dropdowns, Filtros Combinados e Ajustes no Kanban, Projetos e Relatórios',
     mudancas: [
-      'Campos de seleção com muitas opções (cliente, colaborador, projeto, empresa matriz, setor, cargo) agora têm campo de busca por digitação — cadastro de projeto e atendimento, formulário de cliente e de colaborador, troca de responsável no Kanban, filtro do Dashboard e filtros dos relatórios',
+      'Campos de seleção com muitas opções (cliente, colaborador, projeto, empresa matriz, setor, cargo) agora têm campo de busca por digitação — cadastro de projeto e atendimento, formulário de cliente e de colaborador, troca de responsável no Kanban, filtro do Dashboard, filtros do Quadro Kanban e filtros dos relatórios',
     ],
   },
   {
