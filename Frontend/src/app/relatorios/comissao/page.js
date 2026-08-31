@@ -91,6 +91,7 @@ export default function RelatorioComissaoPage() {
   const [dataFimFilter, setDataFimFilter] = useState(() => paraInputDate(hoje));
   const [colaboradorFilter, setColaboradorFilter] = useState('todos');
   const [clienteFilter, setClienteFilter] = useState('todos');
+  const [tipoItemFilter, setTipoItemFilter] = useState('todos'); // todos | tarefa | atendimento
   const [selectedColumns, setSelectedColumns] = useState(todasColunas.map((c) => c.id));
   const [sortConfig, setSortConfig] = useState({ criterio: 'cliente', direction: 'asc' });
   const { data: systemSettings = configuracoesPadrao } = useConfiguracoesSistema();
@@ -351,13 +352,16 @@ export default function RelatorioComissaoPage() {
   // de forma uniforme.
   const linhasTarefasEAtendimentos = useMemo(() => [...segmentos, ...linhasAtendimento], [segmentos, linhasAtendimento]);
 
-  // Filtro de colaborador aplicado aqui (não no servidor) — depois da reconstrução acima
+  // Filtros de colaborador e de tipo (tarefa/atendimento) aplicados aqui (não no servidor) — depois
+  // da reconstrução acima
   const linhas = useMemo(
     () =>
-      colaboradorFilter === 'todos'
-        ? linhasTarefasEAtendimentos
-        : linhasTarefasEAtendimentos.filter((s) => s.colaboradorId === Number(colaboradorFilter)),
-    [linhasTarefasEAtendimentos, colaboradorFilter]
+      linhasTarefasEAtendimentos.filter(
+        (s) =>
+          (colaboradorFilter === 'todos' || s.colaboradorId === Number(colaboradorFilter)) &&
+          (tipoItemFilter === 'todos' || s.itemTipo === tipoItemFilter)
+      ),
+    [linhasTarefasEAtendimentos, colaboradorFilter, tipoItemFilter]
   );
 
   // Agrupamento: Cliente > Tarefa/Atendimento, com as passagens em ordem cronológica dentro de
@@ -411,8 +415,7 @@ export default function RelatorioComissaoPage() {
     if (selectedColumns.includes('clienteNome')) partes.push(grupo.clienteNome);
     if (selectedColumns.includes('projetoTitulo')) partes.push(grupo.projetoTitulo);
     if (selectedColumns.includes('tarefaTitulo')) partes.push(grupo.tarefaTitulo);
-    const texto = partes.length > 0 ? partes.join(' — ') : `Tarefa #${grupo.tarefaId}`;
-    return grupo.itemTipo === 'atendimento' ? `[Atendimento] ${texto}` : texto;
+    return partes.length > 0 ? partes.join(' — ') : `Tarefa #${grupo.tarefaId}`;
   }
 
   const toggleColumn = (id) => {
@@ -432,9 +435,13 @@ export default function RelatorioComissaoPage() {
           ? resolverNomeClienteCadastro(clienteEncontrado)
           : `#${clienteFilter}`;
 
+    const tipoLabel =
+      tipoItemFilter === 'tarefa' ? 'Tarefas' : tipoItemFilter === 'atendimento' ? 'Atendimentos' : null;
+
     const filters = [
       dataInicioFilter ? `Data início: ${new Date(`${dataInicioFilter}T00:00:00`).toLocaleDateString('pt-BR')}` : null,
       dataFimFilter ? `Data fim: ${new Date(`${dataFimFilter}T00:00:00`).toLocaleDateString('pt-BR')}` : null,
+      tipoLabel ? `Tipo: ${tipoLabel}` : null,
       colaboradorNome ? `Colaborador: ${colaboradorNome}` : null,
       clienteNome ? `Cliente: ${clienteNome}` : null,
     ].filter(Boolean);
@@ -551,7 +558,7 @@ export default function RelatorioComissaoPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto py-8 px-4 space-y-4">
-        <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-brand-blue/10 rounded-lg">
               <DollarSign className="h-6 w-6 text-brand-blue" />
@@ -563,7 +570,7 @@ export default function RelatorioComissaoPage() {
               </p>
             </div>
           </div>
-          <div className="flex gap-3">
+          <div className="flex items-center gap-3">
             <Button variant="outline" className="flex items-center gap-2" onClick={exportToExcel}>
               <FileSpreadsheet className="h-4 w-4" /> Exportar Excel
             </Button>
@@ -581,7 +588,7 @@ export default function RelatorioComissaoPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <Label>Data início</Label>
                   <Input type="date" value={dataInicioFilter} onChange={(e) => setDataInicioFilter(e.target.value)} />
@@ -589,6 +596,17 @@ export default function RelatorioComissaoPage() {
                 <div>
                   <Label>Data fim</Label>
                   <Input type="date" value={dataFimFilter} onChange={(e) => setDataFimFilter(e.target.value)} />
+                </div>
+                <div>
+                  <Label>Tipo</Label>
+                  <Select value={tipoItemFilter} onValueChange={setTipoItemFilter}>
+                    <SelectTrigger><SelectValue placeholder="Tipo" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos</SelectItem>
+                      <SelectItem value="tarefa">Tarefas</SelectItem>
+                      <SelectItem value="atendimento">Atendimentos</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label>Colaborador</Label>
