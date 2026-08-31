@@ -287,6 +287,7 @@ export default function FormularioProjeto({
   prioridades,
   projetos = [],
   colaboradorLogadoNome,
+  colaboradoresById = null,
   setorLogadoId = null,
   dadosIniciais = null,
 }) {
@@ -693,10 +694,31 @@ export default function FormularioProjeto({
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Cadastrando por</Label>
-                  <Input value={colaboradorLogadoNome || 'Colaborador logado'} readOnly disabled />
-                </div>
+                {isEditMode ? (
+                  <>
+                    <div className="space-y-2">
+                      <Label>Lançado por</Label>
+                      <Input
+                        value={
+                          (colaboradoresById && dadosIniciais?.cadastradoPorColaboradorId
+                            ? colaboradoresById.get(dadosIniciais.cadastradoPorColaboradorId)
+                            : null) || colaboradorLogadoNome || 'Colaborador logado'
+                        }
+                        readOnly
+                        disabled
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Alterado por</Label>
+                      <Input value={colaboradorLogadoNome || 'Colaborador logado'} readOnly disabled />
+                    </div>
+                  </>
+                ) : (
+                  <div className="space-y-2">
+                    <Label>Lançado por</Label>
+                    <Input value={colaboradorLogadoNome || 'Colaborador logado'} readOnly disabled />
+                  </div>
+                )}
               </div>
 
               {/* Painel direito — tarefas */}

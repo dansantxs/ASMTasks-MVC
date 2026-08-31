@@ -342,6 +342,9 @@ export default function DialogoVisualizarProjeto({
   const colaboradorCadastroNome =
     colaboradoresById.get(projeto.cadastradoPorColaboradorId) ??
     `Colaborador #${projeto.cadastradoPorColaboradorId}`;
+  const colaboradorAlteracaoNome = projeto.alteradoPorColaboradorId
+    ? (colaboradoresById.get(projeto.alteradoPorColaboradorId) ?? `Colaborador #${projeto.alteradoPorColaboradorId}`)
+    : null;
   const status = !projeto.ativo ? 'Inativo' : projeto.concluido ? 'Concluido' : 'Ativo';
   const tarefas = [...(projeto.tarefas ?? [])].sort((a, b) => {
     const ordemA = prioridadesById.get(a.prioridadeId)?.ordem ?? 9999;
@@ -428,6 +431,17 @@ export default function DialogoVisualizarProjeto({
                 <p className="text-xs text-muted-foreground">Lançado por</p>
                 <p className="font-medium">{colaboradorCadastroNome}</p>
               </div>
+              {colaboradorAlteracaoNome && (
+                <div>
+                  <p className="text-xs text-muted-foreground">Alterado por</p>
+                  <p className="font-medium">
+                    {colaboradorAlteracaoNome}
+                    {projeto.dataAlteracao && (
+                      <span className="text-xs text-muted-foreground font-normal"> · {formatarDataHora(projeto.dataAlteracao)}</span>
+                    )}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 

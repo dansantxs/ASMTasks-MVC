@@ -172,6 +172,8 @@ namespace API.Controllers
                 projeto.Titulo = request.Titulo;
                 projeto.Descricao = request.Descricao;
                 projeto.ClienteId = request.ClienteId;
+                projeto.AlteradoPorColaboradorId = ObterColaboradorIdLogado();
+                projeto.DataAlteracao = DateTime.Now;
                 projeto.Tarefas = [.. request.Tarefas.Select(t => new ProjetoTarefa
                 {
                     Id = t.Id ?? 0,
@@ -974,6 +976,8 @@ namespace API.Controllers
                 ClienteId = projeto.ClienteId,
                 CadastradoPorColaboradorId = projeto.CadastradoPorColaboradorId,
                 DataCadastro = projeto.DataCadastro,
+                AlteradoPorColaboradorId = projeto.AlteradoPorColaboradorId,
+                DataAlteracao = projeto.DataAlteracao,
                 Ativo = projeto.Ativo,
                 Concluido = projeto.Concluido,
                 Tarefas = [.. projeto.Tarefas.Select(t => new ProjetoTarefaResponse

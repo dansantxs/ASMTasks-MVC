@@ -534,6 +534,7 @@ export default function ProjetosPage() {
           prioridades={prioridades}
           projetos={projetos}
           colaboradorLogadoNome={colaboradorLogadoNome}
+          colaboradoresById={colaboradoresById}
           setorLogadoId={setorLogadoId}
           dadosIniciais={editingProject}
         />

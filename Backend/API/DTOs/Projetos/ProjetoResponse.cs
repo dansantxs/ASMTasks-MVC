@@ -8,6 +8,8 @@ namespace API.DTOs.Projetos
         public int ClienteId { get; set; }
         public int CadastradoPorColaboradorId { get; set; }
         public DateTime DataCadastro { get; set; }
+        public int? AlteradoPorColaboradorId { get; set; }
+        public DateTime? DataAlteracao { get; set; }
         public bool Ativo { get; set; }
         public bool Concluido { get; set; }
         public List<ProjetoTarefaResponse> Tarefas { get; set; } = new List<ProjetoTarefaResponse>();

@@ -70,7 +70,9 @@ namespace API.DB.DAOs
                         UPDATE Projeto SET
                             Titulo = @Titulo,
                             Descricao = @Descricao,
-                            ClienteId = @ClienteId
+                            ClienteId = @ClienteId,
+                            AlteradoPorColaboradorId = @AlteradoPorColaboradorId,
+                            DataAlteracao = @DataAlteracao
                         WHERE Id = @Id;
                     ";
 
@@ -78,6 +80,8 @@ namespace API.DB.DAOs
                     cmd.Parameters.AddWithValue("@Titulo", projeto.Titulo);
                     cmd.Parameters.AddWithValue("@Descricao", (object?)projeto.Descricao ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@ClienteId", projeto.ClienteId);
+                    cmd.Parameters.AddWithValue("@AlteradoPorColaboradorId", (object?)projeto.AlteradoPorColaboradorId ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@DataAlteracao", (object?)projeto.DataAlteracao ?? DBNull.Value);
 
                     var linhasProjeto = await cmd.ExecuteNonQueryAsync();
                     if (linhasProjeto == 0)
@@ -177,7 +181,7 @@ namespace API.DB.DAOs
             await using (var cmd = con.CreateCommand())
             {
                 cmd.CommandText = @"
-                    SELECT Id, Titulo, Descricao, ClienteId, CadastradoPorColaboradorId, DataCadastro, Ativo, Concluido
+                    SELECT Id, Titulo, Descricao, ClienteId, CadastradoPorColaboradorId, DataCadastro, AlteradoPorColaboradorId, DataAlteracao, Ativo, Concluido
                     FROM Projeto
                     ORDER BY DataCadastro DESC, Id DESC;
                 ";
@@ -193,6 +197,8 @@ namespace API.DB.DAOs
                         ClienteId = Convert.ToInt32(dr["ClienteId"]),
                         CadastradoPorColaboradorId = Convert.ToInt32(dr["CadastradoPorColaboradorId"]),
                         DataCadastro = Convert.ToDateTime(dr["DataCadastro"]),
+                        AlteradoPorColaboradorId = dr["AlteradoPorColaboradorId"] == DBNull.Value ? null : (int?)Convert.ToInt32(dr["AlteradoPorColaboradorId"]),
+                        DataAlteracao = dr["DataAlteracao"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(dr["DataAlteracao"]),
                         Ativo = Convert.ToBoolean(dr["Ativo"]),
                         Concluido = Convert.ToBoolean(dr["Concluido"])
                     });
@@ -220,7 +226,7 @@ namespace API.DB.DAOs
             await using (var cmd = con.CreateCommand())
             {
                 cmd.CommandText = @"
-                    SELECT Id, Titulo, Descricao, ClienteId, CadastradoPorColaboradorId, DataCadastro, Ativo, Concluido
+                    SELECT Id, Titulo, Descricao, ClienteId, CadastradoPorColaboradorId, DataCadastro, AlteradoPorColaboradorId, DataAlteracao, Ativo, Concluido
                     FROM Projeto
                     WHERE Id = @Id;
                 ";
@@ -237,6 +243,8 @@ namespace API.DB.DAOs
                         ClienteId = Convert.ToInt32(dr["ClienteId"]),
                         CadastradoPorColaboradorId = Convert.ToInt32(dr["CadastradoPorColaboradorId"]),
                         DataCadastro = Convert.ToDateTime(dr["DataCadastro"]),
+                        AlteradoPorColaboradorId = dr["AlteradoPorColaboradorId"] == DBNull.Value ? null : (int?)Convert.ToInt32(dr["AlteradoPorColaboradorId"]),
+                        DataAlteracao = dr["DataAlteracao"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(dr["DataAlteracao"]),
                         Ativo = Convert.ToBoolean(dr["Ativo"]),
                         Concluido = Convert.ToBoolean(dr["Concluido"])
                     };
