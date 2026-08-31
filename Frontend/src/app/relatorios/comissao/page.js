@@ -8,6 +8,7 @@ import { Label } from '../../../components/ui/form/label';
 import { Button } from '../../../components/ui/base/button';
 import { Input } from '../../../components/ui/form/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/form/select';
+import { Combobox } from '../../../components/ui/form/combobox';
 import { DollarSign, FileSpreadsheet, FileText, Filter, ListChecks } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -610,27 +611,29 @@ export default function RelatorioComissaoPage() {
                 </div>
                 <div>
                   <Label>Colaborador</Label>
-                  <Select value={colaboradorFilter} onValueChange={setColaboradorFilter}>
-                    <SelectTrigger><SelectValue placeholder="Colaborador" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="todos">Todos</SelectItem>
-                      {colaboradores.map((c) => (
-                        <SelectItem key={c.id} value={String(c.id)}>{c.nome}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Combobox
+                    value={colaboradorFilter}
+                    onValueChange={setColaboradorFilter}
+                    placeholder="Colaborador"
+                    searchPlaceholder="Buscar colaborador..."
+                    options={[
+                      { value: 'todos', label: 'Todos' },
+                      ...colaboradores.map((c) => ({ value: String(c.id), label: c.nome })),
+                    ]}
+                  />
                 </div>
                 <div>
                   <Label>Cliente</Label>
-                  <Select value={clienteFilter} onValueChange={setClienteFilter}>
-                    <SelectTrigger><SelectValue placeholder="Cliente" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="todos">Todos</SelectItem>
-                      {clientes.map((c) => (
-                        <SelectItem key={c.id} value={String(c.id)}>{resolverNomeClienteCadastro(c)}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Combobox
+                    value={clienteFilter}
+                    onValueChange={setClienteFilter}
+                    placeholder="Cliente"
+                    searchPlaceholder="Buscar cliente..."
+                    options={[
+                      { value: 'todos', label: 'Todos' },
+                      ...clientes.map((c) => ({ value: String(c.id), label: resolverNomeClienteCadastro(c) })),
+                    ]}
+                  />
                 </div>
               </div>
             </CardContent>

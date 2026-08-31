@@ -8,6 +8,7 @@ import { Input } from '../../../components/ui/form/input';
 import { Label } from '../../../components/ui/form/label';
 import { Button } from '../../../components/ui/base/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/form/select';
+import { Combobox } from '../../../components/ui/form/combobox';
 import { FileSpreadsheet, FileText, Filter, History, ListChecks } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -411,34 +412,32 @@ export default function HistoricoAtendimentosReportPage() {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                   <Label>Cliente</Label>
-                  <Select value={clienteFilter} onValueChange={setClienteFilter}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Cliente" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="todos">Todos</SelectItem>
-                      {clientes.map((cliente) => (
-                        <SelectItem key={cliente.id} value={String(cliente.id)}>{resolverNomeCliente(cliente)}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Combobox
+                    value={clienteFilter}
+                    onValueChange={setClienteFilter}
+                    placeholder="Cliente"
+                    searchPlaceholder="Buscar cliente..."
+                    options={[
+                      { value: 'todos', label: 'Todos' },
+                      ...clientes.map((cliente) => ({ value: String(cliente.id), label: resolverNomeCliente(cliente) })),
+                    ]}
+                  />
                 </div>
                 <div>
                   <Label>Usuário</Label>
-                  <Select value={colaboradorFilter} onValueChange={setColaboradorFilter}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Usuário" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="todos">Todos</SelectItem>
-                      {colaboradores
+                  <Combobox
+                    value={colaboradorFilter}
+                    onValueChange={setColaboradorFilter}
+                    placeholder="Usuário"
+                    searchPlaceholder="Buscar usuário..."
+                    options={[
+                      { value: 'todos', label: 'Todos' },
+                      ...colaboradores
                         .slice()
                         .sort((a, b) => (a.nome ?? '').localeCompare(b.nome ?? '', 'pt-BR', { sensitivity: 'base' }))
-                        .map((colaborador) => (
-                          <SelectItem key={colaborador.id} value={String(colaborador.id)}>{colaborador.nome}</SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
+                        .map((colaborador) => ({ value: String(colaborador.id), label: colaborador.nome })),
+                    ]}
+                  />
                 </div>
                 <div>
                   <Label>Data início</Label>

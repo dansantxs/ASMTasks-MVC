@@ -11,13 +11,7 @@ import {
 import { Button } from '../../../../components/ui/base/button';
 import { Input } from '../../../../components/ui/form/input';
 import { Label } from '../../../../components/ui/form/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '../../../../components/ui/form/select';
+import { Combobox } from '../../../../components/ui/form/combobox';
 import { buscarEnderecoPorCep } from '../../../../api/viacep';
 
 const validarCPF = (cpf) => {
@@ -471,18 +465,14 @@ function SelectField({ label, value, options, onChange, error }) {
   return (
     <div>
       <Label>{label} <span className="text-destructive">*</span></Label>
-      <Select value={value} onValueChange={onChange}>
-        <SelectTrigger className={error ? 'border-destructive' : ''}>
-          <SelectValue placeholder={`Selecione o ${label.toLowerCase()}`} />
-        </SelectTrigger>
-        <SelectContent>
-          {options.map((opt) => (
-            <SelectItem key={opt.id} value={String(opt.id)}>
-              {opt.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <Combobox
+        value={value}
+        onValueChange={onChange}
+        placeholder={`Selecione o ${label.toLowerCase()}`}
+        searchPlaceholder={`Buscar ${label.toLowerCase()}...`}
+        aria-invalid={error ? true : undefined}
+        options={options.map((opt) => ({ value: String(opt.id), label: opt.name }))}
+      />
       {error && <p className="text-sm text-destructive">{error}</p>}
     </div>
   );

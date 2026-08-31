@@ -1,13 +1,18 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { Filter, ChevronDown, X, Check } from 'lucide-react';
+import { useState, useRef, useEffect, useMemo } from 'react';
+import { Filter, ChevronDown, X, Check, Search } from 'lucide-react';
 import { Button } from '../../../../components/ui/base/button';
 import { cn } from '../../../../components/ui/form/utils';
 
+const DIACRITICOS = /[̀-ͯ]/g;
+const normalizar = (texto) => (texto ?? '').normalize('NFD').replace(DIACRITICOS, '').toLowerCase();
+
 function MultiSelectDropdown({ label, items, selectedIds, onChange, emptyLabel }) {
   const [open, setOpen] = useState(false);
+  const [filtro, setFiltro] = useState('');
   const ref = useRef(null);
+  const inputRef = useRef(null);
 
   useEffect(() => {
     const handleClick = (e) => {
@@ -16,6 +21,20 @@ function MultiSelectDropdown({ label, items, selectedIds, onChange, emptyLabel }
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
+
+  useEffect(() => {
+    if (open) {
+      setFiltro('');
+      const timer = setTimeout(() => inputRef.current?.focus(), 0);
+      return () => clearTimeout(timer);
+    }
+  }, [open]);
+
+  const itemsFiltrados = useMemo(() => {
+    const termo = normalizar(filtro).trim();
+    if (!termo) return items;
+    return items.filter((item) => normalizar(item.nome).includes(termo));
+  }, [items, filtro]);
 
   const todosSelected = selectedIds.length === 0;
 
@@ -54,38 +73,55 @@ function MultiSelectDropdown({ label, items, selectedIds, onChange, emptyLabel }
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 mt-1 z-50 bg-white border border-gray-200 rounded-xl shadow-lg min-w-[200px] max-h-60 overflow-y-auto py-1">
-          <button
-            type="button"
-            onClick={toggleTodos}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 text-left"
-          >
-            <span className={cn('w-4 h-4 rounded border flex items-center justify-center flex-shrink-0',
-              todosSelected ? 'bg-brand-blue border-brand-blue' : 'border-gray-300'
-            )}>
-              {todosSelected && <Check className="h-3 w-3 text-white" />}
-            </span>
-            <span className="text-gray-700 font-medium">Todos</span>
-          </button>
-          <div className="border-t border-gray-100 my-1" />
-          {items.map((item) => {
-            const checked = selectedIds.includes(item.id);
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => toggleItem(item.id)}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 text-left"
-              >
-                <span className={cn('w-4 h-4 rounded border flex items-center justify-center flex-shrink-0',
-                  checked ? 'bg-brand-blue border-brand-blue' : 'border-gray-300'
-                )}>
-                  {checked && <Check className="h-3 w-3 text-white" />}
-                </span>
-                <span className="text-gray-700 truncate">{item.nome}</span>
-              </button>
-            );
-          })}
+        <div className="absolute top-full left-0 mt-1 z-50 bg-white border border-gray-200 rounded-xl shadow-lg min-w-[220px] max-h-72 overflow-hidden flex flex-col">
+          <div className="flex items-center gap-2 border-b border-gray-100 px-2.5">
+            <Search className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
+            <input
+              ref={inputRef}
+              type="text"
+              value={filtro}
+              onChange={(e) => setFiltro(e.target.value)}
+              placeholder={`Buscar ${label.toLowerCase()}...`}
+              className="w-full py-2 text-sm bg-transparent outline-none placeholder:text-gray-400"
+            />
+          </div>
+          <div className="overflow-y-auto py-1">
+            <button
+              type="button"
+              onClick={toggleTodos}
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 text-left"
+            >
+              <span className={cn('w-4 h-4 rounded border flex items-center justify-center flex-shrink-0',
+                todosSelected ? 'bg-brand-blue border-brand-blue' : 'border-gray-300'
+              )}>
+                {todosSelected && <Check className="h-3 w-3 text-white" />}
+              </span>
+              <span className="text-gray-700 font-medium">Todos</span>
+            </button>
+            <div className="border-t border-gray-100 my-1" />
+            {itemsFiltrados.length === 0 ? (
+              <p className="px-3 py-3 text-sm text-gray-400 text-center">Nenhuma opção encontrada.</p>
+            ) : (
+              itemsFiltrados.map((item) => {
+                const checked = selectedIds.includes(item.id);
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => toggleItem(item.id)}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 text-left"
+                  >
+                    <span className={cn('w-4 h-4 rounded border flex items-center justify-center flex-shrink-0',
+                      checked ? 'bg-brand-blue border-brand-blue' : 'border-gray-300'
+                    )}>
+                      {checked && <Check className="h-3 w-3 text-white" />}
+                    </span>
+                    <span className="text-gray-700 truncate">{item.nome}</span>
+                  </button>
+                );
+              })
+            )}
+          </div>
         </div>
       )}
     </div>

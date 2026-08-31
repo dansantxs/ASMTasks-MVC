@@ -21,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../../components/ui/form/select';
+import { Combobox } from '../../../components/ui/form/combobox';
 import { Plus, Trash2, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { converterHoraParaMinutos } from '../../../services/configuracoes/utils';
@@ -304,21 +305,18 @@ export default function FormularioAtendimento({
             <div id="tour-form-cliente">
               <Label>Cliente <span className="text-destructive">*</span></Label>
               <div className="flex gap-1">
-                <Select
+                <Combobox
+                  className="flex-1"
                   value={dadosFormulario.clienteId}
                   onValueChange={(value) => setDadosFormulario((prev) => ({ ...prev, clienteId: value }))}
-                >
-                  <SelectTrigger className={`flex-1 ${erros.clienteId ? 'border-destructive' : ''}`}>
-                    <SelectValue placeholder="Selecione o cliente" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clientesAtivos.map((cliente) => (
-                      <SelectItem key={cliente.id} value={String(cliente.id)}>
-                        {resolverNomeCliente(cliente)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  placeholder="Selecione o cliente"
+                  searchPlaceholder="Buscar cliente..."
+                  aria-invalid={erros.clienteId ? true : undefined}
+                  options={clientesAtivos.map((cliente) => ({
+                    value: String(cliente.id),
+                    label: resolverNomeCliente(cliente),
+                  }))}
+                />
                 <Button
                   type="button"
                   variant="outline"

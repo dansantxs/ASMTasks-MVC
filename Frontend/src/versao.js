@@ -17,6 +17,7 @@ export const CHANGELOG = [
     titulo: 'Busca em Dropdowns, Filtros Combinados e Ajustes no Kanban, Projetos e Relatórios',
     mudancas: [
       'Relatório de Histórico de Atendimentos: nova coluna Descrição do Atendimento (também considerada na busca por texto)',
+      'Campos de seleção com muitas opções (cliente, colaborador, projeto, empresa matriz, setor, cargo) agora têm campo de busca por digitação — cadastro de projeto e atendimento, formulário de cliente e de colaborador, troca de responsável no Kanban, filtro do Dashboard, filtros do Quadro Kanban e filtros dos relatórios',
     ],
   },
   {
