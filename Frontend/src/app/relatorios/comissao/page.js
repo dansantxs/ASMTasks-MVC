@@ -16,13 +16,15 @@ import { configuracoesPadrao, useConfiguracoesSistema } from '../../../services/
 import { obterRodapeRelatorio, obterLogotipo } from '../../../services/configuracoes/reportBranding';
 import { getHistoricoTarefas } from '../projetos-historico/api/historicoTarefas';
 import { getColaboradoresKanban, getClientesKanban, getEtapasKanban } from '../../projetos/kanban/api/kanban';
+import { getHistoricoAtendimentos } from '../atendimentos-historico/api/historicoAtendimentos';
+import { getAtendimentos } from '../../atendimentos/api/atendimentos';
 import { useDebouncedValue } from '../../../hooks/useDebouncedValue';
 
 // Colunas que formam o cabeçalho de cada grupo (cliente / projeto / tarefa)
 const colunasGrupo = [
   { id: 'clienteNome', label: 'Cliente' },
   { id: 'projetoTitulo', label: 'Projeto' },
-  { id: 'tarefaTitulo', label: 'Tarefa' },
+  { id: 'tarefaTitulo', label: 'Tarefa/Atendimento' },
 ];
 
 // Colunas exibidas em cada linha de passagem de etapa, dentro do grupo
@@ -109,10 +111,38 @@ export default function RelatorioComissaoPage() {
   // cada tecla digitada (nas datas, isso também dava tempo pro ano ficar completo antes de valer).
   const queryParamsDebounced = useDebouncedValue(queryParams, 400);
 
-  const { data: historicoApi = { registros: [], totalTarefas: 0 }, isLoading } = useQuery({
+  const { data: historicoApi = { registros: [], totalTarefas: 0 }, isLoading: isLoadingTarefas } = useQuery({
     queryKey: ['relatorio-comissao', queryParamsDebounced],
     queryFn: () => getHistoricoTarefas(queryParamsDebounced),
   });
+
+  // Atendimentos também contam pra comissão. Diferente de tarefa, não têm etapas — só um evento
+  // de conclusão ('C' = marcado como Realizado). Busca só as conclusões do período; a lista de
+  // colaboradores atribuídos de cada uma vem de `atendimentosTodos` logo abaixo.
+  const atendimentosQueryParams = useMemo(
+    () => ({
+      tipo: 'C',
+      clienteId: queryParamsDebounced.clienteId,
+      dataInicio: queryParamsDebounced.dataInicio,
+      dataFim: queryParamsDebounced.dataFim,
+    }),
+    [queryParamsDebounced]
+  );
+
+  const { data: historicoAtendimentosApi = [], isLoading: isLoadingAtendimentos } = useQuery({
+    queryKey: ['relatorio-comissao-atendimentos-historico', atendimentosQueryParams],
+    queryFn: () => getHistoricoAtendimentos(atendimentosQueryParams),
+  });
+
+  // Lista completa de atendimentos (sem filtro de período — o filtro de período já foi aplicado
+  // acima, no histórico de conclusões) só pra pegar colaboradoresIds, já que o evento de conclusão
+  // registra apenas quem clicou em "concluir", não todos os atribuídos ao atendimento.
+  const { data: atendimentosTodos = [] } = useQuery({
+    queryKey: ['relatorio-comissao-atendimentos-todos'],
+    queryFn: () => getAtendimentos(),
+  });
+
+  const isLoading = isLoadingTarefas || isLoadingAtendimentos;
 
   const { data: colaboradoresRaw = [] } = useQuery({
     queryKey: ['relatorio-comissao-colaboradores'],
@@ -161,6 +191,63 @@ export default function RelatorioComissaoPage() {
         .sort((a, b) => resolverNomeClienteCadastro(a).localeCompare(resolverNomeClienteCadastro(b), 'pt-BR', { sensitivity: 'base' })),
     [clientesRaw, exibicaoNomeCliente]
   );
+
+  const colaboradorNomePorId = useMemo(
+    () => new Map(colaboradoresRaw.map((c) => [c.id, c.nome])),
+    [colaboradoresRaw]
+  );
+  const clientePorId = useMemo(() => new Map(clientesRaw.map((c) => [c.id, c])), [clientesRaw]);
+  const atendimentoPorId = useMemo(() => new Map(atendimentosTodos.map((a) => [a.id, a])), [atendimentosTodos]);
+
+  // Uma linha por colaborador atribuído a um atendimento concluído (Status ainda 'R' — se foi
+  // reaberto depois, não conta). Diferente de tarefa, não tem "etapa": todos os colaboradores
+  // atribuídos ao atendimento são creditados igualmente pela conclusão, não só quem clicou em
+  // "marcar como realizado" (esse só fica registrado sozinho no histórico de status).
+  const linhasAtendimento = useMemo(() => {
+    const resultado = [];
+    const atendimentosVistos = new Set();
+
+    historicoAtendimentosApi
+      .filter((evento) => evento.tipo === 'C' && evento.atendimentoStatusAtual === 'R')
+      .forEach((evento) => {
+        if (atendimentosVistos.has(evento.atendimentoId)) return; // só a 1ª conclusão no período
+        atendimentosVistos.add(evento.atendimentoId);
+
+        const atendimento = atendimentoPorId.get(evento.atendimentoId);
+        const colaboradoresIds = atendimento?.colaboradoresIds?.length
+          ? atendimento.colaboradoresIds
+          : evento.colaboradorId
+            ? [evento.colaboradorId]
+            : [];
+        const dataConclusao = atendimento?.dataHoraConclusao
+          ? new Date(atendimento.dataHoraConclusao)
+          : evento.dataHoraAcao
+            ? new Date(evento.dataHoraAcao)
+            : null;
+        const cliente = clientePorId.get(evento.clienteId);
+        const clienteNome = cliente ? resolverNomeClienteCadastro(cliente) : evento.clienteNome ?? 'Sem cliente';
+
+        colaboradoresIds.forEach((colaboradorId) => {
+          resultado.push({
+            id: `atendimento-${evento.atendimentoId}-${colaboradorId}`,
+            itemTipo: 'atendimento',
+            tarefaId: `atendimento-${evento.atendimentoId}`,
+            colaboradorId,
+            colaboradorNome: colaboradorNomePorId.get(colaboradorId) ?? evento.colaboradorNome ?? 'Sem responsável',
+            etapaId: null,
+            etapaNome: 'Atendimento Concluído',
+            rawDataHoraAcao: dataConclusao,
+            dataHoraAcao: formatDateTime(dataConclusao),
+            observacao: atendimento?.observacaoConclusao ?? evento.observacao ?? ' ',
+            clienteNome,
+            projetoTitulo: '—',
+            tarefaTitulo: evento.atendimentoTitulo ?? 'Sem título',
+          });
+        });
+      });
+
+    return resultado;
+  }, [historicoAtendimentosApi, atendimentoPorId, colaboradorNomePorId, clientePorId, exibicaoNomeCliente]);
 
   // Eventos de mudança de etapa ('E') e de reatribuição de colaborador ('A') de cada tarefa,
   // em ordem cronológica — base para descobrir quem realmente ficou com cada etapa. Quando dois
@@ -213,6 +300,7 @@ export default function RelatorioComissaoPage() {
         if (!etapaAberta || !colaborador?.colaboradorNome) return;
         resultado.push({
           id: `${tarefaId}-${etapaAberta.id}`,
+          itemTipo: 'tarefa',
           tarefaId,
           colaboradorId: colaborador.colaboradorId,
           colaboradorNome: colaborador.colaboradorNome,
@@ -258,23 +346,33 @@ export default function RelatorioComissaoPage() {
     return set;
   }, [segmentos, etapaFinalId]);
 
+  // Junta tarefas e atendimentos numa lista só antes do filtro de colaborador — cada linha já
+  // carrega itemTipo, então o resto do relatório (agrupamento, ordenação, export) trata os dois
+  // de forma uniforme.
+  const linhasTarefasEAtendimentos = useMemo(() => [...segmentos, ...linhasAtendimento], [segmentos, linhasAtendimento]);
+
   // Filtro de colaborador aplicado aqui (não no servidor) — depois da reconstrução acima
   const linhas = useMemo(
-    () => (colaboradorFilter === 'todos' ? segmentos : segmentos.filter((s) => s.colaboradorId === Number(colaboradorFilter))),
-    [segmentos, colaboradorFilter]
+    () =>
+      colaboradorFilter === 'todos'
+        ? linhasTarefasEAtendimentos
+        : linhasTarefasEAtendimentos.filter((s) => s.colaboradorId === Number(colaboradorFilter)),
+    [linhasTarefasEAtendimentos, colaboradorFilter]
   );
 
-  // Agrupamento: Cliente > Tarefa, com as passagens de etapa em ordem cronológica dentro de cada tarefa.
-  // Só entram tarefas que já chegaram na etapa final (ver `tarefasFinalizadas`) — comissão é sobre
-  // trabalho concluído, não sobre o que ainda está em andamento.
+  // Agrupamento: Cliente > Tarefa/Atendimento, com as passagens em ordem cronológica dentro de
+  // cada grupo. Tarefas só entram se já chegaram na etapa final (ver `tarefasFinalizadas`) —
+  // atendimentos já vêm filtrados a "Realizado" desde `linhasAtendimento`, então essa checagem
+  // (que só faz sentido pra tarefa) não se aplica a eles.
   const grupos = useMemo(() => {
     const mapa = new Map();
     linhas
-      .filter((item) => !tarefasFinalizadas || tarefasFinalizadas.has(item.tarefaId))
+      .filter((item) => item.itemTipo === 'atendimento' || !tarefasFinalizadas || tarefasFinalizadas.has(item.tarefaId))
       .forEach((item) => {
         if (!mapa.has(item.tarefaId)) {
           mapa.set(item.tarefaId, {
             tarefaId: item.tarefaId,
+            itemTipo: item.itemTipo,
             clienteNome: item.clienteNome,
             projetoTitulo: item.projetoTitulo,
             tarefaTitulo: item.tarefaTitulo,
@@ -313,7 +411,8 @@ export default function RelatorioComissaoPage() {
     if (selectedColumns.includes('clienteNome')) partes.push(grupo.clienteNome);
     if (selectedColumns.includes('projetoTitulo')) partes.push(grupo.projetoTitulo);
     if (selectedColumns.includes('tarefaTitulo')) partes.push(grupo.tarefaTitulo);
-    return partes.length > 0 ? partes.join(' — ') : `Tarefa #${grupo.tarefaId}`;
+    const texto = partes.length > 0 ? partes.join(' — ') : `Tarefa #${grupo.tarefaId}`;
+    return grupo.itemTipo === 'atendimento' ? `[Atendimento] ${texto}` : texto;
   }
 
   const toggleColumn = (id) => {
@@ -351,7 +450,7 @@ export default function RelatorioComissaoPage() {
     const footerLines = obterRodapeRelatorio(systemSettings);
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const countLine = `Total: ${linhas.length} passagem(ns) de etapa em ${gruposOrdenados.length} tarefa(s)`;
+    const countLine = `Total: ${linhas.length} lançamento(s) em ${gruposOrdenados.length} item(ns) (tarefas e atendimentos)`;
     const filtersLines = doc.splitTextToSize(`Filtros: ${filtersSummary}`, pageWidth - 70);
     const headerEndY = 30 + 6 + filtersLines.length * 6;
 
@@ -406,7 +505,7 @@ export default function RelatorioComissaoPage() {
     const headerRows = [
       [reportTitle],
       [`Data de emissão: ${emissionDate}`],
-      [`Total: ${linhas.length} passagem(ns) de etapa em ${gruposOrdenados.length} tarefa(s)`],
+      [`Total: ${linhas.length} lançamento(s) em ${gruposOrdenados.length} item(ns) (tarefas e atendimentos)`],
       [`Filtros: ${filtersSummary}`],
       [],
       colunasLinhaAtivas.map((c) => c.label),
@@ -460,7 +559,7 @@ export default function RelatorioComissaoPage() {
             <div>
               <h1>Relatório de Comissão</h1>
               <p className="text-muted-foreground">
-                Tarefas concluídas no período, agrupadas por cliente e tarefa, com as etapas e colaboradores responsáveis
+                Tarefas e atendimentos concluídos no período, agrupados por cliente, com as etapas/conclusões e colaboradores responsáveis
               </p>
             </div>
           </div>
@@ -542,7 +641,7 @@ export default function RelatorioComissaoPage() {
           <CardHeader>
             <CardTitle className="flex items-center justify-between flex-wrap gap-3">
               <span>
-                {linhas.length} passagem(ns) de etapa em {gruposOrdenados.length} tarefa(s)
+                {linhas.length} lançamento(s) em {gruposOrdenados.length} item(ns) (tarefas e atendimentos)
               </span>
               <div className="flex items-center gap-2 text-sm font-normal">
                 <Label className="whitespace-nowrap">Ordenar por</Label>
