@@ -1,10 +1,17 @@
-export const VERSAO_ATUAL = '1.8.0';
+export const VERSAO_ATUAL = '1.9.0';
 
 /**
  * Regra de versionamento (major.minor.patch):
- *  - patch: correções de bugs, ajustes visuais
+ *  - patch: correções de bugs, ajustes visuais, ajustes menores (ordenação, textos, limites)
  *  - minor: novas funcionalidades sem quebra de compatibilidade → zera patch
  *  - major: mudanças estruturais grandes → zera minor e patch
+ *
+ * Lições de versões passadas (não repetir):
+ *  - Uma versão feita só de correções/ajustes é PATCH, mesmo que sejam muitas
+ *    (ex.: a 1.6.0 deveria ter sido 1.5.1).
+ *  - Não faça dois bumps no mesmo dia: se ainda não foi para produção, junte tudo
+ *    na mesma entrada.
+ *  - Todo código que vai para produção precisa de uma linha no changelog, inclusive fix.
  *
  * Ao lançar uma versão:
  *  1. Atualize VERSAO_ATUAL acima.
@@ -12,12 +19,22 @@ export const VERSAO_ATUAL = '1.8.0';
  */
 export const CHANGELOG = [
   {
+    versao: '1.9.0',
+    data: '2026-09-02',
+    titulo: 'Autoria de Tarefas no Kanban e de Projetos',
+    mudancas: [
+      'Kanban: cada tarefa passa a registrar quem a lançou (na criação do projeto, ao adicionar tarefas a um projeto existente e ao duplicar) — exibido no detalhe da tarefa (ícone de visualização). Editar uma tarefa já existente não altera a autoria dela',
+      'Cadastro de projeto: ao editar, o campo passa a mostrar quem realmente lançou o projeto (antes exibia quem estava editando); a tela de edição e a visualização do projeto agora também indicam quem foi o último a alterá-lo e quando',
+    ],
+  },
+  {
     versao: '1.8.0',
     data: '2026-08-31',
-    titulo: 'Busca em Dropdowns, Filtros Combinados e Ajustes no Kanban, Projetos e Relatórios',
+    titulo: 'Busca por Digitação nos Dropdowns e Descrição do Atendimento no Relatório',
     mudancas: [
       'Relatório de Histórico de Atendimentos: nova coluna Descrição do Atendimento (também considerada na busca por texto)',
       'Campos de seleção com muitas opções (cliente, colaborador, projeto, empresa matriz, setor, cargo) agora têm campo de busca por digitação — cadastro de projeto e atendimento, formulário de cliente e de colaborador, troca de responsável no Kanban, filtro do Dashboard, filtros do Quadro Kanban e filtros dos relatórios',
+      'Correção: blocos de cor maciços (azul) no Google Chrome 109 / Windows 7 em telas que ainda não tinham sido ajustadas',
     ],
   },
   {
