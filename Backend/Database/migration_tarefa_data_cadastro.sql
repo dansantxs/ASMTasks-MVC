@@ -1,11 +1,13 @@
--- Migration: registra QUANDO cada tarefa foi lançada (ProjetoTarefa.DataCadastro)
+-- Migration: registra QUANDO cada tarefa foi lancada (ProjetoTarefa.DataCadastro)
 --
--- Complemento da migration_tarefa_cadastrado_por.sql: além de quem lançou a
--- tarefa, passamos a guardar a data/hora do lançamento. Usado no Relatório de
--- Comissão para exibir a linha "Lançado por" com data.
+-- Complemento da migration_tarefa_cadastrado_por.sql: alem de quem lancou a
+-- tarefa, passamos a guardar a data/hora do lancamento. Usado no Relatorio de
+-- Comissao para exibir a linha Lancado por com data.
+-- (Sem acentos nem aspas: este arquivo tambem roda via db.ps1, que passa o SQL
+-- inline pro sqlcmd -- aspas duplas ou encoding UTF-8 quebrariam a chamada.)
 
--- 1. Adiciona a coluna (nullable — linhas antigas ganham valor no backfill abaixo,
---    novas tarefas gravam SYSDATETIME() no INSERT)
+-- 1. Adiciona a coluna (nullable -- linhas antigas ganham valor no backfill
+--    abaixo, novas tarefas gravam SYSDATETIME() no INSERT)
 IF NOT EXISTS (
     SELECT 1 FROM sys.columns
     WHERE object_id = OBJECT_ID(N'[dbo].[ProjetoTarefa]') AND name = 'DataCadastro'
