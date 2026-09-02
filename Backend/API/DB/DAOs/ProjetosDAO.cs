@@ -33,7 +33,7 @@ namespace API.DB.DAOs
                 var result = await cmd.ExecuteScalarAsync();
                 projeto.Id = Convert.ToInt32(result);
 
-                await InserirTarefasAsync(con, transaction, projeto.Id, projeto.Tarefas);
+                await InserirTarefasAsync(con, transaction, projeto.Id, projeto.Tarefas, projeto.CadastradoPorColaboradorId);
                 await transaction.CommitAsync();
 
                 return projeto.Id;
@@ -144,9 +144,10 @@ namespace API.DB.DAOs
                     await updateCmd.ExecuteNonQueryAsync();
                 }
 
-                // Insere novas tarefas (sem Id)
+                // Insere novas tarefas (sem Id) — o controller preenche CadastradoPorColaboradorId
+                // com o usuario logado; o padrao aqui e apenas um fallback defensivo.
                 var newTarefas = projeto.Tarefas.Where(t => t.Id <= 0).ToList();
-                await InserirTarefasAsync(con, transaction, projeto.Id, newTarefas);
+                await InserirTarefasAsync(con, transaction, projeto.Id, newTarefas, projeto.CadastradoPorColaboradorId);
 
                 await transaction.CommitAsync();
                 return true;
@@ -757,6 +758,8 @@ namespace API.DB.DAOs
                     pt.EtapaId,
                     pt.DataHoraInicio,
                     pt.SetorId,
+                    COALESCE(pt.CadastradoPorColaboradorId, p.CadastradoPorColaboradorId) AS CadastradoPorColaboradorId,
+                    colCad.Nome AS CadastradoPorNome,
                     c.NomeFantasia AS ClienteNomeFantasia,
                     (SELECT COUNT(*) FROM ProjetoTarefaAnexo WHERE TarefaId = pt.Id) AS QuantidadeAnexos,
                     pt.TempoExecucaoValor,
@@ -781,6 +784,7 @@ namespace API.DB.DAOs
                 INNER JOIN Cliente c ON p.ClienteId = c.Id
                 INNER JOIN Prioridade pr ON pt.PrioridadeId = pr.Id
                 LEFT JOIN Colaborador col ON pt.ColaboradorResponsavelId = col.Id
+                LEFT JOIN Colaborador colCad ON colCad.Id = COALESCE(pt.CadastradoPorColaboradorId, p.CadastradoPorColaboradorId)
                 WHERE p.Ativo = 1
                 AND p.Concluido = 0
             ");
@@ -861,6 +865,8 @@ namespace API.DB.DAOs
                         ? null
                         : Convert.ToDateTime(dr["DataHoraInicio"]),
                     SetorId = dr["SetorId"] == DBNull.Value ? null : (int?)Convert.ToInt32(dr["SetorId"]),
+                    CadastradoPorColaboradorId = dr["CadastradoPorColaboradorId"] == DBNull.Value ? null : (int?)Convert.ToInt32(dr["CadastradoPorColaboradorId"]),
+                    CadastradoPorNome = dr["CadastradoPorNome"] == DBNull.Value ? null : dr["CadastradoPorNome"].ToString(),
                     QuantidadeAnexos = Convert.ToInt32(dr["QuantidadeAnexos"]),
                     ClienteNomeFantasia = dr["ClienteNomeFantasia"] == DBNull.Value ? null : dr["ClienteNomeFantasia"].ToString(),
                     TempoExecucaoValor = dr["TempoExecucaoValor"] == DBNull.Value ? null : (int?)Convert.ToInt32(dr["TempoExecucaoValor"]),
@@ -1052,7 +1058,8 @@ namespace API.DB.DAOs
             SqlConnection connection,
             SqlTransaction transaction,
             int projetoId,
-            IEnumerable<ProjetoTarefa> tarefas)
+            IEnumerable<ProjetoTarefa> tarefas,
+            int cadastradoPorColaboradorIdPadrao)
         {
             foreach (var tarefa in tarefas)
             {
@@ -1060,13 +1067,14 @@ namespace API.DB.DAOs
                 cmd.Transaction = transaction;
                 cmd.CommandText = @"
                     INSERT INTO ProjetoTarefa
-                    (ProjetoId, Titulo, Descricao, PrioridadeId, ColaboradorResponsavelId, DataHoraAtribuicao, EtapaId, SetorId, TempoExecucaoValor, TempoExecucaoUnidade, TempoTesteValor, TempoTesteUnidade)
+                    (ProjetoId, Titulo, Descricao, PrioridadeId, ColaboradorResponsavelId, DataHoraAtribuicao, EtapaId, SetorId, CadastradoPorColaboradorId, TempoExecucaoValor, TempoExecucaoUnidade, TempoTesteValor, TempoTesteUnidade)
                     VALUES
-                    (@ProjetoId, @Titulo, @Descricao, @PrioridadeId, @ColaboradorResponsavelId, @DataHoraAtribuicao, @EtapaId, @SetorId, @TempoExecucaoValor, @TempoExecucaoUnidade, @TempoTesteValor, @TempoTesteUnidade);
+                    (@ProjetoId, @Titulo, @Descricao, @PrioridadeId, @ColaboradorResponsavelId, @DataHoraAtribuicao, @EtapaId, @SetorId, @CadastradoPorColaboradorId, @TempoExecucaoValor, @TempoExecucaoUnidade, @TempoTesteValor, @TempoTesteUnidade);
                     SELECT CAST(SCOPE_IDENTITY() AS int);
                 ";
 
                 cmd.Parameters.AddWithValue("@ProjetoId", projetoId);
+                cmd.Parameters.AddWithValue("@CadastradoPorColaboradorId", (object?)(tarefa.CadastradoPorColaboradorId ?? cadastradoPorColaboradorIdPadrao) ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@Titulo", tarefa.Titulo);
                 cmd.Parameters.AddWithValue("@Descricao", (object?)tarefa.Descricao ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@PrioridadeId", tarefa.PrioridadeId);

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { X, Folder, Building2, User, Tag, Play, Pause, Clock, History, UserCog, Paperclip } from 'lucide-react';
+import { X, Folder, Building2, User, UserPlus, Tag, Play, Pause, Clock, History, UserCog, Paperclip } from 'lucide-react';
 import { Button } from '../../../../components/ui/base/button';
 import { useQuery } from '@tanstack/react-query';
 import { getHistoricoTarefa, getHistoricoProjeto } from '../api/kanban';
@@ -260,6 +260,16 @@ export default function DialogoVisualizarTarefa({
                     <p className="text-sm text-gray-700">{resolverNomeCliente(tarefa, exibicaoNomeCliente)}</p>
                   </div>
                 </div>
+
+                {tarefa.cadastradoPorNome && (
+                  <div className="flex items-center gap-2">
+                    <UserPlus className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
+                    <div>
+                      <p className="text-xs text-gray-400">Lançado por</p>
+                      <p className="text-sm text-gray-700">{tarefa.cadastradoPorNome}</p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Tempo de execução/teste */}
