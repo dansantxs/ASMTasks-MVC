@@ -15,6 +15,7 @@ namespace API.Models
         public DateTime? DataHoraInicio { get; set; }
         public int? SetorId { get; set; }
         public int? CadastradoPorColaboradorId { get; set; }
+        public DateTime? DataCadastro { get; set; }
         public int QuantidadeAnexos { get; set; }
         public int? TempoExecucaoValor { get; set; }
         public string? TempoExecucaoUnidade { get; set; }

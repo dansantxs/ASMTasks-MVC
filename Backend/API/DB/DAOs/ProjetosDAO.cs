@@ -654,6 +654,7 @@ namespace API.DB.DAOs
                     h.Id,
                     h.TarefaId,
                     pt.Titulo AS TarefaTitulo,
+                    pt.Descricao AS TarefaDescricao,
                     p.Id AS ProjetoId,
                     p.Titulo AS ProjetoTitulo,
                     c.Id AS ClienteId,
@@ -667,11 +668,15 @@ namespace API.DB.DAOs
                     h.Observacao,
                     h.DataHoraAcao,
                     h.RealizadoPorColaboradorId,
-                    h.RealizadoPorColaboradorNome
+                    h.RealizadoPorColaboradorNome,
+                    COALESCE(pt.CadastradoPorColaboradorId, p.CadastradoPorColaboradorId) AS CadastradoPorColaboradorId,
+                    colCad.Nome AS CadastradoPorNome,
+                    COALESCE(pt.DataCadastro, p.DataCadastro) AS TarefaDataCadastro
                 FROM ProjetoTarefaHistorico h
                 INNER JOIN ProjetoTarefa pt ON h.TarefaId = pt.Id
                 INNER JOIN Projeto p ON pt.ProjetoId = p.Id
                 INNER JOIN Cliente c ON p.ClienteId = c.Id
+                LEFT JOIN Colaborador colCad ON colCad.Id = COALESCE(pt.CadastradoPorColaboradorId, p.CadastradoPorColaboradorId)
             ";
 
             string sqlQuery;
@@ -679,22 +684,27 @@ namespace API.DB.DAOs
             {
                 sqlQuery = $@"
                     WITH Ranked AS (
-                        SELECT h.Id, h.TarefaId, pt.Titulo AS TarefaTitulo,
+                        SELECT h.Id, h.TarefaId, pt.Titulo AS TarefaTitulo, pt.Descricao AS TarefaDescricao,
                                p.Id AS ProjetoId, p.Titulo AS ProjetoTitulo,
                                c.Id AS ClienteId, c.Nome AS ClienteNome, c.NomeFantasia AS ClienteNomeFantasia,
                                h.Tipo, h.ColaboradorId, h.ColaboradorNome,
                                h.EtapaId, h.EtapaNome, h.Observacao, h.DataHoraAcao,
                                h.RealizadoPorColaboradorId, h.RealizadoPorColaboradorNome,
+                               COALESCE(pt.CadastradoPorColaboradorId, p.CadastradoPorColaboradorId) AS CadastradoPorColaboradorId,
+                               colCad.Nome AS CadastradoPorNome,
+                               COALESCE(pt.DataCadastro, p.DataCadastro) AS TarefaDataCadastro,
                                ROW_NUMBER() OVER (PARTITION BY h.TarefaId, h.EtapaId ORDER BY h.DataHoraAcao DESC) AS rn
                         FROM ProjetoTarefaHistorico h
                         INNER JOIN ProjetoTarefa pt ON h.TarefaId = pt.Id
                         INNER JOIN Projeto p ON pt.ProjetoId = p.Id
                         INNER JOIN Cliente c ON p.ClienteId = c.Id
+                        LEFT JOIN Colaborador colCad ON colCad.Id = COALESCE(pt.CadastradoPorColaboradorId, p.CadastradoPorColaboradorId)
                         {filtros}
                     )
-                    SELECT Id, TarefaId, TarefaTitulo, ProjetoId, ProjetoTitulo, ClienteId, ClienteNome, ClienteNomeFantasia,
+                    SELECT Id, TarefaId, TarefaTitulo, TarefaDescricao, ProjetoId, ProjetoTitulo, ClienteId, ClienteNome, ClienteNomeFantasia,
                            Tipo, ColaboradorId, ColaboradorNome, EtapaId, EtapaNome, Observacao, DataHoraAcao,
-                           RealizadoPorColaboradorId, RealizadoPorColaboradorNome
+                           RealizadoPorColaboradorId, RealizadoPorColaboradorNome,
+                           CadastradoPorColaboradorId, CadastradoPorNome, TarefaDataCadastro
                     FROM Ranked WHERE rn = 1
                     ORDER BY DataHoraAcao DESC;
                 ";
@@ -714,6 +724,7 @@ namespace API.DB.DAOs
                     Id = Convert.ToInt32(dr["Id"]),
                     TarefaId = Convert.ToInt32(dr["TarefaId"]),
                     TarefaTitulo = dr["TarefaTitulo"]?.ToString() ?? string.Empty,
+                    TarefaDescricao = dr["TarefaDescricao"] == DBNull.Value ? null : dr["TarefaDescricao"].ToString(),
                     ProjetoId = Convert.ToInt32(dr["ProjetoId"]),
                     ProjetoTitulo = dr["ProjetoTitulo"]?.ToString() ?? string.Empty,
                     ClienteId = Convert.ToInt32(dr["ClienteId"]),
@@ -728,6 +739,9 @@ namespace API.DB.DAOs
                     RealizadoPorColaboradorNome = dr["RealizadoPorColaboradorNome"] == DBNull.Value ? null : dr["RealizadoPorColaboradorNome"].ToString(),
                     Observacao = dr["Observacao"] == DBNull.Value ? null : dr["Observacao"].ToString(),
                     ClienteNomeFantasia = dr["ClienteNomeFantasia"] == DBNull.Value ? null : dr["ClienteNomeFantasia"].ToString(),
+                    CadastradoPorColaboradorId = dr["CadastradoPorColaboradorId"] == DBNull.Value ? null : Convert.ToInt32(dr["CadastradoPorColaboradorId"]),
+                    CadastradoPorNome = dr["CadastradoPorNome"] == DBNull.Value ? null : dr["CadastradoPorNome"].ToString(),
+                    TarefaDataCadastro = dr["TarefaDataCadastro"] == DBNull.Value ? null : Convert.ToDateTime(dr["TarefaDataCadastro"]),
                 });
             }
 
@@ -1075,9 +1089,9 @@ namespace API.DB.DAOs
                 cmd.Transaction = transaction;
                 cmd.CommandText = @"
                     INSERT INTO ProjetoTarefa
-                    (ProjetoId, Titulo, Descricao, PrioridadeId, ColaboradorResponsavelId, DataHoraAtribuicao, EtapaId, SetorId, CadastradoPorColaboradorId, TempoExecucaoValor, TempoExecucaoUnidade, TempoTesteValor, TempoTesteUnidade)
+                    (ProjetoId, Titulo, Descricao, PrioridadeId, ColaboradorResponsavelId, DataHoraAtribuicao, EtapaId, SetorId, CadastradoPorColaboradorId, DataCadastro, TempoExecucaoValor, TempoExecucaoUnidade, TempoTesteValor, TempoTesteUnidade)
                     VALUES
-                    (@ProjetoId, @Titulo, @Descricao, @PrioridadeId, @ColaboradorResponsavelId, @DataHoraAtribuicao, @EtapaId, @SetorId, @CadastradoPorColaboradorId, @TempoExecucaoValor, @TempoExecucaoUnidade, @TempoTesteValor, @TempoTesteUnidade);
+                    (@ProjetoId, @Titulo, @Descricao, @PrioridadeId, @ColaboradorResponsavelId, @DataHoraAtribuicao, @EtapaId, @SetorId, @CadastradoPorColaboradorId, SYSDATETIME(), @TempoExecucaoValor, @TempoExecucaoUnidade, @TempoTesteValor, @TempoTesteUnidade);
                     SELECT CAST(SCOPE_IDENTITY() AS int);
                 ";
 

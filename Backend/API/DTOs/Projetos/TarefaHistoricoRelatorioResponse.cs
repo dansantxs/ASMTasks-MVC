@@ -5,6 +5,7 @@ namespace API.DTOs.Projetos
         public int Id { get; set; }
         public int TarefaId { get; set; }
         public string TarefaTitulo { get; set; } = string.Empty;
+        public string? TarefaDescricao { get; set; }
         public int ProjetoId { get; set; }
         public string ProjetoTitulo { get; set; } = string.Empty;
         public int ClienteId { get; set; }
@@ -19,5 +20,8 @@ namespace API.DTOs.Projetos
         public string? RealizadoPorColaboradorNome { get; set; }
         public string? Observacao { get; set; }
         public string? ClienteNomeFantasia { get; set; }
+        public int? CadastradoPorColaboradorId { get; set; }
+        public string? CadastradoPorNome { get; set; }
+        public DateTime? TarefaDataCadastro { get; set; }
     }
 }

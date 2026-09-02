@@ -21,10 +21,21 @@ export const CHANGELOG = [
   {
     versao: '1.9.0',
     data: '2026-09-02',
-    titulo: 'Autoria de Tarefas no Kanban e de Projetos',
+    titulo: 'Autoria de Tarefas e Projetos e Reformulação do Relatório de Comissão',
     mudancas: [
       'Kanban: cada tarefa passa a registrar quem a lançou (na criação do projeto, ao adicionar tarefas a um projeto existente e ao duplicar) — exibido no detalhe da tarefa (ícone de visualização). Editar uma tarefa já existente não altera a autoria dela',
+      'Kanban: além de quem lançou a tarefa, passa a ser gravada a data/hora do lançamento (tarefas antigas herdam a data do projeto)',
       'Cadastro de projeto: ao editar, o campo passa a mostrar quem realmente lançou o projeto (antes exibia quem estava editando); a tela de edição e a visualização do projeto agora também indicam quem foi o último a alterá-lo e quando',
+      'Relatório de Comissão: os itens agora são agrupados por Colaborador(Desenvolvedor) — quem fez a etapa de desenvolvimento da tarefa (ou concluiu o atendimento) — e numerados dentro de cada colaborador',
+      'Relatório de Comissão: nova opção de ordenação dos itens dentro do colaborador — por Cliente ou por Data',
+      'Relatório de Comissão: nova visão Resumo, mostrando apenas o total por colaborador (contando somente desenvolvimento e atendimentos concluídos, conforme o filtro de tipo)',
+      'Relatório de Comissão: ao filtrar por um colaborador, aparecem todos os itens em que ele participou de qualquer etapa e todas as etapas continuam visíveis, inclusive as de outras pessoas',
+      'Relatório de Comissão: cada tarefa e cada atendimento passam a mostrar a linha "Lançado por" como primeira etapa (para atendimento, também é gravada a data/hora do lançamento)',
+      'Relatório de Comissão: etapas repetidas na mesma tarefa (reabertas) agora aparecem só na ocorrência mais recente; o atendimento concluído aparece uma única vez, no colaborador que concluiu',
+      'Relatório de Comissão: nova coluna Descrição (da tarefa/atendimento), que pode ser ocultada na seleção de colunas',
+      'Relatório de Comissão: período padrão passa a ser o último mês completo (o anterior ao atual)',
+      'Relatório de Comissão: contador do topo simplificado para o total de itens',
+      'Relatório de Comissão: botão de ajuda (tour guiado), igual aos demais relatórios',
     ],
   },
   {

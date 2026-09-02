@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useMemo, useState } from 'react';
+import { Fragment, useCallback, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/layout/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../components/ui/layout/table';
@@ -15,17 +15,19 @@ import autoTable from 'jspdf-autotable';
 import XLSX from '@/utils/exceljs-compat';
 import { configuracoesPadrao, useConfiguracoesSistema } from '../../../services/configuracoes/api';
 import { obterRodapeRelatorio, obterLogotipo } from '../../../services/configuracoes/reportBranding';
+import TourGuia from '../../../components/TourGuia';
 import { getHistoricoTarefas } from '../projetos-historico/api/historicoTarefas';
 import { getColaboradoresKanban, getClientesKanban, getEtapasKanban } from '../../projetos/kanban/api/kanban';
 import { getHistoricoAtendimentos } from '../atendimentos-historico/api/historicoAtendimentos';
 import { getAtendimentos } from '../../atendimentos/api/atendimentos';
 import { useDebouncedValue } from '../../../hooks/useDebouncedValue';
 
-// Colunas que formam o cabeçalho de cada grupo (cliente / projeto / tarefa)
+// Colunas que formam o cabeçalho de cada grupo (cliente / projeto / tarefa / descrição)
 const colunasGrupo = [
   { id: 'clienteNome', label: 'Cliente' },
   { id: 'projetoTitulo', label: 'Projeto' },
   { id: 'tarefaTitulo', label: 'Tarefa/Atendimento' },
+  { id: 'descricao', label: 'Descrição' },
 ];
 
 // Colunas exibidas em cada linha de passagem de etapa, dentro do grupo
@@ -39,10 +41,20 @@ const colunasLinha = [
 const todasColunas = [...colunasGrupo, ...colunasLinha];
 const reportTitle = 'Relatório de Comissão';
 
-const criteriosOrdenacao = [
+// Etapa "de desenvolvimento" de uma tarefa: identificada pelo nome (contém "desenvolv").
+// É essa etapa que define o "Desenvolvedor" da tarefa — quem entra na contagem de comissão
+// e sob quem a tarefa é agrupada no relatório. Para atendimento, o equivalente é a conclusão.
+const ehEtapaDesenvolvimento = (nome) => /desenvolv/i.test(nome ?? '');
+
+const SEM_DESENVOLVEDOR = 'Sem desenvolvedor';
+const ETAPA_LANCAMENTO = 'Lançado por';
+const ETAPA_ATENDIMENTO_CONCLUIDO = 'Atendimento Concluído';
+
+// Ordenação dos itens (tarefas/atendimentos) DENTRO de cada colaborador. A ordem entre
+// colaboradores é sempre alfabética; aqui só se escolhe a chave principal (a outra vira desempate).
+const ordensSecundarias = [
   { id: 'cliente', label: 'Cliente' },
-  { id: 'tarefa', label: 'Tarefa' },
-  { id: 'dataConclusao', label: 'Data de conclusão' },
+  { id: 'data', label: 'Data' },
 ];
 
 const formatDateTime = (value) =>
@@ -63,8 +75,13 @@ function paraInputDate(data) {
   return `${ano}-${mes}-${dia}`;
 }
 
-function primeiroDiaDoMes(data) {
-  return new Date(data.getFullYear(), data.getMonth(), 1);
+// Período padrão do relatório: o último mês COMPLETO (o anterior ao atual). Logo depois da virada
+// do mês, o que interessa pra comissão é o mês que fechou, não o que mal começou.
+function ultimoMesCompleto(data) {
+  return {
+    inicio: new Date(data.getFullYear(), data.getMonth() - 1, 1),
+    fim: new Date(data.getFullYear(), data.getMonth(), 0), // dia 0 do mês atual = último dia do anterior
+  };
 }
 
 // Enquanto o usuário ainda está digitando o ano no <input type="date">, o navegador já reporta
@@ -86,15 +103,21 @@ function toIsoEndOfDay(dateValue) {
   return new Date(`${dateValue}T23:59:59`).toISOString();
 }
 
+const compararTexto = (a, b) =>
+  (a ?? '').localeCompare(b ?? '', 'pt-BR', { sensitivity: 'base' });
+
 export default function RelatorioComissaoPage() {
   const hoje = new Date();
-  const [dataInicioFilter, setDataInicioFilter] = useState(() => paraInputDate(primeiroDiaDoMes(hoje)));
-  const [dataFimFilter, setDataFimFilter] = useState(() => paraInputDate(hoje));
+  const periodoPadrao = ultimoMesCompleto(hoje);
+  const [dataInicioFilter, setDataInicioFilter] = useState(() => paraInputDate(periodoPadrao.inicio));
+  const [dataFimFilter, setDataFimFilter] = useState(() => paraInputDate(periodoPadrao.fim));
   const [colaboradorFilter, setColaboradorFilter] = useState('todos');
   const [clienteFilter, setClienteFilter] = useState('todos');
   const [tipoItemFilter, setTipoItemFilter] = useState('todos'); // todos | tarefa | atendimento
   const [selectedColumns, setSelectedColumns] = useState(todasColunas.map((c) => c.id));
-  const [sortConfig, setSortConfig] = useState({ criterio: 'cliente', direction: 'asc' });
+  // Agrupamento é sempre por Colaborador(Desenvolvedor); só a ordenação secundária dos itens é ajustável.
+  const [sortConfig, setSortConfig] = useState({ ordem: 'cliente', direction: 'asc' });
+  const [viewMode, setViewMode] = useState('detalhado'); // detalhado | resumo
   const { data: systemSettings = configuracoesPadrao } = useConfiguracoesSistema();
 
   // Não filtra por tipo nem por colaborador no servidor: para saber quem ficou com uma etapa
@@ -183,14 +206,14 @@ export default function RelatorioComissaoPage() {
     () =>
       colaboradoresRaw
         .filter((c) => c.ativo !== false)
-        .sort((a, b) => (a.nome ?? '').localeCompare(b.nome ?? '', 'pt-BR', { sensitivity: 'base' })),
+        .sort((a, b) => compararTexto(a.nome, b.nome)),
     [colaboradoresRaw]
   );
   const clientes = useMemo(
     () =>
       clientesRaw
         .filter((c) => c.ativo !== false)
-        .sort((a, b) => resolverNomeClienteCadastro(a).localeCompare(resolverNomeClienteCadastro(b), 'pt-BR', { sensitivity: 'base' })),
+        .sort((a, b) => compararTexto(resolverNomeClienteCadastro(a), resolverNomeClienteCadastro(b))),
     [clientesRaw, exibicaoNomeCliente]
   );
 
@@ -201,10 +224,26 @@ export default function RelatorioComissaoPage() {
   const clientePorId = useMemo(() => new Map(clientesRaw.map((c) => [c.id, c])), [clientesRaw]);
   const atendimentoPorId = useMemo(() => new Map(atendimentosTodos.map((a) => [a.id, a])), [atendimentosTodos]);
 
-  // Uma linha por colaborador atribuído a um atendimento concluído (Status ainda 'R' — se foi
-  // reaberto depois, não conta). Diferente de tarefa, não tem "etapa": todos os colaboradores
-  // atribuídos ao atendimento são creditados igualmente pela conclusão, não só quem clicou em
-  // "marcar como realizado" (esse só fica registrado sozinho no histórico de status).
+  // Contexto por tarefa que não varia entre os eventos do histórico (quem lançou, quando, e a
+  // descrição da tarefa) — vem replicado em todo registro, então basta o primeiro visto.
+  const infoPorTarefa = useMemo(() => {
+    const mapa = new Map();
+    (historicoApi.registros ?? []).forEach((r) => {
+      if (mapa.has(r.tarefaId)) return;
+      mapa.set(r.tarefaId, {
+        lancadoPorColaboradorId: r.cadastradoPorColaboradorId ?? null,
+        lancadoPorNome: r.cadastradoPorNome ?? null,
+        lancadoPorData: r.tarefaDataCadastro ? new Date(r.tarefaDataCadastro) : null,
+        descricao: r.tarefaDescricao ?? null,
+      });
+    });
+    return mapa;
+  }, [historicoApi]);
+
+  // Uma linha "Atendimento Concluído" por atendimento concluído no período (Status ainda 'R' — se
+  // foi reaberto depois, não conta). Diferente de tarefa, não tem etapas; o crédito da comissão é
+  // de quem concluiu (concluidoPor*). Os demais colaboradores atribuídos ficam só em
+  // `participantesIds`, pra que o filtro de colaborador continue trazendo o atendimento.
   const linhasAtendimento = useMemo(() => {
     const resultado = [];
     const atendimentosVistos = new Set();
@@ -216,7 +255,7 @@ export default function RelatorioComissaoPage() {
         atendimentosVistos.add(evento.atendimentoId);
 
         const atendimento = atendimentoPorId.get(evento.atendimentoId);
-        const colaboradoresIds = atendimento?.colaboradoresIds?.length
+        const participantesIds = atendimento?.colaboradoresIds?.length
           ? atendimento.colaboradoresIds
           : evento.colaboradorId
             ? [evento.colaboradorId]
@@ -229,22 +268,31 @@ export default function RelatorioComissaoPage() {
         const cliente = clientePorId.get(evento.clienteId);
         const clienteNome = cliente ? resolverNomeClienteCadastro(cliente) : evento.clienteNome ?? 'Sem cliente';
 
-        colaboradoresIds.forEach((colaboradorId) => {
-          resultado.push({
-            id: `atendimento-${evento.atendimentoId}-${colaboradorId}`,
-            itemTipo: 'atendimento',
-            tarefaId: `atendimento-${evento.atendimentoId}`,
-            colaboradorId,
-            colaboradorNome: colaboradorNomePorId.get(colaboradorId) ?? evento.colaboradorNome ?? 'Sem responsável',
-            etapaId: null,
-            etapaNome: 'Atendimento Concluído',
-            rawDataHoraAcao: dataConclusao,
-            dataHoraAcao: formatDateTime(dataConclusao),
-            observacao: atendimento?.observacaoConclusao ?? evento.observacao ?? ' ',
-            clienteNome,
-            projetoTitulo: '—',
-            tarefaTitulo: evento.atendimentoTitulo ?? 'Sem título',
-          });
+        const concluidoPorId = atendimento?.concluidoPorColaboradorId ?? evento.colaboradorId ?? null;
+        const concluidoPorNome =
+          colaboradorNomePorId.get(concluidoPorId) ?? evento.colaboradorNome ?? 'Sem responsável';
+
+        resultado.push({
+          id: `atendimento-${evento.atendimentoId}`,
+          itemTipo: 'atendimento',
+          tarefaId: `atendimento-${evento.atendimentoId}`,
+          colaboradorId: concluidoPorId,
+          colaboradorNome: concluidoPorNome,
+          etapaId: null,
+          etapaNome: ETAPA_ATENDIMENTO_CONCLUIDO,
+          rawDataHoraAcao: dataConclusao,
+          dataHoraAcao: formatDateTime(dataConclusao),
+          observacao: atendimento?.observacaoConclusao ?? evento.observacao ?? ' ',
+          clienteNome,
+          projetoTitulo: '—',
+          tarefaTitulo: evento.atendimentoTitulo ?? 'Sem título',
+          descricao: atendimento?.descricao ?? null,
+          concluidoPorId,
+          concluidoPorNome,
+          participantesIds,
+          lancadoPorColaboradorId: atendimento?.cadastradoPorColaboradorId ?? null,
+          lancadoPorNome: colaboradorNomePorId.get(atendimento?.cadastradoPorColaboradorId) ?? null,
+          lancadoPorData: atendimento?.dataCadastro ? new Date(atendimento.dataCadastro) : null,
         });
       });
 
@@ -348,31 +396,28 @@ export default function RelatorioComissaoPage() {
     return set;
   }, [segmentos, etapaFinalId]);
 
-  // Junta tarefas e atendimentos numa lista só antes do filtro de colaborador — cada linha já
-  // carrega itemTipo, então o resto do relatório (agrupamento, ordenação, export) trata os dois
-  // de forma uniforme.
-  const linhasTarefasEAtendimentos = useMemo(() => [...segmentos, ...linhasAtendimento], [segmentos, linhasAtendimento]);
-
-  // Filtros de colaborador e de tipo (tarefa/atendimento) aplicados aqui (não no servidor) — depois
-  // da reconstrução acima
-  const linhas = useMemo(
-    () =>
-      linhasTarefasEAtendimentos.filter(
-        (s) =>
-          (colaboradorFilter === 'todos' || s.colaboradorId === Number(colaboradorFilter)) &&
-          (tipoItemFilter === 'todos' || s.itemTipo === tipoItemFilter)
-      ),
-    [linhasTarefasEAtendimentos, colaboradorFilter, tipoItemFilter]
+  // Junta tarefas e atendimentos numa lista só — cada linha já carrega itemTipo, então o resto do
+  // relatório trata os dois de forma uniforme. O filtro de colaborador NÃO é aplicado aqui: ele
+  // define quais itens aparecem (item em que o colaborador participou de qualquer etapa), mas
+  // todas as etapas do item continuam visíveis (ver `grupos`).
+  const linhasTarefasEAtendimentos = useMemo(
+    () => [...segmentos, ...linhasAtendimento],
+    [segmentos, linhasAtendimento]
   );
 
-  // Agrupamento: Cliente > Tarefa/Atendimento, com as passagens em ordem cronológica dentro de
-  // cada grupo. Tarefas só entram se já chegaram na etapa final (ver `tarefasFinalizadas`) —
-  // atendimentos já vêm filtrados a "Realizado" desde `linhasAtendimento`, então essa checagem
-  // (que só faz sentido pra tarefa) não se aplica a eles.
+  // Agrupamento base: um grupo por tarefa/atendimento. Dentro do grupo, as passagens em ordem
+  // cronológica, com:
+  //   - "Lançado por" como primeira linha das tarefas (item novo na 1.9.0);
+  //   - etapas DUPLICADAS reduzidas à última ocorrência (uma etapa reaberta várias vezes aparece
+  //     só na passagem mais recente);
+  //   - o "Desenvolvedor" do item: para tarefa, o colaborador da última etapa cujo nome contém
+  //     "desenvolv"; para atendimento, quem concluiu.
   const grupos = useMemo(() => {
     const mapa = new Map();
-    linhas
+
+    linhasTarefasEAtendimentos
       .filter((item) => item.itemTipo === 'atendimento' || !tarefasFinalizadas || tarefasFinalizadas.has(item.tarefaId))
+      .filter((item) => tipoItemFilter === 'todos' || item.itemTipo === tipoItemFilter)
       .forEach((item) => {
         if (!mapa.has(item.tarefaId)) {
           mapa.set(item.tarefaId, {
@@ -388,25 +433,175 @@ export default function RelatorioComissaoPage() {
       });
 
     const lista = Array.from(mapa.values());
-    // Ordem cronológica das etapas dentro do grupo não é configurável — é o que dá sentido à
-    // sequência (quem pegou depois de quem). Só a ordem dos grupos entre si é ajustável (abaixo).
-    lista.forEach((grupo) => grupo.itens.sort((a, b) => (a.rawDataHoraAcao ?? 0) - (b.rawDataHoraAcao ?? 0)));
-    return lista;
-  }, [linhas]);
 
-  // Como o relatório é agrupado (não uma tabela simples), não dá pra ordenar clicando em cabeçalho
-  // de coluna como nos outros relatórios — a ordenação aqui é de qual grupo (cliente/tarefa) vem
-  // primeiro.
-  const gruposOrdenados = useMemo(() => {
-    const dataConclusao = (grupo) => grupo.itens[grupo.itens.length - 1]?.rawDataHoraAcao ?? 0;
-    const comparadores = {
-      cliente: (a, b) => (a.clienteNome ?? '').localeCompare(b.clienteNome ?? '', 'pt-BR', { sensitivity: 'base' }),
-      tarefa: (a, b) => (a.tarefaTitulo ?? '').localeCompare(b.tarefaTitulo ?? '', 'pt-BR', { sensitivity: 'base' }),
-      dataConclusao: (a, b) => dataConclusao(a) - dataConclusao(b),
+    lista.forEach((grupo) => {
+      // Ordem cronológica das etapas dentro do grupo não é configurável — é o que dá sentido à
+      // sequência (quem pegou depois de quem).
+      grupo.itens.sort((a, b) => (a.rawDataHoraAcao ?? 0) - (b.rawDataHoraAcao ?? 0));
+
+      // Item 5: remove etapas duplicadas, mantendo só a última ocorrência de cada etapa.
+      if (grupo.itemTipo === 'tarefa') {
+        const ultimaPorEtapa = new Map();
+        grupo.itens.forEach((item) => {
+          const chave = item.etapaId ?? item.etapaNome;
+          ultimaPorEtapa.set(chave, item); // itens já ordenados: o último sobrescreve
+        });
+        grupo.itens = Array.from(ultimaPorEtapa.values()).sort(
+          (a, b) => (a.rawDataHoraAcao ?? 0) - (b.rawDataHoraAcao ?? 0)
+        );
+      }
+
+      const info = grupo.itemTipo === 'tarefa' ? infoPorTarefa.get(grupo.tarefaId) : null;
+
+      // Descrição do item (não varia entre as etapas).
+      grupo.descricao =
+        grupo.itemTipo === 'tarefa'
+          ? info?.descricao ?? null
+          : grupo.itens.find((i) => i.descricao)?.descricao ?? null;
+
+      // Desenvolvedor do item — calculado antes de injetar a linha "Lançado por".
+      if (grupo.itemTipo === 'atendimento') {
+        const ref = grupo.itens.find((i) => i.etapaNome === ETAPA_ATENDIMENTO_CONCLUIDO) ?? grupo.itens[0];
+        grupo.desenvolvedorId = ref?.concluidoPorId ?? null;
+        grupo.desenvolvedorNome = ref?.concluidoPorNome ?? SEM_DESENVOLVEDOR;
+      } else {
+        const etapaDev = [...grupo.itens].reverse().find((item) => ehEtapaDesenvolvimento(item.etapaNome));
+        grupo.desenvolvedorId = etapaDev?.colaboradorId ?? null;
+        grupo.desenvolvedorNome = etapaDev?.colaboradorNome ?? SEM_DESENVOLVEDOR;
+      }
+
+      // Colaboradores que participaram do item — usado pelo filtro de colaborador (o item aparece
+      // se a pessoa filtrada fez ao menos uma etapa dele / está atribuída ao atendimento).
+      const participantes = new Set(
+        grupo.itens.map((item) => item.colaboradorId).filter((id) => id != null)
+      );
+
+      // Itens 3 e 5: linha "Lançado por" como primeira do grupo (tarefa e atendimento).
+      const base = grupo.itens[0];
+      (base?.participantesIds ?? []).forEach((id) => participantes.add(id));
+      const lancado =
+        grupo.itemTipo === 'tarefa'
+          ? info && (info.lancadoPorNome || info.lancadoPorData)
+            ? { id: info.lancadoPorColaboradorId, nome: info.lancadoPorNome, data: info.lancadoPorData }
+            : null
+          : base && (base.lancadoPorNome || base.lancadoPorData)
+            ? { id: base.lancadoPorColaboradorId, nome: base.lancadoPorNome, data: base.lancadoPorData }
+            : null;
+      if (lancado) {
+        if (lancado.id != null) participantes.add(lancado.id);
+        grupo.itens.unshift({
+          id: `${grupo.tarefaId}-lancamento`,
+          itemTipo: grupo.itemTipo,
+          tarefaId: grupo.tarefaId,
+          colaboradorId: lancado.id,
+          colaboradorNome: lancado.nome ?? 'Sem responsável',
+          etapaId: null,
+          etapaNome: ETAPA_LANCAMENTO,
+          rawDataHoraAcao: lancado.data,
+          dataHoraAcao: formatDateTime(lancado.data),
+          observacao: ' ',
+          clienteNome: grupo.clienteNome,
+          projetoTitulo: grupo.projetoTitulo,
+          tarefaTitulo: grupo.tarefaTitulo,
+          descricao: grupo.descricao,
+        });
+      }
+
+      grupo.participantesIds = participantes;
+
+      // Data de conclusão do item = data da última passagem/conclusão (a linha "Lançado por" fica
+      // no início, então nunca é a última).
+      grupo.dataConclusao = grupo.itens[grupo.itens.length - 1]?.rawDataHoraAcao ?? null;
+    });
+
+    return lista;
+  }, [linhasTarefasEAtendimentos, tarefasFinalizadas, tipoItemFilter, infoPorTarefa]);
+
+  const colaboradorIdFiltro = colaboradorFilter === 'todos' ? null : Number(colaboradorFilter);
+
+  // Item 3: o filtro de colaborador seleciona os ITENS (participou de qualquer etapa) — todas as
+  // etapas do item continuam visíveis, mesmo as de outros colaboradores.
+  const gruposVisiveis = useMemo(() => {
+    if (colaboradorIdFiltro == null) return grupos;
+    return grupos.filter((grupo) => grupo.participantesIds.has(colaboradorIdFiltro));
+  }, [grupos, colaboradorIdFiltro]);
+
+  // Itens 1 e 2: relatório dividido em seções por Colaborador(Desenvolvedor), cada item numerado
+  // dentro da sua seção. Quando há um colaborador filtrado, tudo cai numa seção só (a dele).
+  const secoes = useMemo(() => {
+    const comparadorItens = (a, b) => {
+      const porCliente = compararTexto(a.clienteNome, b.clienteNome);
+      const porData = (a.dataConclusao ?? 0) - (b.dataConclusao ?? 0);
+      const base = sortConfig.ordem === 'data' ? porData || porCliente : porCliente || porData;
+      return sortConfig.direction === 'asc' ? base : -base;
     };
-    const comparar = comparadores[sortConfig.criterio] ?? comparadores.cliente;
-    return [...grupos].sort((a, b) => (sortConfig.direction === 'asc' ? comparar(a, b) : comparar(b, a)));
-  }, [grupos, sortConfig]);
+
+    const mapa = new Map();
+    const chaveSecao = (grupo) =>
+      colaboradorIdFiltro != null
+        ? String(colaboradorIdFiltro)
+        : grupo.desenvolvedorId != null
+          ? String(grupo.desenvolvedorId)
+          : SEM_DESENVOLVEDOR;
+
+    gruposVisiveis.forEach((grupo) => {
+      const chave = chaveSecao(grupo);
+      if (!mapa.has(chave)) {
+        const nome =
+          colaboradorIdFiltro != null
+            ? colaboradorNomePorId.get(colaboradorIdFiltro) ?? `#${colaboradorIdFiltro}`
+            : grupo.desenvolvedorNome;
+        mapa.set(chave, { chave, colaboradorId: colaboradorIdFiltro ?? grupo.desenvolvedorId ?? null, nome, grupos: [] });
+      }
+      mapa.get(chave).grupos.push(grupo);
+    });
+
+    const lista = Array.from(mapa.values());
+    lista.sort((a, b) => {
+      // "Sem desenvolvedor" sempre por último.
+      if ((a.chave === SEM_DESENVOLVEDOR) !== (b.chave === SEM_DESENVOLVEDOR)) {
+        return a.chave === SEM_DESENVOLVEDOR ? 1 : -1;
+      }
+      return compararTexto(a.nome, b.nome);
+    });
+    lista.forEach((secao) => {
+      secao.grupos.sort(comparadorItens);
+      secao.grupos = secao.grupos.map((grupo, idx) => ({ ...grupo, numero: idx + 1 }));
+    });
+    return lista;
+  }, [gruposVisiveis, sortConfig, colaboradorIdFiltro, colaboradorNomePorId]);
+
+  const totalGrupos = useMemo(
+    () => secoes.reduce((acc, secao) => acc + secao.grupos.length, 0),
+    [secoes]
+  );
+
+  // Item 4: contagem por colaborador — SÓ desenvolvimento (tarefa) e atendimento concluído.
+  // Respeita período/cliente/tipo; o filtro de colaborador só restringe a linha exibida.
+  const resumoColaboradores = useMemo(() => {
+    const tally = new Map();
+    grupos.forEach((grupo) => {
+      // Reforça o filtro de tipo aqui (além de `grupos`) pra não sobrar tarefa quando o filtro é
+      // "Atendimentos" nem o contrário.
+      if (tipoItemFilter !== 'todos' && grupo.itemTipo !== tipoItemFilter) return;
+      const id = grupo.desenvolvedorId;
+      if (id == null) return;
+      const atual = tally.get(id) ?? { colaboradorId: id, nome: grupo.desenvolvedorNome, total: 0 };
+      atual.total += 1;
+      tally.set(id, atual);
+    });
+    let lista = Array.from(tally.values());
+    if (colaboradorIdFiltro != null) lista = lista.filter((r) => r.colaboradorId === colaboradorIdFiltro);
+    lista.sort((a, b) => b.total - a.total || compararTexto(a.nome, b.nome));
+    return lista;
+  }, [grupos, tipoItemFilter, colaboradorIdFiltro]);
+
+  const rotuloTotalResumo =
+    tipoItemFilter === 'tarefa'
+      ? 'Total (desenvolvimento)'
+      : tipoItemFilter === 'atendimento'
+        ? 'Total (atendimentos concluídos)'
+        : 'Total (desenvolvimento + atendimentos)';
 
   const colunasLinhaAtivas = colunasLinha.filter((c) => selectedColumns.includes(c.id));
   const numColunasLinha = Math.max(colunasLinhaAtivas.length, 1);
@@ -416,7 +611,9 @@ export default function RelatorioComissaoPage() {
     if (selectedColumns.includes('clienteNome')) partes.push(grupo.clienteNome);
     if (selectedColumns.includes('projetoTitulo')) partes.push(grupo.projetoTitulo);
     if (selectedColumns.includes('tarefaTitulo')) partes.push(grupo.tarefaTitulo);
-    return partes.length > 0 ? partes.join(' — ') : `Tarefa #${grupo.tarefaId}`;
+    if (selectedColumns.includes('descricao') && grupo.descricao?.trim()) partes.push(grupo.descricao.trim());
+    const titulo = partes.length > 0 ? partes.join(' — ') : `Tarefa #${grupo.tarefaId}`;
+    return grupo.numero ? `${grupo.numero} - ${titulo}` : titulo;
   }
 
   const toggleColumn = (id) => {
@@ -445,6 +642,7 @@ export default function RelatorioComissaoPage() {
       tipoLabel ? `Tipo: ${tipoLabel}` : null,
       colaboradorNome ? `Colaborador: ${colaboradorNome}` : null,
       clienteNome ? `Cliente: ${clienteNome}` : null,
+      viewMode === 'resumo' ? 'Visão: Resumo (total por colaborador)' : null,
     ].filter(Boolean);
 
     return filters.length > 0 ? filters.join(' | ') : 'Nenhum filtro aplicado';
@@ -458,26 +656,45 @@ export default function RelatorioComissaoPage() {
     const footerLines = obterRodapeRelatorio(systemSettings);
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const countLine = `Total: ${linhas.length} lançamento(s) em ${gruposOrdenados.length} item(ns) (tarefas e atendimentos)`;
+    const countLine =
+      viewMode === 'resumo'
+        ? `Total: ${resumoColaboradores.length} colaborador(es)`
+        : `Total: ${totalGrupos} item(ns) (tarefas e atendimentos)`;
     const filtersLines = doc.splitTextToSize(`Filtros: ${filtersSummary}`, pageWidth - 70);
     const headerEndY = 30 + 6 + filtersLines.length * 6;
 
+    let head;
     const body = [];
-    gruposOrdenados.forEach((grupo) => {
-      body.push([
-        {
-          content: buildGroupHeader(grupo),
-          colSpan: numColunasLinha,
-          styles: { fontStyle: 'bold', fillColor: [230, 240, 250] },
-        },
-      ]);
-      grupo.itens.forEach((item) => {
-        body.push(colunasLinhaAtivas.map((col) => item[col.id] ?? ''));
+    if (viewMode === 'resumo') {
+      head = [['Colaborador', rotuloTotalResumo]];
+      resumoColaboradores.forEach((r) => body.push([r.nome, String(r.total)]));
+    } else {
+      head = [colunasLinhaAtivas.map((c) => c.label)];
+      secoes.forEach((secao) => {
+        body.push([
+          {
+            content: `${secao.nome} — ${secao.grupos.length} item(ns)`,
+            colSpan: numColunasLinha,
+            styles: { fontStyle: 'bold', fillColor: [210, 224, 240] },
+          },
+        ]);
+        secao.grupos.forEach((grupo) => {
+          body.push([
+            {
+              content: buildGroupHeader(grupo),
+              colSpan: numColunasLinha,
+              styles: { fontStyle: 'bold', fillColor: [230, 240, 250] },
+            },
+          ]);
+          grupo.itens.forEach((item) => {
+            body.push(colunasLinhaAtivas.map((col) => item[col.id] ?? ''));
+          });
+        });
       });
-    });
+    }
 
     autoTable(doc, {
-      head: [colunasLinhaAtivas.map((c) => c.label)],
+      head,
       body,
       styles: { fontSize: 8 },
       headStyles: { overflow: 'ellipsize' },
@@ -510,48 +727,112 @@ export default function RelatorioComissaoPage() {
     const emissionDate = new Date().toLocaleString('pt-BR');
     const footerLines = obterRodapeRelatorio(systemSettings);
 
+    const countLine =
+      viewMode === 'resumo'
+        ? `Total: ${resumoColaboradores.length} colaborador(es)`
+        : `Total: ${totalGrupos} item(ns) (tarefas e atendimentos)`;
+
+    const merges = [];
+    const dataRows = [];
+    let colunasCabecalho;
+
+    if (viewMode === 'resumo') {
+      colunasCabecalho = ['Colaborador', rotuloTotalResumo];
+      resumoColaboradores.forEach((r) => dataRows.push([r.nome, r.total]));
+    } else {
+      colunasCabecalho = colunasLinhaAtivas.map((c) => c.label);
+      const larguraLinha = Math.max(colunasCabecalho.length, 1);
+      secoes.forEach((secao) => {
+        dataRows.push([`${secao.nome} — ${secao.grupos.length} item(ns)`]);
+        if (larguraLinha > 1) {
+          merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: larguraLinha - 1 }, __rel: dataRows.length - 1 });
+        }
+        secao.grupos.forEach((grupo) => {
+          dataRows.push([buildGroupHeader(grupo)]);
+          if (larguraLinha > 1) {
+            merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: larguraLinha - 1 }, __rel: dataRows.length - 1 });
+          }
+          grupo.itens.forEach((item) => {
+            dataRows.push(colunasLinhaAtivas.map((col) => item[col.id] ?? ''));
+          });
+        });
+      });
+    }
+
     const headerRows = [
       [reportTitle],
       [`Data de emissão: ${emissionDate}`],
-      [`Total: ${linhas.length} lançamento(s) em ${gruposOrdenados.length} item(ns) (tarefas e atendimentos)`],
+      [countLine],
       [`Filtros: ${filtersSummary}`],
       [],
-      colunasLinhaAtivas.map((c) => c.label),
+      colunasCabecalho,
     ];
 
-    const merges = [];
-    if (numColunasLinha > 1) {
-      const lastColumnIndex = numColunasLinha - 1;
-      merges.push(
-        { s: { r: 0, c: 0 }, e: { r: 0, c: lastColumnIndex } },
-        { s: { r: 1, c: 0 }, e: { r: 1, c: lastColumnIndex } },
-        { s: { r: 2, c: 0 }, e: { r: 2, c: lastColumnIndex } },
-        { s: { r: 3, c: 0 }, e: { r: 3, c: lastColumnIndex } }
-      );
+    const larguraLinha = Math.max(colunasCabecalho.length, 1);
+    const finalMerges = [];
+    if (larguraLinha > 1) {
+      for (let r = 0; r < 4; r += 1) finalMerges.push({ s: { r, c: 0 }, e: { r, c: larguraLinha - 1 } });
     }
-
-    const dataRows = [];
-    let currentRow = headerRows.length;
-    gruposOrdenados.forEach((grupo) => {
-      dataRows.push([buildGroupHeader(grupo)]);
-      if (numColunasLinha > 1) {
-        merges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: numColunasLinha - 1 } });
-      }
-      currentRow += 1;
-      grupo.itens.forEach((item) => {
-        dataRows.push(colunasLinhaAtivas.map((col) => item[col.id] ?? ''));
-        currentRow += 1;
-      });
+    merges.forEach((m) => {
+      const r = headerRows.length + m.__rel;
+      finalMerges.push({ s: { r, c: 0 }, e: { r, c: larguraLinha - 1 } });
     });
 
     const footerRows = [[], ...footerLines.map((line) => [line])];
     const worksheet = XLSX.utils.aoa_to_sheet([...headerRows, ...dataRows, ...footerRows]);
-    worksheet['!merges'] = merges;
+    worksheet['!merges'] = finalMerges;
 
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Comissão');
     await XLSX.writeFile(workbook, 'relatorio-comissao.xlsx');
   };
+
+  const iniciarTour = useCallback(() => {
+    import('driver.js').then(({ driver }) => {
+      const tour = driver({
+        showProgress: true,
+        progressText: '{{current}} de {{total}}',
+        nextBtnText: 'Próximo →',
+        prevBtnText: '← Anterior',
+        doneBtnText: '✓ Concluir',
+        overlayOpacity: 0.6,
+        smoothScroll: true,
+        steps: [
+          {
+            element: '#tour-comissao-cabecalho',
+            popover: {
+              title: 'Relatório de Comissão',
+              description:
+                'Base de cálculo da comissão: tarefas que chegaram na etapa final e atendimentos concluídos no período. Cada item aparece sob o <strong>Colaborador(Desenvolvedor)</strong> — quem fez a etapa de desenvolvimento (ou concluiu o atendimento).',
+              side: 'bottom',
+              align: 'start',
+            },
+          },
+          {
+            element: '#tour-comissao-exportar',
+            popover: { title: 'Exportar Dados', description: 'Exporte em <strong>Excel (.xlsx)</strong> ou <strong>PDF</strong> respeitando os filtros, colunas e a visão (Detalhada ou Resumo).', side: 'bottom', align: 'end' },
+          },
+          {
+            element: '#tour-comissao-filtros',
+            popover: { title: 'Filtros', description: 'Filtre por <strong>período</strong>, <strong>tipo</strong> (Tarefas/Atendimentos), <strong>colaborador</strong> e <strong>cliente</strong>. Ao filtrar um colaborador, aparecem os itens em que ele participou de <strong>qualquer</strong> etapa — e todas as etapas continuam visíveis, mesmo as de outras pessoas.', side: 'bottom', align: 'start' },
+          },
+          {
+            element: '#tour-comissao-colunas',
+            popover: { title: 'Seleção de Colunas', description: 'Escolha quais colunas aparecem nas linhas de etapa e no cabeçalho de cada item.', side: 'bottom', align: 'end' },
+          },
+          {
+            element: '#tour-comissao-visao',
+            popover: { title: 'Visão e Ordenação', description: '<strong>Detalhada</strong>: todas as etapas de cada item, numeradas por colaborador.<br><strong>Resumo</strong>: só o total por colaborador (contando apenas desenvolvimento e atendimentos concluídos).<br>A ordem dos itens dentro do colaborador pode ser <strong>Cliente → Data</strong> ou <strong>Data → Cliente</strong>.', side: 'bottom', align: 'end' },
+          },
+          {
+            element: '#tour-comissao-tabela',
+            popover: { title: 'Resultados', description: 'Seções por colaborador, cada item numerado (1, 2, 3…). A linha <strong>Lançado por</strong> abre cada tarefa. Etapas repetidas aparecem só na ocorrência mais recente.', side: 'top', align: 'center' },
+          },
+        ].filter((p) => !p.element || document.querySelector(p.element)),
+      });
+      tour.drive();
+    });
+  }, []);
 
   // Não retorna cedo em isLoading: isso desmontaria os campos de filtro (incluindo os de data) a
   // cada busca — inclusive as disparadas por cada tecla digitada — fazendo o campo perder o foco.
@@ -560,24 +841,27 @@ export default function RelatorioComissaoPage() {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto py-8 px-4 space-y-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div id="tour-comissao-cabecalho" className="flex items-center gap-3">
             <div className="p-2 bg-brand-blue/10 rounded-lg">
               <DollarSign className="h-6 w-6 text-brand-blue" />
             </div>
             <div>
               <h1>Relatório de Comissão</h1>
               <p className="text-muted-foreground">
-                Tarefas e atendimentos concluídos no período, agrupados por cliente, com as etapas/conclusões e colaboradores responsáveis
+                Tarefas e atendimentos concluídos no período, agrupados por Colaborador(Desenvolvedor), com as etapas percorridas e os responsáveis
               </p>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" className="flex items-center gap-2" onClick={exportToExcel}>
-              <FileSpreadsheet className="h-4 w-4" /> Exportar Excel
-            </Button>
-            <Button className="bg-brand-blue hover:bg-brand-blue-dark flex items-center gap-2" onClick={exportToPDF}>
-              <FileText className="h-4 w-4" /> Exportar PDF
-            </Button>
+            <TourGuia aoIniciar={iniciarTour} />
+            <div id="tour-comissao-exportar" className="flex items-center gap-3">
+              <Button variant="outline" className="flex items-center gap-2" onClick={exportToExcel}>
+                <FileSpreadsheet className="h-4 w-4" /> Exportar Excel
+              </Button>
+              <Button className="bg-brand-blue hover:bg-brand-blue-dark flex items-center gap-2" onClick={exportToPDF}>
+                <FileText className="h-4 w-4" /> Exportar PDF
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -589,7 +873,7 @@ export default function RelatorioComissaoPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div id="tour-comissao-filtros" className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <Label>Data início</Label>
                   <Input type="date" value={dataInicioFilter} onChange={(e) => setDataInicioFilter(e.target.value)} />
@@ -643,7 +927,7 @@ export default function RelatorioComissaoPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2"><ListChecks className="h-5 w-5" /> Colunas</CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-2">
+            <CardContent id="tour-comissao-colunas" className="grid grid-cols-2 gap-2">
               {todasColunas.map((col) => (
                 <label key={col.id} className="flex items-center gap-2 text-sm">
                   <input
@@ -662,76 +946,132 @@ export default function RelatorioComissaoPage() {
           <CardHeader>
             <CardTitle className="flex items-center justify-between flex-wrap gap-3">
               <span>
-                {linhas.length} lançamento(s) em {gruposOrdenados.length} item(ns) (tarefas e atendimentos)
+                {viewMode === 'resumo'
+                  ? `${resumoColaboradores.length} colaborador(es)`
+                  : `${totalGrupos} item(ns) (tarefas e atendimentos)`}
               </span>
-              <div className="flex items-center gap-2 text-sm font-normal">
-                <Label className="whitespace-nowrap">Ordenar por</Label>
-                <Select
-                  value={sortConfig.criterio}
-                  onValueChange={(criterio) => setSortConfig((prev) => ({ ...prev, criterio }))}
-                >
-                  <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+              <div id="tour-comissao-visao" className="flex items-center gap-2 text-sm font-normal flex-wrap">
+                <Label className="whitespace-nowrap">Visão</Label>
+                <Select value={viewMode} onValueChange={setViewMode}>
+                  <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {criteriosOrdenacao.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>{c.label}</SelectItem>
-                    ))}
+                    <SelectItem value="detalhado">Detalhada</SelectItem>
+                    <SelectItem value="resumo">Resumo (total)</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setSortConfig((prev) => ({ ...prev, direction: prev.direction === 'asc' ? 'desc' : 'asc' }))}
-                  title={sortConfig.direction === 'asc' ? 'Crescente' : 'Decrescente'}
-                >
-                  {sortConfig.direction === 'asc' ? '▲' : '▼'}
-                </Button>
+                {viewMode === 'detalhado' && (
+                  <>
+                    <Label className="whitespace-nowrap">Ordenar por</Label>
+                    <Select
+                      value={sortConfig.ordem}
+                      onValueChange={(ordem) => setSortConfig((prev) => ({ ...prev, ordem }))}
+                    >
+                      <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {ordensSecundarias.map((o) => (
+                          <SelectItem key={o.id} value={o.id}>{o.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSortConfig((prev) => ({ ...prev, direction: prev.direction === 'asc' ? 'desc' : 'asc' }))}
+                      title={sortConfig.direction === 'asc' ? 'Crescente' : 'Decrescente'}
+                    >
+                      {sortConfig.direction === 'asc' ? '▲' : '▼'}
+                    </Button>
+                  </>
+                )}
               </div>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-brand-blue/5">
-                    {colunasLinhaAtivas.map((col) => (
-                      <TableHead key={col.id} className="font-semibold text-brand-blue">{col.label}</TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {isLoading && (
-                    <TableRow>
-                      <TableCell colSpan={numColunasLinha} className="text-center text-muted-foreground">
-                        Carregando...
-                      </TableCell>
+            <div id="tour-comissao-tabela" className="overflow-x-auto">
+              {viewMode === 'resumo' ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-brand-blue/5">
+                      <TableHead className="font-semibold text-brand-blue">Colaborador</TableHead>
+                      <TableHead className="font-semibold text-brand-blue text-right">
+                        {rotuloTotalResumo}
+                      </TableHead>
                     </TableRow>
-                  )}
-                  {!isLoading && gruposOrdenados.map((grupo) => (
-                    <Fragment key={grupo.tarefaId}>
-                      <TableRow className="bg-brand-blue/10 hover:bg-brand-blue/10">
-                        <TableCell colSpan={numColunasLinha} className="font-semibold text-brand-blue">
-                          {buildGroupHeader(grupo)}
+                  </TableHeader>
+                  <TableBody>
+                    {isLoading && (
+                      <TableRow>
+                        <TableCell colSpan={2} className="text-center text-muted-foreground">Carregando...</TableCell>
+                      </TableRow>
+                    )}
+                    {!isLoading && resumoColaboradores.map((r) => (
+                      <TableRow key={r.colaboradorId} className="hover:bg-muted/40">
+                        <TableCell>{r.nome}</TableCell>
+                        <TableCell className="text-right font-semibold">{r.total}</TableCell>
+                      </TableRow>
+                    ))}
+                    {!isLoading && resumoColaboradores.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={2} className="text-center text-muted-foreground">
+                          Nenhum registro encontrado com os filtros selecionados.
                         </TableCell>
                       </TableRow>
-                      {grupo.itens.map((item) => (
-                        <TableRow key={item.id} className="hover:bg-muted/40">
-                          {colunasLinhaAtivas.map((col) => (
-                            <TableCell key={col.id}>{item[col.id]}</TableCell>
-                          ))}
-                        </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-brand-blue/5">
+                      {colunasLinhaAtivas.map((col) => (
+                        <TableHead key={col.id} className="font-semibold text-brand-blue">{col.label}</TableHead>
                       ))}
-                    </Fragment>
-                  ))}
-                  {!isLoading && gruposOrdenados.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={numColunasLinha} className="text-center text-muted-foreground">
-                        Nenhum registro encontrado com os filtros selecionados.
-                      </TableCell>
                     </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {isLoading && (
+                      <TableRow>
+                        <TableCell colSpan={numColunasLinha} className="text-center text-muted-foreground">
+                          Carregando...
+                        </TableCell>
+                      </TableRow>
+                    )}
+                    {!isLoading && secoes.map((secao) => (
+                      <Fragment key={secao.chave}>
+                        <TableRow className="bg-brand-blue/20 hover:bg-brand-blue/20">
+                          <TableCell colSpan={numColunasLinha} className="font-bold text-brand-blue">
+                            {secao.nome} — {secao.grupos.length} item(ns)
+                          </TableCell>
+                        </TableRow>
+                        {secao.grupos.map((grupo) => (
+                          <Fragment key={grupo.tarefaId}>
+                            <TableRow className="bg-brand-blue/10 hover:bg-brand-blue/10">
+                              <TableCell colSpan={numColunasLinha} className="font-semibold text-brand-blue">
+                                {buildGroupHeader(grupo)}
+                              </TableCell>
+                            </TableRow>
+                            {grupo.itens.map((item) => (
+                              <TableRow key={item.id} className="hover:bg-muted/40">
+                                {colunasLinhaAtivas.map((col) => (
+                                  <TableCell key={col.id}>{item[col.id]}</TableCell>
+                                ))}
+                              </TableRow>
+                            ))}
+                          </Fragment>
+                        ))}
+                      </Fragment>
+                    ))}
+                    {!isLoading && secoes.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={numColunasLinha} className="text-center text-muted-foreground">
+                          Nenhum registro encontrado com os filtros selecionados.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              )}
             </div>
           </CardContent>
         </Card>
