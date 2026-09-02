@@ -8,6 +8,7 @@ import { Input } from '../../../components/ui/form/input';
 import { Label } from '../../../components/ui/form/label';
 import { Button } from '../../../components/ui/base/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/form/select';
+import { Combobox } from '../../../components/ui/form/combobox';
 import { FileSpreadsheet, FileText, Filter, History, ListChecks } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -472,27 +473,29 @@ export default function HistoricoTarefasReportPage() {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                   <Label>Colaborador</Label>
-                  <Select value={colaboradorFilter} onValueChange={setColaboradorFilter}>
-                    <SelectTrigger><SelectValue placeholder="Colaborador" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="todos">Todos</SelectItem>
-                      {colaboradores.map((c) => (
-                        <SelectItem key={c.id} value={String(c.id)}>{c.nome}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Combobox
+                    value={colaboradorFilter}
+                    onValueChange={setColaboradorFilter}
+                    placeholder="Colaborador"
+                    searchPlaceholder="Buscar colaborador..."
+                    options={[
+                      { value: 'todos', label: 'Todos' },
+                      ...colaboradores.map((c) => ({ value: String(c.id), label: c.nome })),
+                    ]}
+                  />
                 </div>
                 <div>
                   <Label>Projeto</Label>
-                  <Select value={projetoFilter} onValueChange={setProjetoFilter}>
-                    <SelectTrigger><SelectValue placeholder="Projeto" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="todos">Todos</SelectItem>
-                      {projetos.map((p) => (
-                        <SelectItem key={p.id} value={String(p.id)}>{p.nome}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Combobox
+                    value={projetoFilter}
+                    onValueChange={setProjetoFilter}
+                    placeholder="Projeto"
+                    searchPlaceholder="Buscar projeto..."
+                    options={[
+                      { value: 'todos', label: 'Todos' },
+                      ...projetos.map((p) => ({ value: String(p.id), label: p.nome })),
+                    ]}
+                  />
                 </div>
                 <div>
                   <Label>Etapa</Label>

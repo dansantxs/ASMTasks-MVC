@@ -24,6 +24,7 @@ import {
 import { getDashboard } from './api/dashboard';
 import { useUsuarioAtual } from '../../hooks/useUsuarioAtual';
 import TourGuia from '../../components/TourGuia';
+import { Combobox } from '../../components/ui/form/combobox';
 
 function CardKPI({ icone: Icone, titulo, valor, corIcone, corFundo, destaque, sufixo }) {
   return (
@@ -397,16 +398,17 @@ export default function DashboardPage() {
           {ehAdministrador && colaboradoresDisponiveis?.length > 0 && (
           <div id="tour-dashboard-filtro" className="flex items-center gap-2">
             <Filter className="h-4 w-4 text-gray-400 shrink-0" />
-            <select
+            <Combobox
+              className="min-w-[200px] bg-white"
               value={filtroColaboradorId}
-              onChange={(e) => setFiltroColaboradorId(e.target.value)}
-              className="text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[200px]"
-            >
-              <option value="">Todos os colaboradores</option>
-              {colaboradoresDisponiveis.map((c) => (
-                <option key={c.id} value={c.id}>{c.nome}</option>
-              ))}
-            </select>
+              onValueChange={setFiltroColaboradorId}
+              placeholder="Todos os colaboradores"
+              searchPlaceholder="Buscar colaborador..."
+              options={[
+                { value: '', label: 'Todos os colaboradores' },
+                ...colaboradoresDisponiveis.map((c) => ({ value: String(c.id), label: c.nome })),
+              ]}
+            />
             {filtroColaboradorId && (
               <button
                 onClick={() => setFiltroColaboradorId('')}

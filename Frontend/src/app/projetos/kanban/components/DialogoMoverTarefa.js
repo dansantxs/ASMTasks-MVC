@@ -4,7 +4,28 @@ import { useState, useEffect } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { Button } from '../../../../components/ui/base/button';
 import { Label } from '../../../../components/ui/form/label';
-import { cn } from '../../../../components/ui/form/utils';
+import { Combobox } from '../../../../components/ui/form/combobox';
+
+function montarOpcoesColaboradores(colaboradores, setorId, mostrarTodosSetores) {
+  const rotulo = (col) => `${col.nome}${col.cargoNome ? ` — ${col.cargoNome}` : ''}`;
+  const semResponsavel = { value: '', label: 'Sem responsável' };
+
+  if (!setorId) {
+    return [semResponsavel, ...colaboradores.map((col) => ({ value: String(col.id), label: rotulo(col) }))];
+  }
+
+  const doSetor = colaboradores.filter((c) => c.setorId === setorId);
+  if (!mostrarTodosSetores) {
+    return [semResponsavel, ...doSetor.map((col) => ({ value: String(col.id), label: rotulo(col) }))];
+  }
+
+  const outros = colaboradores.filter((c) => c.setorId !== setorId);
+  return [
+    semResponsavel,
+    ...doSetor.map((col) => ({ value: String(col.id), label: `Setor da tarefa · ${rotulo(col)}` })),
+    ...outros.map((col) => ({ value: String(col.id), label: `Outros setores · ${rotulo(col)}` })),
+  ];
+}
 
 export default function DialogoMoverTarefa({ open, onOpenChange, tarefa, etapaDestino, colaboradores = [], onConfirmar, isMovendo }) {
   const [colaboradorId, setColaboradorId] = useState(null);
@@ -61,54 +82,13 @@ export default function DialogoMoverTarefa({ open, onOpenChange, tarefa, etapaDe
                     </label>
                   )}
                 </div>
-                <select
-                  value={colaboradorId ?? ''}
-                  onChange={(e) => setColaboradorId(e.target.value ? Number(e.target.value) : null)}
-                  className={cn(
-                    'w-full rounded-md border border-input bg-background px-3 py-2 text-sm',
-                    'focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent'
-                  )}
-                >
-                  <option value="">Sem responsável</option>
-                  {tarefa?.setorId && !mostrarTodosSetores ? (
-                    colaboradores
-                      .filter((c) => c.setorId === tarefa.setorId)
-                      .map((col) => (
-                        <option key={col.id} value={col.id}>
-                          {col.nome}{col.cargoNome ? ` — ${col.cargoNome}` : ''}
-                        </option>
-                      ))
-                  ) : tarefa?.setorId ? (() => {
-                    const doSetor = colaboradores.filter((c) => c.setorId === tarefa.setorId);
-                    const outrosSetores = colaboradores.filter((c) => c.setorId !== tarefa.setorId);
-                    return (
-                      <>
-                        {doSetor.length > 0 && (
-                          <optgroup label="Setor da tarefa">
-                            {doSetor.map((col) => (
-                              <option key={col.id} value={col.id}>
-                                {col.nome}{col.cargoNome ? ` — ${col.cargoNome}` : ''}
-                              </option>
-                            ))}
-                          </optgroup>
-                        )}
-                        {outrosSetores.length > 0 && (
-                          <optgroup label="Outros setores">
-                            {outrosSetores.map((col) => (
-                              <option key={col.id} value={col.id}>
-                                {col.nome}{col.cargoNome ? ` — ${col.cargoNome}` : ''}
-                              </option>
-                            ))}
-                          </optgroup>
-                        )}
-                      </>
-                    );
-                  })() : colaboradores.map((col) => (
-                    <option key={col.id} value={col.id}>
-                      {col.nome}{col.cargoNome ? ` — ${col.cargoNome}` : ''}
-                    </option>
-                  ))}
-                </select>
+                <Combobox
+                  value={colaboradorId != null ? String(colaboradorId) : ''}
+                  onValueChange={(v) => setColaboradorId(v ? Number(v) : null)}
+                  placeholder="Sem responsável"
+                  searchPlaceholder="Buscar colaborador..."
+                  options={montarOpcoesColaboradores(colaboradores, tarefa?.setorId, mostrarTodosSetores)}
+                />
                 <p className="text-xs text-gray-400 mt-1">
                   Atual: {tarefa.colaboradorResponsavelNome ?? 'Sem responsável'}
                 </p>

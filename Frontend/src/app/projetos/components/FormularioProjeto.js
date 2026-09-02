@@ -8,6 +8,7 @@ import { Input } from '../../../components/ui/form/input';
 import { Label } from '../../../components/ui/form/label';
 import { Textarea } from '../../../components/ui/form/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/form/select';
+import { Combobox } from '../../../components/ui/form/combobox';
 import { Plus, Trash2, Paperclip, X as XIcon, FileText, AlertTriangle, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { criarCliente, criarPrioridade, criarSetor } from '../api/projetos';
@@ -637,21 +638,18 @@ export default function FormularioProjeto({
                     Cliente <span className="text-destructive">*</span>
                   </Label>
                   <div className="flex gap-1">
-                    <Select
+                    <Combobox
+                      className="flex-1"
                       value={formData.clienteId || ''}
                       onValueChange={handleClienteChange}
-                    >
-                      <SelectTrigger className={`flex-1 ${errors.clienteId ? 'border-destructive' : ''}`}>
-                        <SelectValue placeholder="Selecione o cliente" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {clientesParaSelecao.map((cliente) => (
-                          <SelectItem key={cliente.id} value={String(cliente.id)}>
-                            {resolverNomeCliente(cliente)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      placeholder="Selecione o cliente"
+                      searchPlaceholder="Buscar cliente..."
+                      aria-invalid={errors.clienteId ? true : undefined}
+                      options={clientesParaSelecao.map((cliente) => ({
+                        value: String(cliente.id),
+                        label: resolverNomeCliente(cliente),
+                      }))}
+                    />
                     <Button
                       type="button"
                       variant="outline"
@@ -838,16 +836,13 @@ export default function FormularioProjeto({
           {projetosParaMesclar.length > 1 && (
             <div className="space-y-2 py-2">
               <Label>Adicionar ao projeto</Label>
-              <Select value={projetoMesclarId || ''} onValueChange={setProjetoMesclarId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Escolha o projeto de destino" />
-                </SelectTrigger>
-                <SelectContent>
-                  {projetosParaMesclar.map((p) => (
-                    <SelectItem key={p.id} value={String(p.id)}>{p.titulo}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Combobox
+                value={projetoMesclarId || ''}
+                onValueChange={setProjetoMesclarId}
+                placeholder="Escolha o projeto de destino"
+                searchPlaceholder="Buscar projeto..."
+                options={projetosParaMesclar.map((p) => ({ value: String(p.id), label: p.titulo }))}
+              />
             </div>
           )}
 

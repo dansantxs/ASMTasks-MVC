@@ -9,6 +9,7 @@ import { Label } from '../../../components/ui/form/label';
 import { Button } from '../../../components/ui/base/button';
 import { Badge } from '../../../components/ui/base/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/form/select';
+import { Combobox } from '../../../components/ui/form/combobox';
 import { FileSpreadsheet, FileText, Filter, ListChecks, Users } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -396,31 +397,29 @@ export default function ColaboradoresReportPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <Label>Setor</Label>
-                  <Select value={setorFilter} onValueChange={setSetorFilter}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Setor" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="todos">Todos</SelectItem>
-                      {setoresApi.map((s) => (
-                        <SelectItem key={s.id} value={String(s.id)}>{s.nome}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Combobox
+                    value={setorFilter}
+                    onValueChange={setSetorFilter}
+                    placeholder="Setor"
+                    searchPlaceholder="Buscar setor..."
+                    options={[
+                      { value: 'todos', label: 'Todos' },
+                      ...setoresApi.map((s) => ({ value: String(s.id), label: s.nome })),
+                    ]}
+                  />
                 </div>
                 <div>
                   <Label>Cargo</Label>
-                  <Select value={cargoFilter} onValueChange={setCargoFilter}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Cargo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="todos">Todos</SelectItem>
-                      {cargosApi.map((c) => (
-                        <SelectItem key={c.id} value={String(c.id)}>{c.nome}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Combobox
+                    value={cargoFilter}
+                    onValueChange={setCargoFilter}
+                    placeholder="Cargo"
+                    searchPlaceholder="Buscar cargo..."
+                    options={[
+                      { value: 'todos', label: 'Todos' },
+                      ...cargosApi.map((c) => ({ value: String(c.id), label: c.nome })),
+                    ]}
+                  />
                 </div>
               </div>
             </CardContent>

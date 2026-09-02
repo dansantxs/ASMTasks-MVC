@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '../../../../components/ui/form/select';
+import { Combobox } from '../../../../components/ui/form/combobox';
 import { buscarEnderecoPorCep } from '../../../../api/viacep';
 import { getClientesMatrizes } from '../api/cliente';
 import ModalBuscaMatriz from './ModalBuscaMatriz';
@@ -519,7 +520,8 @@ export default function FormularioCliente({
               <div className="md:col-span-2">
                 <Label>Empresa Matriz</Label>
                 <div className="flex gap-2">
-                  <Select
+                  <Combobox
+                    className="flex-1"
                     value={matrizIdEfetivo ? String(matrizIdEfetivo) : '__none__'}
                     onValueChange={(value) => {
                       if (value === '__none__') {
@@ -533,19 +535,13 @@ export default function FormularioCliente({
                         nomeMatrizSelecionada: m ? resolverNomeMatriz(m, exibicaoNomeCliente) : prev.nomeMatrizSelecionada,
                       }));
                     }}
-                  >
-                    <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Nenhuma" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__none__">Nenhuma</SelectItem>
-                      {matrizes.map((m) => (
-                        <SelectItem key={m.id} value={String(m.id)}>
-                          {resolverNomeMatriz(m, exibicaoNomeCliente)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    placeholder="Nenhuma"
+                    searchPlaceholder="Buscar matriz..."
+                    options={[
+                      { value: '__none__', label: 'Nenhuma' },
+                      ...matrizes.map((m) => ({ value: String(m.id), label: resolverNomeMatriz(m, exibicaoNomeCliente) })),
+                    ]}
+                  />
                   <Button
                     type="button"
                     variant="outline"

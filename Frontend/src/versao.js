@@ -1,4 +1,4 @@
-export const VERSAO_ATUAL = '1.7.0';
+export const VERSAO_ATUAL = '1.8.0';
 
 /**
  * Regra de versionamento (major.minor.patch):
@@ -11,6 +11,15 @@ export const VERSAO_ATUAL = '1.7.0';
  *  2. Adicione uma nova entrada NO INÍCIO do array CHANGELOG.
  */
 export const CHANGELOG = [
+  {
+    versao: '1.8.0',
+    data: '2026-08-31',
+    titulo: 'Busca em Dropdowns, Filtros Combinados e Ajustes no Kanban, Projetos e Relatórios',
+    mudancas: [
+      'Relatório de Histórico de Atendimentos: nova coluna Descrição do Atendimento (também considerada na busca por texto)',
+      'Campos de seleção com muitas opções (cliente, colaborador, projeto, empresa matriz, setor, cargo) agora têm campo de busca por digitação — cadastro de projeto e atendimento, formulário de cliente e de colaborador, troca de responsável no Kanban, filtro do Dashboard, filtros do Quadro Kanban e filtros dos relatórios',
+    ],
+  },
   {
     versao: '1.7.0',
     data: '2026-08-31',
