@@ -28,6 +28,7 @@ import { useUsuarioAtual } from '../../hooks/useUsuarioAtual';
 import TourGuia from '../../components/TourGuia';
 import { Combobox } from '../../components/ui/form/combobox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/form/select';
+import * as PopoverPrimitive from '@radix-ui/react-popover';
 
 const PERIODOS = [
   { value: 'mesAtual', label: 'Mês atual' },
@@ -86,7 +87,7 @@ function ListaIndicador({ indicador }) {
  * Abre a lista no hover e fixa no clique. Compartilhado pelos cards e pelas barras, para o
  * gesto ser o mesmo na tela inteira.
  *
- * Enquanto é só hover, o painel não captura o mouse (ver PainelLista) e fecha assim que o
+ * Enquanto é só hover, o painel não captura o mouse (ver ComPainelLista) e fecha assim que o
  * ponteiro sai do indicador — senão ele fica por cima do indicador vizinho e impede que o
  * vizinho seja apontado. Fixado no clique, aí sim vira interativo e dá para rolar a lista.
  */
@@ -122,18 +123,38 @@ function useAberturaLista(temItens) {
   return { aberto: aberto && temItens, fixado, abrir, fechar, alternarFixado };
 }
 
-function PainelLista({ indicador, fixado, abrir, fechar, alinhamento = 'left-0' }) {
+/**
+ * Painel da lista, sobre o Popover do Radix (mesmo primitivo do Combobox). É ele que resolve o
+ * painel sair da tela: vira para cima quando não cabe embaixo, desloca na horizontal quando
+ * encosta na lateral, e expõe --radix-popover-content-available-height, que usamos como altura
+ * máxima para o painel nunca passar do rodapé.
+ *
+ * `children` é o gatilho (card, barra, coluna do gráfico), envolvido pelo Anchor para o painel
+ * se posicionar em relação a ele.
+ */
+function ComPainelLista({ indicador, aberto, fixado, abrir, fechar, children, lado = 'bottom', alinhamento = 'start' }) {
   return (
-    <div
-      className={`absolute ${alinhamento} top-full mt-2 w-[30rem] max-w-[85vw] bg-white border rounded-xl shadow-xl p-4 max-h-[28rem] overflow-y-auto ${
-        fixado ? 'z-50 pointer-events-auto ring-2 ring-brand-blue' : 'z-40 pointer-events-none'
-      }`}
-      onMouseEnter={abrir}
-      onMouseLeave={fechar}
-      onClick={(e) => e.stopPropagation()}
-    >
-      <ListaIndicador indicador={indicador} />
-    </div>
+    <PopoverPrimitive.Root open={aberto}>
+      <PopoverPrimitive.Anchor asChild>{children}</PopoverPrimitive.Anchor>
+      <PopoverPrimitive.Portal>
+        <PopoverPrimitive.Content
+          side={lado}
+          align={alinhamento}
+          sideOffset={8}
+          collisionPadding={12}
+          onOpenAutoFocus={(e) => e.preventDefault()}
+          onMouseEnter={abrir}
+          onMouseLeave={fechar}
+          onClick={(e) => e.stopPropagation()}
+          style={{ maxHeight: 'var(--radix-popover-content-available-height)' }}
+          className={`w-[30rem] max-w-[85vw] overflow-y-auto rounded-xl border bg-white p-4 shadow-xl ${
+            fixado ? 'z-50 pointer-events-auto ring-2 ring-brand-blue' : 'z-40 pointer-events-none'
+          }`}
+        >
+          <ListaIndicador indicador={indicador} />
+        </PopoverPrimitive.Content>
+      </PopoverPrimitive.Portal>
+    </PopoverPrimitive.Root>
   );
 }
 
@@ -147,22 +168,23 @@ function CardKPI({ icone: Icone, titulo, descricao, indicador, corIcone, corFund
   const { aberto, fixado, abrir, fechar, alternarFixado } = useAberturaLista(total > 0);
 
   return (
-    <div
-      className={`relative rounded-xl border bg-white p-5 flex items-start gap-4 shadow-sm ${destaque ? 'ring-2 ring-red-400' : ''} ${total > 0 ? 'cursor-pointer' : ''}`}
-      onMouseEnter={abrir}
-      onMouseLeave={fechar}
-      onClick={alternarFixado}
-    >
-      <div className={`p-3 rounded-lg ${corFundo} shrink-0`}>
-        <Icone className={`h-6 w-6 ${corIcone}`} />
+    <ComPainelLista indicador={indicador} aberto={aberto} fixado={fixado} abrir={abrir} fechar={fechar}>
+      <div
+        className={`rounded-xl border bg-white p-5 flex items-start gap-4 shadow-sm ${destaque ? 'ring-2 ring-red-400' : ''} ${total > 0 ? 'cursor-pointer' : ''}`}
+        onMouseEnter={abrir}
+        onMouseLeave={fechar}
+        onClick={alternarFixado}
+      >
+        <div className={`p-3 rounded-lg ${corFundo} shrink-0`}>
+          <Icone className={`h-6 w-6 ${corIcone}`} />
+        </div>
+        <div className="min-w-0">
+          <p className="text-sm text-gray-500 leading-tight">{titulo}</p>
+          <p className="text-2xl font-bold text-gray-800">{total}</p>
+          {descricao && <p className="text-xs text-gray-400 mt-1 leading-snug">{descricao}</p>}
+        </div>
       </div>
-      <div className="min-w-0">
-        <p className="text-sm text-gray-500 leading-tight">{titulo}</p>
-        <p className="text-2xl font-bold text-gray-800">{total}</p>
-        {descricao && <p className="text-xs text-gray-400 mt-1 leading-snug">{descricao}</p>}
-      </div>
-      {aberto && <PainelLista indicador={indicador} fixado={fixado} abrir={abrir} fechar={fechar} />}
-    </div>
+    </ComPainelLista>
   );
 }
 
@@ -170,70 +192,72 @@ function CardKPI({ icone: Icone, titulo, descricao, indicador, corIcone, corFund
  * Barra da distribuição (etapa / prioridade / colaborador). Abre a lista no mesmo gesto dos
  * cards: hover mostra, clique fixa.
  */
-function BarraHorizontal({ label, valor, total, cor, itens, totalItens, alinhamentoLista }) {
+function BarraHorizontal({ label, valor, total, cor, itens, totalItens }) {
   const temLista = Array.isArray(itens) && itens.length > 0;
   const { aberto, fixado, abrir, fechar, alternarFixado } = useAberturaLista(temLista);
   const pct = total > 0 ? Math.round((valor / total) * 100) : 0;
 
   return (
-    <div
-      className={`relative mb-3 ${temLista ? 'cursor-pointer' : ''}`}
-      onMouseEnter={abrir}
-      onMouseLeave={fechar}
-      onClick={alternarFixado}
+    <ComPainelLista
+      indicador={{ total: totalItens ?? valor, itens }}
+      aberto={aberto}
+      fixado={fixado}
+      abrir={abrir}
+      fechar={fechar}
+      // Barra é baixa e vem em lista vertical: abrir ao lado evita cobrir as barras vizinhas.
+      lado="right"
+      alinhamento="center"
     >
-      <div className="flex justify-between text-sm mb-1 items-center gap-2">
-        <span className="text-gray-700 font-medium truncate">{label}</span>
-        <span className="text-gray-500 shrink-0">{valor}</span>
+      <div
+        className={`mb-3 ${temLista ? 'cursor-pointer' : ''}`}
+        onMouseEnter={abrir}
+        onMouseLeave={fechar}
+        onClick={alternarFixado}
+      >
+        <div className="flex justify-between text-sm mb-1 items-center gap-2">
+          <span className="text-gray-700 font-medium truncate">{label}</span>
+          <span className="text-gray-500 shrink-0">{valor}</span>
+        </div>
+        <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
+          <div
+            className="h-full rounded-full transition-all duration-500"
+            style={{ width: `${pct}%`, backgroundColor: cor || '#3b82f6' }}
+          />
+        </div>
       </div>
-      <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
-        <div
-          className="h-full rounded-full transition-all duration-500"
-          style={{ width: `${pct}%`, backgroundColor: cor || '#3b82f6' }}
-        />
-      </div>
-      {aberto && (
-        <PainelLista
-          indicador={{ total: totalItens ?? valor, itens }}
-          fixado={fixado}
-          abrir={abrir}
-          fechar={fechar}
-          alinhamento={alinhamentoLista}
-        />
-      )}
-    </div>
+    </ComPainelLista>
   );
 }
 
 /** Uma coluna do gráfico de tendência: hover abre os atendimentos daquele mês. */
-function ColunaTendencia({ item, altura, ehAtual, alinhamento }) {
+function ColunaTendencia({ item, altura, ehAtual }) {
   const { aberto, fixado, abrir, fechar, alternarFixado } = useAberturaLista(item.total > 0);
 
   return (
-    <div
-      className={`relative flex-1 flex flex-col items-center gap-1 ${item.total > 0 ? 'cursor-pointer' : ''}`}
-      onMouseEnter={abrir}
-      onMouseLeave={fechar}
-      onClick={alternarFixado}
+    <ComPainelLista
+      indicador={{ total: item.total, itens: item.itens ?? [] }}
+      aberto={aberto}
+      fixado={fixado}
+      abrir={abrir}
+      fechar={fechar}
+      alinhamento="center"
     >
-      <span className="text-xs text-gray-500 font-medium">{item.total > 0 ? item.total : ''}</span>
-      <div className="w-full flex items-end justify-center" style={{ height: '80px' }}>
-        <div
-          className={`w-full rounded-t transition-all duration-500 ${ehAtual ? 'bg-blue-600' : 'bg-blue-300'}`}
-          style={{ height: `${altura}%` }}
-        />
+      <div
+        className={`flex-1 flex flex-col items-center gap-1 ${item.total > 0 ? 'cursor-pointer' : ''}`}
+        onMouseEnter={abrir}
+        onMouseLeave={fechar}
+        onClick={alternarFixado}
+      >
+        <span className="text-xs text-gray-500 font-medium">{item.total > 0 ? item.total : ''}</span>
+        <div className="w-full flex items-end justify-center" style={{ height: '80px' }}>
+          <div
+            className={`w-full rounded-t transition-all duration-500 ${ehAtual ? 'bg-blue-600' : 'bg-blue-300'}`}
+            style={{ height: `${altura}%` }}
+          />
+        </div>
+        <span className="text-xs text-gray-400 leading-tight text-center">{item.label}</span>
       </div>
-      <span className="text-xs text-gray-400 leading-tight text-center">{item.label}</span>
-      {aberto && (
-        <PainelLista
-          indicador={{ total: item.total, itens: item.itens ?? [] }}
-          fixado={fixado}
-          abrir={abrir}
-          fechar={fechar}
-          alinhamento={alinhamento}
-        />
-      )}
-    </div>
+    </ComPainelLista>
   );
 }
 
@@ -244,14 +268,12 @@ function GraficoTendencia({ tendencia }) {
 
   return (
     <div className="flex items-end gap-2 h-28 mt-2">
-      {tendencia.map((item, idx) => (
+      {tendencia.map((item) => (
         <ColunaTendencia
           key={`${item.ano}-${item.mes}`}
           item={item}
           altura={Math.max(Math.round((item.total / maximo) * 100), item.total > 0 ? 8 : 2)}
           ehAtual={item.mes === mesAtual && item.ano === anoAtual}
-          // Colunas das pontas abrem para dentro, senão o painel vaza da tela.
-          alinhamento={idx <= 1 ? 'left-0' : idx >= tendencia.length - 2 ? 'right-0' : 'left-1/2 -translate-x-1/2'}
         />
       ))}
     </div>
@@ -351,38 +373,39 @@ function ColaboradoresOciosos({ itens }) {
 }
 
 /** Uma linha do ranking: hover abre o que aquele colaborador fez no período. */
-function LinhaRanking({ item, posicao, corBadge, alinhamentoLista }) {
+function LinhaRanking({ item, posicao, corBadge }) {
   const { aberto, fixado, abrir, fechar, alternarFixado } = useAberturaLista((item.itens?.length ?? 0) > 0);
 
   return (
-    <li
-      className="relative flex items-center gap-3 cursor-pointer"
-      onMouseEnter={abrir}
-      onMouseLeave={fechar}
-      onClick={alternarFixado}
+    <ComPainelLista
+      indicador={{ total: item.total, itens: item.itens ?? [] }}
+      aberto={aberto}
+      fixado={fixado}
+      abrir={abrir}
+      fechar={fechar}
+      lado="right"
+      alinhamento="center"
     >
-      <span
-        className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0 ${corBadge}`}
+      <li
+        className="flex items-center gap-3 cursor-pointer"
+        onMouseEnter={abrir}
+        onMouseLeave={fechar}
+        onClick={alternarFixado}
       >
-        {posicao}
-      </span>
-      <span className="flex-1 text-sm text-gray-700 truncate">{item.nome}</span>
-      <span className="text-sm font-semibold text-gray-800 shrink-0">{item.total}</span>
-      {aberto && (
-        <PainelLista
-          indicador={{ total: item.total, itens: item.itens ?? [] }}
-          fixado={fixado}
-          abrir={abrir}
-          fechar={fechar}
-          alinhamento={alinhamentoLista}
-        />
-      )}
-    </li>
+        <span
+          className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0 ${corBadge}`}
+        >
+          {posicao}
+        </span>
+        <span className="flex-1 text-sm text-gray-700 truncate">{item.nome}</span>
+        <span className="text-sm font-semibold text-gray-800 shrink-0">{item.total}</span>
+      </li>
+    </ComPainelLista>
   );
 }
 
 /** Ranking completo: mostra os primeiros e expande no "Ver todos". */
-function RankingColaboradores({ titulo, descricao, itens, corBadge, alinhamentoLista, visiveisPadrao = 5 }) {
+function RankingColaboradores({ titulo, descricao, itens, corBadge, visiveisPadrao = 5 }) {
   const [verTodos, setVerTodos] = useState(false);
 
   if (!itens || itens.length === 0) {
@@ -409,7 +432,6 @@ function RankingColaboradores({ titulo, descricao, itens, corBadge, alinhamentoL
             item={item}
             posicao={idx + 1}
             corBadge={corBadge}
-            alinhamentoLista={alinhamentoLista}
           />
         ))}
       </ol>
@@ -509,7 +531,7 @@ export default function DashboardPage() {
             element: '#tour-dashboard-tarefas-situacao',
             popover: {
               title: 'Tarefas — Situação Atual',
-              description: 'Foto de agora: o que está em andamento, o que está no backlog, o que está sem responsável e o que ainda não foi iniciado. Cada lista mostra <strong>responsável</strong>, <strong>etapa</strong>, <strong>status</strong> e <strong>quem mexeu por último, quando</strong>.',
+              description: 'Como as tarefas estão neste momento: em andamento, no backlog, sem responsável e ainda não iniciadas. Cada lista mostra <strong>responsável</strong>, <strong>etapa</strong>, <strong>status</strong> e <strong>quem mexeu por último, quando</strong>.',
               side: 'bottom',
               align: 'center',
             },
@@ -709,7 +731,7 @@ export default function DashboardPage() {
 
       {/* ───── TAREFAS: SITUAÇÃO ATUAL ───── */}
       <section id="tour-dashboard-tarefas-situacao">
-        <TituloSecao icone={ClipboardList} cor="text-violet-500" sufixo="Foto de agora">
+        <TituloSecao icone={ClipboardList} cor="text-violet-500">
           Tarefas — Situação Atual · {tituloSecao}
         </TituloSecao>
 
@@ -840,7 +862,6 @@ export default function DashboardPage() {
                   cor="#6366f1"
                   itens={item.itens}
                   totalItens={item.total}
-                  alinhamentoLista="right-0"
                 />
               ))
             }
@@ -898,7 +919,6 @@ export default function DashboardPage() {
               <RankingColaboradores
                 titulo="Atendimentos Realizados por Colaborador"
                 descricao="Atendimentos concluídos no período, por colaborador atribuído."
-                alinhamentoLista="right-0"
                 itens={colaboradores.atendimentosPeriodo}
                 corBadge="bg-blue-500"
               />
