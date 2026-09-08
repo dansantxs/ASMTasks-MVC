@@ -126,16 +126,26 @@ namespace API.DB.DAOs
             bool usarNomeFantasia = exibicaoNomeCliente == "nomeFantasia";
             var periodo = ResolverPeriodo(periodoId);
 
+            // Visão global = admin sem filtro de colaborador. Só aí faz sentido comparar pessoas
+            // (rankings, carga) ou olhar o parque de projetos; com filtro, a tela é o painel de
+            // UMA pessoa. Fora da visão global isso nem é consultado — a tela não mostraria.
+            bool visaoGlobal = ehAdministrador && !filtroColaboradorId.HasValue;
+
             var resultado = new DashboardDTO { EhAdministrador = ehAdministrador, Periodo = periodo };
 
             resultado.Atendimentos = await ObterAtendimentosAsync(con, idParaFiltro, filtrarPorColaborador, usarNomeFantasia, periodo);
-            resultado.Tarefas = await ObterTarefasAsync(con, idParaFiltro, filtrarPorColaborador, ehAdministrador && !filtroColaboradorId.HasValue, usarNomeFantasia, periodo);
+            resultado.Tarefas = await ObterTarefasAsync(con, idParaFiltro, filtrarPorColaborador, visaoGlobal, usarNomeFantasia, periodo);
 
-            if (ehAdministrador)
+            if (visaoGlobal)
             {
                 resultado.Projetos = await ObterProjetosAsync(con, usarNomeFantasia, periodo);
                 resultado.Colaboradores = await ObterColaboradoresAsync(con, usarNomeFantasia, periodo);
                 resultado.ProjetosSemMovimentacao = await ObterProjetosSemMovimentacaoAsync(con);
+            }
+
+            if (ehAdministrador)
+            {
+                // O seletor de colaborador precisa da lista mesmo com um filtro aplicado.
                 resultado.ColaboradoresDisponiveis = await ObterColaboradoresDisponiveisAsync(con);
 
                 if (filtroColaboradorId.HasValue)
@@ -755,13 +765,13 @@ namespace API.DB.DAOs
             cmd.CommandText = $@"
                 SELECT * FROM (
                     SELECT{ColunasAtendimento},
-                        c.Id AS RankId,
-                        c.Nome AS RankNome,
-                        COUNT(*) OVER (PARTITION BY c.Id) AS TotalGeral,
-                        ROW_NUMBER() OVER (PARTITION BY c.Id ORDER BY a.DataHoraConclusao DESC) AS Posicao
+                        colRank.Id AS RankId,
+                        colRank.Nome AS RankNome,
+                        COUNT(*) OVER (PARTITION BY colRank.Id) AS TotalGeral,
+                        ROW_NUMBER() OVER (PARTITION BY colRank.Id ORDER BY a.DataHoraConclusao DESC) AS Posicao
                     {DeAtendimento}
                     INNER JOIN AtendimentoColaborador ac ON ac.AtendimentoId = a.Id
-                    INNER JOIN Colaborador c ON c.Id = ac.ColaboradorId
+                    INNER JOIN Colaborador colRank ON colRank.Id = ac.ColaboradorId
                     WHERE a.Status = 'R'
                       AND a.DataHoraConclusao >= @Inicio AND a.DataHoraConclusao < @Fim
                 ) rank
@@ -776,10 +786,10 @@ namespace API.DB.DAOs
             cmd.CommandText = $@"
                 SELECT * FROM (
                     SELECT{ColunasTarefa},
-                        c.Id AS RankId,
-                        c.Nome AS RankNome,
-                        COUNT(*) OVER (PARTITION BY c.Id) AS TotalGeral,
-                        ROW_NUMBER() OVER (PARTITION BY c.Id ORDER BY t.Titulo) AS Posicao
+                        colRank.Id AS RankId,
+                        colRank.Nome AS RankNome,
+                        COUNT(*) OVER (PARTITION BY colRank.Id) AS TotalGeral,
+                        ROW_NUMBER() OVER (PARTITION BY colRank.Id ORDER BY t.Titulo) AS Posicao
                     {DeTarefa}
                     INNER JOIN (
                         SELECT DISTINCT
@@ -791,7 +801,7 @@ namespace API.DB.DAOs
                         WHERE h.Tipo = 'E'
                           AND h.DataHoraAcao >= @Inicio AND h.DataHoraAcao < @Fim
                     ) credito ON credito.TarefaId = t.Id
-                    INNER JOIN Colaborador c ON c.Id = credito.ColaboradorId
+                    INNER JOIN Colaborador colRank ON colRank.Id = credito.ColaboradorId
                 ) rank
                 WHERE rank.Posicao <= @Limite
                 ORDER BY rank.TotalGeral DESC, rank.RankNome, rank.Posicao

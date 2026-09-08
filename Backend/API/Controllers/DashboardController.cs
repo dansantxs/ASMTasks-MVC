@@ -11,7 +11,7 @@ namespace API.Controllers
     [Route("api/[controller]")]
     [Produces("application/json")]
     [Authorize]
-    public class DashboardController(DBContext dbContext) : ControllerBase
+    public class DashboardController(DBContext dbContext, ILogger<DashboardController> logger) : ControllerBase
     {
 
         [HttpGet]
@@ -40,6 +40,9 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
+                // Sem este log, um erro de SQL aqui vira um 500 mudo no navegador e não sobra
+                // nada para investigar. A resposta segue genérica; o detalhe fica no log.
+                logger.LogError(ex, "Erro ao obter o dashboard (colaboradorId={ColaboradorId}, periodo={Periodo})", colaboradorId, periodo);
                 return StatusCode(500, new { erro = "Erro ao obter o dashboard." });
             }
         }
