@@ -80,6 +80,7 @@ namespace API.DTOs.Dashboard
         public int Mes { get; set; }
         public int Total { get; set; }
         public string Label { get; set; } = "";
+        public List<DashboardLinhaDTO> Itens { get; set; } = new();
     }
 
     public class ProximoAtendimentoDTO
@@ -170,6 +171,7 @@ namespace API.DTOs.Dashboard
     {
         public string Nome { get; set; } = "";
         public int Total { get; set; }
+        public List<DashboardLinhaDTO> Itens { get; set; } = new();
     }
 
     public class ColaboradorFiltroItemDTO

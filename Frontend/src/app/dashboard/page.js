@@ -188,6 +188,37 @@ function BarraHorizontal({ label, valor, total, cor, itens, totalItens, alinhame
   );
 }
 
+/** Uma coluna do gráfico de tendência: hover abre os atendimentos daquele mês. */
+function ColunaTendencia({ item, altura, ehAtual, alinhamento }) {
+  const { aberto, abrir, fechar, alternarFixado } = useAberturaLista(item.total > 0);
+
+  return (
+    <div
+      className={`relative flex-1 flex flex-col items-center gap-1 ${item.total > 0 ? 'cursor-pointer' : ''}`}
+      onMouseEnter={abrir}
+      onMouseLeave={fechar}
+      onClick={alternarFixado}
+    >
+      <span className="text-xs text-gray-500 font-medium">{item.total > 0 ? item.total : ''}</span>
+      <div className="w-full flex items-end justify-center" style={{ height: '80px' }}>
+        <div
+          className={`w-full rounded-t transition-all duration-500 ${ehAtual ? 'bg-blue-600' : 'bg-blue-300'}`}
+          style={{ height: `${altura}%` }}
+        />
+      </div>
+      <span className="text-xs text-gray-400 leading-tight text-center">{item.label}</span>
+      {aberto && (
+        <PainelLista
+          indicador={{ total: item.total, itens: item.itens ?? [] }}
+          abrir={abrir}
+          fechar={fechar}
+          alinhamento={alinhamento}
+        />
+      )}
+    </div>
+  );
+}
+
 function GraficoTendencia({ tendencia }) {
   const maximo = Math.max(...tendencia.map((t) => t.total), 1);
   const mesAtual = new Date().getMonth() + 1;
@@ -195,23 +226,16 @@ function GraficoTendencia({ tendencia }) {
 
   return (
     <div className="flex items-end gap-2 h-28 mt-2">
-      {tendencia.map((item) => {
-        const altura = Math.max(Math.round((item.total / maximo) * 100), item.total > 0 ? 8 : 2);
-        const ehAtual = item.mes === mesAtual && item.ano === anoAtual;
-        return (
-          <div key={`${item.ano}-${item.mes}`} className="flex-1 flex flex-col items-center gap-1">
-            <span className="text-xs text-gray-500 font-medium">{item.total > 0 ? item.total : ''}</span>
-            <div className="w-full flex items-end justify-center" style={{ height: '80px' }}>
-              <div
-                className={`w-full rounded-t transition-all duration-500 ${ehAtual ? 'bg-blue-600' : 'bg-blue-300'}`}
-                style={{ height: `${altura}%` }}
-                title={`${item.label}: ${item.total}`}
-              />
-            </div>
-            <span className="text-xs text-gray-400 leading-tight text-center">{item.label}</span>
-          </div>
-        );
-      })}
+      {tendencia.map((item, idx) => (
+        <ColunaTendencia
+          key={`${item.ano}-${item.mes}`}
+          item={item}
+          altura={Math.max(Math.round((item.total / maximo) * 100), item.total > 0 ? 8 : 2)}
+          ehAtual={item.mes === mesAtual && item.ano === anoAtual}
+          // Colunas das pontas abrem para dentro, senão o painel vaza da tela.
+          alinhamento={idx <= 1 ? 'left-0' : idx >= tendencia.length - 2 ? 'right-0' : 'left-1/2 -translate-x-1/2'}
+        />
+      ))}
     </div>
   );
 }
@@ -308,14 +332,45 @@ function ColaboradoresOciosos({ itens }) {
   );
 }
 
+/** Uma linha do ranking: hover abre o que aquele colaborador fez no período. */
+function LinhaRanking({ item, posicao, corBadge, alinhamentoLista }) {
+  const { aberto, abrir, fechar, alternarFixado } = useAberturaLista((item.itens?.length ?? 0) > 0);
+
+  return (
+    <li
+      className="relative flex items-center gap-3 cursor-pointer"
+      onMouseEnter={abrir}
+      onMouseLeave={fechar}
+      onClick={alternarFixado}
+    >
+      <span
+        className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0 ${corBadge}`}
+      >
+        {posicao}
+      </span>
+      <span className="flex-1 text-sm text-gray-700 truncate">{item.nome}</span>
+      <span className="text-sm font-semibold text-gray-800 shrink-0">{item.total}</span>
+      {aberto && (
+        <PainelLista
+          indicador={{ total: item.total, itens: item.itens ?? [] }}
+          abrir={abrir}
+          fechar={fechar}
+          alinhamento={alinhamentoLista}
+        />
+      )}
+    </li>
+  );
+}
+
 /** Ranking completo: mostra os primeiros e expande no "Ver todos". */
-function RankingColaboradores({ titulo, itens, corBadge, visiveisPadrao = 5 }) {
+function RankingColaboradores({ titulo, descricao, itens, corBadge, alinhamentoLista, visiveisPadrao = 5 }) {
   const [verTodos, setVerTodos] = useState(false);
 
   if (!itens || itens.length === 0) {
     return (
       <div>
-        <p className="text-sm font-semibold text-gray-600 mb-2">{titulo}</p>
+        <p className="text-sm font-semibold text-gray-600 mb-1">{titulo}</p>
+        {descricao && <p className="text-xs text-gray-400 mb-2">{descricao}</p>}
         <p className="text-sm text-gray-400">Nenhum dado neste período.</p>
       </div>
     );
@@ -325,18 +380,18 @@ function RankingColaboradores({ titulo, itens, corBadge, visiveisPadrao = 5 }) {
 
   return (
     <div>
-      <p className="text-sm font-semibold text-gray-600 mb-3">{titulo}</p>
-      <ol className={`space-y-2 ${verTodos ? 'max-h-72 overflow-y-auto pr-1' : ''}`}>
+      <p className="text-sm font-semibold text-gray-600 mb-1">{titulo}</p>
+      {descricao && <p className="text-xs text-gray-400 mb-3">{descricao}</p>}
+      {/* Sem overflow no <ol>: recortaria o painel que abre no hover de cada linha. */}
+      <ol className="space-y-2">
         {exibidos.map((item, idx) => (
-          <li key={item.nome} className="flex items-center gap-3">
-            <span
-              className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0 ${corBadge}`}
-            >
-              {idx + 1}
-            </span>
-            <span className="flex-1 text-sm text-gray-700 truncate">{item.nome}</span>
-            <span className="text-sm font-semibold text-gray-800 shrink-0">{item.total}</span>
-          </li>
+          <LinhaRanking
+            key={item.nome}
+            item={item}
+            posicao={idx + 1}
+            corBadge={corBadge}
+            alinhamentoLista={alinhamentoLista}
+          />
         ))}
       </ol>
       {itens.length > visiveisPadrao && (
@@ -493,11 +548,16 @@ export default function DashboardPage() {
   const rotuloPeriodo = periodo?.label ?? 'Mês atual';
   const tituloSecao = filtro ? `Visualizando: ${filtro.colaboradorNome}` : ehAdministrador ? 'Visão Geral' : 'Meu Painel';
 
+  // Visão global = admin sem filtro de colaborador. Fora dela, a tela é o painel de UMA pessoa:
+  // comparação entre colaboradores (carga, rankings) é dado de terceiros e não entra.
+  const visaoGlobal = ehAdministrador && !filtro;
+
   // Denominador das barras: a soma das próprias faixas. Usar um "total de tarefas" separado fazia
   // os percentuais não fecharem em 100%.
   const totalPorEtapa = tarefas.porEtapa.reduce((acc, item) => acc + item.total, 0);
   const totalPorPrioridade = tarefas.porPrioridade.reduce((acc, item) => acc + item.total, 0);
-  const cargaMaxima = Math.max(...(tarefas.cargaPorColaborador ?? []).map((c) => c.total), 1);
+  const cargaPorColaborador = visaoGlobal ? (tarefas.cargaPorColaborador ?? []) : [];
+  const cargaMaxima = Math.max(...cargaPorColaborador.map((c) => c.total), 1);
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-8">
@@ -575,7 +635,7 @@ export default function DashboardPage() {
           <CardKPI
             icone={CalendarCheck}
             titulo="Agendados Hoje"
-            descricao="Marcados para hoje e ainda não concluídos."
+            descricao="Atendimentos agendados para hoje e ainda em aberto."
             indicador={atendimentos.hoje}
             corIcone="text-blue-600"
             corFundo="bg-blue-50"
@@ -583,7 +643,7 @@ export default function DashboardPage() {
           <CardKPI
             icone={CalendarClock}
             titulo={`Pendentes (${rotuloPeriodo})`}
-            descricao="Agendados dentro do período e ainda não realizados."
+            descricao="Atendimentos agendados no período e ainda em aberto."
             indicador={atendimentos.pendentesPeriodo}
             corIcone="text-amber-600"
             corFundo="bg-amber-50"
@@ -591,7 +651,7 @@ export default function DashboardPage() {
           <CardKPI
             icone={AlertTriangle}
             titulo="Em Atraso"
-            descricao="Passaram da hora de término e continuam em aberto."
+            descricao="Atendimentos cuja hora de término já passou e seguem em aberto."
             indicador={atendimentos.emAtraso}
             corIcone="text-red-600"
             corFundo="bg-red-50"
@@ -600,7 +660,7 @@ export default function DashboardPage() {
           <CardKPI
             icone={CheckCircle2}
             titulo={`Realizados (${rotuloPeriodo})`}
-            descricao="Concluídos dentro do período."
+            descricao="Atendimentos concluídos no período."
             indicador={atendimentos.realizadosPeriodo}
             corIcone="text-emerald-600"
             corFundo="bg-emerald-50"
@@ -613,7 +673,7 @@ export default function DashboardPage() {
               <TrendingUp className="h-4 w-4 text-blue-500" />
               Realizados — Últimos 6 Meses
             </p>
-            <p className="text-xs text-gray-400 mt-0.5 mb-2">Mês atual em azul escuro</p>
+            <p className="text-xs text-gray-400 mt-0.5 mb-2">Atendimentos concluídos por mês (mês atual em azul escuro). Passe o mouse numa barra para ver quais.</p>
             <GraficoTendencia tendencia={atendimentos.tendencia} />
           </div>
 
@@ -622,6 +682,7 @@ export default function DashboardPage() {
               <Clock className="h-4 w-4 text-amber-500" />
               Próximos Atendimentos
             </p>
+              <p className="text-xs text-gray-400 -mt-2 mb-3">Os 5 próximos atendimentos agendados.</p>
             <ProximosAtendimentos itens={atendimentos.proximos} />
           </div>
         </div>
@@ -633,11 +694,11 @@ export default function DashboardPage() {
           Tarefas — Situação Atual · {tituloSecao}
         </TituloSecao>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className={`grid grid-cols-2 gap-4 ${visaoGlobal ? 'lg:grid-cols-4' : 'lg:grid-cols-3'}`}>
           <CardKPI
             icone={ClipboardList}
             titulo="Em Andamento"
-            descricao="Estão em alguma etapa do fluxo, sem contar as que já chegaram na etapa final."
+            descricao="Tarefas em alguma etapa do fluxo, sem contar a etapa final."
             indicador={tarefas.emAndamento}
             corIcone="text-violet-600"
             corFundo="bg-violet-50"
@@ -645,7 +706,7 @@ export default function DashboardPage() {
           <CardKPI
             icone={Inbox}
             titulo="No Backlog"
-            descricao="Ainda sem etapa definida — não entraram no fluxo."
+            descricao="Tarefas ainda sem etapa definida."
             indicador={tarefas.backlog}
             corIcone="text-slate-600"
             corFundo="bg-slate-100"
@@ -653,16 +714,16 @@ export default function DashboardPage() {
           <CardKPI
             icone={TimerOff}
             titulo="Não Iniciadas"
-            descricao="Já estão numa etapa, mas ninguém apertou Iniciar ainda."
+            descricao="Tarefas já em uma etapa que ainda não foram iniciadas."
             indicador={tarefas.ociosas}
             corIcone={tarefas.ociosas.total > 0 ? 'text-amber-600' : 'text-gray-400'}
             corFundo={tarefas.ociosas.total > 0 ? 'bg-amber-50' : 'bg-gray-100'}
           />
-          {ehAdministrador && !filtro && (
+          {visaoGlobal && (
             <CardKPI
               icone={UserMinus}
               titulo="Sem Responsável"
-              descricao="Sem colaborador atribuído, em projetos ativos."
+              descricao="Tarefas sem colaborador atribuído, em projetos ativos."
               indicador={tarefas.semResponsavel}
               corIcone={tarefas.semResponsavel.total > 0 ? 'text-orange-500' : 'text-gray-400'}
               corFundo={tarefas.semResponsavel.total > 0 ? 'bg-orange-50' : 'bg-gray-100'}
@@ -682,7 +743,7 @@ export default function DashboardPage() {
           <CardKPI
             icone={AlertTriangle}
             titulo="Em Atraso — Execução"
-            descricao="Somaram mais tempo de elaboração do que o previsto na tarefa."
+            descricao="Tempo de elaboração acima do previsto na tarefa."
             indicador={tarefas.execucaoEmAtraso}
             corIcone={tarefas.execucaoEmAtraso.total > 0 ? 'text-red-600' : 'text-gray-400'}
             corFundo={tarefas.execucaoEmAtraso.total > 0 ? 'bg-red-50' : 'bg-gray-100'}
@@ -691,7 +752,7 @@ export default function DashboardPage() {
           <CardKPI
             icone={AlertTriangle}
             titulo="Em Atraso — Teste"
-            descricao="Passaram do tempo previsto de teste, contando só o que rodou na etapa de teste."
+            descricao="Tempo na etapa de teste acima do previsto na tarefa."
             indicador={tarefas.testeEmAtraso}
             corIcone={tarefas.testeEmAtraso.total > 0 ? 'text-blue-600' : 'text-gray-400'}
             corFundo={tarefas.testeEmAtraso.total > 0 ? 'bg-blue-50' : 'bg-gray-100'}
@@ -706,7 +767,7 @@ export default function DashboardPage() {
           Tarefas — Distribuição
         </TituloSecao>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className={`grid grid-cols-1 gap-4 ${visaoGlobal ? 'lg:grid-cols-3' : 'lg:grid-cols-2'}`}>
           <div className="bg-white rounded-xl border p-5 shadow-sm">
             <p className="text-sm font-semibold text-gray-700 mb-1">Por Etapa</p>
             <p className="text-xs text-gray-400 mb-4">Onde as tarefas estão no fluxo. Passe o mouse numa etapa para ver quais são.</p>
@@ -745,12 +806,13 @@ export default function DashboardPage() {
             }
           </div>
 
+          {visaoGlobal && (
           <div className="bg-white rounded-xl border p-5 shadow-sm">
             <p className="text-sm font-semibold text-gray-700 mb-1">Carga por Colaborador</p>
             <p className="text-xs text-gray-400 mb-4">Tarefas abertas atribuídas hoje a cada pessoa.</p>
-            {(tarefas.cargaPorColaborador ?? []).length === 0
+            {cargaPorColaborador.length === 0
               ? <p className="text-sm text-gray-400">Nenhuma tarefa atribuída.</p>
-              : tarefas.cargaPorColaborador.map((item) => (
+              : cargaPorColaborador.map((item) => (
                 <BarraHorizontal
                   key={item.id}
                   label={item.nome}
@@ -764,6 +826,7 @@ export default function DashboardPage() {
               ))
             }
           </div>
+          )}
         </div>
       </section>
 
@@ -773,11 +836,11 @@ export default function DashboardPage() {
           Produção do Período
         </TituloSecao>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className={`grid grid-cols-1 gap-4 ${visaoGlobal ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}>
           <CardKPI
             icone={ClipboardCheck}
             titulo="Tarefas Concluídas"
-            descricao="Chegaram na etapa final dentro do período. Cada tarefa conta uma vez, mesmo se foi reaberta."
+            descricao="Tarefas que chegaram na etapa final no período."
             indicador={tarefas.concluidasPeriodo}
             corIcone="text-emerald-600"
             corFundo="bg-emerald-50"
@@ -785,16 +848,16 @@ export default function DashboardPage() {
           <CardKPI
             icone={CheckCircle2}
             titulo="Atendimentos Realizados"
-            descricao="Concluídos dentro do período."
+            descricao="Atendimentos concluídos no período."
             indicador={atendimentos.realizadosPeriodo}
             corIcone="text-blue-600"
             corFundo="bg-blue-50"
           />
-          {ehAdministrador && projetos && (
+          {visaoGlobal && projetos && (
             <CardKPI
               icone={FolderCheck}
               titulo="Projetos Concluídos"
-              descricao="Marcados como concluídos dentro do período."
+              descricao="Projetos concluídos no período."
               indicador={projetos.concluidosPeriodo}
               corIcone="text-teal-600"
               corFundo="bg-teal-50"
@@ -802,11 +865,12 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {ehAdministrador && colaboradores && !filtro && (
+        {visaoGlobal && colaboradores && (
           <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="bg-white rounded-xl border p-5 shadow-sm">
               <RankingColaboradores
                 titulo="Tarefas Concluídas por Colaborador"
+                descricao="Tarefas que chegaram na etapa final no período, por quem estava com a etapa."
                 itens={colaboradores.tarefasConcluidasPeriodo}
                 corBadge="bg-emerald-500"
               />
@@ -814,6 +878,8 @@ export default function DashboardPage() {
             <div className="bg-white rounded-xl border p-5 shadow-sm">
               <RankingColaboradores
                 titulo="Atendimentos Realizados por Colaborador"
+                descricao="Atendimentos concluídos no período, por colaborador atribuído."
+                alinhamentoLista="right-0"
                 itens={colaboradores.atendimentosPeriodo}
                 corBadge="bg-blue-500"
               />
@@ -823,7 +889,7 @@ export default function DashboardPage() {
       </section>
 
       {/* ───── ADMIN: PROJETOS + RISCOS ───── */}
-      {ehAdministrador && projetos && colaboradores && !filtro && (
+      {visaoGlobal && projetos && colaboradores && (
         <>
           <section>
             <TituloSecao icone={FolderOpen} cor="text-teal-500">
@@ -833,7 +899,7 @@ export default function DashboardPage() {
               <CardKPI
                 icone={FolderOpen}
                 titulo="Projetos Ativos"
-                descricao="Ativos e ainda não concluídos."
+                descricao="Projetos ativos e ainda não concluídos."
                 indicador={projetos.ativos}
                 corIcone="text-teal-600"
                 corFundo="bg-teal-50"
@@ -841,7 +907,7 @@ export default function DashboardPage() {
               <CardKPI
                 icone={CalendarCheck}
                 titulo={`Cadastrados (${rotuloPeriodo})`}
-                descricao="Projetos criados dentro do período."
+                descricao="Projetos criados no período."
                 indicador={projetos.cadastradosPeriodo}
                 corIcone="text-blue-600"
                 corFundo="bg-blue-50"
@@ -859,6 +925,7 @@ export default function DashboardPage() {
                   <PackageX className="h-4 w-4 text-amber-500" />
                   Projetos Parados há +15 dias
                 </p>
+                <p className="text-xs text-gray-400 mb-3">Projetos ativos sem nenhuma movimentação nas tarefas há mais de 15 dias.</p>
                 <ProjetosSemMovimentacao itens={data.projetosSemMovimentacao} />
               </div>
 
@@ -867,6 +934,7 @@ export default function DashboardPage() {
                   <UserX className="h-4 w-4 text-gray-500" />
                   Colaboradores sem Tarefas Atribuídas
                 </p>
+                <p className="text-xs text-gray-400 mb-3">Colaboradores ativos sem nenhuma tarefa em projeto ativo.</p>
                 <ColaboradoresOciosos itens={colaboradores.semTarefasAtribuidas} />
               </div>
             </div>

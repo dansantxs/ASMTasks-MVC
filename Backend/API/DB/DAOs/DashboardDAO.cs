@@ -134,7 +134,7 @@ namespace API.DB.DAOs
             if (ehAdministrador)
             {
                 resultado.Projetos = await ObterProjetosAsync(con, usarNomeFantasia, periodo);
-                resultado.Colaboradores = await ObterColaboradoresAsync(con, periodo);
+                resultado.Colaboradores = await ObterColaboradoresAsync(con, usarNomeFantasia, periodo);
                 resultado.ProjetosSemMovimentacao = await ObterProjetosSemMovimentacaoAsync(con);
                 resultado.ColaboradoresDisponiveis = await ObterColaboradoresDisponiveisAsync(con);
 
@@ -219,6 +219,26 @@ namespace API.DB.DAOs
                 UltimaAcaoPor = Texto(reader, "UltimaAcaoPor"),
                 UltimaAcaoEm = Data(reader, "UltimaAcaoEm")
             };
+        }
+
+        /// <summary>
+        /// Lê um ranking já particionado por colaborador: cada colocado vira uma entrada com o
+        /// total e a lista do que ele fez no período.
+        /// </summary>
+        private static async Task LerRankingAsync(SqlCommand cmd, List<TopColaboradorDTO> destino, bool usarNomeFantasia)
+        {
+            await using var reader = await cmd.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                var nome = Texto(reader, "RankNome") ?? "";
+                var colocado = destino.FirstOrDefault(x => x.Nome == nome);
+                if (colocado == null)
+                {
+                    colocado = new TopColaboradorDTO { Nome = nome, Total = Convert.ToInt32(reader["TotalGeral"]) };
+                    destino.Add(colocado);
+                }
+                colocado.Itens.Add(MapearLinha(reader, usarNomeFantasia));
+            }
         }
 
         private static async Task<DashboardIndicadorDTO> LerIndicadorAsync(SqlCommand cmd, string sql, bool usarNomeFantasia)
@@ -306,31 +326,52 @@ namespace API.DB.DAOs
             var inicioTendencia = new DateTime(hoje.Year, hoje.Month, 1).AddMonths(-5);
             cmd.Parameters.AddWithValue("@InicioTendencia", inicioTendencia);
             cmd.CommandText = $@"
-                SELECT YEAR(a.DataHoraConclusao), MONTH(a.DataHoraConclusao), COUNT(DISTINCT a.Id)
-                FROM Atendimento a
-                WHERE a.Status = 'R'
-                  AND a.DataHoraConclusao >= @InicioTendencia
-                  {filtro}
-                GROUP BY YEAR(a.DataHoraConclusao), MONTH(a.DataHoraConclusao)
-                ORDER BY 1, 2
+                SELECT * FROM (
+                    SELECT{ColunasAtendimento},
+                        YEAR(a.DataHoraConclusao) AS AnoMes_Ano,
+                        MONTH(a.DataHoraConclusao) AS AnoMes_Mes,
+                        COUNT(*) OVER (PARTITION BY YEAR(a.DataHoraConclusao), MONTH(a.DataHoraConclusao)) AS TotalGeral,
+                        ROW_NUMBER() OVER (
+                            PARTITION BY YEAR(a.DataHoraConclusao), MONTH(a.DataHoraConclusao)
+                            ORDER BY a.DataHoraConclusao DESC
+                        ) AS Posicao
+                    {DeAtendimento}
+                    WHERE a.Status = 'R'
+                      AND a.DataHoraConclusao >= @InicioTendencia
+                      {filtro}
+                ) meses
+                WHERE meses.Posicao <= @Limite
+                ORDER BY meses.AnoMes_Ano, meses.AnoMes_Mes, meses.Posicao
             ";
 
-            var tendenciaBruta = new Dictionary<(int, int), int>();
+            var tendenciaBruta = new Dictionary<(int, int), TendenciaMensalDTO>();
             await using (var reader = await cmd.ExecuteReaderAsync())
             {
                 while (await reader.ReadAsync())
-                    tendenciaBruta[(reader.GetInt32(0), reader.GetInt32(1))] = reader.GetInt32(2);
+                {
+                    var chave = (Convert.ToInt32(reader["AnoMes_Ano"]), Convert.ToInt32(reader["AnoMes_Mes"]));
+                    if (!tendenciaBruta.TryGetValue(chave, out var mes))
+                    {
+                        mes = new TendenciaMensalDTO { Total = Convert.ToInt32(reader["TotalGeral"]) };
+                        tendenciaBruta[chave] = mes;
+                    }
+                    mes.Itens.Add(MapearLinha(reader, usarNomeFantasia));
+                }
             }
 
+            // Os 6 meses aparecem sempre, inclusive os zerados — o gráfico é a série, não só o
+            // que teve movimento.
             var cultura = new System.Globalization.CultureInfo("pt-BR");
             for (int i = 5; i >= 0; i--)
             {
                 var mesRef = hoje.AddMonths(-i);
+                tendenciaBruta.TryGetValue((mesRef.Year, mesRef.Month), out var existente);
                 dto.Tendencia.Add(new TendenciaMensalDTO
                 {
                     Ano = mesRef.Year,
                     Mes = mesRef.Month,
-                    Total = tendenciaBruta.TryGetValue((mesRef.Year, mesRef.Month), out var v) ? v : 0,
+                    Total = existente?.Total ?? 0,
+                    Itens = existente?.Itens ?? new(),
                     Label = new DateTime(mesRef.Year, mesRef.Month, 1).ToString("MMM/yy", cultura)
                 });
             }
@@ -364,7 +405,7 @@ namespace API.DB.DAOs
         // --- Tarefas ------------------------------------------------------------------------
 
         private async Task<DashboardTarefasDTO> ObterTarefasAsync(
-            SqlConnection con, int colaboradorId, bool filtrarPorColaborador, bool incluirSemResponsavel,
+            SqlConnection con, int colaboradorId, bool filtrarPorColaborador, bool visaoGlobal,
             bool usarNomeFantasia, DashboardPeriodoDTO periodo)
         {
             var dto = new DashboardTarefasDTO();
@@ -392,7 +433,7 @@ namespace API.DB.DAOs
                 ORDER BY t.Titulo
             ", usarNomeFantasia);
 
-            if (incluirSemResponsavel)
+            if (visaoGlobal)
             {
                 dto.SemResponsavel = await LerIndicadorAsync(cmd, $@"
                     SELECT TOP (@Limite){ColunasTarefa}{TotalGeral}
@@ -609,24 +650,26 @@ namespace API.DB.DAOs
                 }
             }
 
-            // Carga por colaborador, também com a lista. Foto do momento (não é métrica de
-            // período — por isso saiu do ranking, que é sempre "no período").
-            cmd.CommandText = $@"
-                SELECT * FROM (
-                    SELECT{ColunasTarefa},
-                        col.Id AS CargaColaboradorId,
-                        COUNT(*) OVER (PARTITION BY col.Id) AS TotalGeral,
-                        ROW_NUMBER() OVER (PARTITION BY col.Id ORDER BY t.Titulo) AS Posicao
-                    {DeTarefa}
-                    WHERE t.ColaboradorResponsavelId IS NOT NULL
-                      AND COALESCE(e.EhEtapaFinal, 0) = 0
-                      {ProjetoAtivo}
-                ) faixas
-                WHERE faixas.Posicao <= @Limite
-                ORDER BY faixas.TotalGeral DESC, faixas.ColaboradorNome, faixas.Titulo
-            ";
-            await using (var reader = await cmd.ExecuteReaderAsync())
+            // Carga por colaborador: comparação entre pessoas, só faz sentido na visão global.
+            // Para o usuário comum (e quando o admin filtra por alguém) isso seria dado de
+            // terceiros, sem serventia para quem está olhando o próprio painel.
+            if (visaoGlobal)
             {
+                cmd.CommandText = $@"
+                    SELECT * FROM (
+                        SELECT{ColunasTarefa},
+                            col.Id AS CargaColaboradorId,
+                            COUNT(*) OVER (PARTITION BY col.Id) AS TotalGeral,
+                            ROW_NUMBER() OVER (PARTITION BY col.Id ORDER BY t.Titulo) AS Posicao
+                        {DeTarefa}
+                        WHERE t.ColaboradorResponsavelId IS NOT NULL
+                          AND COALESCE(e.EhEtapaFinal, 0) = 0
+                          {ProjetoAtivo}
+                    ) faixas
+                    WHERE faixas.Posicao <= @Limite
+                    ORDER BY faixas.TotalGeral DESC, faixas.ColaboradorNome, faixas.Titulo
+                ";
+                await using var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
                 {
                     var id = Convert.ToInt32(reader["CargaColaboradorId"]);
@@ -701,48 +744,59 @@ namespace API.DB.DAOs
         // --- Colaboradores ------------------------------------------------------------------
 
         private async Task<DashboardColaboradoresDTO> ObterColaboradoresAsync(
-            SqlConnection con, DashboardPeriodoDTO periodo)
+            SqlConnection con, bool usarNomeFantasia, DashboardPeriodoDTO periodo)
         {
             var dto = new DashboardColaboradoresDTO();
             await using var cmd = con.CreateCommand();
             PrepararParametros(cmd, 0, periodo);
 
-            // Sem TOP: a tela mostra os primeiros e tem "Ver todos".
-            cmd.CommandText = @"
-                SELECT c.Nome, COUNT(DISTINCT a.Id) AS Total
-                FROM Atendimento a
-                INNER JOIN AtendimentoColaborador ac ON ac.AtendimentoId = a.Id
-                INNER JOIN Colaborador c ON c.Id = ac.ColaboradorId
-                WHERE a.Status = 'R'
-                  AND a.DataHoraConclusao >= @Inicio AND a.DataHoraConclusao < @Fim
-                GROUP BY c.Id, c.Nome
-                ORDER BY Total DESC, c.Nome
+            // Sem TOP no ranking (a tela mostra os primeiros e tem "Ver todos"), e cada colocado
+            // traz a lista do que ele fez — o número sozinho não deixa conferir nada.
+            cmd.CommandText = $@"
+                SELECT * FROM (
+                    SELECT{ColunasAtendimento},
+                        c.Id AS RankId,
+                        c.Nome AS RankNome,
+                        COUNT(*) OVER (PARTITION BY c.Id) AS TotalGeral,
+                        ROW_NUMBER() OVER (PARTITION BY c.Id ORDER BY a.DataHoraConclusao DESC) AS Posicao
+                    {DeAtendimento}
+                    INNER JOIN AtendimentoColaborador ac ON ac.AtendimentoId = a.Id
+                    INNER JOIN Colaborador c ON c.Id = ac.ColaboradorId
+                    WHERE a.Status = 'R'
+                      AND a.DataHoraConclusao >= @Inicio AND a.DataHoraConclusao < @Fim
+                ) rank
+                WHERE rank.Posicao <= @Limite
+                ORDER BY rank.TotalGeral DESC, rank.RankNome, rank.Posicao
             ";
-            await using (var reader = await cmd.ExecuteReaderAsync())
-            {
-                while (await reader.ReadAsync())
-                    dto.AtendimentosPeriodo.Add(new TopColaboradorDTO { Nome = reader.GetString(0), Total = reader.GetInt32(1) });
-            }
+            await LerRankingAsync(cmd, dto.AtendimentosPeriodo, usarNomeFantasia);
 
             // Crédito de quem estava com a etapa quando ela foi fechada (h.ColaboradorId), com
             // fallback para o responsável atual — mesmo critério do Relatório de Comissão. E
             // DISTINCT por tarefa: reabrir e reconcluir não conta duas vezes.
-            cmd.CommandText = @"
-                SELECT c.Nome, COUNT(DISTINCT h.TarefaId) AS Total
-                FROM ProjetoTarefaHistorico h
-                INNER JOIN Etapa e ON e.Id = h.EtapaId AND e.EhEtapaFinal = 1
-                INNER JOIN ProjetoTarefa t ON t.Id = h.TarefaId
-                INNER JOIN Colaborador c ON c.Id = COALESCE(h.ColaboradorId, t.ColaboradorResponsavelId)
-                WHERE h.Tipo = 'E'
-                  AND h.DataHoraAcao >= @Inicio AND h.DataHoraAcao < @Fim
-                GROUP BY c.Id, c.Nome
-                ORDER BY Total DESC, c.Nome
+            cmd.CommandText = $@"
+                SELECT * FROM (
+                    SELECT{ColunasTarefa},
+                        c.Id AS RankId,
+                        c.Nome AS RankNome,
+                        COUNT(*) OVER (PARTITION BY c.Id) AS TotalGeral,
+                        ROW_NUMBER() OVER (PARTITION BY c.Id ORDER BY t.Titulo) AS Posicao
+                    {DeTarefa}
+                    INNER JOIN (
+                        SELECT DISTINCT
+                            COALESCE(h.ColaboradorId, tc.ColaboradorResponsavelId) AS ColaboradorId,
+                            h.TarefaId
+                        FROM ProjetoTarefaHistorico h
+                        INNER JOIN Etapa ef ON ef.Id = h.EtapaId AND ef.EhEtapaFinal = 1
+                        INNER JOIN ProjetoTarefa tc ON tc.Id = h.TarefaId
+                        WHERE h.Tipo = 'E'
+                          AND h.DataHoraAcao >= @Inicio AND h.DataHoraAcao < @Fim
+                    ) credito ON credito.TarefaId = t.Id
+                    INNER JOIN Colaborador c ON c.Id = credito.ColaboradorId
+                ) rank
+                WHERE rank.Posicao <= @Limite
+                ORDER BY rank.TotalGeral DESC, rank.RankNome, rank.Posicao
             ";
-            await using (var reader = await cmd.ExecuteReaderAsync())
-            {
-                while (await reader.ReadAsync())
-                    dto.TarefasConcluidasPeriodo.Add(new TopColaboradorDTO { Nome = reader.GetString(0), Total = reader.GetInt32(1) });
-            }
+            await LerRankingAsync(cmd, dto.TarefasConcluidasPeriodo, usarNomeFantasia);
 
             cmd.CommandText = @"
                 SELECT c.Id, c.Nome, ISNULL(s.Nome, '') AS SetorNome
