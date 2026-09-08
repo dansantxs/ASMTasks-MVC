@@ -17,7 +17,7 @@ namespace API.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> Obter([FromQuery] int? colaboradorId)
+        public async Task<IActionResult> Obter([FromQuery] int? colaboradorId, [FromQuery] string? periodo)
         {
             try
             {
@@ -30,7 +30,7 @@ namespace API.Controllers
 
                 var config = await new ConfiguracoesSistemaDAO().ObterAsync(dbContext);
                 var dao = new DashboardDAO();
-                var dashboard = await dao.ObterDashboardAsync(dbContext, colaboradorIdLogado, ehAdministrador, colaboradorId, config.ExibicaoNomeCliente);
+                var dashboard = await dao.ObterDashboardAsync(dbContext, colaboradorIdLogado, ehAdministrador, colaboradorId, periodo, config.ExibicaoNomeCliente);
 
                 return Ok(dashboard);
             }
