@@ -9,21 +9,19 @@ DECLARE @ColabId       INT;
 
 -- =============================================
 -- Etapas
+-- (nomes usados no dia a dia da equipe; o Relatório de Comissão reconhece a
+--  etapa de desenvolvimento e a de aprovação pelo NOME — ver comissao/page.js)
 -- =============================================
-INSERT INTO Etapa (Nome, Descricao, Ativo, Ordem, EhEtapaFinal)
-VALUES (N'Análise & Requisitos', N'Refinamento técnico e detalhamento de regras de negócio.', 1, 1, 0);
-INSERT INTO Etapa (Nome, Descricao, Ativo, Ordem, EhEtapaFinal)
-VALUES (N'Design / UI-UX', N'Criação de protótipos, fluxogramas e interface visual.', 1, 2, 0);
-INSERT INTO Etapa (Nome, Descricao, Ativo, Ordem, EhEtapaFinal)
-VALUES (N'Em Desenvolvimento', N'Codificação ativa da funcionalidade ou correção de bug.', 1, 3, 0);
-INSERT INTO Etapa (Nome, Descricao, Ativo, Ordem, EhEtapaFinal)
-VALUES (N'QA / Testes', N'Validação funcional em ambiente de homologação pela equipe de QA.', 1, 4, 0);
-INSERT INTO Etapa (Nome, Descricao, Ativo, Ordem, EhEtapaFinal)
-VALUES (N'Homologação', N'Validação final feita pelo cliente ou Product Owner (PO).', 1, 5, 0);
-INSERT INTO Etapa (Nome, Descricao, Ativo, Ordem, EhEtapaFinal)
-VALUES (N'Aguardando Deploy', N'Item aprovado e aguardando a janela de publicação em produção.', 1, 6, 0);
-INSERT INTO Etapa (Nome, Descricao, Ativo, Ordem, EhEtapaFinal)
-VALUES (N'Produção', N'Funcionalidade entregue e operando em ambiente real.', 1, 7, 1);
+INSERT INTO Etapa (Nome, Descricao, Ativo, Ordem, EhEtapaFinal, EhEtapaTeste)
+VALUES (N'Atendimento', N'Contato inicial e levantamento do que o cliente precisa.', 1, 1, 0, 0);
+INSERT INTO Etapa (Nome, Descricao, Ativo, Ordem, EhEtapaFinal, EhEtapaTeste)
+VALUES (N'Elaboração', N'Desenvolvimento da funcionalidade ou correção solicitada.', 1, 2, 0, 0);
+INSERT INTO Etapa (Nome, Descricao, Ativo, Ordem, EhEtapaFinal, EhEtapaTeste)
+VALUES (N'Aprovação', N'Validação do que foi elaborado, antes de liberar ao cliente.', 1, 3, 0, 1);
+INSERT INTO Etapa (Nome, Descricao, Ativo, Ordem, EhEtapaFinal, EhEtapaTeste)
+VALUES (N'Atualização', N'Publicação da alteração no ambiente do cliente.', 1, 4, 0, 0);
+INSERT INTO Etapa (Nome, Descricao, Ativo, Ordem, EhEtapaFinal, EhEtapaTeste)
+VALUES (N'Concluído', N'Item entregue e em uso pelo cliente.', 1, 5, 1, 0);
 
 -- =============================================
 -- Setor

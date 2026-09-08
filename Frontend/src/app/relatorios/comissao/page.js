@@ -41,10 +41,14 @@ const colunasLinha = [
 const todasColunas = [...colunasGrupo, ...colunasLinha];
 const reportTitle = 'Relatório de Comissão';
 
-// Etapa "de desenvolvimento" de uma tarefa: identificada pelo nome (contém "desenvolv").
-// É essa etapa que define o "Desenvolvedor" da tarefa — quem entra na contagem de comissão
-// e sob quem a tarefa é agrupada no relatório. Para atendimento, o equivalente é a conclusão.
-const ehEtapaDesenvolvimento = (nome) => /desenvolv/i.test(nome ?? '');
+// A etapa "de desenvolvimento" e a "de aprovação" de uma tarefa são identificadas pelo NOME da
+// etapa cadastrada. A de desenvolvimento define o "Desenvolvedor" — quem entra na contagem de
+// comissão e sob quem o item é agrupado; a de aprovação define o "Aprovador", usado no filtro
+// "Aprovado por". Para atendimento, o equivalente ao desenvolvedor é quem concluiu.
+// Reconhecer pelo nome é frágil a renomeações: se as etapas mudarem de nome, ajuste os padrões
+// abaixo — é o único ponto do relatório que depende deles.
+const ehEtapaDesenvolvimento = (nome) => /desenvolv|elabora/i.test(nome ?? '');
+const ehEtapaAprovacao = (nome) => /aprova/i.test(nome ?? '');
 
 const SEM_DESENVOLVEDOR = 'Sem desenvolvedor';
 const ETAPA_LANCAMENTO = 'Lançado por';
@@ -113,6 +117,7 @@ export default function RelatorioComissaoPage() {
   const [dataFimFilter, setDataFimFilter] = useState(() => paraInputDate(periodoPadrao.fim));
   const [colaboradorFilter, setColaboradorFilter] = useState('todos');
   const [clienteFilter, setClienteFilter] = useState('todos');
+  const [aprovadorFilter, setAprovadorFilter] = useState('todos'); // colaborador da etapa de aprovação
   const [tipoItemFilter, setTipoItemFilter] = useState('todos'); // todos | tarefa | atendimento
   const [selectedColumns, setSelectedColumns] = useState(todasColunas.map((c) => c.id));
   // Agrupamento é sempre por Colaborador(Desenvolvedor); só a ordenação secundária dos itens é ajustável.
@@ -470,6 +475,15 @@ export default function RelatorioComissaoPage() {
         grupo.desenvolvedorNome = etapaDev?.colaboradorNome ?? SEM_DESENVOLVEDOR;
       }
 
+      // Aprovador do item: colaborador da última passagem pela etapa de aprovação. Só tarefa —
+      // atendimento não tem etapas.
+      const etapaAprovacao =
+        grupo.itemTipo === 'tarefa'
+          ? [...grupo.itens].reverse().find((item) => ehEtapaAprovacao(item.etapaNome))
+          : null;
+      grupo.aprovadorId = etapaAprovacao?.colaboradorId ?? null;
+      grupo.aprovadorNome = etapaAprovacao?.colaboradorNome ?? null;
+
       // Colaboradores que participaram do item — usado pelo filtro de colaborador (o item aparece
       // se a pessoa filtrada fez ao menos uma etapa dele / está atribuída ao atendimento).
       const participantes = new Set(
@@ -518,13 +532,21 @@ export default function RelatorioComissaoPage() {
   }, [linhasTarefasEAtendimentos, tarefasFinalizadas, tipoItemFilter, infoPorTarefa]);
 
   const colaboradorIdFiltro = colaboradorFilter === 'todos' ? null : Number(colaboradorFilter);
+  const aprovadorIdFiltro = aprovadorFilter === 'todos' ? null : Number(aprovadorFilter);
+
+  // "Aprovado por" restringe os ITENS de fato (entra também no Resumo), diferente do filtro de
+  // colaborador, que só escolhe quais itens aparecem sem mexer na contagem por colaborador.
+  const gruposPorAprovador = useMemo(
+    () => (aprovadorIdFiltro == null ? grupos : grupos.filter((grupo) => grupo.aprovadorId === aprovadorIdFiltro)),
+    [grupos, aprovadorIdFiltro]
+  );
 
   // Item 3: o filtro de colaborador seleciona os ITENS (participou de qualquer etapa) — todas as
   // etapas do item continuam visíveis, mesmo as de outros colaboradores.
   const gruposVisiveis = useMemo(() => {
-    if (colaboradorIdFiltro == null) return grupos;
-    return grupos.filter((grupo) => grupo.participantesIds.has(colaboradorIdFiltro));
-  }, [grupos, colaboradorIdFiltro]);
+    if (colaboradorIdFiltro == null) return gruposPorAprovador;
+    return gruposPorAprovador.filter((grupo) => grupo.participantesIds.has(colaboradorIdFiltro));
+  }, [gruposPorAprovador, colaboradorIdFiltro]);
 
   // Itens 1 e 2: relatório dividido em seções por Colaborador(Desenvolvedor), cada item numerado
   // dentro da sua seção. Quando há um colaborador filtrado, tudo cai numa seção só (a dele).
@@ -577,10 +599,10 @@ export default function RelatorioComissaoPage() {
   );
 
   // Item 4: contagem por colaborador — SÓ desenvolvimento (tarefa) e atendimento concluído.
-  // Respeita período/cliente/tipo; o filtro de colaborador só restringe a linha exibida.
+  // Respeita período/cliente/tipo/"aprovado por"; o filtro de colaborador só restringe a linha exibida.
   const resumoColaboradores = useMemo(() => {
     const tally = new Map();
-    grupos.forEach((grupo) => {
+    gruposPorAprovador.forEach((grupo) => {
       // Reforça o filtro de tipo aqui (além de `grupos`) pra não sobrar tarefa quando o filtro é
       // "Atendimentos" nem o contrário.
       if (tipoItemFilter !== 'todos' && grupo.itemTipo !== tipoItemFilter) return;
@@ -594,7 +616,7 @@ export default function RelatorioComissaoPage() {
     if (colaboradorIdFiltro != null) lista = lista.filter((r) => r.colaboradorId === colaboradorIdFiltro);
     lista.sort((a, b) => b.total - a.total || compararTexto(a.nome, b.nome));
     return lista;
-  }, [grupos, tipoItemFilter, colaboradorIdFiltro]);
+  }, [gruposPorAprovador, tipoItemFilter, colaboradorIdFiltro]);
 
   const rotuloTotalResumo =
     tipoItemFilter === 'tarefa'
@@ -613,7 +635,9 @@ export default function RelatorioComissaoPage() {
     if (selectedColumns.includes('tarefaTitulo')) partes.push(grupo.tarefaTitulo);
     if (selectedColumns.includes('descricao') && grupo.descricao?.trim()) partes.push(grupo.descricao.trim());
     const titulo = partes.length > 0 ? partes.join(' — ') : `Tarefa #${grupo.tarefaId}`;
-    return grupo.numero ? `${grupo.numero} - ${titulo}` : titulo;
+    // Quem aprovou fica no cabeçalho do item, ao lado do que identifica a tarefa.
+    const comAprovador = grupo.aprovadorNome ? `${titulo} · Aprovado por: ${grupo.aprovadorNome}` : titulo;
+    return grupo.numero ? `${grupo.numero} - ${comAprovador}` : comAprovador;
   }
 
   const toggleColumn = (id) => {
@@ -636,11 +660,17 @@ export default function RelatorioComissaoPage() {
     const tipoLabel =
       tipoItemFilter === 'tarefa' ? 'Tarefas' : tipoItemFilter === 'atendimento' ? 'Atendimentos' : null;
 
+    const aprovadorNome =
+      aprovadorFilter === 'todos'
+        ? null
+        : colaboradores.find((c) => c.id === Number(aprovadorFilter))?.nome ?? `#${aprovadorFilter}`;
+
     const filters = [
       dataInicioFilter ? `Data início: ${new Date(`${dataInicioFilter}T00:00:00`).toLocaleDateString('pt-BR')}` : null,
       dataFimFilter ? `Data fim: ${new Date(`${dataFimFilter}T00:00:00`).toLocaleDateString('pt-BR')}` : null,
       tipoLabel ? `Tipo: ${tipoLabel}` : null,
       colaboradorNome ? `Colaborador: ${colaboradorNome}` : null,
+      aprovadorNome ? `Aprovado por: ${aprovadorNome}` : null,
       clienteNome ? `Cliente: ${clienteNome}` : null,
       viewMode === 'resumo' ? 'Visão: Resumo (total por colaborador)' : null,
     ].filter(Boolean);
@@ -814,7 +844,7 @@ export default function RelatorioComissaoPage() {
           },
           {
             element: '#tour-comissao-filtros',
-            popover: { title: 'Filtros', description: 'Filtre por <strong>período</strong>, <strong>tipo</strong> (Tarefas/Atendimentos), <strong>colaborador</strong> e <strong>cliente</strong>. Ao filtrar um colaborador, aparecem os itens em que ele participou de <strong>qualquer</strong> etapa — e todas as etapas continuam visíveis, mesmo as de outras pessoas.', side: 'bottom', align: 'start' },
+            popover: { title: 'Filtros', description: 'Filtre por <strong>período</strong>, <strong>tipo</strong> (Tarefas/Atendimentos), <strong>colaborador</strong>, <strong>aprovado por</strong> e <strong>cliente</strong>. Ao filtrar um colaborador, aparecem os itens em que ele participou de <strong>qualquer</strong> etapa — e todas as etapas continuam visíveis, mesmo as de outras pessoas. Já <strong>Aprovado por</strong> deixa só os itens cuja etapa de aprovação foi feita pela pessoa escolhida — o nome de quem aprovou aparece no cabeçalho de cada item.', side: 'bottom', align: 'start' },
           },
           {
             element: '#tour-comissao-colunas',
@@ -899,6 +929,19 @@ export default function RelatorioComissaoPage() {
                     value={colaboradorFilter}
                     onValueChange={setColaboradorFilter}
                     placeholder="Colaborador"
+                    searchPlaceholder="Buscar colaborador..."
+                    options={[
+                      { value: 'todos', label: 'Todos' },
+                      ...colaboradores.map((c) => ({ value: String(c.id), label: c.nome })),
+                    ]}
+                  />
+                </div>
+                <div>
+                  <Label>Aprovado por</Label>
+                  <Combobox
+                    value={aprovadorFilter}
+                    onValueChange={setAprovadorFilter}
+                    placeholder="Aprovado por"
                     searchPlaceholder="Buscar colaborador..."
                     options={[
                       { value: 'todos', label: 'Todos' },
