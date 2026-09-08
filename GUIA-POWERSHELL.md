@@ -217,6 +217,10 @@ docker exec asmtasks-sqlserver-1 /opt/mssql-tools18/bin/sqlcmd -S localhost -U s
 docker exec asmtasks-sqlserver-1 /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "SUA_SENHA" -No -i /tmp/seed.sql
 ```
 
+> Não existe pasta de migrations: `schema.sql` é a fonte única da estrutura do
+> banco. Alteração de estrutura entra no `schema.sql` e, em bancos já existentes,
+> é aplicada à mão com `db.ps1` (seção 6).
+
 ---
 
 ## 6. Console SQL rápido (`db.ps1`)
