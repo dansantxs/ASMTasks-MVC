@@ -1,4 +1,4 @@
-export const VERSAO_ATUAL = '1.9.0';
+export const VERSAO_ATUAL = '1.10.0';
 
 /**
  * Regra de versionamento (major.minor.patch):
@@ -18,6 +18,26 @@ export const VERSAO_ATUAL = '1.9.0';
  *  2. Adicione uma nova entrada NO INÍCIO do array CHANGELOG.
  */
 export const CHANGELOG = [
+  {
+    versao: '1.10.0',
+    data: '2026-09-08',
+    titulo: 'Dashboard Reformulado, Ordenação no Kanban e Aprovação na Comissão',
+    mudancas: [
+      'Quadro Kanban: nova opção "Ordenar por" — alterne entre Prioridade e Lançamento (data em que a tarefa foi lançada), com botão para inverter a ordem; a escolha fica salva no navegador e a data aparece no cartão quando a ordenação é por lançamento',
+      'Dashboard: novo seletor de período (Mês atual, Mês anterior, Últimos 30 dias) — os indicadores "do mês" não zeram mais na virada do mês, e logo depois do dia 1º dá para olhar o mês que fechou',
+      'Dashboard: os números dos cards e as listas que eles abrem passam a sair da mesma consulta, então não divergem mais; quando a lista é grande, o card avisa que está mostrando só uma parte',
+      'Dashboard: correção de "Em Andamento", que contava também as tarefas do backlog e as já concluídas, e por isso distorcia os percentuais do gráfico por etapa',
+      'Dashboard: correção do ranking de tarefas concluídas — tarefa reaberta e reconcluída contava duas vezes, e o crédito ia para o responsável atual em vez de quem realmente fez a etapa',
+      'Dashboard: correção de "Projetos Concluídos", que usava a data de cadastro do projeto — passa a usar a data em que o projeto foi realmente concluído',
+      'Dashboard: todos os indicadores passam a ter lista, inclusive as barras por etapa (clique numa etapa para ver as tarefas dela) e o backlog',
+      'Dashboard: as listas de tarefas ficaram mais detalhadas — projeto, cliente, responsável, etapa, status atual e quem mexeu por último, com data e hora',
+      'Dashboard: os rankings deixam de mostrar só os 5 primeiros e ganham a opção "Ver todos"',
+      'Dashboard: indicadores reorganizados em seções separadas (Atendimentos, Tarefas — Situação Atual, Tarefas — Alertas, Tarefas — Distribuição, Produção do Período, Projetos e Riscos); "Pendentes (total)" e "Projetos cadastrados hoje" viraram recortes do período, e "Tarefas atribuídas" virou a barra de Carga por Colaborador',
+      'Relatório de Comissão: novo filtro "Aprovado por" — mostra apenas os itens cuja etapa de aprovação foi feita pelo colaborador escolhido; o nome de quem aprovou aparece no cabeçalho de cada item e no resumo de filtros das exportações',
+      'Etapas: instalações novas passam a vir com os nomes usados no dia a dia (Atendimento, Elaboração, Aprovação, Atualização e Concluído). Em bases já existentes, os nomes continuam sendo alterados pela tela de Etapas',
+      'Manutenção: os arquivos de migration foram eliminados — o schema.sql passa a ser a fonte única da estrutura do banco',
+    ],
+  },
   {
     versao: '1.9.0',
     data: '2026-09-02',
