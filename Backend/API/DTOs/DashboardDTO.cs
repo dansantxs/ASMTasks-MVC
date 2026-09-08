@@ -124,6 +124,7 @@ namespace API.DTOs.Dashboard
         public string Cor { get; set; } = "";
         public int Ordem { get; set; }
         public int Total { get; set; }
+        public List<DashboardLinhaDTO> Itens { get; set; } = new();
     }
 
     /// <summary>Quantas tarefas abertas cada colaborador tem hoje — foto, não métrica de período.</summary>
@@ -132,6 +133,7 @@ namespace API.DTOs.Dashboard
         public int Id { get; set; }
         public string Nome { get; set; } = "";
         public int Total { get; set; }
+        public List<DashboardLinhaDTO> Itens { get; set; } = new();
     }
 
     public class DashboardProjetosDTO

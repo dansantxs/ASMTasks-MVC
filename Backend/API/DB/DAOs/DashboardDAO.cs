@@ -570,54 +570,78 @@ namespace API.DB.DAOs
                 });
             }
 
-            // Por prioridade: mesmo universo das barras por etapa (tudo que não está na etapa
-            // final), pra que os dois gráficos somem o mesmo total.
+            // Por prioridade, com a lista de cada faixa. Mesmo universo das barras por etapa (tudo
+            // que não está na etapa final), pra que os dois gráficos somem o mesmo total.
             cmd.CommandText = $@"
-                SELECT p.Nome, p.Cor, p.Ordem, COUNT(t.Id)
-                FROM ProjetoTarefa t
-                INNER JOIN Projeto pr ON pr.Id = t.ProjetoId AND pr.Ativo = 1 AND pr.Concluido = 0
-                INNER JOIN Prioridade p ON p.Id = t.PrioridadeId
-                LEFT JOIN Etapa e ON e.Id = t.EtapaId
-                WHERE COALESCE(e.EhEtapaFinal, 0) = 0{filtro}
-                GROUP BY p.Id, p.Nome, p.Cor, p.Ordem
-                ORDER BY p.Ordem
+                SELECT * FROM (
+                    SELECT{ColunasTarefa},
+                        p.Nome AS PrioridadeNome,
+                        p.Cor AS PrioridadeCor,
+                        p.Ordem AS PrioridadeOrdem,
+                        COUNT(*) OVER (PARTITION BY p.Id) AS TotalGeral,
+                        ROW_NUMBER() OVER (PARTITION BY p.Id ORDER BY t.Titulo) AS Posicao
+                    {DeTarefa}
+                    INNER JOIN Prioridade p ON p.Id = t.PrioridadeId
+                    WHERE COALESCE(e.EhEtapaFinal, 0) = 0
+                      {ProjetoAtivo}{filtro}
+                ) faixas
+                WHERE faixas.Posicao <= @Limite
+                ORDER BY faixas.PrioridadeOrdem, faixas.Titulo
             ";
             await using (var reader = await cmd.ExecuteReaderAsync())
             {
                 while (await reader.ReadAsync())
                 {
-                    dto.PorPrioridade.Add(new TarefaPorPrioridadeDTO
+                    var nome = Texto(reader, "PrioridadeNome") ?? "";
+                    var faixa = dto.PorPrioridade.FirstOrDefault(f => f.Prioridade == nome);
+                    if (faixa == null)
                     {
-                        Prioridade = reader.GetString(0),
-                        Cor = reader.GetString(1),
-                        Ordem = reader.GetInt32(2),
-                        Total = reader.GetInt32(3)
-                    });
+                        faixa = new TarefaPorPrioridadeDTO
+                        {
+                            Prioridade = nome,
+                            Cor = Texto(reader, "PrioridadeCor") ?? "",
+                            Ordem = Convert.ToInt32(reader["PrioridadeOrdem"]),
+                            Total = Convert.ToInt32(reader["TotalGeral"])
+                        };
+                        dto.PorPrioridade.Add(faixa);
+                    }
+                    faixa.Itens.Add(MapearLinha(reader, usarNomeFantasia));
                 }
             }
 
-            // Carga por colaborador: foto do momento (não é métrica de período — por isso saiu do
-            // ranking, que é sempre "no período").
-            cmd.CommandText = @"
-                SELECT c.Id, c.Nome, COUNT(t.Id) AS Total
-                FROM Colaborador c
-                INNER JOIN ProjetoTarefa t ON t.ColaboradorResponsavelId = c.Id
-                INNER JOIN Projeto pr ON pr.Id = t.ProjetoId AND pr.Ativo = 1 AND pr.Concluido = 0
-                LEFT JOIN Etapa e ON e.Id = t.EtapaId
-                WHERE COALESCE(e.EhEtapaFinal, 0) = 0
-                GROUP BY c.Id, c.Nome
-                ORDER BY Total DESC, c.Nome
+            // Carga por colaborador, também com a lista. Foto do momento (não é métrica de
+            // período — por isso saiu do ranking, que é sempre "no período").
+            cmd.CommandText = $@"
+                SELECT * FROM (
+                    SELECT{ColunasTarefa},
+                        col.Id AS CargaColaboradorId,
+                        COUNT(*) OVER (PARTITION BY col.Id) AS TotalGeral,
+                        ROW_NUMBER() OVER (PARTITION BY col.Id ORDER BY t.Titulo) AS Posicao
+                    {DeTarefa}
+                    WHERE t.ColaboradorResponsavelId IS NOT NULL
+                      AND COALESCE(e.EhEtapaFinal, 0) = 0
+                      {ProjetoAtivo}
+                ) faixas
+                WHERE faixas.Posicao <= @Limite
+                ORDER BY faixas.TotalGeral DESC, faixas.ColaboradorNome, faixas.Titulo
             ";
             await using (var reader = await cmd.ExecuteReaderAsync())
             {
                 while (await reader.ReadAsync())
                 {
-                    dto.CargaPorColaborador.Add(new CargaColaboradorDTO
+                    var id = Convert.ToInt32(reader["CargaColaboradorId"]);
+                    var faixa = dto.CargaPorColaborador.FirstOrDefault(f => f.Id == id);
+                    if (faixa == null)
                     {
-                        Id = reader.GetInt32(0),
-                        Nome = reader.GetString(1),
-                        Total = reader.GetInt32(2)
-                    });
+                        faixa = new CargaColaboradorDTO
+                        {
+                            Id = id,
+                            Nome = Texto(reader, "ColaboradorNome") ?? "",
+                            Total = Convert.ToInt32(reader["TotalGeral"])
+                        };
+                        dto.CargaPorColaborador.Add(faixa);
+                    }
+                    faixa.Itens.Add(MapearLinha(reader, usarNomeFantasia));
                 }
             }
 

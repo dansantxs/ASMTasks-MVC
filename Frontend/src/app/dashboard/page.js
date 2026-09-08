@@ -21,7 +21,6 @@ import {
   UserX,
   TimerOff,
   Inbox,
-  ChevronDown,
   CalendarRange,
 } from 'lucide-react';
 import { getDashboard } from './api/dashboard';
@@ -47,7 +46,11 @@ const formatarDataHora = (valor) =>
 
 const juntar = (...partes) => partes.filter((p) => p != null && p !== '').join(' · ');
 
-/** Uma linha da lista de um indicador: o que é, de quem é, e quem mexeu por último. */
+/**
+ * Uma linha da lista de um indicador: o que é, de quem é, e quem mexeu por último.
+ * Nada é truncado — o painel é largo e o texto quebra em mais linhas, porque o nome da etapa
+ * e o do responsável são justamente o que se quer ler aqui.
+ */
 function LinhaIndicador({ item }) {
   const contexto = juntar(item.projetoTitulo, item.clienteNome);
   const situacao = juntar(item.colaboradorNome ?? 'Sem responsável', item.etapaNome, item.statusAtual);
@@ -57,10 +60,10 @@ function LinhaIndicador({ item }) {
 
   return (
     <div className="py-2 border-b last:border-0">
-      <p className="text-xs font-semibold text-gray-800 break-words" title={item.titulo}>{item.titulo}</p>
-      {contexto && <p className="text-xs text-gray-500 mt-0.5 truncate" title={contexto}>{contexto}</p>}
-      {situacao && <p className="text-xs text-gray-500 mt-0.5 truncate" title={situacao}>{situacao}</p>}
-      {ultimaAcao && <p className="text-xs text-gray-400 mt-0.5 truncate">{ultimaAcao}</p>}
+      <p className="text-sm font-semibold text-gray-800 break-words leading-snug">{item.titulo}</p>
+      {contexto && <p className="text-xs text-gray-500 mt-1 break-words">{contexto}</p>}
+      {situacao && <p className="text-xs text-gray-600 mt-0.5 break-words">{situacao}</p>}
+      {ultimaAcao && <p className="text-xs text-gray-400 mt-0.5 break-words">{ultimaAcao}</p>}
     </div>
   );
 }
@@ -80,34 +83,59 @@ function ListaIndicador({ indicador }) {
 }
 
 /**
- * Card de indicador. O número e a lista vêm do mesmo indicador do backend, então batem sempre.
- * A lista abre no hover e o clique fixa, para dar tempo de rolar listas longas.
+ * Abre a lista no hover e fixa no clique (para dar tempo de rolar listas longas).
+ * Compartilhado pelos cards e pelas barras, para o gesto ser o mesmo na tela inteira.
  */
-function CardKPI({ icone: Icone, titulo, indicador, corIcone, corFundo, destaque }) {
+function useAberturaLista(temItens) {
   const [aberto, setAberto] = useState(false);
   const [fixado, setFixado] = useState(false);
   const timerRef = useRef(null);
-  const { total = 0, itens = [] } = indicador ?? INDICADOR_VAZIO;
 
-  const aoEntrar = () => {
+  const abrir = () => {
     if (timerRef.current) clearTimeout(timerRef.current);
-    if (total > 0) setAberto(true);
+    if (temItens) setAberto(true);
   };
-  const aoSair = () => {
+  const fechar = () => {
     if (fixado) return;
     timerRef.current = setTimeout(() => setAberto(false), 150);
   };
+  const alternarFixado = () => {
+    if (!temItens) return;
+    setFixado((v) => !v);
+    setAberto(true);
+  };
+
+  return { aberto: aberto && temItens, abrir, fechar, alternarFixado };
+}
+
+function PainelLista({ indicador, abrir, fechar, alinhamento = 'left-0' }) {
+  return (
+    <div
+      className={`absolute ${alinhamento} top-full mt-2 z-50 w-[30rem] max-w-[85vw] bg-white border rounded-xl shadow-xl p-4 max-h-[28rem] overflow-y-auto`}
+      onMouseEnter={abrir}
+      onMouseLeave={fechar}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <ListaIndicador indicador={indicador} />
+    </div>
+  );
+}
+
+/**
+ * Card de indicador. O número e a lista vêm do mesmo indicador do backend, então batem sempre.
+ * `descricao` explica em uma linha o que aquele número conta — sem isso cada card vira uma
+ * adivinhação ("em andamento" conta backlog? conta concluída?).
+ */
+function CardKPI({ icone: Icone, titulo, descricao, indicador, corIcone, corFundo, destaque }) {
+  const { total = 0 } = indicador ?? INDICADOR_VAZIO;
+  const { aberto, abrir, fechar, alternarFixado } = useAberturaLista(total > 0);
 
   return (
     <div
-      className={`relative rounded-xl border bg-white p-5 flex items-center gap-4 shadow-sm ${destaque ? 'ring-2 ring-red-400' : ''} ${total > 0 ? 'cursor-pointer' : ''}`}
-      onMouseEnter={aoEntrar}
-      onMouseLeave={aoSair}
-      onClick={() => {
-        if (total === 0) return;
-        setFixado((v) => !v);
-        setAberto(true);
-      }}
+      className={`relative rounded-xl border bg-white p-5 flex items-start gap-4 shadow-sm ${destaque ? 'ring-2 ring-red-400' : ''} ${total > 0 ? 'cursor-pointer' : ''}`}
+      onMouseEnter={abrir}
+      onMouseLeave={fechar}
+      onClick={alternarFixado}
     >
       <div className={`p-3 rounded-lg ${corFundo} shrink-0`}>
         <Icone className={`h-6 w-6 ${corIcone}`} />
@@ -115,53 +143,46 @@ function CardKPI({ icone: Icone, titulo, indicador, corIcone, corFundo, destaque
       <div className="min-w-0">
         <p className="text-sm text-gray-500 leading-tight">{titulo}</p>
         <p className="text-2xl font-bold text-gray-800">{total}</p>
+        {descricao && <p className="text-xs text-gray-400 mt-1 leading-snug">{descricao}</p>}
       </div>
-      {aberto && itens.length > 0 && (
-        <div
-          className="absolute left-0 top-full mt-2 z-50 w-96 max-w-[90vw] bg-white border rounded-xl shadow-xl p-3 max-h-80 overflow-y-auto"
-          onMouseEnter={aoEntrar}
-          onMouseLeave={aoSair}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <ListaIndicador indicador={indicador} />
-        </div>
-      )}
+      {aberto && <PainelLista indicador={indicador} abrir={abrir} fechar={fechar} />}
     </div>
   );
 }
 
-/** Barra da distribuição por etapa/prioridade. Quando tem lista, o clique abre as tarefas. */
-function BarraHorizontal({ label, valor, total, cor, itens, totalItens }) {
-  const [aberto, setAberto] = useState(false);
+/**
+ * Barra da distribuição (etapa / prioridade / colaborador). Abre a lista no mesmo gesto dos
+ * cards: hover mostra, clique fixa.
+ */
+function BarraHorizontal({ label, valor, total, cor, itens, totalItens, alinhamentoLista }) {
+  const temLista = Array.isArray(itens) && itens.length > 0;
+  const { aberto, abrir, fechar, alternarFixado } = useAberturaLista(temLista);
   const pct = total > 0 ? Math.round((valor / total) * 100) : 0;
-  const clicavel = Array.isArray(itens) && itens.length > 0;
 
   return (
-    <div className="mb-3">
-      <button
-        type="button"
-        disabled={!clicavel}
-        onClick={() => setAberto((v) => !v)}
-        className="w-full text-left disabled:cursor-default"
-      >
-        <div className="flex justify-between text-sm mb-1 items-center gap-2">
-          <span className="text-gray-700 font-medium truncate flex items-center gap-1">
-            {clicavel && <ChevronDown className={`h-3 w-3 text-gray-400 transition-transform ${aberto ? '' : '-rotate-90'}`} />}
-            {label}
-          </span>
-          <span className="text-gray-500 shrink-0">{valor}</span>
-        </div>
-        <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
-          <div
-            className="h-full rounded-full transition-all duration-500"
-            style={{ width: `${pct}%`, backgroundColor: cor || '#3b82f6' }}
-          />
-        </div>
-      </button>
-      {aberto && clicavel && (
-        <div className="mt-2 ml-4 pl-3 border-l max-h-64 overflow-y-auto">
-          <ListaIndicador indicador={{ total: totalItens ?? valor, itens }} />
-        </div>
+    <div
+      className={`relative mb-3 ${temLista ? 'cursor-pointer' : ''}`}
+      onMouseEnter={abrir}
+      onMouseLeave={fechar}
+      onClick={alternarFixado}
+    >
+      <div className="flex justify-between text-sm mb-1 items-center gap-2">
+        <span className="text-gray-700 font-medium truncate">{label}</span>
+        <span className="text-gray-500 shrink-0">{valor}</span>
+      </div>
+      <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
+        <div
+          className="h-full rounded-full transition-all duration-500"
+          style={{ width: `${pct}%`, backgroundColor: cor || '#3b82f6' }}
+        />
+      </div>
+      {aberto && (
+        <PainelLista
+          indicador={{ total: totalItens ?? valor, itens }}
+          abrir={abrir}
+          fechar={fechar}
+          alinhamento={alinhamentoLista}
+        />
       )}
     </div>
   );
@@ -422,8 +443,8 @@ export default function DashboardPage() {
           {
             element: '#tour-dashboard-tarefas-etapas',
             popover: {
-              title: 'Tarefas por Etapa',
-              description: 'Distribuição das tarefas pelas etapas do fluxo. <strong>Clique numa barra</strong> para ver quais tarefas estão naquela etapa.',
+              title: 'Tarefas — Distribuição',
+              description: 'Como as tarefas se distribuem por <strong>etapa</strong>, <strong>prioridade</strong> e <strong>colaborador</strong>. <strong>Passe o mouse</strong> em qualquer barra para ver as tarefas dela — e <strong>clique</strong> para fixar a lista.',
               side: 'top',
               align: 'center',
             },
@@ -554,6 +575,7 @@ export default function DashboardPage() {
           <CardKPI
             icone={CalendarCheck}
             titulo="Agendados Hoje"
+            descricao="Marcados para hoje e ainda não concluídos."
             indicador={atendimentos.hoje}
             corIcone="text-blue-600"
             corFundo="bg-blue-50"
@@ -561,6 +583,7 @@ export default function DashboardPage() {
           <CardKPI
             icone={CalendarClock}
             titulo={`Pendentes (${rotuloPeriodo})`}
+            descricao="Agendados dentro do período e ainda não realizados."
             indicador={atendimentos.pendentesPeriodo}
             corIcone="text-amber-600"
             corFundo="bg-amber-50"
@@ -568,6 +591,7 @@ export default function DashboardPage() {
           <CardKPI
             icone={AlertTriangle}
             titulo="Em Atraso"
+            descricao="Passaram da hora de término e continuam em aberto."
             indicador={atendimentos.emAtraso}
             corIcone="text-red-600"
             corFundo="bg-red-50"
@@ -576,6 +600,7 @@ export default function DashboardPage() {
           <CardKPI
             icone={CheckCircle2}
             titulo={`Realizados (${rotuloPeriodo})`}
+            descricao="Concluídos dentro do período."
             indicador={atendimentos.realizadosPeriodo}
             corIcone="text-emerald-600"
             corFundo="bg-emerald-50"
@@ -612,6 +637,7 @@ export default function DashboardPage() {
           <CardKPI
             icone={ClipboardList}
             titulo="Em Andamento"
+            descricao="Estão em alguma etapa do fluxo, sem contar as que já chegaram na etapa final."
             indicador={tarefas.emAndamento}
             corIcone="text-violet-600"
             corFundo="bg-violet-50"
@@ -619,6 +645,7 @@ export default function DashboardPage() {
           <CardKPI
             icone={Inbox}
             titulo="No Backlog"
+            descricao="Ainda sem etapa definida — não entraram no fluxo."
             indicador={tarefas.backlog}
             corIcone="text-slate-600"
             corFundo="bg-slate-100"
@@ -626,6 +653,7 @@ export default function DashboardPage() {
           <CardKPI
             icone={TimerOff}
             titulo="Não Iniciadas"
+            descricao="Já estão numa etapa, mas ninguém apertou Iniciar ainda."
             indicador={tarefas.ociosas}
             corIcone={tarefas.ociosas.total > 0 ? 'text-amber-600' : 'text-gray-400'}
             corFundo={tarefas.ociosas.total > 0 ? 'bg-amber-50' : 'bg-gray-100'}
@@ -634,6 +662,7 @@ export default function DashboardPage() {
             <CardKPI
               icone={UserMinus}
               titulo="Sem Responsável"
+              descricao="Sem colaborador atribuído, em projetos ativos."
               indicador={tarefas.semResponsavel}
               corIcone={tarefas.semResponsavel.total > 0 ? 'text-orange-500' : 'text-gray-400'}
               corFundo={tarefas.semResponsavel.total > 0 ? 'bg-orange-50' : 'bg-gray-100'}
@@ -653,6 +682,7 @@ export default function DashboardPage() {
           <CardKPI
             icone={AlertTriangle}
             titulo="Em Atraso — Execução"
+            descricao="Somaram mais tempo de elaboração do que o previsto na tarefa."
             indicador={tarefas.execucaoEmAtraso}
             corIcone={tarefas.execucaoEmAtraso.total > 0 ? 'text-red-600' : 'text-gray-400'}
             corFundo={tarefas.execucaoEmAtraso.total > 0 ? 'bg-red-50' : 'bg-gray-100'}
@@ -661,6 +691,7 @@ export default function DashboardPage() {
           <CardKPI
             icone={AlertTriangle}
             titulo="Em Atraso — Teste"
+            descricao="Passaram do tempo previsto de teste, contando só o que rodou na etapa de teste."
             indicador={tarefas.testeEmAtraso}
             corIcone={tarefas.testeEmAtraso.total > 0 ? 'text-blue-600' : 'text-gray-400'}
             corFundo={tarefas.testeEmAtraso.total > 0 ? 'bg-blue-50' : 'bg-gray-100'}
@@ -678,7 +709,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="bg-white rounded-xl border p-5 shadow-sm">
             <p className="text-sm font-semibold text-gray-700 mb-1">Por Etapa</p>
-            <p className="text-xs text-gray-400 mb-4">Clique numa etapa para ver as tarefas.</p>
+            <p className="text-xs text-gray-400 mb-4">Onde as tarefas estão no fluxo. Passe o mouse numa etapa para ver quais são.</p>
             {tarefas.porEtapa.length === 0
               ? <p className="text-sm text-gray-400">Nenhuma tarefa em andamento.</p>
               : tarefas.porEtapa.map((item) => (
@@ -696,7 +727,8 @@ export default function DashboardPage() {
           </div>
 
           <div className="bg-white rounded-xl border p-5 shadow-sm">
-            <p className="text-sm font-semibold text-gray-700 mb-4">Por Prioridade</p>
+            <p className="text-sm font-semibold text-gray-700 mb-1">Por Prioridade</p>
+            <p className="text-xs text-gray-400 mb-4">Prioridade das tarefas que ainda não chegaram na etapa final.</p>
             {tarefas.porPrioridade.length === 0
               ? <p className="text-sm text-gray-400">Nenhuma tarefa em andamento.</p>
               : tarefas.porPrioridade.map((item) => (
@@ -706,6 +738,8 @@ export default function DashboardPage() {
                   valor={item.total}
                   total={totalPorPrioridade}
                   cor={item.cor}
+                  itens={item.itens}
+                  totalItens={item.total}
                 />
               ))
             }
@@ -713,7 +747,7 @@ export default function DashboardPage() {
 
           <div className="bg-white rounded-xl border p-5 shadow-sm">
             <p className="text-sm font-semibold text-gray-700 mb-1">Carga por Colaborador</p>
-            <p className="text-xs text-gray-400 mb-4">Tarefas abertas atribuídas hoje.</p>
+            <p className="text-xs text-gray-400 mb-4">Tarefas abertas atribuídas hoje a cada pessoa.</p>
             {(tarefas.cargaPorColaborador ?? []).length === 0
               ? <p className="text-sm text-gray-400">Nenhuma tarefa atribuída.</p>
               : tarefas.cargaPorColaborador.map((item) => (
@@ -723,6 +757,9 @@ export default function DashboardPage() {
                   valor={item.total}
                   total={cargaMaxima}
                   cor="#6366f1"
+                  itens={item.itens}
+                  totalItens={item.total}
+                  alinhamentoLista="right-0"
                 />
               ))
             }
@@ -740,6 +777,7 @@ export default function DashboardPage() {
           <CardKPI
             icone={ClipboardCheck}
             titulo="Tarefas Concluídas"
+            descricao="Chegaram na etapa final dentro do período. Cada tarefa conta uma vez, mesmo se foi reaberta."
             indicador={tarefas.concluidasPeriodo}
             corIcone="text-emerald-600"
             corFundo="bg-emerald-50"
@@ -747,6 +785,7 @@ export default function DashboardPage() {
           <CardKPI
             icone={CheckCircle2}
             titulo="Atendimentos Realizados"
+            descricao="Concluídos dentro do período."
             indicador={atendimentos.realizadosPeriodo}
             corIcone="text-blue-600"
             corFundo="bg-blue-50"
@@ -755,6 +794,7 @@ export default function DashboardPage() {
             <CardKPI
               icone={FolderCheck}
               titulo="Projetos Concluídos"
+              descricao="Marcados como concluídos dentro do período."
               indicador={projetos.concluidosPeriodo}
               corIcone="text-teal-600"
               corFundo="bg-teal-50"
@@ -793,6 +833,7 @@ export default function DashboardPage() {
               <CardKPI
                 icone={FolderOpen}
                 titulo="Projetos Ativos"
+                descricao="Ativos e ainda não concluídos."
                 indicador={projetos.ativos}
                 corIcone="text-teal-600"
                 corFundo="bg-teal-50"
@@ -800,6 +841,7 @@ export default function DashboardPage() {
               <CardKPI
                 icone={CalendarCheck}
                 titulo={`Cadastrados (${rotuloPeriodo})`}
+                descricao="Projetos criados dentro do período."
                 indicador={projetos.cadastradosPeriodo}
                 corIcone="text-blue-600"
                 corFundo="bg-blue-50"
