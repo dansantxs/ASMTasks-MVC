@@ -43,6 +43,11 @@ Backend\Database\schema.sql
 Backend\Database\seed.sql
 ```
 
+> `schema.sql` e `seed.sql` são a **única** fonte da estrutura do banco — não há
+> pasta de migrations. Toda alteração de estrutura (coluna, índice, FK) entra
+> direto no `schema.sql`; em bancos já existentes, aplique o `ALTER TABLE`
+> correspondente à mão (veja `db.ps1` no [`GUIA-POWERSHELL.md`](GUIA-POWERSHELL.md)).
+
 ### 2. Backend (.NET)
 
 ```powershell
@@ -188,7 +193,7 @@ ASMTasks-MVC/
 ├── Backend/
 │   ├── API/                    # ASP.NET Core 9 — API REST
 │   ├── Database/
-│   │   ├── schema.sql          # Criação do banco e tabelas
+│   │   ├── schema.sql          # Criação do banco e tabelas (fonte única da estrutura)
 │   │   └── seed.sql            # Dados iniciais
 │   └── Dockerfile              # Imagem do backend
 ├── Frontend/                   # Next.js 16 — interface web (+ Dockerfile)
