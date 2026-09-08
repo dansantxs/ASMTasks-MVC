@@ -11,13 +11,13 @@ namespace API.Controllers
     [Route("api/[controller]")]
     [Produces("application/json")]
     [Authorize]
-    public class DashboardController(DBContext dbContext) : ControllerBase
+    public class DashboardController(DBContext dbContext, ILogger<DashboardController> logger) : ControllerBase
     {
 
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> Obter([FromQuery] int? colaboradorId)
+        public async Task<IActionResult> Obter([FromQuery] int? colaboradorId, [FromQuery] string? periodo)
         {
             try
             {
@@ -30,7 +30,7 @@ namespace API.Controllers
 
                 var config = await new ConfiguracoesSistemaDAO().ObterAsync(dbContext);
                 var dao = new DashboardDAO();
-                var dashboard = await dao.ObterDashboardAsync(dbContext, colaboradorIdLogado, ehAdministrador, colaboradorId, config.ExibicaoNomeCliente);
+                var dashboard = await dao.ObterDashboardAsync(dbContext, colaboradorIdLogado, ehAdministrador, colaboradorId, periodo, config.ExibicaoNomeCliente);
 
                 return Ok(dashboard);
             }
@@ -40,6 +40,9 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
+                // Sem este log, um erro de SQL aqui vira um 500 mudo no navegador e não sobra
+                // nada para investigar. A resposta segue genérica; o detalhe fica no log.
+                logger.LogError(ex, "Erro ao obter o dashboard (colaboradorId={ColaboradorId}, periodo={Periodo})", colaboradorId, periodo);
                 return StatusCode(500, new { erro = "Erro ao obter o dashboard." });
             }
         }

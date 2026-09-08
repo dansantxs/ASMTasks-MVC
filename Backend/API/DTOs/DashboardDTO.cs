@@ -4,6 +4,7 @@ namespace API.DTOs.Dashboard
     {
         public bool EhAdministrador { get; set; }
         public DashboardFiltroDTO? Filtro { get; set; }
+        public DashboardPeriodoDTO Periodo { get; set; } = new();
         public DashboardAtendimentosDTO Atendimentos { get; set; } = new();
         public DashboardTarefasDTO Tarefas { get; set; } = new();
         public DashboardProjetosDTO? Projetos { get; set; }
@@ -18,25 +19,59 @@ namespace API.DTOs.Dashboard
         public string ColaboradorNome { get; set; } = "";
     }
 
-    public class DashboardItemListaDTO
+    /// <summary>
+    /// Janela de tempo dos indicadores "do período". Fim é EXCLUSIVO: as consultas usam
+    /// [Inicio, Fim), que além de pegar o dia inteiro sem depender da hora, permite índice.
+    /// </summary>
+    public class DashboardPeriodoDTO
+    {
+        public string Id { get; set; } = "mesAtual";
+        public string Label { get; set; } = "";
+        public DateTime Inicio { get; set; }
+        public DateTime Fim { get; set; }
+    }
+
+    /// <summary>
+    /// Indicador = número + a lista que o compõe. `Total` é a contagem real (vem de
+    /// COUNT(*) OVER() na mesma consulta que monta a lista, então nunca diverge dela);
+    /// `Itens` é limitado a <see cref="DashboardIndicadorDTO.LimitePadrao"/> linhas.
+    /// </summary>
+    public class DashboardIndicadorDTO
+    {
+        public const int LimitePadrao = 100;
+
+        public int Total { get; set; }
+        public List<DashboardLinhaDTO> Itens { get; set; } = new();
+    }
+
+    /// <summary>
+    /// Uma linha de lista de indicador. Serve para tarefa, atendimento e projeto — os campos
+    /// que não fazem sentido para o tipo vêm nulos e a tela simplesmente não os mostra.
+    /// </summary>
+    public class DashboardLinhaDTO
     {
         public int Id { get; set; }
         public string Titulo { get; set; } = "";
-        public string? Info { get; set; }
+        public string? ProjetoTitulo { get; set; }
+        public string? ClienteNome { get; set; }
+        public string? ColaboradorNome { get; set; }
+        public string? EtapaNome { get; set; }
+        public string? StatusAtual { get; set; }
+        /// <summary>Desde quando está assim: atribuição da tarefa, ou agendamento do atendimento.</summary>
+        public DateTime? DesdeQuando { get; set; }
+        /// <summary>Quem mexeu por último e quando — responde "quem está mexendo, quando".</summary>
+        public string? UltimaAcaoPor { get; set; }
+        public DateTime? UltimaAcaoEm { get; set; }
     }
 
     public class DashboardAtendimentosDTO
     {
-        public int Hoje { get; set; }
-        public int Agendados { get; set; }
-        public int EmAtraso { get; set; }
-        public int RealizadosMes { get; set; }
+        public DashboardIndicadorDTO Hoje { get; set; } = new();
+        public DashboardIndicadorDTO PendentesPeriodo { get; set; } = new();
+        public DashboardIndicadorDTO EmAtraso { get; set; } = new();
+        public DashboardIndicadorDTO RealizadosPeriodo { get; set; } = new();
         public List<TendenciaMensalDTO> Tendencia { get; set; } = new();
         public List<ProximoAtendimentoDTO> Proximos { get; set; } = new();
-        public List<DashboardItemListaDTO> HojeLista { get; set; } = new();
-        public List<DashboardItemListaDTO> PendentesLista { get; set; } = new();
-        public List<DashboardItemListaDTO> EmAtrasoLista { get; set; } = new();
-        public List<DashboardItemListaDTO> RealizadosMesLista { get; set; } = new();
     }
 
     public class TendenciaMensalDTO
@@ -45,6 +80,7 @@ namespace API.DTOs.Dashboard
         public int Mes { get; set; }
         public int Total { get; set; }
         public string Label { get; set; } = "";
+        public List<DashboardLinhaDTO> Itens { get; set; } = new();
     }
 
     public class ProximoAtendimentoDTO
@@ -57,37 +93,30 @@ namespace API.DTOs.Dashboard
 
     public class DashboardTarefasDTO
     {
-        public int Total { get; set; }
-        public int ConcluidasMes { get; set; }
-        public int SemResponsavel { get; set; }
-        public int TarefasBacklog { get; set; }
-        public int TarefasExecucaoEmAtraso { get; set; }
-        public int TarefasTesteEmAtraso { get; set; }
-        public int TarefasOciosas { get; set; }
-        public List<TarefaAlertaDTO> TarefasExecucaoEmAtrasoLista { get; set; } = new();
-        public List<TarefaAlertaDTO> TarefasTesteEmAtrasoLista { get; set; } = new();
-        public List<TarefaAlertaDTO> TarefasOciosasList { get; set; } = new();
-        public List<DashboardItemListaDTO> EmAndamentoLista { get; set; } = new();
-        public List<DashboardItemListaDTO> ConcluidasMesLista { get; set; } = new();
-        public List<DashboardItemListaDTO> SemResponsavelLista { get; set; } = new();
+        /// <summary>Tarefas em alguma etapa que não é a final — o trabalho realmente em curso.</summary>
+        public DashboardIndicadorDTO EmAndamento { get; set; } = new();
+        public DashboardIndicadorDTO Backlog { get; set; } = new();
+        public DashboardIndicadorDTO SemResponsavel { get; set; } = new();
+        public DashboardIndicadorDTO Ociosas { get; set; } = new();
+        public DashboardIndicadorDTO ExecucaoEmAtraso { get; set; } = new();
+        public DashboardIndicadorDTO TesteEmAtraso { get; set; } = new();
+        public DashboardIndicadorDTO ConcluidasPeriodo { get; set; } = new();
         public List<TarefaPorEtapaDTO> PorEtapa { get; set; } = new();
         public List<TarefaPorPrioridadeDTO> PorPrioridade { get; set; } = new();
+        public List<CargaColaboradorDTO> CargaPorColaborador { get; set; } = new();
     }
 
-    public class TarefaAlertaDTO
-    {
-        public int Id { get; set; }
-        public string Titulo { get; set; } = "";
-        public string? ColaboradorNome { get; set; }
-        public string? EtapaNome { get; set; }
-    }
-
+    /// <summary>
+    /// Distribuição por etapa, cada faixa com as tarefas que a compõem. `EtapaId` nulo = Backlog.
+    /// </summary>
     public class TarefaPorEtapaDTO
     {
+        public int? EtapaId { get; set; }
         public string Etapa { get; set; } = "";
         public int Ordem { get; set; }
         public bool EhEtapaFinal { get; set; }
         public int Total { get; set; }
+        public List<DashboardLinhaDTO> Itens { get; set; } = new();
     }
 
     public class TarefaPorPrioridadeDTO
@@ -96,23 +125,29 @@ namespace API.DTOs.Dashboard
         public string Cor { get; set; } = "";
         public int Ordem { get; set; }
         public int Total { get; set; }
+        public List<DashboardLinhaDTO> Itens { get; set; } = new();
+    }
+
+    /// <summary>Quantas tarefas abertas cada colaborador tem hoje — foto, não métrica de período.</summary>
+    public class CargaColaboradorDTO
+    {
+        public int Id { get; set; }
+        public string Nome { get; set; } = "";
+        public int Total { get; set; }
+        public List<DashboardLinhaDTO> Itens { get; set; } = new();
     }
 
     public class DashboardProjetosDTO
     {
-        public int Ativos { get; set; }
-        public int ConcluidosMes { get; set; }
-        public int CadastradosHoje { get; set; }
-        public List<DashboardItemListaDTO> AtivoLista { get; set; } = new();
-        public List<DashboardItemListaDTO> ConcluidosMesLista { get; set; } = new();
-        public List<DashboardItemListaDTO> CadastradosHojeLista { get; set; } = new();
+        public DashboardIndicadorDTO Ativos { get; set; } = new();
+        public DashboardIndicadorDTO ConcluidosPeriodo { get; set; } = new();
+        public DashboardIndicadorDTO CadastradosPeriodo { get; set; } = new();
     }
 
     public class DashboardColaboradoresDTO
     {
-        public List<TopColaboradorDTO> TopAtendimentosMes { get; set; } = new();
-        public List<TopColaboradorDTO> TopTarefasAtribuidas { get; set; } = new();
-        public List<TopColaboradorDTO> TopTarefasConcluidas { get; set; } = new();
+        public List<TopColaboradorDTO> AtendimentosPeriodo { get; set; } = new();
+        public List<TopColaboradorDTO> TarefasConcluidasPeriodo { get; set; } = new();
         public List<ColaboradorOciosoDTO> SemTarefasAtribuidas { get; set; } = new();
     }
 
@@ -136,6 +171,7 @@ namespace API.DTOs.Dashboard
     {
         public string Nome { get; set; } = "";
         public int Total { get; set; }
+        public List<DashboardLinhaDTO> Itens { get; set; } = new();
     }
 
     public class ColaboradorFiltroItemDTO
