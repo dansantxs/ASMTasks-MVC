@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   CalendarCheck,
@@ -83,35 +83,51 @@ function ListaIndicador({ indicador }) {
 }
 
 /**
- * Abre a lista no hover e fixa no clique (para dar tempo de rolar listas longas).
- * Compartilhado pelos cards e pelas barras, para o gesto ser o mesmo na tela inteira.
+ * Abre a lista no hover e fixa no clique. Compartilhado pelos cards e pelas barras, para o
+ * gesto ser o mesmo na tela inteira.
+ *
+ * Enquanto é só hover, o painel não captura o mouse (ver PainelLista) e fecha assim que o
+ * ponteiro sai do indicador — senão ele fica por cima do indicador vizinho e impede que o
+ * vizinho seja apontado. Fixado no clique, aí sim vira interativo e dá para rolar a lista.
  */
 function useAberturaLista(temItens) {
   const [aberto, setAberto] = useState(false);
   const [fixado, setFixado] = useState(false);
-  const timerRef = useRef(null);
 
   const abrir = () => {
-    if (timerRef.current) clearTimeout(timerRef.current);
     if (temItens) setAberto(true);
   };
   const fechar = () => {
-    if (fixado) return;
-    timerRef.current = setTimeout(() => setAberto(false), 150);
+    if (!fixado) setAberto(false);
   };
-  const alternarFixado = () => {
+  const alternarFixado = (evento) => {
     if (!temItens) return;
+    // Impede que este mesmo clique chegue ao document e feche o painel na sequência.
+    evento?.stopPropagation();
     setFixado((v) => !v);
     setAberto(true);
   };
 
-  return { aberto: aberto && temItens, abrir, fechar, alternarFixado };
+  // Fixado, só um clique fora solta.
+  useEffect(() => {
+    if (!fixado) return;
+    const aoClicarFora = () => {
+      setFixado(false);
+      setAberto(false);
+    };
+    document.addEventListener('click', aoClicarFora);
+    return () => document.removeEventListener('click', aoClicarFora);
+  }, [fixado]);
+
+  return { aberto: aberto && temItens, fixado, abrir, fechar, alternarFixado };
 }
 
-function PainelLista({ indicador, abrir, fechar, alinhamento = 'left-0' }) {
+function PainelLista({ indicador, fixado, abrir, fechar, alinhamento = 'left-0' }) {
   return (
     <div
-      className={`absolute ${alinhamento} top-full mt-2 z-50 w-[30rem] max-w-[85vw] bg-white border rounded-xl shadow-xl p-4 max-h-[28rem] overflow-y-auto`}
+      className={`absolute ${alinhamento} top-full mt-2 w-[30rem] max-w-[85vw] bg-white border rounded-xl shadow-xl p-4 max-h-[28rem] overflow-y-auto ${
+        fixado ? 'z-50 pointer-events-auto ring-2 ring-brand-blue' : 'z-40 pointer-events-none'
+      }`}
       onMouseEnter={abrir}
       onMouseLeave={fechar}
       onClick={(e) => e.stopPropagation()}
@@ -128,7 +144,7 @@ function PainelLista({ indicador, abrir, fechar, alinhamento = 'left-0' }) {
  */
 function CardKPI({ icone: Icone, titulo, descricao, indicador, corIcone, corFundo, destaque }) {
   const { total = 0 } = indicador ?? INDICADOR_VAZIO;
-  const { aberto, abrir, fechar, alternarFixado } = useAberturaLista(total > 0);
+  const { aberto, fixado, abrir, fechar, alternarFixado } = useAberturaLista(total > 0);
 
   return (
     <div
@@ -145,7 +161,7 @@ function CardKPI({ icone: Icone, titulo, descricao, indicador, corIcone, corFund
         <p className="text-2xl font-bold text-gray-800">{total}</p>
         {descricao && <p className="text-xs text-gray-400 mt-1 leading-snug">{descricao}</p>}
       </div>
-      {aberto && <PainelLista indicador={indicador} abrir={abrir} fechar={fechar} />}
+      {aberto && <PainelLista indicador={indicador} fixado={fixado} abrir={abrir} fechar={fechar} />}
     </div>
   );
 }
@@ -156,7 +172,7 @@ function CardKPI({ icone: Icone, titulo, descricao, indicador, corIcone, corFund
  */
 function BarraHorizontal({ label, valor, total, cor, itens, totalItens, alinhamentoLista }) {
   const temLista = Array.isArray(itens) && itens.length > 0;
-  const { aberto, abrir, fechar, alternarFixado } = useAberturaLista(temLista);
+  const { aberto, fixado, abrir, fechar, alternarFixado } = useAberturaLista(temLista);
   const pct = total > 0 ? Math.round((valor / total) * 100) : 0;
 
   return (
@@ -179,6 +195,7 @@ function BarraHorizontal({ label, valor, total, cor, itens, totalItens, alinhame
       {aberto && (
         <PainelLista
           indicador={{ total: totalItens ?? valor, itens }}
+          fixado={fixado}
           abrir={abrir}
           fechar={fechar}
           alinhamento={alinhamentoLista}
@@ -190,7 +207,7 @@ function BarraHorizontal({ label, valor, total, cor, itens, totalItens, alinhame
 
 /** Uma coluna do gráfico de tendência: hover abre os atendimentos daquele mês. */
 function ColunaTendencia({ item, altura, ehAtual, alinhamento }) {
-  const { aberto, abrir, fechar, alternarFixado } = useAberturaLista(item.total > 0);
+  const { aberto, fixado, abrir, fechar, alternarFixado } = useAberturaLista(item.total > 0);
 
   return (
     <div
@@ -210,6 +227,7 @@ function ColunaTendencia({ item, altura, ehAtual, alinhamento }) {
       {aberto && (
         <PainelLista
           indicador={{ total: item.total, itens: item.itens ?? [] }}
+          fixado={fixado}
           abrir={abrir}
           fechar={fechar}
           alinhamento={alinhamento}
@@ -334,7 +352,7 @@ function ColaboradoresOciosos({ itens }) {
 
 /** Uma linha do ranking: hover abre o que aquele colaborador fez no período. */
 function LinhaRanking({ item, posicao, corBadge, alinhamentoLista }) {
-  const { aberto, abrir, fechar, alternarFixado } = useAberturaLista((item.itens?.length ?? 0) > 0);
+  const { aberto, fixado, abrir, fechar, alternarFixado } = useAberturaLista((item.itens?.length ?? 0) > 0);
 
   return (
     <li
@@ -353,6 +371,7 @@ function LinhaRanking({ item, posicao, corBadge, alinhamentoLista }) {
       {aberto && (
         <PainelLista
           indicador={{ total: item.total, itens: item.itens ?? [] }}
+          fixado={fixado}
           abrir={abrir}
           fechar={fechar}
           alinhamento={alinhamentoLista}
@@ -481,7 +500,7 @@ export default function DashboardPage() {
             element: '#tour-dashboard-atendimentos',
             popover: {
               title: 'Atendimentos',
-              description: 'Agendados hoje, pendentes e realizados no período, e os que passaram do prazo. <strong>Passe o mouse</strong> em qualquer card para ver a lista — e <strong>clique</strong> para fixá-la e poder rolar.',
+              description: 'Agendados hoje, pendentes e realizados no período, e os que passaram do prazo. <strong>Passe o mouse</strong> em qualquer card para ver a lista. <strong>Clique</strong> para fixá-la e poder rolar; clique fora para soltar.',
               side: 'bottom',
               align: 'center',
             },
@@ -499,7 +518,7 @@ export default function DashboardPage() {
             element: '#tour-dashboard-tarefas-etapas',
             popover: {
               title: 'Tarefas — Distribuição',
-              description: 'Como as tarefas se distribuem por <strong>etapa</strong>, <strong>prioridade</strong> e <strong>colaborador</strong>. <strong>Passe o mouse</strong> em qualquer barra para ver as tarefas dela — e <strong>clique</strong> para fixar a lista.',
+              description: 'Como as tarefas se distribuem por <strong>etapa</strong>, <strong>prioridade</strong> e <strong>colaborador</strong>. <strong>Passe o mouse</strong> em qualquer barra para ver as tarefas dela. <strong>Clique</strong> para fixar a lista; clique fora para soltar.',
               side: 'top',
               align: 'center',
             },
@@ -673,7 +692,7 @@ export default function DashboardPage() {
               <TrendingUp className="h-4 w-4 text-blue-500" />
               Realizados — Últimos 6 Meses
             </p>
-            <p className="text-xs text-gray-400 mt-0.5 mb-2">Atendimentos concluídos por mês (mês atual em azul escuro). Passe o mouse numa barra para ver quais.</p>
+            <p className="text-xs text-gray-400 mt-0.5 mb-2">Atendimentos concluídos por mês.</p>
             <GraficoTendencia tendencia={atendimentos.tendencia} />
           </div>
 
@@ -770,7 +789,7 @@ export default function DashboardPage() {
         <div className={`grid grid-cols-1 gap-4 ${visaoGlobal ? 'lg:grid-cols-3' : 'lg:grid-cols-2'}`}>
           <div className="bg-white rounded-xl border p-5 shadow-sm">
             <p className="text-sm font-semibold text-gray-700 mb-1">Por Etapa</p>
-            <p className="text-xs text-gray-400 mb-4">Onde as tarefas estão no fluxo. Passe o mouse numa etapa para ver quais são.</p>
+            <p className="text-xs text-gray-400 mb-4">Onde as tarefas estão no fluxo.</p>
             {tarefas.porEtapa.length === 0
               ? <p className="text-sm text-gray-400">Nenhuma tarefa em andamento.</p>
               : tarefas.porEtapa.map((item) => (
