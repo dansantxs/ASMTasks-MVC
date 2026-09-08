@@ -12,7 +12,7 @@ function resolverNomeCliente(tarefa, exibicao) {
   return tarefa.clienteNome;
 }
 
-function ColunaKanban({ etapaId, titulo, tarefas, ehAdmin, colaboradorLogadoId, isBacklog, isEtapaFinal, onVisualizarTarefa, exibicaoNomeCliente = 'razaoSocial' }) {
+function ColunaKanban({ etapaId, titulo, tarefas, ehAdmin, colaboradorLogadoId, isBacklog, isEtapaFinal, onVisualizarTarefa, exibicaoNomeCliente = 'razaoSocial', mostrarLancamento = false }) {
   const podeMoverTarefa = (tarefa) => {
     if (isBacklog && !ehAdmin) return false;
     return (
@@ -93,6 +93,7 @@ function ColunaKanban({ etapaId, titulo, tarefas, ehAdmin, colaboradorLogadoId, 
             podeMover={podeMoverTarefa(tarefa)}
             onVisualizar={onVisualizarTarefa}
             nomeCliente={resolverNomeCliente(tarefa, exibicaoNomeCliente)}
+            mostrarLancamento={mostrarLancamento}
           />
         ))}
 

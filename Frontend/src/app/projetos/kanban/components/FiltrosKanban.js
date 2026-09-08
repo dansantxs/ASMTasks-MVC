@@ -1,9 +1,20 @@
 'use client';
 
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { Filter, ChevronDown, X, Check, Search } from 'lucide-react';
+import { Filter, ChevronDown, X, Check, Search, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { Button } from '../../../../components/ui/base/button';
 import { cn } from '../../../../components/ui/form/utils';
+
+const opcoesOrdenacao = [
+  { id: 'prioridade', label: 'Prioridade' },
+  { id: 'lancamento', label: 'Lançamento' },
+];
+
+// Em Prioridade, ordem 1 é a mais alta — por isso "crescente" significa "mais urgente primeiro".
+const rotuloDirecao = ({ ordenacao, direcao }) =>
+  ordenacao === 'lancamento'
+    ? (direcao === 'asc' ? 'Mais antigas primeiro' : 'Mais recentes primeiro')
+    : (direcao === 'asc' ? 'Maior prioridade primeiro' : 'Menor prioridade primeiro');
 
 const DIACRITICOS = /[̀-ͯ]/g;
 const normalizar = (texto) => (texto ?? '').normalize('NFD').replace(DIACRITICOS, '').toLowerCase();
@@ -136,6 +147,8 @@ export default function FiltrosKanban({
   projetos,
   clientes,
   ehAdmin,
+  ordenacao,
+  aoAlterarOrdenacao,
 }) {
   const { colaboradorIds, projetoIds, clienteIds } = filtros;
 
@@ -188,8 +201,37 @@ export default function FiltrosKanban({
         emptyLabel="Todos"
       />
 
+      <div className="flex items-center gap-1.5 ml-auto">
+        <ArrowUpDown className="h-4 w-4 text-gray-400" />
+        <span className="text-sm text-gray-700">Ordenar por:</span>
+        <div className="flex rounded-lg border border-gray-200 overflow-hidden">
+          {opcoesOrdenacao.map((opcao) => (
+            <button
+              key={opcao.id}
+              type="button"
+              onClick={() => aoAlterarOrdenacao({ ...ordenacao, ordenacao: opcao.id })}
+              className={cn(
+                'px-2.5 py-1.5 text-sm transition-colors',
+                ordenacao.ordenacao === opcao.id
+                  ? 'bg-brand-blue/10 text-brand-blue font-medium'
+                  : 'bg-white text-gray-700 hover:bg-gray-50'
+              )}
+            >
+              {opcao.label}
+            </button>
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={() => aoAlterarOrdenacao({ ...ordenacao, direcao: ordenacao.direcao === 'asc' ? 'desc' : 'asc' })}
+          title={rotuloDirecao(ordenacao)}
+          className="p-1.5 rounded-lg border border-gray-200 bg-white text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition-colors"
+        >
+          {ordenacao.direcao === 'asc' ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />}
+        </button>
+      </div>
       {temFiltroAtivo && (
-        <Button variant="ghost" size="sm" onClick={limpar} className="text-gray-500 hover:text-gray-700 ml-auto">
+        <Button variant="ghost" size="sm" onClick={limpar} className="text-gray-500 hover:text-gray-700">
           <X className="h-3.5 w-3.5 mr-1" />
           Limpar filtros
         </Button>

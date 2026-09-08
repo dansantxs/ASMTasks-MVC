@@ -23,6 +23,9 @@ import TourGuia from '../../../components/TourGuia';
 import DialogoVisualizarTarefa from './components/DialogoVisualizarTarefa';
 import { configuracoesPadrao, useConfiguracoesSistema } from '../../../services/configuracoes/api';
 
+const CHAVE_ORDENACAO = 'asm_kanban_ordenacao';
+const ORDENACAO_PADRAO = { ordenacao: 'prioridade', direcao: 'asc' };
+
 export default function KanbanPage() {
   const { usuario } = useUsuarioAtual();
   const colaboradorLogadoId = usuario?.colaboradorId ?? null;
@@ -36,6 +39,28 @@ export default function KanbanPage() {
     clienteIds: [],
   });
 
+
+  // Ordenacao dos cartoes dentro de cada coluna. Preferencia por usuario, lida so depois da
+  // montagem: no SSR do Next nao existe localStorage.
+  const [ordenacao, setOrdenacao] = useState(ORDENACAO_PADRAO);
+
+  useEffect(() => {
+    try {
+      const salvo = JSON.parse(localStorage.getItem(CHAVE_ORDENACAO) ?? 'null');
+      if (salvo?.ordenacao) setOrdenacao({ ordenacao: salvo.ordenacao, direcao: salvo.direcao ?? 'asc' });
+    } catch {
+      // preferencia corrompida: segue com o padrao
+    }
+  }, []);
+
+  const alterarOrdenacao = useCallback((nova) => {
+    setOrdenacao(nova);
+    try {
+      localStorage.setItem(CHAVE_ORDENACAO, JSON.stringify(nova));
+    } catch {
+      // navegacao anonima / storage bloqueado: so nao persiste
+    }
+  }, []);
   const queryClient = useQueryClient();
 
   const { data: etapas = [] } = useQuery({
@@ -279,7 +304,7 @@ export default function KanbanPage() {
             popover: {
               title: 'Filtros',
               description:
-                'Filtre as tarefas por <strong>colaborador</strong>, <strong>projeto</strong> ou <strong>cliente</strong>. Use múltiplos filtros simultaneamente. Por padrão, exibe as tarefas do colaborador logado.',
+                'Filtre as tarefas por <strong>colaborador</strong>, <strong>projeto</strong> ou <strong>cliente</strong>. Use múltiplos filtros simultaneamente. Por padrão, exibe as tarefas do colaborador logado.<br>Em <strong>Ordenar por</strong>, alterne entre <strong>Prioridade</strong> e <strong>Lançamento</strong> (data em que a tarefa foi lançada) e use a seta para inverter a ordem.',
               side: 'bottom',
               align: 'start',
             },
@@ -346,6 +371,8 @@ export default function KanbanPage() {
             projetos={projetosAtivos}
             clientes={clientesFiltrados}
             ehAdmin={ehAdmin}
+            ordenacao={ordenacao}
+            aoAlterarOrdenacao={alterarOrdenacao}
           />
         </div>
 
@@ -366,6 +393,8 @@ export default function KanbanPage() {
             onReordenarColunas={handleReordenarColunas}
             onVisualizarTarefa={setTarefaVisualizando}
             exibicaoNomeCliente={exibicaoNomeCliente}
+            ordenacao={ordenacao.ordenacao}
+            direcao={ordenacao.direcao}
           />
           </div>
         )}

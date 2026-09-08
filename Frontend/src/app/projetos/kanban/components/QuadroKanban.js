@@ -18,7 +18,20 @@ import {
 
 const COLUNA_BACKLOG = { id: null, nome: 'Backlog', ordem: -1 };
 
-export default function QuadroKanban({ tarefas, etapas, colaboradores, colaboradorLogadoId, onMoverTarefa, isMovendo, ehAdmin, onReordenarColunas, onVisualizarTarefa, exibicaoNomeCliente = 'razaoSocial' }) {
+// Comparadores dos cartoes dentro de uma coluna. `ordenacao` escolhe a chave principal e a
+// outra vira desempate; o `id` fecha o criterio para a ordem nunca ficar instavel.
+const compararPrioridade = (a, b) => (a.prioridadeOrdem ?? 0) - (b.prioridadeOrdem ?? 0);
+const compararLancamento = (a, b) =>
+  new Date(a.dataCadastro ?? 0).getTime() - new Date(b.dataCadastro ?? 0).getTime();
+
+function criarComparador(ordenacao, direcao) {
+  const sinal = direcao === 'desc' ? -1 : 1;
+  const principal = ordenacao === 'lancamento' ? compararLancamento : compararPrioridade;
+  const secundario = ordenacao === 'lancamento' ? compararPrioridade : compararLancamento;
+  return (a, b) => sinal * (principal(a, b) || secundario(a, b) || a.id - b.id);
+}
+
+export default function QuadroKanban({ tarefas, etapas, colaboradores, colaboradorLogadoId, onMoverTarefa, isMovendo, ehAdmin, onReordenarColunas, onVisualizarTarefa, exibicaoNomeCliente = 'razaoSocial', ordenacao = 'prioridade', direcao = 'asc' }) {
   const [tarefaArrastando, setTarefaArrastando] = useState(null);
   const [pendente, setPendente] = useState(null);
   const [pendenteBacklog, setPendenteBacklog] = useState(null);
@@ -38,11 +51,12 @@ export default function QuadroKanban({ tarefas, etapas, colaboradores, colaborad
 
   const colunas = useMemo(() => [COLUNA_BACKLOG, ...etapasOrdenadas], [etapasOrdenadas]);
 
-  // Agrupa e ordena as tarefas por etapa uma unica vez por mudanca de `tarefas`,
+  // Agrupa e ordena as tarefas por etapa uma unica vez por mudanca de `tarefas` ou da ordenacao,
   // em vez de refazer filter+sort para cada coluna a cada render. Cada bucket
   // mantem a mesma referencia entre renders, permitindo que ColunaKanban (memo)
   // pule re-renderizacoes desnecessarias durante o arraste.
   const tarefasPorEtapaMap = useMemo(() => {
+    const comparador = criarComparador(ordenacao, direcao);
     const mapa = new Map();
     for (const tarefa of tarefas) {
       const chave = tarefa.etapaId ?? null;
@@ -51,10 +65,10 @@ export default function QuadroKanban({ tarefas, etapas, colaboradores, colaborad
       else mapa.set(chave, [tarefa]);
     }
     for (const bucket of mapa.values()) {
-      bucket.sort((a, b) => (a.prioridadeOrdem ?? 0) - (b.prioridadeOrdem ?? 0));
+      bucket.sort(comparador);
     }
     return mapa;
-  }, [tarefas]);
+  }, [tarefas, ordenacao, direcao]);
 
   const EMPTY = useMemo(() => [], []);
   const tarefasPorEtapa = (etapaId) => tarefasPorEtapaMap.get(etapaId ?? null) ?? EMPTY;
@@ -144,6 +158,7 @@ export default function QuadroKanban({ tarefas, etapas, colaboradores, colaborad
               isEtapaFinal={coluna.ehEtapaFinal ?? false}
               onVisualizarTarefa={onVisualizarTarefa}
               exibicaoNomeCliente={exibicaoNomeCliente}
+              mostrarLancamento={ordenacao === 'lancamento'}
             />
           ))}
         </div>

@@ -3,10 +3,13 @@
 import { memo } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, User, Folder, Building2, Eye, Paperclip } from 'lucide-react';
+import { GripVertical, User, Folder, Building2, Eye, Paperclip, CalendarDays } from 'lucide-react';
 import { cn } from '../../../../components/ui/form/utils';
 
-function CartaoTarefa({ tarefa, podeMover, onVisualizar, nomeCliente }) {
+const formatarLancamento = (valor) =>
+  new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(valor));
+
+function CartaoTarefa({ tarefa, podeMover, onVisualizar, nomeCliente, mostrarLancamento = false }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `tarefa-${tarefa.id}`,
     data: { type: 'tarefa', tarefa },
@@ -88,6 +91,12 @@ function CartaoTarefa({ tarefa, podeMover, onVisualizar, nomeCliente }) {
             </p>
           </div>
 
+          {mostrarLancamento && tarefa.dataCadastro && (
+            <p className="mt-2 text-xs text-gray-400 flex items-center gap-1" title="Data de lançamento da tarefa">
+              <CalendarDays className="h-3 w-3 flex-shrink-0" />
+              Lançada em {formatarLancamento(tarefa.dataCadastro)}
+            </p>
+          )}
           <div className="mt-2 flex items-center justify-between gap-1">
             <div className="flex items-center gap-1 min-w-0">
               <User className="h-3 w-3 text-gray-400 flex-shrink-0" />

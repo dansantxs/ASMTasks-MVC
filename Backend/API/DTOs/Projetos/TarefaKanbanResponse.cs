@@ -21,6 +21,7 @@ namespace API.DTOs.Projetos
         public int? SetorId { get; set; }
     public int? CadastradoPorColaboradorId { get; set; }
     public string? CadastradoPorNome { get; set; }
+    public DateTime? DataCadastro { get; set; }
     public int QuantidadeAnexos { get; set; }
     public string? ClienteNomeFantasia { get; set; }
     public string StatusAtual { get; set; } = "Ociosa";
