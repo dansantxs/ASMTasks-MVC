@@ -445,10 +445,15 @@ namespace API.DB.DAOs
 
             if (visaoGlobal)
             {
+                // Só tarefas JÁ no fluxo. Mover para o Backlog remove o responsável (regra do
+                // Kanban), então toda tarefa de backlog está sem responsável por construção —
+                // contá-las aqui repetia o card Backlog inteiro e escondia o que interessa:
+                // tarefa andando no fluxo sem ninguém responsável.
                 dto.SemResponsavel = await LerIndicadorAsync(cmd, $@"
                     SELECT TOP (@Limite){ColunasTarefa}{TotalGeral}
                     {DeTarefa}
                     WHERE t.ColaboradorResponsavelId IS NULL
+                      AND t.EtapaId IS NOT NULL AND e.EhEtapaFinal = 0
                       {ProjetoAtivo}
                     ORDER BY t.Titulo
                 ", usarNomeFantasia);

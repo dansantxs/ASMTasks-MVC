@@ -742,7 +742,7 @@ export default function DashboardPage() {
             <CardKPI
               icone={UserMinus}
               titulo="Sem Responsável"
-              descricao="Tarefas sem colaborador atribuído, em projetos ativos."
+              descricao="Tarefas já em uma etapa do fluxo e sem colaborador atribuído."
               indicador={tarefas.semResponsavel}
               corIcone={tarefas.semResponsavel.total > 0 ? 'text-orange-500' : 'text-gray-400'}
               corFundo={tarefas.semResponsavel.total > 0 ? 'bg-orange-50' : 'bg-gray-100'}
