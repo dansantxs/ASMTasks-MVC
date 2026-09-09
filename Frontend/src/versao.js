@@ -1,4 +1,4 @@
-export const VERSAO_ATUAL = '1.9.0';
+export const VERSAO_ATUAL = '1.10.0';
 
 /**
  * Regra de versionamento (major.minor.patch):
@@ -18,6 +18,31 @@ export const VERSAO_ATUAL = '1.9.0';
  *  2. Adicione uma nova entrada NO INÍCIO do array CHANGELOG.
  */
 export const CHANGELOG = [
+  {
+    versao: '1.10.0',
+    data: '2026-09-09',
+    titulo: 'Dashboard Reformulado, Ordenação no Kanban e Aprovação na Comissão',
+    mudancas: [
+      'Quadro Kanban: nova opção "Ordenar por" — alterne entre Prioridade e Lançamento (data em que a tarefa foi lançada), com botão para inverter a ordem; a escolha fica salva no navegador e a data aparece no cartão quando a ordenação é por lançamento',
+      'Dashboard: novo seletor de período (Mês atual, Mês anterior, Últimos 30 dias) — os indicadores "do mês" não zeram mais na virada do mês, e logo depois do dia 1º dá para olhar o mês que fechou',
+      'Dashboard: os números dos cards e as listas que eles abrem passam a sair da mesma consulta, então não divergem mais; quando a lista é grande, o card avisa que está mostrando só uma parte',
+      'Dashboard: correção de "Em Andamento", que contava também as tarefas do backlog e as já concluídas, e por isso distorcia os percentuais do gráfico por etapa',
+      'Dashboard: correção do ranking de tarefas concluídas — tarefa reaberta e reconcluída contava duas vezes, e o crédito ia para o responsável atual em vez de quem realmente fez a etapa',
+      'Dashboard: correção de "Projetos Concluídos", que usava a data de cadastro do projeto — passa a usar a data em que o projeto foi realmente concluído',
+      'Dashboard: todos os indicadores passam a ter lista — passe o mouse por cima de qualquer card, barra ou linha de ranking para ver os itens que formam o número, inclusive as barras por etapa e o backlog; clique para fixar a lista aberta',
+      'Dashboard: cada indicador ganhou uma descrição curta explicando exatamente o que ele conta',
+      'Dashboard: as listas de tarefas ficaram mais detalhadas — projeto, cliente, responsável, etapa, status atual e quem mexeu por último, com data e hora',
+      'Dashboard: os rankings deixam de mostrar só os 5 primeiros e ganham a opção "Ver todos"',
+      'Dashboard: indicadores reorganizados em seções separadas (Atendimentos, Tarefas — Situação Atual, Tarefas — Alertas, Tarefas — Distribuição, Produção do Período, Projetos e Riscos); "Pendentes (total)" e "Projetos cadastrados hoje" viraram recortes do período, e "Tarefas atribuídas" virou a barra de Carga por Colaborador',
+      'Dashboard: ao filtrar por um colaborador, as seções de Projetos, Riscos e os rankings passam a respeitar o filtro em vez de continuar mostrando os números da equipe inteira',
+      'Relatório de Comissão: novo filtro "Aprovado por" — mostra apenas os itens cuja etapa de aprovação foi feita pelo colaborador escolhido; o nome de quem aprovou aparece no cabeçalho de cada item e no resumo de filtros das exportações',
+      'Relatório de Comissão: a lista do filtro "Aprovado por" traz só quem realmente aprovou algum item no período, em vez de todos os colaboradores — assim nenhuma opção oferecida devolve relatório vazio; ao trocar o período, se o escolhido não aprovou nada na nova janela, o filtro volta para "Todos"',
+      'Relatório de Comissão: a primeira linha de cada item passa a se chamar "Atendimento" (antes "Lançado por") — é quem recebeu a demanda do cliente e a lançou',
+      'Etapas: instalações novas passam a vir com os nomes usados no dia a dia (Atendimento, Elaboração, Aprovação, Atualização e Concluído). Em bases já existentes os nomes são alterados na tela de Etapas, mas isso sozinho não corrige o histórico já gravado: cada linha guarda uma cópia do nome da etapa, e é dela que o Relatório de Comissão lê — o realinhamento do histórico foi feito por script, uma vez por banco',
+      'Projetos: na visão de Lista, as colunas passam a começar por Cliente e Cadastro, seguidas de Projeto, Tarefas e Status',
+      'Manutenção: os arquivos de migration foram eliminados — o schema.sql passa a ser a fonte única da estrutura do banco',
+    ],
+  },
   {
     versao: '1.9.0',
     data: '2026-09-02',
