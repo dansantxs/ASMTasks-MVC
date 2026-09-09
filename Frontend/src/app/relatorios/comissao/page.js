@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useCallback, useMemo, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/layout/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../components/ui/layout/table';
@@ -51,7 +51,10 @@ const ehEtapaDesenvolvimento = (nome) => /desenvolv|elabora/i.test(nome ?? '');
 const ehEtapaAprovacao = (nome) => /aprova/i.test(nome ?? '');
 
 const SEM_DESENVOLVEDOR = 'Sem desenvolvedor';
-const ETAPA_LANCAMENTO = 'Lançado por';
+// Primeira linha de todo item: quem lançou a tarefa/atendimento. Não é uma etapa cadastrada —
+// é uma linha sintética montada a partir de quem cadastrou. Aparece como "Atendimento" porque é
+// isso que ela representa no vocabulário da equipe: quem recebeu a demanda do cliente e a lançou.
+const ETAPA_LANCAMENTO = 'Atendimento';
 const ETAPA_ATENDIMENTO_CONCLUIDO = 'Atendimento Concluído';
 
 // Ordenação dos itens (tarefas/atendimentos) DENTRO de cada colaborador. A ordem entre
@@ -412,7 +415,7 @@ export default function RelatorioComissaoPage() {
 
   // Agrupamento base: um grupo por tarefa/atendimento. Dentro do grupo, as passagens em ordem
   // cronológica, com:
-  //   - "Lançado por" como primeira linha das tarefas (item novo na 1.9.0);
+  //   - a linha de lançamento ("Atendimento") como primeira linha das tarefas;
   //   - etapas DUPLICADAS reduzidas à última ocorrência (uma etapa reaberta várias vezes aparece
   //     só na passagem mais recente);
   //   - o "Desenvolvedor" do item: para tarefa, o colaborador da última etapa cujo nome contém
@@ -464,7 +467,7 @@ export default function RelatorioComissaoPage() {
           ? info?.descricao ?? null
           : grupo.itens.find((i) => i.descricao)?.descricao ?? null;
 
-      // Desenvolvedor do item — calculado antes de injetar a linha "Lançado por".
+      // Desenvolvedor do item — calculado antes de injetar a linha de lançamento.
       if (grupo.itemTipo === 'atendimento') {
         const ref = grupo.itens.find((i) => i.etapaNome === ETAPA_ATENDIMENTO_CONCLUIDO) ?? grupo.itens[0];
         grupo.desenvolvedorId = ref?.concluidoPorId ?? null;
@@ -490,7 +493,7 @@ export default function RelatorioComissaoPage() {
         grupo.itens.map((item) => item.colaboradorId).filter((id) => id != null)
       );
 
-      // Itens 3 e 5: linha "Lançado por" como primeira do grupo (tarefa e atendimento).
+      // Itens 3 e 5: linha de lançamento ("Atendimento") como primeira do grupo (tarefa e atendimento).
       const base = grupo.itens[0];
       (base?.participantesIds ?? []).forEach((id) => participantes.add(id));
       const lancado =
@@ -523,7 +526,7 @@ export default function RelatorioComissaoPage() {
 
       grupo.participantesIds = participantes;
 
-      // Data de conclusão do item = data da última passagem/conclusão (a linha "Lançado por" fica
+      // Data de conclusão do item = data da última passagem/conclusão (a linha de lançamento fica
       // no início, então nunca é a última).
       grupo.dataConclusao = grupo.itens[grupo.itens.length - 1]?.rawDataHoraAcao ?? null;
     });
@@ -533,6 +536,25 @@ export default function RelatorioComissaoPage() {
 
   const colaboradorIdFiltro = colaboradorFilter === 'todos' ? null : Number(colaboradorFilter);
   const aprovadorIdFiltro = aprovadorFilter === 'todos' ? null : Number(aprovadorFilter);
+
+  // Opções do "Aprovado por": só quem consta como aprovador de algum item do período — não a
+  // lista inteira de colaboradores. Sai do mesmo `grupo.aprovadorId` que o filtro compara, então
+  // toda opção oferecida devolve pelo menos um item.
+  const aprovadoresDisponiveis = useMemo(() => {
+    const mapa = new Map();
+    grupos.forEach((grupo) => {
+      if (grupo.aprovadorId == null || mapa.has(grupo.aprovadorId)) return;
+      mapa.set(grupo.aprovadorId, grupo.aprovadorNome ?? `#${grupo.aprovadorId}`);
+    });
+    return Array.from(mapa, ([id, nome]) => ({ id, nome })).sort((a, b) => compararTexto(a.nome, b.nome));
+  }, [grupos]);
+
+  // Trocar o período (ou o tipo) pode tirar da lista o aprovador escolhido. Sem isto o relatório
+  // ficaria vazio exibindo um nome que nem está mais entre as opções.
+  useEffect(() => {
+    if (aprovadorFilter === 'todos') return;
+    if (!aprovadoresDisponiveis.some((a) => String(a.id) === aprovadorFilter)) setAprovadorFilter('todos');
+  }, [aprovadoresDisponiveis, aprovadorFilter]);
 
   // "Aprovado por" restringe os ITENS de fato (entra também no Resumo), diferente do filtro de
   // colaborador, que só escolhe quais itens aparecem sem mexer na contagem por colaborador.
@@ -663,7 +685,7 @@ export default function RelatorioComissaoPage() {
     const aprovadorNome =
       aprovadorFilter === 'todos'
         ? null
-        : colaboradores.find((c) => c.id === Number(aprovadorFilter))?.nome ?? `#${aprovadorFilter}`;
+        : aprovadoresDisponiveis.find((a) => a.id === Number(aprovadorFilter))?.nome ?? `#${aprovadorFilter}`;
 
     const filters = [
       dataInicioFilter ? `Data início: ${new Date(`${dataInicioFilter}T00:00:00`).toLocaleDateString('pt-BR')}` : null,
@@ -856,7 +878,7 @@ export default function RelatorioComissaoPage() {
           },
           {
             element: '#tour-comissao-tabela',
-            popover: { title: 'Resultados', description: 'Seções por colaborador, cada item numerado (1, 2, 3…). A linha <strong>Lançado por</strong> abre cada tarefa. Etapas repetidas aparecem só na ocorrência mais recente.', side: 'top', align: 'center' },
+            popover: { title: 'Resultados', description: 'Seções por colaborador, cada item numerado (1, 2, 3…). A linha <strong>Atendimento</strong> (quem lançou) abre cada tarefa. Etapas repetidas aparecem só na ocorrência mais recente.', side: 'top', align: 'center' },
           },
         ].filter((p) => !p.element || document.querySelector(p.element)),
       });
@@ -945,7 +967,7 @@ export default function RelatorioComissaoPage() {
                     searchPlaceholder="Buscar colaborador..."
                     options={[
                       { value: 'todos', label: 'Todos' },
-                      ...colaboradores.map((c) => ({ value: String(c.id), label: c.nome })),
+                      ...aprovadoresDisponiveis.map((a) => ({ value: String(a.id), label: a.nome })),
                     ]}
                   />
                 </div>
