@@ -20,7 +20,7 @@ export const VERSAO_ATUAL = '1.10.0';
 export const CHANGELOG = [
   {
     versao: '1.10.0',
-    data: '2026-09-08',
+    data: '2026-09-09',
     titulo: 'Dashboard Reformulado, Ordenação no Kanban e Aprovação na Comissão',
     mudancas: [
       'Quadro Kanban: nova opção "Ordenar por" — alterne entre Prioridade e Lançamento (data em que a tarefa foi lançada), com botão para inverter a ordem; a escolha fica salva no navegador e a data aparece no cartão quando a ordenação é por lançamento',
