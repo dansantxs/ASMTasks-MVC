@@ -149,8 +149,9 @@ export default function ListaProjetos({
 
     return (
       <TableRow key={project.id} className="hover:bg-muted/50">
-        <TableCell className="font-medium">{project.titulo}</TableCell>
         <TableCell>{clienteNome}</TableCell>
+        <TableCell>{formatarDataHora(project.dataCadastro)}</TableCell>
+        <TableCell className="font-medium">{project.titulo}</TableCell>
         <TableCell>{project.tarefas?.length ?? 0}</TableCell>
         <TableCell>
           <Badge
@@ -160,7 +161,6 @@ export default function ListaProjetos({
             {status}
           </Badge>
         </TableCell>
-        <TableCell>{formatarDataHora(project.dataCadastro)}</TableCell>
         <TableCell className="text-right">
           <Button
             variant="ghost"
@@ -233,11 +233,11 @@ export default function ListaProjetos({
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/30">
-                <TableHead>Projeto</TableHead>
                 <TableHead>Cliente</TableHead>
+                <TableHead>Cadastro</TableHead>
+                <TableHead>Projeto</TableHead>
                 <TableHead>Tarefas</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Cadastro</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
