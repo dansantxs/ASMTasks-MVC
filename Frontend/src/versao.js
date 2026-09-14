@@ -1,4 +1,4 @@
-export const VERSAO_ATUAL = '1.10.0';
+export const VERSAO_ATUAL = '1.11.0';
 
 /**
  * Regra de versionamento (major.minor.patch):
@@ -18,6 +18,25 @@ export const VERSAO_ATUAL = '1.10.0';
  *  2. Adicione uma nova entrada NO INÍCIO do array CHANGELOG.
  */
 export const CHANGELOG = [
+  {
+    versao: '1.11.0',
+    data: '2026-09-13',
+    titulo: 'Reservado na Elaboração, Coluna de Teste com o Suporte e Dashboard por Etapa',
+    mudancas: [
+      'Quadro Kanban: a coluna "Backlog" passa a se chamar "Atendimento" — também no dashboard, na visualização e na duplicação de projetos',
+      'Quadro Kanban: a coluna de Elaboração passa a ter duas faixas — Reservado (tarefas que alguém vai fazer, mas ainda não começou) e Em elaboração (já iniciadas ou pausadas); ao iniciar, a tarefa passa sozinha para a segunda faixa',
+      'Reservado também aparece no dashboard (gráfico Por Etapa e listas dos indicadores) e no selo de etapa das tarefas na visualização do projeto',
+      'Quadro Kanban: ao mover uma tarefa para a etapa de teste, a lista de responsáveis traz só "Sem responsável" e os colaboradores do setor Suporte (o mesmo vale ao trocar o responsável de uma tarefa que já está no teste)',
+      'Quadro Kanban: na primeira ida para o teste vem "Sem responsável" selecionado; quando a tarefa volta para o teste, vem selecionado quem foi o responsável da última passagem por ele',
+      'Dashboard: as listas que abrem ao passar o mouse sobre os indicadores passam a vir ordenadas por etapa (na ordem do fluxo) e, dentro de cada etapa, por colaborador; listas de atendimentos e de projetos, que não têm etapa, vêm por colaborador',
+      'Dashboard: "Tarefas — Situação Atual" passa a mostrar um card por etapa, com as mesmas faixas do gráfico Por Etapa (Atendimento, Reservado, cada etapa do fluxo e a final); "Sem Responsável" foi para "Tarefas — Alertas" e os cards "Em Andamento" e "Não Iniciadas" saíram',
+      'Menu lateral: o grupo "Projetos" deixa de existir — "Cadastro de Projeto" e "Quadro Kanban" ficam direto no menu',
+      'Relatório de Comissão: o filtro "Aprovado por" foi removido (quem aprovou continua no cabeçalho de cada item)',
+      'Relatório de Comissão: a visão Resumo ganha "Totalizar por" — Elaboração (como antes) ou Teste (quem fez a etapa de teste de cada tarefa)',
+      'Correção: a busca de endereço pelo CEP nos cadastros de clientes e colaboradores não trazia o endereço — a consulta ia parar no servidor errado',
+      'Manutenção: os backups automáticos de produção e teste passam a ser copiados também para o Google Drive, mantendo as cópias por 365 dias',
+    ],
+  },
   {
     versao: '1.10.0',
     data: '2026-09-09',
