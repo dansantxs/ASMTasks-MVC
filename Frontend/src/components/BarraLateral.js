@@ -22,7 +22,6 @@ import {
   SlidersHorizontal,
   Bell,
   Check,
-  Folder,
   Download,
 } from 'lucide-react';
 import { cn } from './ui/form/utils';
@@ -52,7 +51,6 @@ export function BarraLateral({ caminhoAtual, aoNavegar, aoAlternarRecolhimento, 
   const [cadastrosExpandido, setCadastrosExpandido] = useState(false);
   const [relatoriosExpandido, setRelatoriosExpandido] = useState(false);
   const [configuracoesExpandido, setConfiguracoesExpandido] = useState(false);
-  const [projetosExpandido, setProjetosExpandido] = useState(false);
   const [notificacoesAbertas, setNotificacoesAbertas] = useState(false);
   const [idNotificacaoSendoMarcada, setIdNotificacaoSendoMarcada] = useState(null);
   const [montado, setMontado] = useState(false);
@@ -209,7 +207,6 @@ export function BarraLateral({ caminhoAtual, aoNavegar, aoAlternarRecolhimento, 
   const podeVerAtendimento = temPermissao(sessao, permissoesTelas.atendimentosAgenda);
   const podeVerProjetos = temPermissao(sessao, permissoesTelas.projetosCadastro);
   const podeVerKanban = temPermissao(sessao, permissoesTelas.projetosKanban);
-  const podeVerMenuProjetos = podeVerProjetos || podeVerKanban;
   const podeVerMinhaConta = temPermissao(sessao, permissoesTelas.configuracoesMinhaConta);
   const podeVerAcessos = temPermissao(sessao, permissoesTelas.configuracoesAcessos);
   const podeVerSistema = temPermissao(sessao, permissoesTelas.configuracoesSistema);
@@ -229,7 +226,6 @@ export function BarraLateral({ caminhoAtual, aoNavegar, aoAlternarRecolhimento, 
     setCadastrosExpandido(false);
     setRelatoriosExpandido(false);
     setConfiguracoesExpandido(false);
-    setProjetosExpandido(false);
     setNotificacoesAbertas(false);
   };
 
@@ -378,70 +374,34 @@ export function BarraLateral({ caminhoAtual, aoNavegar, aoAlternarRecolhimento, 
           </button>
         )}
 
-        {podeVerMenuProjetos && (
-          <div>
-            <button
-              onClick={() => {
-                if (recolhido) {
-                  definirEstadoRecolhido(false);
-                  setProjetosExpandido(true);
-                } else {
-                  setProjetosExpandido(!projetosExpandido);
-                }
-              }}
-              className={cn(
-                'w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors',
-                isProjetos ? 'bg-gray-800 text-white' : 'text-gray-300 hover:bg-gray-800',
-                recolhido && 'justify-center px-2'
-              )}
-              title={recolhido ? 'Projetos' : undefined}
-            >
-              <FolderKanban className="h-5 w-5 flex-shrink-0" />
-              {!recolhido && (
-                <>
-                  <span className="flex-1 text-left">Projetos</span>
-                  {projetosExpandido ? (
-                    <ChevronDown className="h-4 w-4 flex-shrink-0" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4 flex-shrink-0" />
-                  )}
-                </>
-              )}
-            </button>
-
-            {projetosExpandido && !recolhido && (
-              <div className="ml-4 mt-1 space-y-1">
-                {podeVerProjetos && (
-                  <button
-                    onClick={() => aoNavegar('/projetos')}
-                    className={cn(
-                      'w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors text-sm',
-                      isProjetos && chaveAtual !== 'kanban'
-                        ? 'bg-teal-600 text-white'
-                        : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200'
-                    )}
-                  >
-                    <Folder className="h-4 w-4" />
-                    <span>Cadastro</span>
-                  </button>
-                )}
-                {podeVerKanban && (
-                  <button
-                    onClick={() => aoNavegar('/projetos/kanban')}
-                    className={cn(
-                      'w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors text-sm',
-                      isProjetos && chaveAtual === 'kanban'
-                        ? 'bg-teal-600 text-white'
-                        : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200'
-                    )}
-                  >
-                    <Kanban className="h-4 w-4" />
-                    <span>Quadro Kanban</span>
-                  </button>
-                )}
-              </div>
+        {podeVerProjetos && (
+          <button
+            onClick={() => aoNavegar('/projetos')}
+            className={cn(
+              'w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors',
+              isProjetos && chaveAtual !== 'kanban' ? 'bg-gray-800 text-white' : 'text-gray-300 hover:bg-gray-800',
+              recolhido && 'justify-center px-2'
             )}
-          </div>
+            title={recolhido ? 'Cadastro de Projeto' : undefined}
+          >
+            <FolderKanban className="h-5 w-5 flex-shrink-0" />
+            {!recolhido && <span>Cadastro de Projeto</span>}
+          </button>
+        )}
+
+        {podeVerKanban && (
+          <button
+            onClick={() => aoNavegar('/projetos/kanban')}
+            className={cn(
+              'w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors',
+              isProjetos && chaveAtual === 'kanban' ? 'bg-gray-800 text-white' : 'text-gray-300 hover:bg-gray-800',
+              recolhido && 'justify-center px-2'
+            )}
+            title={recolhido ? 'Quadro Kanban' : undefined}
+          >
+            <Kanban className="h-5 w-5 flex-shrink-0" />
+            {!recolhido && <span>Quadro Kanban</span>}
+          </button>
         )}
 
         {relatoriosDisponiveis.length > 0 && (
