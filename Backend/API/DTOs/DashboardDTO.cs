@@ -93,12 +93,9 @@ namespace API.DTOs.Dashboard
 
     public class DashboardTarefasDTO
     {
-        /// <summary>Tarefas em alguma etapa que não é a final — o trabalho realmente em curso.</summary>
-        public DashboardIndicadorDTO EmAndamento { get; set; } = new();
         /// <summary>Tarefas ainda sem etapa (a coluna Atendimento do Kanban).</summary>
         public DashboardIndicadorDTO Atendimento { get; set; } = new();
         public DashboardIndicadorDTO SemResponsavel { get; set; } = new();
-        public DashboardIndicadorDTO Ociosas { get; set; } = new();
         public DashboardIndicadorDTO ExecucaoEmAtraso { get; set; } = new();
         public DashboardIndicadorDTO TesteEmAtraso { get; set; } = new();
         public DashboardIndicadorDTO ConcluidasPeriodo { get; set; } = new();
