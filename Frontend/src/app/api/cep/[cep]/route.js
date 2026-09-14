@@ -10,8 +10,11 @@ export async function GET(_request, { params }) {
 
   let res;
   try {
-    res = await fetch(`https://viacep.com.br/ws/${apenasNumeros}/json/`);
-  } catch {
+    res = await fetch(`https://viacep.com.br/ws/${apenasNumeros}/json/`, {
+      signal: AbortSignal.timeout(8000),
+    });
+  } catch (err) {
+    console.error(`Falha ao consultar o ViaCEP (${apenasNumeros}):`, err);
     return NextResponse.json({ erro: 'Erro ao consultar o ViaCEP.' }, { status: 502 });
   }
 
