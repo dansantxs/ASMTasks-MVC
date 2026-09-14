@@ -22,6 +22,9 @@ namespace API.Models
         public int? TempoTesteValor { get; set; }
         public string? TempoTesteUnidade { get; set; }
 
+        /// <summary>Só leitura: 'Em andamento', 'Pausada' ou 'Ociosa' (ver TarefaSql.StatusAtual).</summary>
+        public string StatusAtual { get; set; } = "Ociosa";
+
         public void ValidarDados()
         {
             if (string.IsNullOrWhiteSpace(Titulo))

@@ -16,5 +16,7 @@ namespace API.DTOs.Projetos
         public string? TempoExecucaoUnidade { get; set; }
         public int? TempoTesteValor { get; set; }
         public string? TempoTesteUnidade { get; set; }
+        /// <summary>'Em andamento', 'Pausada' ou 'Ociosa' — separa o Reservado da elaboração na tela.</summary>
+        public string StatusAtual { get; set; } = "Ociosa";
     }
 }

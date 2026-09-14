@@ -1000,7 +1000,8 @@ namespace API.Controllers
                     TempoExecucaoValor = t.TempoExecucaoValor,
                     TempoExecucaoUnidade = t.TempoExecucaoUnidade,
                     TempoTesteValor = t.TempoTesteValor,
-                    TempoTesteUnidade = t.TempoTesteUnidade
+                    TempoTesteUnidade = t.TempoTesteUnidade,
+                    StatusAtual = t.StatusAtual
                 })]
             };
         }

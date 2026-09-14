@@ -113,6 +113,11 @@ namespace API.DTOs.Dashboard
     public class TarefaPorEtapaDTO
     {
         public int? EtapaId { get; set; }
+        /// <summary>
+        /// Faixa "Reservado" da etapa de elaboração: tarefas nela que ainda não foram iniciadas.
+        /// A mesma etapa aparece de novo com Reservado = false para o que já começou.
+        /// </summary>
+        public bool Reservado { get; set; }
         public string Etapa { get; set; } = "";
         public int Ordem { get; set; }
         public bool EhEtapaFinal { get; set; }
