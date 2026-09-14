@@ -16,7 +16,9 @@ import {
   AlertDialogAction,
 } from '../../../../components/ui/feedback/alert/alert-dialog';
 
-const COLUNA_BACKLOG = { id: null, nome: 'Backlog', ordem: -1 };
+// Coluna das tarefas ainda sem etapa. Não é uma etapa cadastrada: é onde a tarefa nasce,
+// antes de alguém pegá-la.
+const COLUNA_ATENDIMENTO = { id: null, nome: 'Atendimento', ordem: -1 };
 
 // Comparadores dos cartoes dentro de uma coluna. `ordenacao` escolhe a chave principal e a
 // outra vira desempate; o `id` fecha o criterio para a ordem nunca ficar instavel.
@@ -34,7 +36,7 @@ function criarComparador(ordenacao, direcao) {
 export default function QuadroKanban({ tarefas, etapas, colaboradores, colaboradorLogadoId, onMoverTarefa, isMovendo, ehAdmin, onReordenarColunas, onVisualizarTarefa, exibicaoNomeCliente = 'razaoSocial', ordenacao = 'prioridade', direcao = 'asc' }) {
   const [tarefaArrastando, setTarefaArrastando] = useState(null);
   const [pendente, setPendente] = useState(null);
-  const [pendenteBacklog, setPendenteBacklog] = useState(null);
+  const [pendenteAtendimento, setPendenteAtendimento] = useState(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
@@ -49,7 +51,7 @@ export default function QuadroKanban({ tarefas, etapas, colaboradores, colaborad
     [etapas]
   );
 
-  const colunas = useMemo(() => [COLUNA_BACKLOG, ...etapasOrdenadas], [etapasOrdenadas]);
+  const colunas = useMemo(() => [COLUNA_ATENDIMENTO, ...etapasOrdenadas], [etapasOrdenadas]);
 
   // Agrupa e ordena as tarefas por etapa uma unica vez por mudanca de `tarefas` ou da ordenacao,
   // em vez de refazer filter+sort para cada coluna a cada render. Cada bucket
@@ -118,9 +120,9 @@ export default function QuadroKanban({ tarefas, etapas, colaboradores, colaborad
 
     if (etapaIdDestino === etapaAtualId) return;
 
-    // Mover para o backlog: apenas admins podem, pede confirmação antes de limpar responsável
+    // Voltar para Atendimento: apenas admins podem, pede confirmação antes de limpar responsável
     if (etapaIdDestino === null) {
-      if (ehAdmin) setPendenteBacklog(tarefa);
+      if (ehAdmin) setPendenteAtendimento(tarefa);
       return;
     }
 
@@ -148,13 +150,13 @@ export default function QuadroKanban({ tarefas, etapas, colaboradores, colaborad
         <div className="flex gap-4 overflow-x-auto pb-4">
           {colunas.map((coluna) => (
             <ColunaKanban
-              key={coluna.id ?? 'backlog'}
+              key={coluna.id ?? 'atendimento'}
               etapaId={coluna.id}
               titulo={coluna.nome}
               tarefas={tarefasPorEtapa(coluna.id)}
               ehAdmin={ehAdmin}
               colaboradorLogadoId={colaboradorLogadoId}
-              isBacklog={coluna.id === null}
+              isAtendimento={coluna.id === null}
               isEtapaFinal={coluna.ehEtapaFinal ?? false}
               onVisualizarTarefa={onVisualizarTarefa}
               exibicaoNomeCliente={exibicaoNomeCliente}
@@ -181,12 +183,12 @@ export default function QuadroKanban({ tarefas, etapas, colaboradores, colaborad
       />
 
 
-      <AlertDialog open={!!pendenteBacklog} onOpenChange={(v) => { if (!v) setPendenteBacklog(null); }}>
+      <AlertDialog open={!!pendenteAtendimento} onOpenChange={(v) => { if (!v) setPendenteAtendimento(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Mover para o Backlog?</AlertDialogTitle>
+            <AlertDialogTitle>Mover para Atendimento?</AlertDialogTitle>
             <AlertDialogDescription>
-              A tarefa <strong>{pendenteBacklog?.titulo}</strong> será movida para o Backlog. O responsável será removido e o progresso de elaboração será resetado.
+              A tarefa <strong>{pendenteAtendimento?.titulo}</strong> será movida para Atendimento. O responsável será removido e o progresso de elaboração será resetado.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -194,11 +196,11 @@ export default function QuadroKanban({ tarefas, etapas, colaboradores, colaborad
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => {
-                onMoverTarefa(pendenteBacklog, null, null);
-                setPendenteBacklog(null);
+                onMoverTarefa(pendenteAtendimento, null, null);
+                setPendenteAtendimento(null);
               }}
             >
-              Mover para Backlog
+              Mover para Atendimento
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -11,9 +11,8 @@ DECLARE @ColabId       INT;
 -- Etapas
 -- (nomes usados no dia a dia da equipe; o Relatório de Comissão reconhece a
 --  etapa de desenvolvimento e a de aprovação pelo NOME — ver comissao/page.js)
+-- "Atendimento" não é cadastrada: é a coluna fixa do Kanban para tarefa sem etapa.
 -- =============================================
-INSERT INTO Etapa (Nome, Descricao, Ativo, Ordem, EhEtapaFinal, EhEtapaTeste)
-VALUES (N'Atendimento', N'Contato inicial e levantamento do que o cliente precisa.', 1, 1, 0, 0);
 INSERT INTO Etapa (Nome, Descricao, Ativo, Ordem, EhEtapaFinal, EhEtapaTeste)
 VALUES (N'Elaboração', N'Desenvolvimento da funcionalidade ou correção solicitada.', 1, 2, 0, 0);
 INSERT INTO Etapa (Nome, Descricao, Ativo, Ordem, EhEtapaFinal, EhEtapaTeste)

@@ -12,16 +12,16 @@ function resolverNomeCliente(tarefa, exibicao) {
   return tarefa.clienteNome;
 }
 
-function ColunaKanban({ etapaId, titulo, tarefas, ehAdmin, colaboradorLogadoId, isBacklog, isEtapaFinal, onVisualizarTarefa, exibicaoNomeCliente = 'razaoSocial', mostrarLancamento = false }) {
+function ColunaKanban({ etapaId, titulo, tarefas, ehAdmin, colaboradorLogadoId, isAtendimento, isEtapaFinal, onVisualizarTarefa, exibicaoNomeCliente = 'razaoSocial', mostrarLancamento = false }) {
   const podeMoverTarefa = (tarefa) => {
-    if (isBacklog && !ehAdmin) return false;
+    if (isAtendimento && !ehAdmin) return false;
     return (
       ehAdmin ||
       tarefa.colaboradorResponsavelId == null ||
       tarefa.colaboradorResponsavelId === colaboradorLogadoId
     );
   };
-  const podeReordenar = ehAdmin && !isBacklog && !isEtapaFinal;
+  const podeReordenar = ehAdmin && !isAtendimento && !isEtapaFinal;
 
   const {
     attributes: dragAttrs,
@@ -29,20 +29,20 @@ function ColunaKanban({ etapaId, titulo, tarefas, ehAdmin, colaboradorLogadoId, 
     setNodeRef: setDragRef,
     isDragging: isColumnDragging,
   } = useDraggable({
-    id: `coluna-${etapaId ?? 'backlog'}`,
+    id: `coluna-${etapaId ?? 'atendimento'}`,
     data: { type: 'coluna', etapaId },
     disabled: !podeReordenar,
   });
 
   const { setNodeRef: setColDropRef, isOver: isColOver } = useDroppable({
-    id: `col-drop-${etapaId ?? 'backlog'}`,
+    id: `col-drop-${etapaId ?? 'atendimento'}`,
     data: { type: 'coluna', etapaId },
   });
 
   const { setNodeRef: setTaskDropRef, isOver: isTaskOver } = useDroppable({
     id: `etapa-${etapaId ?? 'sem-etapa'}`,
     data: { type: 'tarefa', etapaId },
-    disabled: isBacklog && !ehAdmin,
+    disabled: isAtendimento && !ehAdmin,
   });
 
   return (
@@ -82,7 +82,7 @@ function ColunaKanban({ etapaId, titulo, tarefas, ehAdmin, colaboradorLogadoId, 
         ref={setTaskDropRef}
         className={cn(
           'flex-1 overflow-y-auto p-3 space-y-2 transition-colors',
-          isTaskOver && (!isBacklog || ehAdmin) && 'bg-brand-blue/5'
+          isTaskOver && (!isAtendimento || ehAdmin) && 'bg-brand-blue/5'
         )}
         style={{ minHeight: 80 }}
       >
@@ -101,11 +101,11 @@ function ColunaKanban({ etapaId, titulo, tarefas, ehAdmin, colaboradorLogadoId, 
           <div
             className={cn(
               'h-16 border-2 border-dashed rounded-lg flex items-center justify-center',
-              isTaskOver && (!isBacklog || ehAdmin) ? 'border-brand-blue bg-brand-blue/5' : 'border-gray-200'
+              isTaskOver && (!isAtendimento || ehAdmin) ? 'border-brand-blue bg-brand-blue/5' : 'border-gray-200'
             )}
           >
             <p className="text-xs text-gray-400">
-              {isTaskOver && (!isBacklog || ehAdmin) ? 'Solte aqui' : 'Sem tarefas'}
+              {isTaskOver && (!isAtendimento || ehAdmin) ? 'Solte aqui' : 'Sem tarefas'}
             </p>
           </div>
         )}

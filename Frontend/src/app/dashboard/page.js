@@ -161,7 +161,7 @@ function ComPainelLista({ indicador, aberto, fixado, abrir, fechar, children, la
 /**
  * Card de indicador. O número e a lista vêm do mesmo indicador do backend, então batem sempre.
  * `descricao` explica em uma linha o que aquele número conta — sem isso cada card vira uma
- * adivinhação ("em andamento" conta backlog? conta concluída?).
+ * adivinhação ("em andamento" conta o que está em Atendimento? conta concluída?).
  */
 function CardKPI({ icone: Icone, titulo, descricao, indicador, corIcone, corFundo, destaque }) {
   const { total = 0 } = indicador ?? INDICADOR_VAZIO;
@@ -531,7 +531,7 @@ export default function DashboardPage() {
             element: '#tour-dashboard-tarefas-situacao',
             popover: {
               title: 'Tarefas — Situação Atual',
-              description: 'Como as tarefas estão neste momento: em andamento, no backlog, sem responsável e ainda não iniciadas. Cada lista mostra <strong>responsável</strong>, <strong>etapa</strong>, <strong>status</strong> e <strong>quem mexeu por último, quando</strong>.',
+              description: 'Como as tarefas estão neste momento: em andamento, em atendimento, sem responsável e ainda não iniciadas. Cada lista mostra <strong>responsável</strong>, <strong>etapa</strong>, <strong>status</strong> e <strong>quem mexeu por último, quando</strong>.',
               side: 'bottom',
               align: 'center',
             },
@@ -746,9 +746,9 @@ export default function DashboardPage() {
           />
           <CardKPI
             icone={Inbox}
-            titulo="No Backlog"
+            titulo="Em Atendimento"
             descricao="Tarefas ainda sem etapa definida."
-            indicador={tarefas.backlog}
+            indicador={tarefas.atendimento}
             corIcone="text-slate-600"
             corFundo="bg-slate-100"
           />
@@ -816,7 +816,7 @@ export default function DashboardPage() {
               ? <p className="text-sm text-gray-400">Nenhuma tarefa em andamento.</p>
               : tarefas.porEtapa.map((item) => (
                 <BarraHorizontal
-                  key={item.etapaId ?? 'backlog'}
+                  key={item.etapaId ?? 'atendimento'}
                   label={item.etapa}
                   valor={item.total}
                   total={totalPorEtapa}

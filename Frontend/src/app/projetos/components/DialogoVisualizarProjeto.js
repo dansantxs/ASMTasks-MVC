@@ -462,7 +462,7 @@ export default function DialogoVisualizarProjeto({
                   const prioridadeCor = prioridade?.cor;
                   const etapaNome = task.etapaId
                     ? (etapasById.get(task.etapaId) ?? `Etapa #${task.etapaId}`)
-                    : 'Backlog';
+                    : 'Atendimento';
                   const etapaConcluida = task.etapaId
                     ? normalizarTexto(etapasById.get(task.etapaId) ?? '').includes('conclu')
                     : false;

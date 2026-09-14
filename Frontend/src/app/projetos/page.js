@@ -431,7 +431,7 @@ export default function ProjetosPage() {
             element: '#tour-view-projeto-tarefas',
             popover: {
               title: 'Tarefas do Projeto',
-              description: 'Lista todas as tarefas vinculadas ao projeto com sua prioridade e etapa atual no Kanban. Tarefas em <strong>Backlog</strong> ainda não foram iniciadas.',
+              description: 'Lista todas as tarefas vinculadas ao projeto com sua prioridade e etapa atual no Kanban. Tarefas em <strong>Atendimento</strong> ainda não foram iniciadas.',
               side: 'top',
             },
           },
