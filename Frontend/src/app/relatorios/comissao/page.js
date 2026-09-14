@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
+import { Fragment, useCallback, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/layout/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../components/ui/layout/table';
@@ -41,14 +41,13 @@ const colunasLinha = [
 const todasColunas = [...colunasGrupo, ...colunasLinha];
 const reportTitle = 'Relatório de Comissão';
 
-// A etapa "de desenvolvimento" e a "de aprovação" de uma tarefa são identificadas pelo NOME da
-// etapa cadastrada. A de desenvolvimento define o "Desenvolvedor" — quem entra na contagem de
-// comissão e sob quem o item é agrupado; a de aprovação define o "Aprovador", usado no filtro
-// "Aprovado por". Para atendimento, o equivalente ao desenvolvedor é quem concluiu.
-// Reconhecer pelo nome é frágil a renomeações: se as etapas mudarem de nome, ajuste os padrões
-// abaixo — é o único ponto do relatório que depende deles.
+// A etapa "de desenvolvimento" de uma tarefa é identificada pelo NOME da etapa cadastrada. Ela
+// define o "Desenvolvedor" — sob quem o item é agrupado e quem conta no Resumo por elaboração.
+// Para atendimento, o equivalente ao desenvolvedor é quem concluiu.
+// Reconhecer pelo nome é frágil a renomeações: se as etapas mudarem de nome, ajuste o padrão
+// abaixo. Já a etapa de teste (o "Aprovador" do item e o Resumo por teste) vem da flag
+// "Etapa de Teste" do cadastro, que não depende do nome.
 const ehEtapaDesenvolvimento = (nome) => /desenvolv|elabora/i.test(nome ?? '');
-const ehEtapaAprovacao = (nome) => /aprova/i.test(nome ?? '');
 
 const SEM_DESENVOLVEDOR = 'Sem desenvolvedor';
 // Primeira linha de todo item: quem lançou a tarefa/atendimento. Não é uma etapa cadastrada —
@@ -120,12 +119,12 @@ export default function RelatorioComissaoPage() {
   const [dataFimFilter, setDataFimFilter] = useState(() => paraInputDate(periodoPadrao.fim));
   const [colaboradorFilter, setColaboradorFilter] = useState('todos');
   const [clienteFilter, setClienteFilter] = useState('todos');
-  const [aprovadorFilter, setAprovadorFilter] = useState('todos'); // colaborador da etapa de aprovação
   const [tipoItemFilter, setTipoItemFilter] = useState('todos'); // todos | tarefa | atendimento
   const [selectedColumns, setSelectedColumns] = useState(todasColunas.map((c) => c.id));
   // Agrupamento é sempre por Colaborador(Desenvolvedor); só a ordenação secundária dos itens é ajustável.
   const [sortConfig, setSortConfig] = useState({ ordem: 'cliente', direction: 'asc' });
   const [viewMode, setViewMode] = useState('detalhado'); // detalhado | resumo
+  const [totalizarPor, setTotalizarPor] = useState('elaboracao'); // elaboracao | teste — só no Resumo
   const { data: systemSettings = configuracoesPadrao } = useConfiguracoesSistema();
 
   // Não filtra por tipo nem por colaborador no servidor: para saber quem ficou com uma etapa
@@ -195,6 +194,12 @@ export default function RelatorioComissaoPage() {
   // Etapa marcada como final (Configurações > Etapas) — só entram no relatório as tarefas cuja
   // última etapa conhecida no período é essa (comissão só faz sentido pra trabalho já concluído).
   const etapaFinalId = useMemo(() => etapasRaw.find((e) => e.ehEtapaFinal)?.id ?? null, [etapasRaw]);
+
+  // Etapas marcadas como Etapa de Teste — de onde sai o "Aprovador" de cada tarefa.
+  const etapaTesteIds = useMemo(
+    () => new Set(etapasRaw.filter((e) => e.ehEtapaTeste).map((e) => e.id)),
+    [etapasRaw]
+  );
 
   const exibicaoNomeCliente = systemSettings?.exibicaoNomeCliente ?? 'razaoSocial';
 
@@ -478,11 +483,11 @@ export default function RelatorioComissaoPage() {
         grupo.desenvolvedorNome = etapaDev?.colaboradorNome ?? SEM_DESENVOLVEDOR;
       }
 
-      // Aprovador do item: colaborador da última passagem pela etapa de aprovação. Só tarefa —
+      // Aprovador do item: colaborador da última passagem pela etapa de teste. Só tarefa —
       // atendimento não tem etapas.
       const etapaAprovacao =
         grupo.itemTipo === 'tarefa'
-          ? [...grupo.itens].reverse().find((item) => ehEtapaAprovacao(item.etapaNome))
+          ? [...grupo.itens].reverse().find((item) => etapaTesteIds.has(item.etapaId))
           : null;
       grupo.aprovadorId = etapaAprovacao?.colaboradorId ?? null;
       grupo.aprovadorNome = etapaAprovacao?.colaboradorNome ?? null;
@@ -532,43 +537,16 @@ export default function RelatorioComissaoPage() {
     });
 
     return lista;
-  }, [linhasTarefasEAtendimentos, tarefasFinalizadas, tipoItemFilter, infoPorTarefa]);
+  }, [linhasTarefasEAtendimentos, tarefasFinalizadas, tipoItemFilter, infoPorTarefa, etapaTesteIds]);
 
   const colaboradorIdFiltro = colaboradorFilter === 'todos' ? null : Number(colaboradorFilter);
-  const aprovadorIdFiltro = aprovadorFilter === 'todos' ? null : Number(aprovadorFilter);
-
-  // Opções do "Aprovado por": só quem consta como aprovador de algum item do período — não a
-  // lista inteira de colaboradores. Sai do mesmo `grupo.aprovadorId` que o filtro compara, então
-  // toda opção oferecida devolve pelo menos um item.
-  const aprovadoresDisponiveis = useMemo(() => {
-    const mapa = new Map();
-    grupos.forEach((grupo) => {
-      if (grupo.aprovadorId == null || mapa.has(grupo.aprovadorId)) return;
-      mapa.set(grupo.aprovadorId, grupo.aprovadorNome ?? `#${grupo.aprovadorId}`);
-    });
-    return Array.from(mapa, ([id, nome]) => ({ id, nome })).sort((a, b) => compararTexto(a.nome, b.nome));
-  }, [grupos]);
-
-  // Trocar o período (ou o tipo) pode tirar da lista o aprovador escolhido. Sem isto o relatório
-  // ficaria vazio exibindo um nome que nem está mais entre as opções.
-  useEffect(() => {
-    if (aprovadorFilter === 'todos') return;
-    if (!aprovadoresDisponiveis.some((a) => String(a.id) === aprovadorFilter)) setAprovadorFilter('todos');
-  }, [aprovadoresDisponiveis, aprovadorFilter]);
-
-  // "Aprovado por" restringe os ITENS de fato (entra também no Resumo), diferente do filtro de
-  // colaborador, que só escolhe quais itens aparecem sem mexer na contagem por colaborador.
-  const gruposPorAprovador = useMemo(
-    () => (aprovadorIdFiltro == null ? grupos : grupos.filter((grupo) => grupo.aprovadorId === aprovadorIdFiltro)),
-    [grupos, aprovadorIdFiltro]
-  );
 
   // Item 3: o filtro de colaborador seleciona os ITENS (participou de qualquer etapa) — todas as
   // etapas do item continuam visíveis, mesmo as de outros colaboradores.
   const gruposVisiveis = useMemo(() => {
-    if (colaboradorIdFiltro == null) return gruposPorAprovador;
-    return gruposPorAprovador.filter((grupo) => grupo.participantesIds.has(colaboradorIdFiltro));
-  }, [gruposPorAprovador, colaboradorIdFiltro]);
+    if (colaboradorIdFiltro == null) return grupos;
+    return grupos.filter((grupo) => grupo.participantesIds.has(colaboradorIdFiltro));
+  }, [grupos, colaboradorIdFiltro]);
 
   // Itens 1 e 2: relatório dividido em seções por Colaborador(Desenvolvedor), cada item numerado
   // dentro da sua seção. Quando há um colaborador filtrado, tudo cai numa seção só (a dele).
@@ -620,17 +598,21 @@ export default function RelatorioComissaoPage() {
     [secoes]
   );
 
-  // Item 4: contagem por colaborador — SÓ desenvolvimento (tarefa) e atendimento concluído.
-  // Respeita período/cliente/tipo/"aprovado por"; o filtro de colaborador só restringe a linha exibida.
+  // Item 4: contagem por colaborador. Por elaboração: quem fez o desenvolvimento (tarefa) ou
+  // concluiu o atendimento. Por teste: quem fez a etapa de teste — só tarefa, atendimento não
+  // passa por teste. Respeita período/cliente/tipo; o filtro de colaborador só restringe a linha exibida.
   const resumoColaboradores = useMemo(() => {
+    const porTeste = totalizarPor === 'teste';
     const tally = new Map();
-    gruposPorAprovador.forEach((grupo) => {
+    grupos.forEach((grupo) => {
       // Reforça o filtro de tipo aqui (além de `grupos`) pra não sobrar tarefa quando o filtro é
       // "Atendimentos" nem o contrário.
       if (tipoItemFilter !== 'todos' && grupo.itemTipo !== tipoItemFilter) return;
-      const id = grupo.desenvolvedorId;
+      if (porTeste && grupo.itemTipo !== 'tarefa') return;
+      const id = porTeste ? grupo.aprovadorId : grupo.desenvolvedorId;
       if (id == null) return;
-      const atual = tally.get(id) ?? { colaboradorId: id, nome: grupo.desenvolvedorNome, total: 0 };
+      const nome = porTeste ? grupo.aprovadorNome : grupo.desenvolvedorNome;
+      const atual = tally.get(id) ?? { colaboradorId: id, nome, total: 0 };
       atual.total += 1;
       tally.set(id, atual);
     });
@@ -638,14 +620,16 @@ export default function RelatorioComissaoPage() {
     if (colaboradorIdFiltro != null) lista = lista.filter((r) => r.colaboradorId === colaboradorIdFiltro);
     lista.sort((a, b) => b.total - a.total || compararTexto(a.nome, b.nome));
     return lista;
-  }, [gruposPorAprovador, tipoItemFilter, colaboradorIdFiltro]);
+  }, [grupos, tipoItemFilter, colaboradorIdFiltro, totalizarPor]);
 
   const rotuloTotalResumo =
-    tipoItemFilter === 'tarefa'
-      ? 'Total (desenvolvimento)'
-      : tipoItemFilter === 'atendimento'
-        ? 'Total (atendimentos concluídos)'
-        : 'Total (desenvolvimento + atendimentos)';
+    totalizarPor === 'teste'
+      ? 'Total (teste)'
+      : tipoItemFilter === 'tarefa'
+        ? 'Total (desenvolvimento)'
+        : tipoItemFilter === 'atendimento'
+          ? 'Total (atendimentos concluídos)'
+          : 'Total (desenvolvimento + atendimentos)';
 
   const colunasLinhaAtivas = colunasLinha.filter((c) => selectedColumns.includes(c.id));
   const numColunasLinha = Math.max(colunasLinhaAtivas.length, 1);
@@ -682,19 +666,15 @@ export default function RelatorioComissaoPage() {
     const tipoLabel =
       tipoItemFilter === 'tarefa' ? 'Tarefas' : tipoItemFilter === 'atendimento' ? 'Atendimentos' : null;
 
-    const aprovadorNome =
-      aprovadorFilter === 'todos'
-        ? null
-        : aprovadoresDisponiveis.find((a) => a.id === Number(aprovadorFilter))?.nome ?? `#${aprovadorFilter}`;
-
     const filters = [
       dataInicioFilter ? `Data início: ${new Date(`${dataInicioFilter}T00:00:00`).toLocaleDateString('pt-BR')}` : null,
       dataFimFilter ? `Data fim: ${new Date(`${dataFimFilter}T00:00:00`).toLocaleDateString('pt-BR')}` : null,
       tipoLabel ? `Tipo: ${tipoLabel}` : null,
       colaboradorNome ? `Colaborador: ${colaboradorNome}` : null,
-      aprovadorNome ? `Aprovado por: ${aprovadorNome}` : null,
       clienteNome ? `Cliente: ${clienteNome}` : null,
-      viewMode === 'resumo' ? 'Visão: Resumo (total por colaborador)' : null,
+      viewMode === 'resumo'
+        ? `Visão: Resumo (total por colaborador, por ${totalizarPor === 'teste' ? 'teste' : 'elaboração'})`
+        : null,
     ].filter(Boolean);
 
     return filters.length > 0 ? filters.join(' | ') : 'Nenhum filtro aplicado';
@@ -866,7 +846,7 @@ export default function RelatorioComissaoPage() {
           },
           {
             element: '#tour-comissao-filtros',
-            popover: { title: 'Filtros', description: 'Filtre por <strong>período</strong>, <strong>tipo</strong> (Tarefas/Atendimentos), <strong>colaborador</strong>, <strong>aprovado por</strong> e <strong>cliente</strong>. Ao filtrar um colaborador, aparecem os itens em que ele participou de <strong>qualquer</strong> etapa — e todas as etapas continuam visíveis, mesmo as de outras pessoas. Já <strong>Aprovado por</strong> deixa só os itens cuja etapa de aprovação foi feita pela pessoa escolhida — o nome de quem aprovou aparece no cabeçalho de cada item.', side: 'bottom', align: 'start' },
+            popover: { title: 'Filtros', description: 'Filtre por <strong>período</strong>, <strong>tipo</strong> (Tarefas/Atendimentos), <strong>colaborador</strong> e <strong>cliente</strong>. Ao filtrar um colaborador, aparecem os itens em que ele participou de <strong>qualquer</strong> etapa — e todas as etapas continuam visíveis, mesmo as de outras pessoas. O nome de quem fez a etapa de teste aparece no cabeçalho de cada item, como <strong>Aprovado por</strong>.', side: 'bottom', align: 'start' },
           },
           {
             element: '#tour-comissao-colunas',
@@ -874,7 +854,7 @@ export default function RelatorioComissaoPage() {
           },
           {
             element: '#tour-comissao-visao',
-            popover: { title: 'Visão e Ordenação', description: '<strong>Detalhada</strong>: todas as etapas de cada item, numeradas por colaborador.<br><strong>Resumo</strong>: só o total por colaborador (contando apenas desenvolvimento e atendimentos concluídos).<br>A ordem dos itens dentro do colaborador pode ser <strong>Cliente → Data</strong> ou <strong>Data → Cliente</strong>.', side: 'bottom', align: 'end' },
+            popover: { title: 'Visão e Ordenação', description: '<strong>Detalhada</strong>: todas as etapas de cada item, numeradas por colaborador.<br><strong>Resumo</strong>: só o total por colaborador, totalizado por <strong>Elaboração</strong> (desenvolvimento e atendimentos concluídos) ou por <strong>Teste</strong> (quem fez a etapa de teste).<br>A ordem dos itens dentro do colaborador pode ser <strong>Cliente → Data</strong> ou <strong>Data → Cliente</strong>.', side: 'bottom', align: 'end' },
           },
           {
             element: '#tour-comissao-tabela',
@@ -959,19 +939,6 @@ export default function RelatorioComissaoPage() {
                   />
                 </div>
                 <div>
-                  <Label>Aprovado por</Label>
-                  <Combobox
-                    value={aprovadorFilter}
-                    onValueChange={setAprovadorFilter}
-                    placeholder="Aprovado por"
-                    searchPlaceholder="Buscar colaborador..."
-                    options={[
-                      { value: 'todos', label: 'Todos' },
-                      ...aprovadoresDisponiveis.map((a) => ({ value: String(a.id), label: a.nome })),
-                    ]}
-                  />
-                </div>
-                <div>
                   <Label>Cliente</Label>
                   <Combobox
                     value={clienteFilter}
@@ -1024,6 +991,18 @@ export default function RelatorioComissaoPage() {
                     <SelectItem value="resumo">Resumo (total)</SelectItem>
                   </SelectContent>
                 </Select>
+                {viewMode === 'resumo' && (
+                  <>
+                    <Label className="whitespace-nowrap">Totalizar por</Label>
+                    <Select value={totalizarPor} onValueChange={setTotalizarPor}>
+                      <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="elaboracao">Elaboração</SelectItem>
+                        <SelectItem value="teste">Teste</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </>
+                )}
                 {viewMode === 'detalhado' && (
                   <>
                     <Label className="whitespace-nowrap">Ordenar por</Label>
