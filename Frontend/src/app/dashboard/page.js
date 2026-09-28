@@ -19,8 +19,8 @@ import {
   Clock,
   PackageX,
   UserX,
-  TimerOff,
   Inbox,
+  Bookmark,
   CalendarRange,
 } from 'lucide-react';
 import { getDashboard } from './api/dashboard';
@@ -29,7 +29,7 @@ import TourGuia from '../../components/TourGuia';
 import { Combobox } from '../../components/ui/form/combobox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/form/select';
 import * as PopoverPrimitive from '@radix-ui/react-popover';
-import { ehReservado, rotuloEtapa } from '../../utils/situacaoTarefa';
+import { ehEtapaElaboracao, ehReservado, rotuloEtapa } from '../../utils/situacaoTarefa';
 
 const PERIODOS = [
   { value: 'mesAtual', label: 'Mês atual' },
@@ -455,6 +455,32 @@ function RankingColaboradores({ titulo, descricao, itens, corBadge, visiveisPadr
   );
 }
 
+/**
+ * Faixa do "Por Etapa": Atendimento (sem etapa), Reservado, cada etapa do fluxo e a final. Os
+ * cards de Situação Atual e as barras do gráfico mostram o mesmo recorte, então a chave, a cor e
+ * o texto saem daqui para os dois nunca se desencontrarem.
+ */
+const chaveFaixaEtapa = (item) => `${item.etapaId ?? 'atendimento'}${item.reservado ? '-reservado' : ''}`;
+
+function aparenciaFaixaEtapa(item) {
+  if (item.etapaId == null) {
+    return { icone: Inbox, corIcone: 'text-slate-600', corFundo: 'bg-slate-100', corBarra: '#94a3b8', descricao: 'Tarefas ainda sem etapa definida.' };
+  }
+  if (item.reservado) {
+    return { icone: Bookmark, corIcone: 'text-amber-600', corFundo: 'bg-amber-50', corBarra: '#f59e0b', descricao: 'Na elaboração, mas ainda não iniciadas.' };
+  }
+  if (item.ehEtapaFinal) {
+    return { icone: CheckCircle2, corIcone: 'text-emerald-600', corFundo: 'bg-emerald-50', corBarra: '#10b981', descricao: 'Na etapa final, com o projeto ainda aberto.' };
+  }
+  return {
+    icone: ClipboardList,
+    corIcone: 'text-violet-600',
+    corFundo: 'bg-violet-50',
+    corBarra: '#8b5cf6',
+    descricao: ehEtapaElaboracao(item.etapa) ? 'Já iniciadas ou pausadas nesta etapa.' : 'Tarefas nesta etapa agora.',
+  };
+}
+
 function TituloSecao({ icone: Icone, cor, children, sufixo }) {
   return (
     <h2 className="text-base font-semibold text-gray-700 mb-3 flex items-center gap-2 flex-wrap">
@@ -538,7 +564,7 @@ export default function DashboardPage() {
             element: '#tour-dashboard-tarefas-situacao',
             popover: {
               title: 'Tarefas — Situação Atual',
-              description: 'Como as tarefas estão neste momento: em andamento, em atendimento, sem responsável e ainda não iniciadas. Cada lista mostra <strong>responsável</strong>, <strong>etapa</strong>, <strong>status</strong> e <strong>quem mexeu por último, quando</strong>.',
+              description: 'Um card por etapa, no mesmo recorte do gráfico <strong>Por Etapa</strong>: Atendimento, Reservado, cada etapa do fluxo e a final. Tarefas sem responsável ficam em Alertas. Cada lista mostra <strong>responsável</strong>, <strong>etapa</strong>, <strong>status</strong> e <strong>quem mexeu por último, quando</strong>.',
               side: 'bottom',
               align: 'center',
             },
@@ -742,52 +768,36 @@ export default function DashboardPage() {
           Tarefas — Situação Atual · {tituloSecao}
         </TituloSecao>
 
-        <div className={`grid grid-cols-2 gap-4 ${visaoGlobal ? 'lg:grid-cols-4' : 'lg:grid-cols-3'}`}>
-          <CardKPI
-            icone={ClipboardList}
-            titulo="Em Andamento"
-            descricao="Tarefas em alguma etapa do fluxo, sem contar a etapa final."
-            indicador={tarefas.emAndamento}
-            corIcone="text-violet-600"
-            corFundo="bg-violet-50"
-          />
-          <CardKPI
-            icone={Inbox}
-            titulo="Em Atendimento"
-            descricao="Tarefas ainda sem etapa definida."
-            indicador={tarefas.atendimento}
-            corIcone="text-slate-600"
-            corFundo="bg-slate-100"
-          />
-          <CardKPI
-            icone={TimerOff}
-            titulo="Não Iniciadas"
-            descricao="Tarefas já em uma etapa que ainda não foram iniciadas."
-            indicador={tarefas.ociosas}
-            corIcone={tarefas.ociosas.total > 0 ? 'text-amber-600' : 'text-gray-400'}
-            corFundo={tarefas.ociosas.total > 0 ? 'bg-amber-50' : 'bg-gray-100'}
-          />
-          {visaoGlobal && (
-            <CardKPI
-              icone={UserMinus}
-              titulo="Sem Responsável"
-              descricao="Tarefas já em uma etapa do fluxo e sem colaborador atribuído."
-              indicador={tarefas.semResponsavel}
-              corIcone={tarefas.semResponsavel.total > 0 ? 'text-orange-500' : 'text-gray-400'}
-              corFundo={tarefas.semResponsavel.total > 0 ? 'bg-orange-50' : 'bg-gray-100'}
-              destaque={tarefas.semResponsavel.total > 0}
-            />
-          )}
-        </div>
+        {/* Mesmo recorte do gráfico "Por Etapa", em cards: um por faixa. */}
+        {tarefas.porEtapa.length === 0 ? (
+          <p className="text-sm text-gray-400">Nenhuma tarefa nas etapas do fluxo.</p>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+            {tarefas.porEtapa.map((item) => {
+              const aparencia = aparenciaFaixaEtapa(item);
+              return (
+                <CardKPI
+                  key={chaveFaixaEtapa(item)}
+                  icone={aparencia.icone}
+                  titulo={item.etapa}
+                  descricao={aparencia.descricao}
+                  indicador={{ total: item.total, itens: item.itens }}
+                  corIcone={aparencia.corIcone}
+                  corFundo={aparencia.corFundo}
+                />
+              );
+            })}
+          </div>
+        )}
       </section>
 
       {/* ───── TAREFAS: ALERTAS ───── */}
       <section>
-        <TituloSecao icone={AlertTriangle} cor="text-red-500" sufixo="Passaram do tempo previsto">
+        <TituloSecao icone={AlertTriangle} cor="text-red-500">
           Tarefas — Alertas
         </TituloSecao>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${visaoGlobal ? 'lg:grid-cols-3' : ''}`}>
           <CardKPI
             icone={AlertTriangle}
             titulo="Em Atraso — Execução"
@@ -806,6 +816,17 @@ export default function DashboardPage() {
             corFundo={tarefas.testeEmAtraso.total > 0 ? 'bg-blue-50' : 'bg-gray-100'}
             destaque={tarefas.testeEmAtraso.total > 0}
           />
+          {visaoGlobal && (
+            <CardKPI
+              icone={UserMinus}
+              titulo="Sem Responsável"
+              descricao="Tarefas já em uma etapa do fluxo e sem colaborador atribuído."
+              indicador={tarefas.semResponsavel}
+              corIcone={tarefas.semResponsavel.total > 0 ? 'text-orange-500' : 'text-gray-400'}
+              corFundo={tarefas.semResponsavel.total > 0 ? 'bg-orange-50' : 'bg-gray-100'}
+              destaque={tarefas.semResponsavel.total > 0}
+            />
+          )}
         </div>
       </section>
 
@@ -823,11 +844,11 @@ export default function DashboardPage() {
               ? <p className="text-sm text-gray-400">Nenhuma tarefa em andamento.</p>
               : tarefas.porEtapa.map((item) => (
                 <BarraHorizontal
-                  key={`${item.etapaId ?? 'atendimento'}${item.reservado ? '-reservado' : ''}`}
+                  key={chaveFaixaEtapa(item)}
                   label={item.etapa}
                   valor={item.total}
                   total={totalPorEtapa}
-                  cor={item.etapaId == null ? '#94a3b8' : item.reservado ? '#f59e0b' : item.ehEtapaFinal ? '#10b981' : '#8b5cf6'}
+                  cor={aparenciaFaixaEtapa(item).corBarra}
                   itens={item.itens}
                   totalItens={item.total}
                 />

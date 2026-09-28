@@ -436,17 +436,6 @@ namespace API.DB.DAOs
 
             var filtro = filtrarPorColaborador ? " AND t.ColaboradorResponsavelId = @ColaboradorId" : "";
 
-            // Em andamento = tem etapa e não é a final. Antes contava TODAS as tarefas de projetos
-            // ativos (atendimento e concluídas junto) e ainda servia de denominador das barras "Por
-            // Etapa", o que deixava os percentuais errados.
-            dto.EmAndamento = await LerIndicadorAsync(cmd, $@"
-                SELECT TOP (@Limite){ColunasTarefa}{TotalGeral}
-                {DeTarefa}
-                WHERE t.EtapaId IS NOT NULL AND e.EhEtapaFinal = 0
-                  {ProjetoAtivo}{filtro}
-                ORDER BY{OrdemTarefaEtapaColaborador}
-            ", usarNomeFantasia);
-
             dto.Atendimento = await LerIndicadorAsync(cmd, $@"
                 SELECT TOP (@Limite){ColunasTarefa}{TotalGeral}
                 {DeTarefa}
@@ -470,17 +459,6 @@ namespace API.DB.DAOs
                     ORDER BY{OrdemTarefaEtapaColaborador}
                 ", usarNomeFantasia);
             }
-
-            // Ociosas: em etapa (não final) e nunca iniciadas — sem histórico de início nem pausa.
-            dto.Ociosas = await LerIndicadorAsync(cmd, $@"
-                SELECT TOP (@Limite){ColunasTarefa}{TotalGeral}
-                {DeTarefa}
-                WHERE t.EtapaId IS NOT NULL AND e.EhEtapaFinal = 0
-                  AND t.DataHoraInicio IS NULL
-                  AND NOT EXISTS (SELECT 1 FROM ProjetoTarefaHistorico h WHERE h.TarefaId = t.Id AND h.Tipo IN ('I', 'P'))
-                  {ProjetoAtivo}{filtro}
-                ORDER BY{OrdemTarefaEtapaColaborador}
-            ", usarNomeFantasia);
 
             // Concluídas no período: entrou na etapa final dentro da janela. DISTINCT por tarefa —
             // reabrir e reconcluir não conta duas vezes. Sem filtro de projeto ativo de propósito:
