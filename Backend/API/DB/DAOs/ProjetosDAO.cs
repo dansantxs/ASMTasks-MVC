@@ -671,7 +671,17 @@ namespace API.DB.DAOs
                     h.RealizadoPorColaboradorNome,
                     COALESCE(pt.CadastradoPorColaboradorId, p.CadastradoPorColaboradorId) AS CadastradoPorColaboradorId,
                     colCad.Nome AS CadastradoPorNome,
-                    COALESCE(pt.DataCadastro, p.DataCadastro) AS TarefaDataCadastro
+                    COALESCE(pt.DataCadastro, p.DataCadastro) AS TarefaDataCadastro,
+                    -- A elaboração já tinha sido iniciada ATÉ este evento? É o que diz se, naquele
+                    -- instante, a tarefa estava reservada. Vem do banco porque o filtro de período
+                    -- do relatório pode esconder o início anterior. O <= no desempate faz a própria
+                    -- linha de início contar como já iniciada.
+                    CASE WHEN EXISTS (
+                        SELECT 1 FROM ProjetoTarefaHistorico hi
+                        WHERE hi.TarefaId = h.TarefaId AND hi.Tipo = 'I'
+                          AND (hi.DataHoraAcao < h.DataHoraAcao
+                               OR (hi.DataHoraAcao = h.DataHoraAcao AND hi.Id <= h.Id))
+                    ) THEN 1 ELSE 0 END AS ElaboracaoJaIniciadaNoEvento
                 FROM ProjetoTarefaHistorico h
                 INNER JOIN ProjetoTarefa pt ON h.TarefaId = pt.Id
                 INNER JOIN Projeto p ON pt.ProjetoId = p.Id
@@ -693,6 +703,12 @@ namespace API.DB.DAOs
                                COALESCE(pt.CadastradoPorColaboradorId, p.CadastradoPorColaboradorId) AS CadastradoPorColaboradorId,
                                colCad.Nome AS CadastradoPorNome,
                                COALESCE(pt.DataCadastro, p.DataCadastro) AS TarefaDataCadastro,
+                               CASE WHEN EXISTS (
+                                   SELECT 1 FROM ProjetoTarefaHistorico hi
+                                   WHERE hi.TarefaId = h.TarefaId AND hi.Tipo = 'I'
+                                     AND (hi.DataHoraAcao < h.DataHoraAcao
+                                          OR (hi.DataHoraAcao = h.DataHoraAcao AND hi.Id <= h.Id))
+                               ) THEN 1 ELSE 0 END AS ElaboracaoJaIniciadaNoEvento,
                                ROW_NUMBER() OVER (PARTITION BY h.TarefaId, h.EtapaId ORDER BY h.DataHoraAcao DESC) AS rn
                         FROM ProjetoTarefaHistorico h
                         INNER JOIN ProjetoTarefa pt ON h.TarefaId = pt.Id
@@ -704,7 +720,8 @@ namespace API.DB.DAOs
                     SELECT Id, TarefaId, TarefaTitulo, TarefaDescricao, ProjetoId, ProjetoTitulo, ClienteId, ClienteNome, ClienteNomeFantasia,
                            Tipo, ColaboradorId, ColaboradorNome, EtapaId, EtapaNome, Observacao, DataHoraAcao,
                            RealizadoPorColaboradorId, RealizadoPorColaboradorNome,
-                           CadastradoPorColaboradorId, CadastradoPorNome, TarefaDataCadastro
+                           CadastradoPorColaboradorId, CadastradoPorNome, TarefaDataCadastro,
+                           ElaboracaoJaIniciadaNoEvento
                     FROM Ranked WHERE rn = 1
                     ORDER BY DataHoraAcao DESC;
                 ";
@@ -742,6 +759,7 @@ namespace API.DB.DAOs
                     CadastradoPorColaboradorId = dr["CadastradoPorColaboradorId"] == DBNull.Value ? null : Convert.ToInt32(dr["CadastradoPorColaboradorId"]),
                     CadastradoPorNome = dr["CadastradoPorNome"] == DBNull.Value ? null : dr["CadastradoPorNome"].ToString(),
                     TarefaDataCadastro = dr["TarefaDataCadastro"] == DBNull.Value ? null : Convert.ToDateTime(dr["TarefaDataCadastro"]),
+                    ElaboracaoJaIniciadaNoEvento = Convert.ToBoolean(dr["ElaboracaoJaIniciadaNoEvento"]),
                 });
             }
 
@@ -761,7 +779,7 @@ namespace API.DB.DAOs
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
 
-            var sql = new System.Text.StringBuilder(@"
+            var sql = new System.Text.StringBuilder($@"
                 SELECT
                     pt.Id,
                     pt.ProjetoId,
@@ -789,19 +807,8 @@ namespace API.DB.DAOs
                     pt.TempoExecucaoUnidade,
                     pt.TempoTesteValor,
                     pt.TempoTesteUnidade,
-                    CASE
-                        WHEN pt.DataHoraInicio IS NOT NULL THEN 'Em andamento'
-                        WHEN EXISTS (
-                            SELECT 1 FROM ProjetoTarefaHistorico h
-                            WHERE h.TarefaId = pt.Id AND h.Tipo = 'P'
-                            AND h.DataHoraAcao > COALESCE(
-                                (SELECT MAX(h2.DataHoraAcao) FROM ProjetoTarefaHistorico h2
-                                 WHERE h2.TarefaId = pt.Id AND h2.Tipo = 'E'),
-                                '1900-01-01'
-                            )
-                        ) THEN 'Pausada'
-                        ELSE 'Ociosa'
-                    END AS StatusAtual
+                    {TarefaSql.StatusAtual("pt")} AS StatusAtual,
+                    {TarefaSql.ElaboracaoJaIniciada("pt")} AS ElaboracaoJaIniciada
                 FROM ProjetoTarefa pt
                 INNER JOIN Projeto p ON pt.ProjetoId = p.Id
                 INNER JOIN Cliente c ON p.ClienteId = c.Id
@@ -898,6 +905,7 @@ namespace API.DB.DAOs
                     TempoTesteValor = dr["TempoTesteValor"] == DBNull.Value ? null : (int?)Convert.ToInt32(dr["TempoTesteValor"]),
                     TempoTesteUnidade = dr["TempoTesteUnidade"] == DBNull.Value ? null : dr["TempoTesteUnidade"].ToString(),
                     StatusAtual = dr["StatusAtual"].ToString() ?? "Ociosa",
+                    ElaboracaoJaIniciada = Convert.ToBoolean(dr["ElaboracaoJaIniciada"]),
                 });
             }
 
@@ -1124,10 +1132,12 @@ namespace API.DB.DAOs
             var mapa = new Dictionary<int, List<ProjetoTarefa>>();
 
             await using var cmd = connection.CreateCommand();
-            cmd.CommandText = @"
+            cmd.CommandText = $@"
                 SELECT Id, ProjetoId, Titulo, Descricao, PrioridadeId, ColaboradorResponsavelId, DataHoraAtribuicao, EtapaId, DataHoraInicio, SetorId,
                        TempoExecucaoValor, TempoExecucaoUnidade, TempoTesteValor, TempoTesteUnidade,
-                       (SELECT COUNT(*) FROM ProjetoTarefaAnexo WHERE TarefaId = pt.Id) AS QuantidadeAnexos
+                       (SELECT COUNT(*) FROM ProjetoTarefaAnexo WHERE TarefaId = pt.Id) AS QuantidadeAnexos,
+                       {TarefaSql.StatusAtual("pt")} AS StatusAtual,
+                       {TarefaSql.ElaboracaoJaIniciada("pt")} AS ElaboracaoJaIniciada
                 FROM ProjetoTarefa pt
                 ORDER BY pt.ProjetoId, pt.Id;
             ";
@@ -1159,7 +1169,9 @@ namespace API.DB.DAOs
                     TempoExecucaoValor = dr["TempoExecucaoValor"] == DBNull.Value ? null : (int?)Convert.ToInt32(dr["TempoExecucaoValor"]),
                     TempoExecucaoUnidade = dr["TempoExecucaoUnidade"] == DBNull.Value ? null : dr["TempoExecucaoUnidade"].ToString(),
                     TempoTesteValor = dr["TempoTesteValor"] == DBNull.Value ? null : (int?)Convert.ToInt32(dr["TempoTesteValor"]),
-                    TempoTesteUnidade = dr["TempoTesteUnidade"] == DBNull.Value ? null : dr["TempoTesteUnidade"].ToString()
+                    TempoTesteUnidade = dr["TempoTesteUnidade"] == DBNull.Value ? null : dr["TempoTesteUnidade"].ToString(),
+                    StatusAtual = dr["StatusAtual"].ToString() ?? "Ociosa",
+                    ElaboracaoJaIniciada = Convert.ToBoolean(dr["ElaboracaoJaIniciada"])
                 };
 
                 if (!mapa.TryGetValue(tarefa.ProjetoId, out var bucket))
@@ -1178,10 +1190,12 @@ namespace API.DB.DAOs
             var tarefas = new List<ProjetoTarefa>();
 
             await using var cmd = connection.CreateCommand();
-            cmd.CommandText = @"
+            cmd.CommandText = $@"
                 SELECT Id, ProjetoId, Titulo, Descricao, PrioridadeId, ColaboradorResponsavelId, DataHoraAtribuicao, EtapaId, DataHoraInicio, SetorId,
                        TempoExecucaoValor, TempoExecucaoUnidade, TempoTesteValor, TempoTesteUnidade,
-                       (SELECT COUNT(*) FROM ProjetoTarefaAnexo WHERE TarefaId = pt.Id) AS QuantidadeAnexos
+                       (SELECT COUNT(*) FROM ProjetoTarefaAnexo WHERE TarefaId = pt.Id) AS QuantidadeAnexos,
+                       {TarefaSql.StatusAtual("pt")} AS StatusAtual,
+                       {TarefaSql.ElaboracaoJaIniciada("pt")} AS ElaboracaoJaIniciada
                 FROM ProjetoTarefa pt
                 WHERE ProjetoId = @ProjetoId
                 ORDER BY pt.Id;
@@ -1215,7 +1229,9 @@ namespace API.DB.DAOs
                     TempoExecucaoValor = dr["TempoExecucaoValor"] == DBNull.Value ? null : (int?)Convert.ToInt32(dr["TempoExecucaoValor"]),
                     TempoExecucaoUnidade = dr["TempoExecucaoUnidade"] == DBNull.Value ? null : dr["TempoExecucaoUnidade"].ToString(),
                     TempoTesteValor = dr["TempoTesteValor"] == DBNull.Value ? null : (int?)Convert.ToInt32(dr["TempoTesteValor"]),
-                    TempoTesteUnidade = dr["TempoTesteUnidade"] == DBNull.Value ? null : dr["TempoTesteUnidade"].ToString()
+                    TempoTesteUnidade = dr["TempoTesteUnidade"] == DBNull.Value ? null : dr["TempoTesteUnidade"].ToString(),
+                    StatusAtual = dr["StatusAtual"].ToString() ?? "Ociosa",
+                    ElaboracaoJaIniciada = Convert.ToBoolean(dr["ElaboracaoJaIniciada"])
                 });
             }
 

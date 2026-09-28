@@ -18,9 +18,9 @@ namespace API.DB.DAOs
     /// </summary>
     public class DashboardDAO
     {
-        // Colunas de uma linha de tarefa nas listas. Inclui o status atual (mesmo CASE do Kanban,
-        // em ProjetosDAO.ObterTarefasKanbanAsync) e quem mexeu por último, e quando.
-        private const string ColunasTarefa = @"
+        // Colunas de uma linha de tarefa nas listas. Inclui o status atual (o mesmo do Kanban,
+        // via TarefaSql) e quem mexeu por último, e quando.
+        private static readonly string ColunasTarefa = $@"
                     t.Id,
                     t.Titulo,
                     pr.Titulo AS ProjetoTitulo,
@@ -28,18 +28,8 @@ namespace API.DB.DAOs
                     cli.NomeFantasia AS ClienteNomeFantasia,
                     col.Nome AS ColaboradorNome,
                     e.Nome AS EtapaNome,
-                    CASE
-                        WHEN t.DataHoraInicio IS NOT NULL THEN 'Em andamento'
-                        WHEN EXISTS (
-                            SELECT 1 FROM ProjetoTarefaHistorico h
-                            WHERE h.TarefaId = t.Id AND h.Tipo = 'P'
-                              AND h.DataHoraAcao > COALESCE(
-                                  (SELECT MAX(h2.DataHoraAcao) FROM ProjetoTarefaHistorico h2
-                                   WHERE h2.TarefaId = t.Id AND h2.Tipo = 'E'),
-                                  '1900-01-01')
-                        ) THEN 'Pausada'
-                        ELSE 'Ociosa'
-                    END AS StatusAtual,
+                    {TarefaSql.StatusAtual("t")} AS StatusAtual,
+                    {TarefaSql.ElaboracaoJaIniciada("t")} AS ElaboracaoJaIniciada,
                     t.DataHoraAtribuicao AS DesdeQuando,
                     ult.UltimaAcaoPor,
                     ult.UltimaAcaoEm";
@@ -70,6 +60,7 @@ namespace API.DB.DAOs
                     resp.Nomes AS ColaboradorNome,
                     CAST(NULL AS nvarchar(200)) AS EtapaNome,
                     CASE a.Status WHEN 'R' THEN 'Realizado' WHEN 'A' THEN 'Agendado' ELSE 'Cancelado' END AS StatusAtual,
+                    CAST(0 AS bit) AS ElaboracaoJaIniciada,
                     a.DataHoraInicio AS DesdeQuando,
                     conc.Nome AS UltimaAcaoPor,
                     a.DataHoraConclusao AS UltimaAcaoEm";
@@ -99,6 +90,7 @@ namespace API.DB.DAOs
                     cad.Nome AS ColaboradorNome,
                     CAST(NULL AS nvarchar(200)) AS EtapaNome,
                     CASE WHEN p.Concluido = 1 THEN 'Concluído' WHEN p.Ativo = 0 THEN 'Inativo' ELSE 'Ativo' END AS StatusAtual,
+                    CAST(0 AS bit) AS ElaboracaoJaIniciada,
                     p.DataCadastro AS DesdeQuando";
 
         private const string DeProjeto = @"
@@ -225,6 +217,7 @@ namespace API.DB.DAOs
                 ColaboradorNome = Texto(reader, "ColaboradorNome"),
                 EtapaNome = Texto(reader, "EtapaNome"),
                 StatusAtual = Texto(reader, "StatusAtual"),
+                ElaboracaoJaIniciada = Convert.ToBoolean(reader["ElaboracaoJaIniciada"]),
                 DesdeQuando = Data(reader, "DesdeQuando"),
                 UltimaAcaoPor = Texto(reader, "UltimaAcaoPor"),
                 UltimaAcaoEm = Data(reader, "UltimaAcaoEm")
@@ -573,35 +566,46 @@ namespace API.DB.DAOs
                 ORDER BY t.Titulo
             ", usarNomeFantasia);
 
-            // Por etapa, com a lista de cada faixa: uma consulta só, com o total por etapa
-            // (COUNT OVER PARTITION) e a lista cortada por etapa (ROW_NUMBER).
+            // Por etapa, com a lista de cada faixa: uma consulta só, com o total por faixa
+            // (COUNT OVER PARTITION) e a lista cortada por faixa (ROW_NUMBER). A etapa de
+            // elaboração vira duas faixas: Reservado (ainda não iniciada) e a própria etapa (já
+            // começou) — ver TarefaSql.EhEtapaElaboracao. As demais etapas têm só a faixa 0.
             cmd.CommandText = $@"
                 SELECT * FROM (
-                    SELECT{ColunasTarefa},
-                        t.EtapaId AS EtapaIdFaixa,
-                        e.Ordem AS EtapaOrdem,
-                        e.EhEtapaFinal AS EtapaFinal,
-                        COUNT(*) OVER (PARTITION BY t.EtapaId) AS TotalGeral,
-                        ROW_NUMBER() OVER (PARTITION BY t.EtapaId ORDER BY t.Titulo) AS Posicao
-                    {DeTarefa}
-                    WHERE t.EtapaId IS NOT NULL
-                      {ProjetoAtivo}{filtro}
+                    SELECT base.*, r.Reservado,
+                        COUNT(*) OVER (PARTITION BY base.EtapaIdFaixa, r.Reservado) AS TotalGeral,
+                        ROW_NUMBER() OVER (PARTITION BY base.EtapaIdFaixa, r.Reservado ORDER BY base.Titulo) AS Posicao
+                    FROM (
+                        SELECT{ColunasTarefa},
+                            t.EtapaId AS EtapaIdFaixa,
+                            e.Ordem AS EtapaOrdem,
+                            e.EhEtapaFinal AS EtapaFinal,
+                            CASE WHEN {TarefaSql.EhEtapaElaboracao("e")} THEN 1 ELSE 0 END AS EtapaElaboracao
+                        {DeTarefa}
+                        WHERE t.EtapaId IS NOT NULL
+                          {ProjetoAtivo}{filtro}
+                    ) base
+                    CROSS APPLY (
+                        SELECT CASE WHEN base.EtapaElaboracao = 1 AND base.ElaboracaoJaIniciada = 0 THEN 1 ELSE 0 END AS Reservado
+                    ) r
                 ) faixas
                 WHERE faixas.Posicao <= @Limite
-                ORDER BY faixas.EtapaOrdem, faixas.Titulo
+                ORDER BY faixas.EtapaOrdem, faixas.Reservado DESC, faixas.Titulo
             ";
             await using (var reader = await cmd.ExecuteReaderAsync())
             {
                 while (await reader.ReadAsync())
                 {
                     var etapaId = Convert.ToInt32(reader["EtapaIdFaixa"]);
-                    var faixa = dto.PorEtapa.FirstOrDefault(f => f.EtapaId == etapaId);
+                    var reservado = Convert.ToInt32(reader["Reservado"]) == 1;
+                    var faixa = dto.PorEtapa.FirstOrDefault(f => f.EtapaId == etapaId && f.Reservado == reservado);
                     if (faixa == null)
                     {
                         faixa = new TarefaPorEtapaDTO
                         {
                             EtapaId = etapaId,
-                            Etapa = Texto(reader, "EtapaNome") ?? "",
+                            Reservado = reservado,
+                            Etapa = reservado ? "Reservado" : Texto(reader, "EtapaNome") ?? "",
                             Ordem = Convert.ToInt32(reader["EtapaOrdem"]),
                             EhEtapaFinal = Convert.ToBoolean(reader["EtapaFinal"]),
                             Total = Convert.ToInt32(reader["TotalGeral"])

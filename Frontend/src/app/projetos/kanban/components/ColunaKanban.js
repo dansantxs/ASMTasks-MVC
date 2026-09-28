@@ -1,10 +1,11 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, CheckCircle2 } from 'lucide-react';
 import { cn } from '../../../../components/ui/form/utils';
+import { ROTULO_RESERVADO, ehEtapaElaboracao, ehReservado } from '../../../../utils/situacaoTarefa';
 import CartaoTarefa from './CartaoTarefa';
 
 function resolverNomeCliente(tarefa, exibicao) {
@@ -22,6 +23,27 @@ function ColunaKanban({ etapaId, titulo, tarefas, ehAdmin, colaboradorLogadoId, 
     );
   };
   const podeReordenar = ehAdmin && !isAtendimento && !isEtapaFinal;
+
+  // Na etapa de elaboração, o que alguém vai fazer (Reservado) fica separado do que já começou.
+  // A ordem de cada faixa é a mesma da coluna, que já chega ordenada.
+  const faixas = useMemo(() => {
+    if (isAtendimento || !ehEtapaElaboracao(titulo)) return null;
+    return [
+      { chave: 'reservado', titulo: ROTULO_RESERVADO, tarefas: tarefas.filter((t) => ehReservado(titulo, t.elaboracaoJaIniciada)) },
+      { chave: 'em-elaboracao', titulo: 'Em elaboração', tarefas: tarefas.filter((t) => !ehReservado(titulo, t.elaboracaoJaIniciada)) },
+    ];
+  }, [isAtendimento, titulo, tarefas]);
+
+  const renderizarCartao = (tarefa) => (
+    <CartaoTarefa
+      key={tarefa.id}
+      tarefa={tarefa}
+      podeMover={podeMoverTarefa(tarefa)}
+      onVisualizar={onVisualizarTarefa}
+      nomeCliente={resolverNomeCliente(tarefa, exibicaoNomeCliente)}
+      mostrarLancamento={mostrarLancamento}
+    />
+  );
 
   const {
     attributes: dragAttrs,
@@ -86,16 +108,17 @@ function ColunaKanban({ etapaId, titulo, tarefas, ehAdmin, colaboradorLogadoId, 
         )}
         style={{ minHeight: 80 }}
       >
-        {tarefas.map((tarefa) => (
-          <CartaoTarefa
-            key={tarefa.id}
-            tarefa={tarefa}
-            podeMover={podeMoverTarefa(tarefa)}
-            onVisualizar={onVisualizarTarefa}
-            nomeCliente={resolverNomeCliente(tarefa, exibicaoNomeCliente)}
-            mostrarLancamento={mostrarLancamento}
-          />
-        ))}
+        {faixas && tarefas.length > 0
+          ? faixas.map((faixa) => (
+              <div key={faixa.chave} className="space-y-2">
+                <div className="flex items-center justify-between px-0.5 pt-1">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">{faixa.titulo}</p>
+                  <span className="text-[11px] font-medium text-gray-400">{faixa.tarefas.length}</span>
+                </div>
+                {faixa.tarefas.map(renderizarCartao)}
+              </div>
+            ))
+          : tarefas.map(renderizarCartao)}
 
         {tarefas.length === 0 && (
           <div

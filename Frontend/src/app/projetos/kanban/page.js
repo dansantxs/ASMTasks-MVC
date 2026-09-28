@@ -314,7 +314,7 @@ export default function KanbanPage() {
             popover: {
               title: 'Quadro de Tarefas',
               description:
-                '<strong>Arraste os cards</strong> entre colunas para mover uma tarefa de etapa. Clique no ícone 👁 de um card para abrir os detalhes, trocar o responsável, iniciar ou pausar a elaboração.',
+                '<strong>Arraste os cards</strong> entre colunas para mover uma tarefa de etapa. Clique no ícone 👁 de um card para abrir os detalhes, trocar o responsável, iniciar ou pausar a elaboração.<br>Na coluna de <strong>Elaboração</strong>, as tarefas ficam em duas faixas: <strong>Reservado</strong> (ainda não iniciadas) e <strong>Em elaboração</strong> (já começaram). Ao iniciar, a tarefa passa sozinha para a segunda faixa.',
               side: 'top',
               align: 'center',
               onNextClick: () => {

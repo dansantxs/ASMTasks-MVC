@@ -29,6 +29,7 @@ import TourGuia from '../../components/TourGuia';
 import { Combobox } from '../../components/ui/form/combobox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/form/select';
 import * as PopoverPrimitive from '@radix-ui/react-popover';
+import { ehReservado, rotuloEtapa } from '../../utils/situacaoTarefa';
 
 const PERIODOS = [
   { value: 'mesAtual', label: 'Mês atual' },
@@ -54,7 +55,13 @@ const juntar = (...partes) => partes.filter((p) => p != null && p !== '').join('
  */
 function LinhaIndicador({ item }) {
   const contexto = juntar(item.projetoTitulo, item.clienteNome);
-  const situacao = juntar(item.colaboradorNome ?? 'Sem responsável', item.etapaNome, item.statusAtual);
+  // "Reservado" já diz que a tarefa não foi iniciada: repetir "Ociosa" ao lado só polui.
+  const reservado = ehReservado(item.etapaNome, item.elaboracaoJaIniciada);
+  const situacao = juntar(
+    item.colaboradorNome ?? 'Sem responsável',
+    rotuloEtapa(item.etapaNome, item.elaboracaoJaIniciada),
+    reservado ? null : item.statusAtual
+  );
   const ultimaAcao = item.ultimaAcaoEm
     ? `Última ação: ${juntar(item.ultimaAcaoPor, formatarDataHora(item.ultimaAcaoEm))}`
     : null;
@@ -816,11 +823,11 @@ export default function DashboardPage() {
               ? <p className="text-sm text-gray-400">Nenhuma tarefa em andamento.</p>
               : tarefas.porEtapa.map((item) => (
                 <BarraHorizontal
-                  key={item.etapaId ?? 'atendimento'}
+                  key={`${item.etapaId ?? 'atendimento'}${item.reservado ? '-reservado' : ''}`}
                   label={item.etapa}
                   valor={item.total}
                   total={totalPorEtapa}
-                  cor={item.etapaId == null ? '#94a3b8' : item.ehEtapaFinal ? '#10b981' : '#8b5cf6'}
+                  cor={item.etapaId == null ? '#94a3b8' : item.reservado ? '#f59e0b' : item.ehEtapaFinal ? '#10b981' : '#8b5cf6'}
                   itens={item.itens}
                   totalItens={item.total}
                 />

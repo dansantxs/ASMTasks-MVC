@@ -10,6 +10,7 @@ import autoTable from 'jspdf-autotable';
 import { configuracoesPadrao, useConfiguracoesSistema } from '../../../services/configuracoes/api';
 import { obterLogotipo, obterRodapeRelatorio } from '../../../services/configuracoes/reportBranding';
 import { getProjetoDocumento } from '../api/projetos';
+import { ehReservado, rotuloEtapa } from '../../../utils/situacaoTarefa';
 
 // ─── helpers ───────────────────────────────────────────────────────────────
 
@@ -460,9 +461,11 @@ export default function DialogoVisualizarProjeto({
                   const prioridade = task.prioridadeId ? prioridadesById.get(task.prioridadeId) : null;
                   const prioridadeNome = prioridade?.nome ?? (task.prioridadeId ? `#${task.prioridadeId}` : null);
                   const prioridadeCor = prioridade?.cor;
-                  const etapaNome = task.etapaId
+                  const etapaCadastrada = task.etapaId
                     ? (etapasById.get(task.etapaId) ?? `Etapa #${task.etapaId}`)
-                    : 'Atendimento';
+                    : null;
+                  const etapaNome = etapaCadastrada ? rotuloEtapa(etapaCadastrada, task.elaboracaoJaIniciada) : 'Atendimento';
+                  const reservado = etapaCadastrada ? ehReservado(etapaCadastrada, task.elaboracaoJaIniciada) : false;
                   const etapaConcluida = task.etapaId
                     ? normalizarTexto(etapasById.get(task.etapaId) ?? '').includes('conclu')
                     : false;
@@ -522,7 +525,9 @@ export default function DialogoVisualizarProjeto({
                         <span className={`text-xs px-1.5 py-0.5 rounded font-medium shrink-0 ${
                           etapaConcluida
                             ? 'bg-green-100 text-green-700'
-                            : task.etapaId
+                            : reservado
+                              ? 'bg-amber-50 text-amber-700'
+                              : task.etapaId
                               ? 'bg-blue-50 text-blue-700'
                               : 'bg-muted text-muted-foreground'
                         }`}>
