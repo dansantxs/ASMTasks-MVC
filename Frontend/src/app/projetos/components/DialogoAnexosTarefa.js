@@ -250,22 +250,17 @@ export default function DialogoAnexosTarefa({ open, onOpenChange, tarefaId, tare
     setImagemAmpliada(imagens[proximo]);
   };
 
-  // Esc fecha so a ampliacao (o Radix fecharia o dialogo inteiro), setas trocam de imagem.
+  // As setas trocam de imagem. O Esc fica por conta do Radix, que fecha o diálogo de cima — a
+  // ampliação — e deixa o de arquivos aberto.
   // Sem lista de dependencias de proposito: o handler precisa enxergar a imagem atual.
   useEffect(() => {
     if (!imagemAmpliada) return undefined;
     const aoTeclar = (e) => {
-      if (e.key === 'Escape') {
-        e.stopPropagation();
-        setImagemAmpliada(null);
-      } else if (e.key === 'ArrowRight') {
-        irParaImagem(1);
-      } else if (e.key === 'ArrowLeft') {
-        irParaImagem(-1);
-      }
+      if (e.key === 'ArrowRight') irParaImagem(1);
+      else if (e.key === 'ArrowLeft') irParaImagem(-1);
     };
-    window.addEventListener('keydown', aoTeclar, true);
-    return () => window.removeEventListener('keydown', aoTeclar, true);
+    window.addEventListener('keydown', aoTeclar);
+    return () => window.removeEventListener('keydown', aoTeclar);
   });
 
   const abrirImagemEmNovaAba = async (anexoId) => {
@@ -299,85 +294,6 @@ export default function DialogoAnexosTarefa({ open, onOpenChange, tarefaId, tare
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 bg-black/50 z-[55]" />
           <Dialog.Content aria-describedby={undefined} className="fixed z-[55] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[85vh] flex flex-col">
-            {/* Lightbox dentro do Dialog.Content para não disparar fechamento externo */}
-            {imagemAmpliada && (
-              <div
-                className="fixed inset-0 z-[70] bg-black/90 flex flex-col"
-                onClick={() => setImagemAmpliada(null)}
-              >
-                <div
-                  className="flex items-center gap-2 px-4 py-2 text-white"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <p className="flex-1 truncate text-sm" title={imagemAmpliada.nomeOriginal}>
-                    {imagemAmpliada.nomeOriginal}
-                  </p>
-                  {imagens.length > 1 && (
-                    <span className="text-xs opacity-70 shrink-0">
-                      {indiceAmpliada + 1} de {imagens.length}
-                    </span>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => abrirImagemEmNovaAba(imagemAmpliada.id)}
-                    className="p-1.5 rounded hover:bg-white/15 transition-colors"
-                    title="Abrir em nova aba"
-                  >
-                    <ExternalLink className="h-5 w-5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => baixarImagem(imagemAmpliada.id, imagemAmpliada.nomeOriginal)}
-                    className="p-1.5 rounded hover:bg-white/15 transition-colors"
-                    title="Baixar"
-                  >
-                    <Download className="h-5 w-5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setImagemAmpliada(null)}
-                    className="p-1.5 rounded hover:bg-white/15 transition-colors"
-                    title="Fechar (Esc)"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
-                </div>
-
-                <div className="flex-1 flex items-center justify-center gap-2 px-2 pb-4 min-h-0">
-                  {imagens.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={(e) => { e.stopPropagation(); irParaImagem(-1); }}
-                      className="shrink-0 p-2 rounded-full text-white hover:bg-white/15 transition-colors"
-                      title="Anterior (seta esquerda)"
-                    >
-                      <ChevronLeft className="h-7 w-7" />
-                    </button>
-                  )}
-                  <div
-                    className="flex-1 min-w-0 h-full flex items-center justify-center"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <AnexoImagem
-                      key={imagemAmpliada.id}
-                      anexoId={imagemAmpliada.id}
-                      nomeOriginal={imagemAmpliada.nomeOriginal}
-                      className="max-w-full max-h-[85vh] object-contain"
-                    />
-                  </div>
-                  {imagens.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={(e) => { e.stopPropagation(); irParaImagem(1); }}
-                      className="shrink-0 p-2 rounded-full text-white hover:bg-white/15 transition-colors"
-                      title="Próxima (seta direita)"
-                    >
-                      <ChevronRight className="h-7 w-7" />
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
             <div className="flex items-center justify-between px-5 py-4 border-b">
               <div className="flex items-center gap-2">
                 <Paperclip className="h-4 w-4 text-gray-400" />
@@ -475,6 +391,96 @@ export default function DialogoAnexosTarefa({ open, onOpenChange, tarefaId, tare
               <p className="text-xs text-gray-400 text-center mt-1.5">
                 JPEG, PNG, GIF, WebP, PDF, Excel (XLS/XLSX), XML, OFX, REM ou RET · máx. {config?.anexoTamanhoMaximoMB ?? 20} MB
               </p>
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+
+      {/* Imagem ampliada em diálogo próprio, e não dentro do diálogo de arquivos: aquela caixa é
+          centralizada com transform, e um ancestral transformado vira o container do `position:
+          fixed` — a imagem ficava presa ao tamanho da caixa e passava por cima dos botões. */}
+      <Dialog.Root open={!!imagemAmpliada} onOpenChange={(v) => { if (!v) setImagemAmpliada(null); }}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 bg-black/90 z-[70]" />
+          <Dialog.Content
+            aria-describedby={undefined}
+            className="fixed inset-0 z-[75] flex flex-col focus:outline-none"
+            onClick={() => setImagemAmpliada(null)}
+          >
+            <Dialog.Title className="sr-only">{imagemAmpliada?.nomeOriginal ?? 'Imagem'}</Dialog.Title>
+
+            <div
+              className="flex items-center gap-2 px-4 py-2 text-white"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <p className="flex-1 truncate text-sm" title={imagemAmpliada?.nomeOriginal}>
+                {imagemAmpliada?.nomeOriginal}
+              </p>
+              {imagens.length > 1 && (
+                <span className="text-xs opacity-70 shrink-0">
+                  {indiceAmpliada + 1} de {imagens.length}
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={() => imagemAmpliada && abrirImagemEmNovaAba(imagemAmpliada.id)}
+                className="p-1.5 rounded hover:bg-white/15 transition-colors"
+                title="Abrir em nova aba"
+              >
+                <ExternalLink className="h-5 w-5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => imagemAmpliada && baixarImagem(imagemAmpliada.id, imagemAmpliada.nomeOriginal)}
+                className="p-1.5 rounded hover:bg-white/15 transition-colors"
+                title="Baixar"
+              >
+                <Download className="h-5 w-5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setImagemAmpliada(null)}
+                className="p-1.5 rounded hover:bg-white/15 transition-colors"
+                title="Fechar (Esc)"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 min-h-0 flex items-center justify-center gap-2 px-2 pb-4">
+              {imagens.length > 1 && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); irParaImagem(-1); }}
+                  className="shrink-0 p-2 rounded-full text-white hover:bg-white/15 transition-colors"
+                  title="Anterior (seta esquerda)"
+                >
+                  <ChevronLeft className="h-7 w-7" />
+                </button>
+              )}
+              <div
+                className="flex-1 min-w-0 h-full flex items-center justify-center"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {imagemAmpliada && (
+                  <AnexoImagem
+                    key={imagemAmpliada.id}
+                    anexoId={imagemAmpliada.id}
+                    nomeOriginal={imagemAmpliada.nomeOriginal}
+                    className="max-h-full max-w-full object-contain"
+                  />
+                )}
+              </div>
+              {imagens.length > 1 && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); irParaImagem(1); }}
+                  className="shrink-0 p-2 rounded-full text-white hover:bg-white/15 transition-colors"
+                  title="Próxima (seta direita)"
+                >
+                  <ChevronRight className="h-7 w-7" />
+                </button>
+              )}
             </div>
           </Dialog.Content>
         </Dialog.Portal>
