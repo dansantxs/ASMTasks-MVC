@@ -57,6 +57,8 @@ namespace API.DTOs.Dashboard
         public string? ColaboradorNome { get; set; }
         public string? EtapaNome { get; set; }
         public string? StatusAtual { get; set; }
+        /// <summary>Tarefa: a elaboração já foi iniciada alguma vez. Separa Reservado de Em elaboração.</summary>
+        public bool ElaboracaoJaIniciada { get; set; }
         /// <summary>Desde quando está assim: atribuição da tarefa, ou agendamento do atendimento.</summary>
         public DateTime? DesdeQuando { get; set; }
         /// <summary>Quem mexeu por último e quando — responde "quem está mexendo, quando".</summary>

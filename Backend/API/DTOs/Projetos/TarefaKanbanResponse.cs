@@ -25,6 +25,8 @@ namespace API.DTOs.Projetos
     public int QuantidadeAnexos { get; set; }
     public string? ClienteNomeFantasia { get; set; }
     public string StatusAtual { get; set; } = "Ociosa";
+    /// <summary>A elaboração já foi iniciada alguma vez — separa Reservado de Em elaboração.</summary>
+    public bool ElaboracaoJaIniciada { get; set; }
     public int? TempoExecucaoValor { get; set; }
     public string? TempoExecucaoUnidade { get; set; }
     public int? TempoTesteValor { get; set; }

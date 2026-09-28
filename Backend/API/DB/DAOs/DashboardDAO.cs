@@ -29,6 +29,7 @@ namespace API.DB.DAOs
                     col.Nome AS ColaboradorNome,
                     e.Nome AS EtapaNome,
                     {TarefaSql.StatusAtual("t")} AS StatusAtual,
+                    {TarefaSql.ElaboracaoJaIniciada("t")} AS ElaboracaoJaIniciada,
                     t.DataHoraAtribuicao AS DesdeQuando,
                     ult.UltimaAcaoPor,
                     ult.UltimaAcaoEm";
@@ -59,6 +60,7 @@ namespace API.DB.DAOs
                     resp.Nomes AS ColaboradorNome,
                     CAST(NULL AS nvarchar(200)) AS EtapaNome,
                     CASE a.Status WHEN 'R' THEN 'Realizado' WHEN 'A' THEN 'Agendado' ELSE 'Cancelado' END AS StatusAtual,
+                    CAST(0 AS bit) AS ElaboracaoJaIniciada,
                     a.DataHoraInicio AS DesdeQuando,
                     conc.Nome AS UltimaAcaoPor,
                     a.DataHoraConclusao AS UltimaAcaoEm";
@@ -88,6 +90,7 @@ namespace API.DB.DAOs
                     cad.Nome AS ColaboradorNome,
                     CAST(NULL AS nvarchar(200)) AS EtapaNome,
                     CASE WHEN p.Concluido = 1 THEN 'Concluído' WHEN p.Ativo = 0 THEN 'Inativo' ELSE 'Ativo' END AS StatusAtual,
+                    CAST(0 AS bit) AS ElaboracaoJaIniciada,
                     p.DataCadastro AS DesdeQuando";
 
         private const string DeProjeto = @"
@@ -214,6 +217,7 @@ namespace API.DB.DAOs
                 ColaboradorNome = Texto(reader, "ColaboradorNome"),
                 EtapaNome = Texto(reader, "EtapaNome"),
                 StatusAtual = Texto(reader, "StatusAtual"),
+                ElaboracaoJaIniciada = Convert.ToBoolean(reader["ElaboracaoJaIniciada"]),
                 DesdeQuando = Data(reader, "DesdeQuando"),
                 UltimaAcaoPor = Texto(reader, "UltimaAcaoPor"),
                 UltimaAcaoEm = Data(reader, "UltimaAcaoEm")
@@ -582,7 +586,7 @@ namespace API.DB.DAOs
                           {ProjetoAtivo}{filtro}
                     ) base
                     CROSS APPLY (
-                        SELECT CASE WHEN base.EtapaElaboracao = 1 AND base.StatusAtual = 'Ociosa' THEN 1 ELSE 0 END AS Reservado
+                        SELECT CASE WHEN base.EtapaElaboracao = 1 AND base.ElaboracaoJaIniciada = 0 THEN 1 ELSE 0 END AS Reservado
                     ) r
                 ) faixas
                 WHERE faixas.Posicao <= @Limite
