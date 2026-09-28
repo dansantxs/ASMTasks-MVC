@@ -521,9 +521,22 @@ export default function RelatorioComissaoPage() {
         grupo.desenvolvedorId = ref?.concluidoPorId ?? null;
         grupo.desenvolvedorNome = ref?.concluidoPorNome ?? SEM_DESENVOLVEDOR;
       } else {
+        // Caminho normal: quem fez a última passagem pela etapa de elaboração.
         const etapaDev = [...grupo.itens].reverse().find((item) => ehEtapaDesenvolvimento(item.etapaNome));
-        grupo.desenvolvedorId = etapaDev?.colaboradorId ?? null;
-        grupo.desenvolvedorNome = etapaDev?.colaboradorNome ?? SEM_DESENVOLVEDOR;
+
+        // Nem toda tarefa passa pela elaboração: parte é resolvida direto em outra etapa (análise,
+        // atualização) ou vai de Atendimento para a final. Sem fallback, essas caíam todas em
+        // "Sem desenvolvedor" e sumiam da contagem, embora o histórico mostre quem fez.
+        // Cascata: quem estava na etapa anterior à final; se foi direto para a final, quem estava
+        // nela. Só sobra "Sem desenvolvedor" quando não há responsável em passagem nenhuma.
+        const etapasPercorridas = [...grupo.itens].reverse();
+        const referencia =
+          etapaDev ??
+          etapasPercorridas.find((item) => item.etapaId !== etapaFinalId) ??
+          etapasPercorridas[0];
+
+        grupo.desenvolvedorId = referencia?.colaboradorId ?? null;
+        grupo.desenvolvedorNome = referencia?.colaboradorNome ?? SEM_DESENVOLVEDOR;
       }
 
       // Aprovador do item: colaborador da última passagem pela etapa de teste. Só tarefa —
@@ -580,7 +593,7 @@ export default function RelatorioComissaoPage() {
     });
 
     return lista;
-  }, [linhasTarefasEAtendimentos, tarefasFinalizadas, tipoItemFilter, infoPorTarefa, etapaTesteIds]);
+  }, [linhasTarefasEAtendimentos, tarefasFinalizadas, tipoItemFilter, infoPorTarefa, etapaTesteIds, etapaFinalId]);
 
   const colaboradorIdFiltro = colaboradorFilter === 'todos' ? null : Number(colaboradorFilter);
   const aprovadorIdFiltro = aprovadorFilter === 'todos' ? null : Number(aprovadorFilter);
