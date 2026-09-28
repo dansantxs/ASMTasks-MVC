@@ -19,6 +19,7 @@ import TourGuia from '../../../components/TourGuia';
 import { getHistoricoTarefas, getHistoricoProjetosRelatorio } from './api/historicoTarefas';
 import { getColaboradoresKanban, getProjetosKanban, getClientesKanban, getEtapasKanban } from '../../projetos/kanban/api/kanban';
 import { useDebouncedValue } from '../../../hooks/useDebouncedValue';
+import { mesAtualParaInputs } from '../../../utils/periodoRelatorio';
 import { ROTULO_RESERVADO, ehEtapaElaboracao } from '../../../utils/situacaoTarefa';
 
 const columns = [
@@ -82,8 +83,9 @@ export default function HistoricoTarefasReportPage() {
   const [colaboradorFilter, setColaboradorFilter] = useState('todos');
   const [projetoFilter, setProjetoFilter] = useState('todos');
   const [clienteFilter, setClienteFilter] = useState('todos');
-  const [dataInicioFilter, setDataInicioFilter] = useState('');
-  const [dataFimFilter, setDataFimFilter] = useState('');
+  // O periodo ja abre no mes corrente (dia 1 ate hoje) - ver utils/periodoRelatorio.
+  const [dataInicioFilter, setDataInicioFilter] = useState(() => mesAtualParaInputs().inicio);
+  const [dataFimFilter, setDataFimFilter] = useState(() => mesAtualParaInputs().fim);
   const [etapaFilter, setEtapaFilter] = useState('todos');
   const [ultimaOcorrencia, setUltimaOcorrencia] = useState(false);
   const [sortConfig, setSortConfig] = useState({ column: 'dataHoraAcao', direction: 'desc' });

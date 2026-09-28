@@ -19,6 +19,7 @@ import TourGuia from '../../../components/TourGuia';
 import { getHistoricoAtendimentos } from './api/historicoAtendimentos';
 import { getClientes, getColaboradores } from '../../atendimentos/api/atendimentos';
 import { useDebouncedValue } from '../../../hooks/useDebouncedValue';
+import { mesAtualParaInputs } from '../../../utils/periodoRelatorio';
 
 const columns = [
   { id: 'dataHoraAcao', label: 'Data/Hora' },
@@ -72,8 +73,9 @@ export default function HistoricoAtendimentosReportPage() {
   const [tipoFilter, setTipoFilter] = useState('todos');
   const [clienteFilter, setClienteFilter] = useState('todos');
   const [colaboradorFilter, setColaboradorFilter] = useState('todos');
-  const [dataInicioFilter, setDataInicioFilter] = useState('');
-  const [dataFimFilter, setDataFimFilter] = useState('');
+  // O periodo ja abre no mes corrente (dia 1 ate hoje) - ver utils/periodoRelatorio.
+  const [dataInicioFilter, setDataInicioFilter] = useState(() => mesAtualParaInputs().inicio);
+  const [dataFimFilter, setDataFimFilter] = useState(() => mesAtualParaInputs().fim);
   const [sortConfig, setSortConfig] = useState({ column: 'dataHoraAcao', direction: 'desc' });
   const [selectedColumns, setSelectedColumns] = useState(columns.map((c) => c.id));
   const { data: systemSettings = configuracoesPadrao } = useConfiguracoesSistema();
