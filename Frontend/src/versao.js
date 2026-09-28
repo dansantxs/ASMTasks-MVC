@@ -24,8 +24,9 @@ export const CHANGELOG = [
     titulo: 'Reservado na Elaboração, Coluna de Teste com o Suporte, Dashboard por Etapa e Tempos na Comissão',
     mudancas: [
       'Quadro Kanban: a coluna "Backlog" passa a se chamar "Atendimento" — também no dashboard, na visualização e na duplicação de projetos',
-      'Quadro Kanban: a coluna de Elaboração passa a ter duas faixas — Reservado (tarefas que alguém vai fazer, mas ainda não começou) e Em elaboração (já iniciadas ou pausadas); ao iniciar, a tarefa passa sozinha para a segunda faixa',
+      'Quadro Kanban: a coluna de Elaboração passa a ter duas faixas — Reservado (tarefas que ninguém começou ainda) e Em elaboração; ao iniciar, a tarefa passa sozinha para a segunda faixa. Uma vez elaborada, ela continua em "Em elaboração" mesmo depois de voltar do teste',
       'Reservado também aparece no dashboard (gráfico Por Etapa e listas dos indicadores) e no selo de etapa das tarefas na visualização do projeto',
+      'Relatório de Histórico de Tarefas: a entrada da tarefa na elaboração, antes de qualquer início, passa a aparecer como ação "Reservada" — o fim desse período é a linha "Início de Elaboração" — e o filtro de Ação ganha essa opção',
       'Quadro Kanban: ao mover uma tarefa para a etapa de teste, a lista de responsáveis traz só "Sem responsável" e os colaboradores do setor Suporte (o mesmo vale ao trocar o responsável de uma tarefa que já está no teste)',
       'Quadro Kanban: na primeira ida para o teste vem "Sem responsável" selecionado; quando a tarefa volta para o teste, vem selecionado quem foi o responsável da última passagem por ele',
       'Dashboard: as listas que abrem ao passar o mouse sobre os indicadores passam a vir ordenadas por etapa (na ordem do fluxo) e, dentro de cada etapa, por colaborador; listas de atendimentos e de projetos, que não têm etapa, vêm por colaborador',
