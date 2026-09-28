@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { X, Upload, Trash2, ZoomIn, Paperclip, FileText, Table2, FileCode } from 'lucide-react';
+import { X, Upload, Trash2, ZoomIn, Paperclip, FileText, Table2, FileCode, ChevronLeft, ChevronRight, Download, ExternalLink } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { getAnexosTarefa, uploadAnexoTarefa, deletarAnexoTarefa, fetchAnexoComoBlob } from '../kanban/api/kanban';
@@ -30,6 +30,10 @@ const ACCEPT_INPUT = [...TIPOS_ACEITOS, ...EXTENSOES_TEXTO_ACEITAS].join(',');
 function obterExtensao(nomeArquivo) {
   const idx = nomeArquivo.lastIndexOf('.');
   return idx === -1 ? '' : nomeArquivo.slice(idx).toLowerCase();
+}
+
+function isImagem(contentType) {
+  return (contentType ?? '').startsWith('image/');
 }
 
 function isPdf(contentType) {
@@ -76,7 +80,7 @@ function AnexoImagem({ anexoId, nomeOriginal, className = '', onClick }) {
     <img
       src={src}
       alt={nomeOriginal}
-      className={`object-cover rounded ${className} ${onClick ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
+      className={`rounded ${className} ${onClick ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
       onClick={onClick}
     />
   );
@@ -236,35 +240,141 @@ export default function DialogoAnexosTarefa({ open, onOpenChange, tarefaId, tare
     }
   };
 
+  // Imagens ampliadas: da para passar de uma para outra sem voltar a grade.
+  const imagens = anexos.filter((a) => isImagem(a.contentType));
+  const indiceAmpliada = imagemAmpliada ? imagens.findIndex((a) => a.id === imagemAmpliada.id) : -1;
+
+  const irParaImagem = (passo) => {
+    if (imagens.length < 2 || indiceAmpliada < 0) return;
+    const proximo = (indiceAmpliada + passo + imagens.length) % imagens.length;
+    setImagemAmpliada(imagens[proximo]);
+  };
+
+  // Esc fecha so a ampliacao (o Radix fecharia o dialogo inteiro), setas trocam de imagem.
+  // Sem lista de dependencias de proposito: o handler precisa enxergar a imagem atual.
+  useEffect(() => {
+    if (!imagemAmpliada) return undefined;
+    const aoTeclar = (e) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        setImagemAmpliada(null);
+      } else if (e.key === 'ArrowRight') {
+        irParaImagem(1);
+      } else if (e.key === 'ArrowLeft') {
+        irParaImagem(-1);
+      }
+    };
+    window.addEventListener('keydown', aoTeclar, true);
+    return () => window.removeEventListener('keydown', aoTeclar, true);
+  });
+
+  const abrirImagemEmNovaAba = async (anexoId) => {
+    try {
+      const blob = await fetchAnexoComoBlob(anexoId);
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch {
+      toast.error('Erro ao abrir a imagem.');
+    }
+  };
+
+  const baixarImagem = async (anexoId, nomeOriginal) => {
+    try {
+      const blob = await fetchAnexoComoBlob(anexoId);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = nomeOriginal;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch {
+      toast.error('Erro ao baixar a imagem.');
+    }
+  };
+
   return (
     <>
       <Dialog.Root open={open} onOpenChange={handleOpenChange}>
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 bg-black/50 z-[55]" />
-          <Dialog.Content aria-describedby={undefined} className="fixed z-[55] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-xl w-full max-w-md max-h-[80vh] flex flex-col">
+          <Dialog.Content aria-describedby={undefined} className="fixed z-[55] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[85vh] flex flex-col">
             {/* Lightbox dentro do Dialog.Content para não disparar fechamento externo */}
             {imagemAmpliada && (
               <div
-                className="fixed inset-0 z-[70] bg-black/80 flex items-center justify-center"
+                className="fixed inset-0 z-[70] bg-black/90 flex flex-col"
                 onClick={() => setImagemAmpliada(null)}
               >
                 <div
-                  className="relative max-w-3xl max-h-[90vh] w-full mx-4"
+                  className="flex items-center gap-2 px-4 py-2 text-white"
                   onClick={(e) => e.stopPropagation()}
                 >
+                  <p className="flex-1 truncate text-sm" title={imagemAmpliada.nomeOriginal}>
+                    {imagemAmpliada.nomeOriginal}
+                  </p>
+                  {imagens.length > 1 && (
+                    <span className="text-xs opacity-70 shrink-0">
+                      {indiceAmpliada + 1} de {imagens.length}
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => abrirImagemEmNovaAba(imagemAmpliada.id)}
+                    className="p-1.5 rounded hover:bg-white/15 transition-colors"
+                    title="Abrir em nova aba"
+                  >
+                    <ExternalLink className="h-5 w-5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => baixarImagem(imagemAmpliada.id, imagemAmpliada.nomeOriginal)}
+                    className="p-1.5 rounded hover:bg-white/15 transition-colors"
+                    title="Baixar"
+                  >
+                    <Download className="h-5 w-5" />
+                  </button>
                   <button
                     type="button"
                     onClick={() => setImagemAmpliada(null)}
-                    className="absolute -top-8 right-0 text-white hover:text-gray-300"
+                    className="p-1.5 rounded hover:bg-white/15 transition-colors"
+                    title="Fechar (Esc)"
                   >
-                    <X className="h-6 w-6" />
+                    <X className="h-5 w-5" />
                   </button>
-                  <AnexoImagem
-                    anexoId={imagemAmpliada.id}
-                    nomeOriginal={imagemAmpliada.nomeOriginal}
-                    className="w-full max-h-[80vh]"
-                  />
-                  <p className="text-center text-white text-xs mt-2 opacity-70">{imagemAmpliada.nomeOriginal}</p>
+                </div>
+
+                <div className="flex-1 flex items-center justify-center gap-2 px-2 pb-4 min-h-0">
+                  {imagens.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); irParaImagem(-1); }}
+                      className="shrink-0 p-2 rounded-full text-white hover:bg-white/15 transition-colors"
+                      title="Anterior (seta esquerda)"
+                    >
+                      <ChevronLeft className="h-7 w-7" />
+                    </button>
+                  )}
+                  <div
+                    className="flex-1 min-w-0 h-full flex items-center justify-center"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <AnexoImagem
+                      key={imagemAmpliada.id}
+                      anexoId={imagemAmpliada.id}
+                      nomeOriginal={imagemAmpliada.nomeOriginal}
+                      className="max-w-full max-h-[85vh] object-contain"
+                    />
+                  </div>
+                  {imagens.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); irParaImagem(1); }}
+                      className="shrink-0 p-2 rounded-full text-white hover:bg-white/15 transition-colors"
+                      title="Próxima (seta direita)"
+                    >
+                      <ChevronRight className="h-7 w-7" />
+                    </button>
+                  )}
                 </div>
               </div>
             )}
@@ -291,7 +401,7 @@ export default function DialogoAnexosTarefa({ open, onOpenChange, tarefaId, tare
               {anexos.length === 0 ? (
                 <p className="text-sm text-gray-400 text-center py-6">Nenhum arquivo anexado ainda.</p>
               ) : (
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                   {anexos.map((anexo) => (
                     <div key={anexo.id} className="relative group aspect-square">
                       {isPdf(anexo.contentType) ? (
@@ -316,7 +426,7 @@ export default function DialogoAnexosTarefa({ open, onOpenChange, tarefaId, tare
                         <AnexoImagem
                           anexoId={anexo.id}
                           nomeOriginal={anexo.nomeOriginal}
-                          className="w-full h-full"
+                          className="w-full h-full object-cover"
                           onClick={() => setImagemAmpliada(anexo)}
                         />
                       )}
