@@ -112,6 +112,38 @@ function toIsoEndOfDay(dateValue) {
 const compararTexto = (a, b) =>
   (a ?? '').localeCompare(b ?? '', 'pt-BR', { sensitivity: 'base' });
 
+// Tempo de execução e de teste, como no relatório do sistema antigo. O PREVISTO é o que está
+// cadastrado na tarefa (valor + unidade D/H/M); o REALIZADO vem do backend em minutos, somado de
+// todo o histórico da tarefa — inclusive o que aconteceu antes do período consultado.
+const MINUTOS_POR_UNIDADE = { D: 1440, H: 60, M: 1 };
+
+const previstoEmMinutos = (valor, unidade) => (valor ? valor * (MINUTOS_POR_UNIDADE[unidade] ?? 60) : 0);
+
+function formatarMinutos(minutos) {
+  if (!minutos) return null;
+  if (minutos < 60) return `${minutos}min`;
+  const horas = Math.floor(minutos / 60);
+  const restoMin = minutos % 60;
+  if (horas < 24) return restoMin ? `${horas}h ${restoMin}min` : `${horas}h`;
+  const dias = Math.floor(horas / 24);
+  const restoHoras = horas % 24;
+  return restoHoras ? `${dias}d ${restoHoras}h` : `${dias}d`;
+}
+
+/** "2h 15min / 3h" para as colunas do Resumo, com travessão onde não há tempo. */
+const formatarTempoResumo = (minutosRealizados, minutosPrevistos) =>
+  `${formatarMinutos(minutosRealizados) ?? '—'} / ${formatarMinutos(minutosPrevistos) ?? '—'}`;
+
+/** "2h 15min (prev. 3h)" — omite a parte que não existe. */
+function formatarTempoComPrevisto(minutosRealizados, minutosPrevistos) {
+  const realizado = formatarMinutos(minutosRealizados);
+  const previsto = formatarMinutos(minutosPrevistos);
+  if (!realizado && !previsto) return null;
+  if (!previsto) return realizado;
+  if (!realizado) return `prev. ${previsto}`;
+  return `${realizado} (prev. ${previsto})`;
+}
+
 export default function RelatorioComissaoPage() {
   const hoje = new Date();
   const periodoPadrao = ultimoMesCompleto(hoje);
@@ -248,6 +280,10 @@ export default function RelatorioComissaoPage() {
         lancadoPorNome: r.cadastradoPorNome ?? null,
         lancadoPorData: r.tarefaDataCadastro ? new Date(r.tarefaDataCadastro) : null,
         descricao: r.tarefaDescricao ?? null,
+        execucaoPrevistaMin: previstoEmMinutos(r.tempoExecucaoValor, r.tempoExecucaoUnidade),
+        testePrevistoMin: previstoEmMinutos(r.tempoTesteValor, r.tempoTesteUnidade),
+        execucaoRealizadaMin: r.minutosElaboracao ?? 0,
+        testeRealizadoMin: r.minutosTeste ?? 0,
       });
     });
     return mapa;
@@ -472,6 +508,12 @@ export default function RelatorioComissaoPage() {
           ? info?.descricao ?? null
           : grupo.itens.find((i) => i.descricao)?.descricao ?? null;
 
+      // Tempos só existem para tarefa; atendimento não tem execução nem teste cadastrados.
+      grupo.execucaoPrevistaMin = info?.execucaoPrevistaMin ?? 0;
+      grupo.testePrevistoMin = info?.testePrevistoMin ?? 0;
+      grupo.execucaoRealizadaMin = info?.execucaoRealizadaMin ?? 0;
+      grupo.testeRealizadoMin = info?.testeRealizadoMin ?? 0;
+
       // Desenvolvedor do item — calculado antes de injetar a linha de lançamento.
       if (grupo.itemTipo === 'atendimento') {
         const ref = grupo.itens.find((i) => i.etapaNome === ETAPA_ATENDIMENTO_CONCLUIDO) ?? grupo.itens[0];
@@ -612,8 +654,20 @@ export default function RelatorioComissaoPage() {
       const id = porTeste ? grupo.aprovadorId : grupo.desenvolvedorId;
       if (id == null) return;
       const nome = porTeste ? grupo.aprovadorNome : grupo.desenvolvedorNome;
-      const atual = tally.get(id) ?? { colaboradorId: id, nome, total: 0 };
+      const atual = tally.get(id) ?? {
+        colaboradorId: id,
+        nome,
+        total: 0,
+        execucaoRealizadaMin: 0,
+        execucaoPrevistaMin: 0,
+        testeRealizadoMin: 0,
+        testePrevistoMin: 0,
+      };
       atual.total += 1;
+      atual.execucaoRealizadaMin += grupo.execucaoRealizadaMin ?? 0;
+      atual.execucaoPrevistaMin += grupo.execucaoPrevistaMin ?? 0;
+      atual.testeRealizadoMin += grupo.testeRealizadoMin ?? 0;
+      atual.testePrevistoMin += grupo.testePrevistoMin ?? 0;
       tally.set(id, atual);
     });
     let lista = Array.from(tally.values());
@@ -643,7 +697,16 @@ export default function RelatorioComissaoPage() {
     const titulo = partes.length > 0 ? partes.join(' — ') : `Tarefa #${grupo.tarefaId}`;
     // Quem aprovou fica no cabeçalho do item, ao lado do que identifica a tarefa.
     const comAprovador = grupo.aprovadorNome ? `${titulo} · Aprovado por: ${grupo.aprovadorNome}` : titulo;
-    return grupo.numero ? `${grupo.numero} - ${comAprovador}` : comAprovador;
+
+    // Tempo de execução e de teste do item: realizado e, entre parênteses, o previsto na tarefa.
+    const tempos = [];
+    const execucao = formatarTempoComPrevisto(grupo.execucaoRealizadaMin, grupo.execucaoPrevistaMin);
+    const teste = formatarTempoComPrevisto(grupo.testeRealizadoMin, grupo.testePrevistoMin);
+    if (execucao) tempos.push(`Execução: ${execucao}`);
+    if (teste) tempos.push(`Teste: ${teste}`);
+    const comTempos = tempos.length > 0 ? `${comAprovador} · ${tempos.join(' · ')}` : comAprovador;
+
+    return grupo.numero ? `${grupo.numero} - ${comTempos}` : comTempos;
   }
 
   const toggleColumn = (id) => {
@@ -698,8 +761,15 @@ export default function RelatorioComissaoPage() {
     let head;
     const body = [];
     if (viewMode === 'resumo') {
-      head = [['Colaborador', rotuloTotalResumo]];
-      resumoColaboradores.forEach((r) => body.push([r.nome, String(r.total)]));
+      head = [['Colaborador', rotuloTotalResumo, 'Execução (real. / prev.)', 'Teste (real. / prev.)']];
+      resumoColaboradores.forEach((r) =>
+        body.push([
+          r.nome,
+          String(r.total),
+          formatarTempoResumo(r.execucaoRealizadaMin, r.execucaoPrevistaMin),
+          formatarTempoResumo(r.testeRealizadoMin, r.testePrevistoMin),
+        ])
+      );
     } else {
       head = [colunasLinhaAtivas.map((c) => c.label)];
       secoes.forEach((secao) => {
@@ -769,8 +839,15 @@ export default function RelatorioComissaoPage() {
     let colunasCabecalho;
 
     if (viewMode === 'resumo') {
-      colunasCabecalho = ['Colaborador', rotuloTotalResumo];
-      resumoColaboradores.forEach((r) => dataRows.push([r.nome, r.total]));
+      colunasCabecalho = ['Colaborador', rotuloTotalResumo, 'Execução (real. / prev.)', 'Teste (real. / prev.)'];
+      resumoColaboradores.forEach((r) =>
+        dataRows.push([
+          r.nome,
+          r.total,
+          formatarTempoResumo(r.execucaoRealizadaMin, r.execucaoPrevistaMin),
+          formatarTempoResumo(r.testeRealizadoMin, r.testePrevistoMin),
+        ])
+      );
     } else {
       colunasCabecalho = colunasLinhaAtivas.map((c) => c.label);
       const larguraLinha = Math.max(colunasCabecalho.length, 1);
@@ -854,7 +931,7 @@ export default function RelatorioComissaoPage() {
           },
           {
             element: '#tour-comissao-visao',
-            popover: { title: 'Visão e Ordenação', description: '<strong>Detalhada</strong>: todas as etapas de cada item, numeradas por colaborador.<br><strong>Resumo</strong>: só o total por colaborador, totalizado por <strong>Elaboração</strong> (desenvolvimento e atendimentos concluídos) ou por <strong>Teste</strong> (quem fez a etapa de teste).<br>A ordem dos itens dentro do colaborador pode ser <strong>Cliente → Data</strong> ou <strong>Data → Cliente</strong>.', side: 'bottom', align: 'end' },
+            popover: { title: 'Visão e Ordenação', description: '<strong>Detalhada</strong>: todas as etapas de cada item, numeradas por colaborador.<br><strong>Resumo</strong>: o total por colaborador, totalizado por <strong>Elaboração</strong> (desenvolvimento e atendimentos concluídos) ou por <strong>Teste</strong> (quem fez a etapa de teste), com o <strong>tempo de execução e de teste</strong> somado — realizado (pelo histórico) e previsto (cadastrado na tarefa).<br>A ordem dos itens dentro do colaborador pode ser <strong>Cliente → Data</strong> ou <strong>Data → Cliente</strong>.', side: 'bottom', align: 'end' },
           },
           {
             element: '#tour-comissao-tabela',
@@ -1041,23 +1118,35 @@ export default function RelatorioComissaoPage() {
                       <TableHead className="font-semibold text-brand-blue text-right">
                         {rotuloTotalResumo}
                       </TableHead>
+                      <TableHead className="font-semibold text-brand-blue text-right whitespace-nowrap">
+                        Execução (real. / prev.)
+                      </TableHead>
+                      <TableHead className="font-semibold text-brand-blue text-right whitespace-nowrap">
+                        Teste (real. / prev.)
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {isLoading && (
                       <TableRow>
-                        <TableCell colSpan={2} className="text-center text-muted-foreground">Carregando...</TableCell>
+                        <TableCell colSpan={4} className="text-center text-muted-foreground">Carregando...</TableCell>
                       </TableRow>
                     )}
                     {!isLoading && resumoColaboradores.map((r) => (
                       <TableRow key={r.colaboradorId} className="hover:bg-muted/40">
                         <TableCell>{r.nome}</TableCell>
                         <TableCell className="text-right font-semibold">{r.total}</TableCell>
+                        <TableCell className="text-right whitespace-nowrap">
+                          {formatarTempoResumo(r.execucaoRealizadaMin, r.execucaoPrevistaMin)}
+                        </TableCell>
+                        <TableCell className="text-right whitespace-nowrap">
+                          {formatarTempoResumo(r.testeRealizadoMin, r.testePrevistoMin)}
+                        </TableCell>
                       </TableRow>
                     ))}
                     {!isLoading && resumoColaboradores.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={2} className="text-center text-muted-foreground">
+                        <TableCell colSpan={4} className="text-center text-muted-foreground">
                           Nenhum registro encontrado com os filtros selecionados.
                         </TableCell>
                       </TableRow>

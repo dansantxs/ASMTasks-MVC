@@ -649,6 +649,62 @@ namespace API.DB.DAOs
                 cmd.Parameters.AddWithValue("@DataFim", dataFim.Value);
             }
 
+            // Tempo REALIZADO por tarefa: minutos de elaboração (de um 'I' até o evento que a
+            // encerra — pausa, fim da elaboração ou troca de etapa) e a parte desses minutos que
+            // caiu dentro de uma passagem pela etapa de teste. Fica de fora do filtro de período
+            // de propósito: a tarefa pode ter começado antes da janela consultada, e o relatório
+            // quer o tempo inteiro dela. O LEAD é calculado ANTES de filtrar a etapa de teste,
+            // senão o fim de uma passagem seria a próxima ida ao teste, não a saída dele.
+            const string temposRealizados = @"
+                LEFT JOIN (
+                    SELECT ex.TarefaId, SUM(DATEDIFF(MINUTE, ex.Inicio, ex.Fim)) AS MinutosElaboracao
+                    FROM (
+                        SELECT he.TarefaId, he.Tipo, he.DataHoraAcao AS Inicio,
+                               LEAD(he.DataHoraAcao) OVER (PARTITION BY he.TarefaId ORDER BY he.DataHoraAcao, he.Id) AS Fim
+                        FROM ProjetoTarefaHistorico he
+                        WHERE he.Tipo IN ('I', 'P', 'F', 'E')
+                    ) ex
+                    WHERE ex.Tipo = 'I' AND ex.Fim IS NOT NULL
+                    GROUP BY ex.TarefaId
+                ) elab ON elab.TarefaId = pt.Id
+                LEFT JOIN (
+                    SELECT ex.TarefaId,
+                           SUM(DATEDIFF(MINUTE,
+                               CASE WHEN ex.Inicio > te.Inicio THEN ex.Inicio ELSE te.Inicio END,
+                               CASE WHEN ex.Fim < COALESCE(te.Fim, GETDATE()) THEN ex.Fim ELSE COALESCE(te.Fim, GETDATE()) END
+                           )) AS MinutosTeste
+                    FROM (
+                        SELECT he.TarefaId, he.Tipo, he.DataHoraAcao AS Inicio,
+                               LEAD(he.DataHoraAcao) OVER (PARTITION BY he.TarefaId ORDER BY he.DataHoraAcao, he.Id) AS Fim
+                        FROM ProjetoTarefaHistorico he
+                        WHERE he.Tipo IN ('I', 'P', 'F', 'E')
+                    ) ex
+                    INNER JOIN (
+                        SELECT etapas.TarefaId, etapas.Inicio, etapas.Fim
+                        FROM (
+                            SELECT hs.TarefaId, hs.EtapaId, hs.DataHoraAcao AS Inicio,
+                                   LEAD(hs.DataHoraAcao) OVER (PARTITION BY hs.TarefaId ORDER BY hs.DataHoraAcao, hs.Id) AS Fim
+                            FROM ProjetoTarefaHistorico hs
+                            WHERE hs.Tipo = 'E'
+                        ) etapas
+                        INNER JOIN Etapa et ON et.Id = etapas.EtapaId AND et.EhEtapaTeste = 1
+                    ) te ON te.TarefaId = ex.TarefaId
+                        AND ex.Inicio < COALESCE(te.Fim, GETDATE())
+                        AND ex.Fim > te.Inicio
+                    WHERE ex.Tipo = 'I' AND ex.Fim IS NOT NULL
+                    GROUP BY ex.TarefaId
+                ) teste ON teste.TarefaId = pt.Id
+            ";
+
+            // Tempo PREVISTO (o que está cadastrado na tarefa) + o realizado calculado acima.
+            const string colunasTempos = @",
+                    pt.TempoExecucaoValor,
+                    pt.TempoExecucaoUnidade,
+                    pt.TempoTesteValor,
+                    pt.TempoTesteUnidade,
+                    elab.MinutosElaboracao,
+                    teste.MinutosTeste";
+
             string baseSelect = @"
                 SELECT
                     h.Id,
@@ -671,13 +727,13 @@ namespace API.DB.DAOs
                     h.RealizadoPorColaboradorNome,
                     COALESCE(pt.CadastradoPorColaboradorId, p.CadastradoPorColaboradorId) AS CadastradoPorColaboradorId,
                     colCad.Nome AS CadastradoPorNome,
-                    COALESCE(pt.DataCadastro, p.DataCadastro) AS TarefaDataCadastro
+                    COALESCE(pt.DataCadastro, p.DataCadastro) AS TarefaDataCadastro" + colunasTempos + @"
                 FROM ProjetoTarefaHistorico h
                 INNER JOIN ProjetoTarefa pt ON h.TarefaId = pt.Id
                 INNER JOIN Projeto p ON pt.ProjetoId = p.Id
                 INNER JOIN Cliente c ON p.ClienteId = c.Id
                 LEFT JOIN Colaborador colCad ON colCad.Id = COALESCE(pt.CadastradoPorColaboradorId, p.CadastradoPorColaboradorId)
-            ";
+            " + temposRealizados;
 
             string sqlQuery;
             if (ultimaOcorrencia)
@@ -693,18 +749,24 @@ namespace API.DB.DAOs
                                COALESCE(pt.CadastradoPorColaboradorId, p.CadastradoPorColaboradorId) AS CadastradoPorColaboradorId,
                                colCad.Nome AS CadastradoPorNome,
                                COALESCE(pt.DataCadastro, p.DataCadastro) AS TarefaDataCadastro,
+                               pt.TempoExecucaoValor, pt.TempoExecucaoUnidade,
+                               pt.TempoTesteValor, pt.TempoTesteUnidade,
+                               elab.MinutosElaboracao, teste.MinutosTeste,
                                ROW_NUMBER() OVER (PARTITION BY h.TarefaId, h.EtapaId ORDER BY h.DataHoraAcao DESC) AS rn
                         FROM ProjetoTarefaHistorico h
                         INNER JOIN ProjetoTarefa pt ON h.TarefaId = pt.Id
                         INNER JOIN Projeto p ON pt.ProjetoId = p.Id
                         INNER JOIN Cliente c ON p.ClienteId = c.Id
                         LEFT JOIN Colaborador colCad ON colCad.Id = COALESCE(pt.CadastradoPorColaboradorId, p.CadastradoPorColaboradorId)
+                        {temposRealizados}
                         {filtros}
                     )
                     SELECT Id, TarefaId, TarefaTitulo, TarefaDescricao, ProjetoId, ProjetoTitulo, ClienteId, ClienteNome, ClienteNomeFantasia,
                            Tipo, ColaboradorId, ColaboradorNome, EtapaId, EtapaNome, Observacao, DataHoraAcao,
                            RealizadoPorColaboradorId, RealizadoPorColaboradorNome,
-                           CadastradoPorColaboradorId, CadastradoPorNome, TarefaDataCadastro
+                           CadastradoPorColaboradorId, CadastradoPorNome, TarefaDataCadastro,
+                           TempoExecucaoValor, TempoExecucaoUnidade, TempoTesteValor, TempoTesteUnidade,
+                           MinutosElaboracao, MinutosTeste
                     FROM Ranked WHERE rn = 1
                     ORDER BY DataHoraAcao DESC;
                 ";
@@ -742,6 +804,12 @@ namespace API.DB.DAOs
                     CadastradoPorColaboradorId = dr["CadastradoPorColaboradorId"] == DBNull.Value ? null : Convert.ToInt32(dr["CadastradoPorColaboradorId"]),
                     CadastradoPorNome = dr["CadastradoPorNome"] == DBNull.Value ? null : dr["CadastradoPorNome"].ToString(),
                     TarefaDataCadastro = dr["TarefaDataCadastro"] == DBNull.Value ? null : Convert.ToDateTime(dr["TarefaDataCadastro"]),
+                    TempoExecucaoValor = dr["TempoExecucaoValor"] == DBNull.Value ? null : Convert.ToInt32(dr["TempoExecucaoValor"]),
+                    TempoExecucaoUnidade = dr["TempoExecucaoUnidade"] == DBNull.Value ? null : dr["TempoExecucaoUnidade"].ToString(),
+                    TempoTesteValor = dr["TempoTesteValor"] == DBNull.Value ? null : Convert.ToInt32(dr["TempoTesteValor"]),
+                    TempoTesteUnidade = dr["TempoTesteUnidade"] == DBNull.Value ? null : dr["TempoTesteUnidade"].ToString(),
+                    MinutosElaboracao = dr["MinutosElaboracao"] == DBNull.Value ? null : Convert.ToInt32(dr["MinutosElaboracao"]),
+                    MinutosTeste = dr["MinutosTeste"] == DBNull.Value ? null : Convert.ToInt32(dr["MinutosTeste"]),
                 });
             }
 
