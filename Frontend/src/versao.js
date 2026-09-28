@@ -37,11 +37,8 @@ export const CHANGELOG = [
       'Relatório de Comissão: a visão Resumo ganha "Totalizar por" — Elaboração (como antes) ou Teste (quem fez a etapa de teste de cada tarefa)',
       'Relatório de Comissão: cada item passa a mostrar o tempo de execução e o de teste — o realizado (somado do histórico da tarefa) e, entre parênteses, o previsto cadastrado nela; no Resumo, os dois tempos aparecem somados por colaborador e acompanham as exportações',
       'Relatório de Comissão: tarefa que não passou pela elaboração — resolvida direto em outra etapa ou levada de Atendimento para a etapa final — deixa de cair em "Sem desenvolvedor". O crédito vai para quem estava na etapa anterior à final (ou na própria final) e o item passa a mostrar uma linha de Elaboração com essa pessoa, dizendo na observação de qual etapa veio o crédito',
-      'Histórico de Tarefas e Histórico de Atendimentos: nova opção "Visão" — além da lista completa, dá para ver só a última ação de cada cliente ou de cada colaborador, respondendo quem mexeu por último, quando e em qual serviço',
       'Anexos da tarefa: ao clicar numa imagem, ela abre em tela cheia e inteira (antes era cortada num quadro pequeno), com as setas do teclado passando de uma imagem para outra e botões para abrir em nova aba ou baixar; o diálogo de arquivos ficou mais largo, com miniaturas maiores',
-      'Correção: excluir do projeto uma tarefa que já estava em alguma etapa do quadro dava "Erro ao atualizar o projeto" sem explicar o motivo — agora a exclusão funciona (levando junto o histórico da tarefa) e só é recusada, com o motivo na tela, quando a tarefa já chegou na etapa final, porque essa entra no Relatório de Comissão',
       'Correção: a busca de endereço pelo CEP nos cadastros de clientes e colaboradores não trazia o endereço — a consulta ia parar no servidor errado',
-      'Manutenção: os backups automáticos de produção e teste passam a ser copiados também para o Google Drive, mantendo as cópias por 365 dias',
     ],
   },
   {
