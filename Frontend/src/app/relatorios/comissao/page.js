@@ -21,6 +21,7 @@ import { getColaboradoresKanban, getClientesKanban, getEtapasKanban } from '../.
 import { getHistoricoAtendimentos } from '../atendimentos-historico/api/historicoAtendimentos';
 import { getAtendimentos } from '../../atendimentos/api/atendimentos';
 import { useDebouncedValue } from '../../../hooks/useDebouncedValue';
+import { ROTULO_RESERVADO, ehEtapaElaboracao } from '../../../utils/situacaoTarefa';
 
 // Colunas que formam o cabeçalho de cada grupo (cliente / projeto / tarefa / descrição)
 const colunasGrupo = [
@@ -360,7 +361,7 @@ export default function RelatorioComissaoPage() {
   const eventosPorTarefa = useMemo(() => {
     const mapa = new Map();
     (historicoApi.registros ?? [])
-      .filter((item) => item.tipo === 'E' || item.tipo === 'A')
+      .filter((item) => item.tipo === 'E' || item.tipo === 'A' || item.tipo === 'I')
       .forEach((item) => {
         if (!mapa.has(item.tarefaId)) mapa.set(item.tarefaId, []);
         mapa.get(item.tarefaId).push({
@@ -371,6 +372,7 @@ export default function RelatorioComissaoPage() {
           colaboradorNome: item.colaboradorNome ?? null,
           etapaId: item.etapaId ?? null,
           etapaNome: item.etapaNome ?? '—',
+          elaboracaoJaIniciadaNoEvento: !!item.elaboracaoJaIniciadaNoEvento,
           observacao: item.observacao ?? null,
           clienteNome: resolverNomeCliente(item),
           projetoTitulo: item.projetoTitulo ?? '—',
@@ -401,6 +403,30 @@ export default function RelatorioComissaoPage() {
 
       const fecharEtapa = (colaborador) => {
         if (!etapaAberta || !colaborador?.colaboradorNome) return;
+
+        // Elaboração que ficou reservada antes de começar: o período entre a entrada na etapa e
+        // o início vira uma linha "Reservado", e a linha da elaboração passa a contar do início.
+        const inicio = etapaAberta.inicioElaboracao;
+        if (inicio) {
+          const reservadoPor = etapaAberta.reservadoPor?.colaboradorNome ? etapaAberta.reservadoPor : colaborador;
+          resultado.push({
+            id: `${tarefaId}-${etapaAberta.id}-reservado`,
+            itemTipo: 'tarefa',
+            tarefaId,
+            colaboradorId: reservadoPor.colaboradorId,
+            colaboradorNome: reservadoPor.colaboradorNome,
+            etapaId: null,
+            etapaNome: ROTULO_RESERVADO,
+            rawDataHoraAcao: etapaAberta.dataHoraAcao,
+            dataHoraAcao: formatDateTime(etapaAberta.dataHoraAcao),
+            observacao: ' ',
+            clienteNome: etapaAberta.clienteNome,
+            projetoTitulo: etapaAberta.projetoTitulo,
+            tarefaTitulo: etapaAberta.tarefaTitulo,
+          });
+        }
+        const dataElaboracao = inicio?.dataHoraAcao ?? etapaAberta.dataHoraAcao;
+
         resultado.push({
           id: `${tarefaId}-${etapaAberta.id}`,
           itemTipo: 'tarefa',
@@ -409,8 +435,8 @@ export default function RelatorioComissaoPage() {
           colaboradorNome: colaborador.colaboradorNome,
           etapaId: etapaAberta.etapaId,
           etapaNome: etapaAberta.etapaNome,
-          rawDataHoraAcao: etapaAberta.dataHoraAcao,
-          dataHoraAcao: formatDateTime(etapaAberta.dataHoraAcao),
+          rawDataHoraAcao: dataElaboracao,
+          dataHoraAcao: formatDateTime(dataElaboracao),
           observacao: colaborador.observacao ?? ' ',
           clienteNome: etapaAberta.clienteNome,
           projetoTitulo: etapaAberta.projetoTitulo,
@@ -423,10 +449,21 @@ export default function RelatorioComissaoPage() {
           colaboradorAtual = evento;
           return;
         }
+        if (evento.tipo === 'I') {
+          // Primeiro início de uma elaboração que entrou reservada; reinícios após pausa não contam.
+          if (etapaAberta?.reservada && !etapaAberta.inicioElaboracao) {
+            etapaAberta.inicioElaboracao = evento;
+            etapaAberta.reservadoPor = colaboradorAtual;
+          }
+          return;
+        }
         // evento.tipo === 'E': fecha a etapa em andamento, creditando ao colaborador do PRÓPRIO
         // evento 'E' (quem estava responsável antes desta troca — ver comentário acima)
         fecharEtapa(evento);
-        etapaAberta = evento;
+        etapaAberta = {
+          ...evento,
+          reservada: ehEtapaElaboracao(evento.etapaNome) && !evento.elaboracaoJaIniciadaNoEvento,
+        };
       });
 
       // Etapa ainda aberta no fim do período: credita ao último responsável conhecido
