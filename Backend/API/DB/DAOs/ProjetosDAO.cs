@@ -818,6 +818,14 @@ namespace API.DB.DAOs
                               WHERE he.TarefaId = pt.Id AND he.Tipo = 'E') saida
                        INNER JOIN Etapa et ON et.Id = saida.EtapaDeixadaId AND et.EhEtapaTeste = 1
                       ORDER BY saida.DataHoraAcao DESC, saida.Id DESC) AS UltimoResponsavelTesteId,
+                    -- Mesma ideia para a elaboracao: quem desenvolveu na ultima passagem por ela.
+                    (SELECT TOP 1 saida.ColaboradorId
+                       FROM (SELECT he.ColaboradorId, he.DataHoraAcao, he.Id,
+                                    LAG(he.EtapaId) OVER (ORDER BY he.DataHoraAcao, he.Id) AS EtapaDeixadaId
+                               FROM ProjetoTarefaHistorico he
+                              WHERE he.TarefaId = pt.Id AND he.Tipo = 'E') saida
+                       INNER JOIN Etapa ee ON ee.Id = saida.EtapaDeixadaId AND {TarefaSql.EhEtapaElaboracao("ee")}
+                      ORDER BY saida.DataHoraAcao DESC, saida.Id DESC) AS UltimoResponsavelElaboracaoId,
                     {TarefaSql.ElaboracaoJaIniciada("pt")} AS ElaboracaoJaIniciada
                 FROM ProjetoTarefa pt
                 INNER JOIN Projeto p ON pt.ProjetoId = p.Id
@@ -918,6 +926,9 @@ namespace API.DB.DAOs
                     UltimoResponsavelTesteId = dr["UltimoResponsavelTesteId"] == DBNull.Value
                         ? null
                         : Convert.ToInt32(dr["UltimoResponsavelTesteId"]),
+                    UltimoResponsavelElaboracaoId = dr["UltimoResponsavelElaboracaoId"] == DBNull.Value
+                        ? null
+                        : Convert.ToInt32(dr["UltimoResponsavelElaboracaoId"]),
                     ElaboracaoJaIniciada = Convert.ToBoolean(dr["ElaboracaoJaIniciada"]),
                 });
             }

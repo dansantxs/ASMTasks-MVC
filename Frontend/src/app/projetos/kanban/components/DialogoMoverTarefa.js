@@ -6,6 +6,7 @@ import { Button } from '../../../../components/ui/base/button';
 import { Label } from '../../../../components/ui/form/label';
 import { Combobox } from '../../../../components/ui/form/combobox';
 import { colaboradoresDoSuporte, montarOpcoesColaboradores, montarOpcoesSuporte } from '../utils/opcoesResponsavel';
+import { ehEtapaElaboracao } from '../../../../utils/situacaoTarefa';
 
 export default function DialogoMoverTarefa({ open, onOpenChange, tarefa, etapaDestino, colaboradores = [], onConfirmar, isMovendo }) {
   const [colaboradorId, setColaboradorId] = useState(null);
@@ -13,24 +14,48 @@ export default function DialogoMoverTarefa({ open, onOpenChange, tarefa, etapaDe
 
   const moverParaAtendimento = etapaDestino?.id == null;
   const moverParaTeste = !moverParaAtendimento && !!etapaDestino?.ehEtapaTeste;
+  const moverParaElaboracao = !moverParaAtendimento && !moverParaTeste && ehEtapaElaboracao(etapaDestino?.nome);
   const suporte = colaboradoresDoSuporte(colaboradores);
 
   useEffect(() => {
     if (!open) return;
+
     if (moverParaAtendimento) {
       setColaboradorId(null);
-    } else if (moverParaTeste) {
+      setMostrarTodosSetores(false);
+      return;
+    }
+
+    if (moverParaTeste) {
       // Primeira vez no teste: sem responsavel. Voltando para o teste: quem estava nele da
       // ultima vez - desde que ainda seja do Suporte, senao a opcao nem existe na lista.
       const anterior = tarefa?.ultimoResponsavelTesteId ?? null;
       setColaboradorId(suporte.some((col) => col.id === anterior) ? anterior : null);
-    } else {
-      setColaboradorId(tarefa?.colaboradorResponsavelId ?? null);
+      setMostrarTodosSetores(false);
+      return;
     }
+
+    // Voltando para a elaboracao: quem desenvolveu na ultima passagem por ela, como no teste.
+    // Se essa pessoa for de outro setor, a lista abre em "todos os setores" para ela aparecer
+    // selecionada, em vez de o campo ficar com um valor que nao existe entre as opcoes.
+    const ultimoDev = moverParaElaboracao ? tarefa?.ultimoResponsavelElaboracaoId ?? null : null;
+    const devDisponivel = ultimoDev != null && colaboradores.some((col) => col.id === ultimoDev);
+
+    if (devDisponivel) {
+      const doSetorDaTarefa = colaboradores.some(
+        (col) => col.id === ultimoDev && col.setorId === tarefa?.setorId
+      );
+      setColaboradorId(ultimoDev);
+      setMostrarTodosSetores(!!tarefa?.setorId && !doSetorDaTarefa);
+      return;
+    }
+
+    setColaboradorId(tarefa?.colaboradorResponsavelId ?? null);
     setMostrarTodosSetores(false);
-    // `suporte` fica de fora de proposito: so a abertura do dialogo deve escolher o padrao.
+    // `suporte` e `colaboradores` ficam de fora de proposito: so a abertura do dialogo deve
+    // escolher o padrao.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, tarefa, moverParaAtendimento, moverParaTeste]);
+  }, [open, tarefa, moverParaAtendimento, moverParaTeste, moverParaElaboracao]);
 
   const handleConfirmar = () => {
     onConfirmar(colaboradorId);
