@@ -671,7 +671,17 @@ namespace API.DB.DAOs
                     h.RealizadoPorColaboradorNome,
                     COALESCE(pt.CadastradoPorColaboradorId, p.CadastradoPorColaboradorId) AS CadastradoPorColaboradorId,
                     colCad.Nome AS CadastradoPorNome,
-                    COALESCE(pt.DataCadastro, p.DataCadastro) AS TarefaDataCadastro
+                    COALESCE(pt.DataCadastro, p.DataCadastro) AS TarefaDataCadastro,
+                    -- A elaboração já tinha sido iniciada ATÉ este evento? É o que diz se, naquele
+                    -- instante, a tarefa estava reservada. Vem do banco porque o filtro de período
+                    -- do relatório pode esconder o início anterior. O <= no desempate faz a própria
+                    -- linha de início contar como já iniciada.
+                    CASE WHEN EXISTS (
+                        SELECT 1 FROM ProjetoTarefaHistorico hi
+                        WHERE hi.TarefaId = h.TarefaId AND hi.Tipo = 'I'
+                          AND (hi.DataHoraAcao < h.DataHoraAcao
+                               OR (hi.DataHoraAcao = h.DataHoraAcao AND hi.Id <= h.Id))
+                    ) THEN 1 ELSE 0 END AS ElaboracaoJaIniciadaNoEvento
                 FROM ProjetoTarefaHistorico h
                 INNER JOIN ProjetoTarefa pt ON h.TarefaId = pt.Id
                 INNER JOIN Projeto p ON pt.ProjetoId = p.Id
@@ -693,6 +703,12 @@ namespace API.DB.DAOs
                                COALESCE(pt.CadastradoPorColaboradorId, p.CadastradoPorColaboradorId) AS CadastradoPorColaboradorId,
                                colCad.Nome AS CadastradoPorNome,
                                COALESCE(pt.DataCadastro, p.DataCadastro) AS TarefaDataCadastro,
+                               CASE WHEN EXISTS (
+                                   SELECT 1 FROM ProjetoTarefaHistorico hi
+                                   WHERE hi.TarefaId = h.TarefaId AND hi.Tipo = 'I'
+                                     AND (hi.DataHoraAcao < h.DataHoraAcao
+                                          OR (hi.DataHoraAcao = h.DataHoraAcao AND hi.Id <= h.Id))
+                               ) THEN 1 ELSE 0 END AS ElaboracaoJaIniciadaNoEvento,
                                ROW_NUMBER() OVER (PARTITION BY h.TarefaId, h.EtapaId ORDER BY h.DataHoraAcao DESC) AS rn
                         FROM ProjetoTarefaHistorico h
                         INNER JOIN ProjetoTarefa pt ON h.TarefaId = pt.Id
@@ -704,7 +720,8 @@ namespace API.DB.DAOs
                     SELECT Id, TarefaId, TarefaTitulo, TarefaDescricao, ProjetoId, ProjetoTitulo, ClienteId, ClienteNome, ClienteNomeFantasia,
                            Tipo, ColaboradorId, ColaboradorNome, EtapaId, EtapaNome, Observacao, DataHoraAcao,
                            RealizadoPorColaboradorId, RealizadoPorColaboradorNome,
-                           CadastradoPorColaboradorId, CadastradoPorNome, TarefaDataCadastro
+                           CadastradoPorColaboradorId, CadastradoPorNome, TarefaDataCadastro,
+                           ElaboracaoJaIniciadaNoEvento
                     FROM Ranked WHERE rn = 1
                     ORDER BY DataHoraAcao DESC;
                 ";
@@ -742,6 +759,7 @@ namespace API.DB.DAOs
                     CadastradoPorColaboradorId = dr["CadastradoPorColaboradorId"] == DBNull.Value ? null : Convert.ToInt32(dr["CadastradoPorColaboradorId"]),
                     CadastradoPorNome = dr["CadastradoPorNome"] == DBNull.Value ? null : dr["CadastradoPorNome"].ToString(),
                     TarefaDataCadastro = dr["TarefaDataCadastro"] == DBNull.Value ? null : Convert.ToDateTime(dr["TarefaDataCadastro"]),
+                    ElaboracaoJaIniciadaNoEvento = Convert.ToBoolean(dr["ElaboracaoJaIniciadaNoEvento"]),
                 });
             }
 

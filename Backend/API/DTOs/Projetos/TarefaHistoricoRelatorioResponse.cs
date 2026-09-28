@@ -23,5 +23,11 @@ namespace API.DTOs.Projetos
         public int? CadastradoPorColaboradorId { get; set; }
         public string? CadastradoPorNome { get; set; }
         public DateTime? TarefaDataCadastro { get; set; }
+
+        /// <summary>
+        /// A elaboração já tinha sido iniciada até este evento. Falso numa mudança para a etapa de
+        /// elaboração significa que a tarefa ficou reservada ali.
+        /// </summary>
+        public bool ElaboracaoJaIniciadaNoEvento { get; set; }
     }
 }
