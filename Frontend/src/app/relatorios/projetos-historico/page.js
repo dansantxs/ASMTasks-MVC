@@ -19,6 +19,7 @@ import TourGuia from '../../../components/TourGuia';
 import { getHistoricoTarefas, getHistoricoProjetosRelatorio } from './api/historicoTarefas';
 import { getColaboradoresKanban, getProjetosKanban, getClientesKanban, getEtapasKanban } from '../../projetos/kanban/api/kanban';
 import { useDebouncedValue } from '../../../hooks/useDebouncedValue';
+import { ROTULO_RESERVADO, ehEtapaElaboracao } from '../../../utils/situacaoTarefa';
 
 const columns = [
   { id: 'dataHoraAcao', label: 'Data/Hora' },
@@ -91,7 +92,9 @@ export default function HistoricoTarefasReportPage() {
 
   const queryParams = useMemo(
     () => ({
-      tipo: tipoFilter,
+      // "Reservada" não é um tipo gravado no histórico: é uma mudança de etapa (E) que a tela
+      // reconhece pelo destino e por ainda não ter havido início. O servidor recebe 'E'.
+      tipo: tipoFilter === 'reservada' ? 'E' : tipoFilter,
       colaboradorId: colaboradorFilter,
       projetoId: projetoFilter,
       clienteId: clienteFilter,
@@ -155,20 +158,28 @@ export default function HistoricoTarefasReportPage() {
   }
 
   const data = useMemo(() => {
-    const tarefas = (historicoTarefasApi.registros ?? []).map((item) => ({
-      id: `t-${item.id}`,
-      rawDataHoraAcao: item.dataHoraAcao ? new Date(item.dataHoraAcao) : null,
-      dataHoraAcao: formatDateTime(item.dataHoraAcao),
-      tipo: item.tipo,
-      tipoLabel: getTipoLabel(item.tipo),
-      tarefaId: item.tarefaId,
-      tarefaTitulo: item.tarefaTitulo ?? ' ',
-      projetoTitulo: item.projetoTitulo ?? ' ',
-      clienteNome: resolverNomeCliente(item),
-      colaboradorNome: item.colaboradorNome ?? ' ',
-      etapaNome: item.etapaNome ?? ' ',
-      observacao: item.observacao ?? ' ',
-    }));
+    const tarefas = (historicoTarefasApi.registros ?? []).map((item) => {
+      // Entrar na etapa de elaboração sem nunca ter sido iniciada é o momento em que a tarefa
+      // ficou reservada. O fim desse período é a linha "Início de Elaboração".
+      const reservada =
+        item.tipo === 'E' && ehEtapaElaboracao(item.etapaNome) && !item.elaboracaoJaIniciadaNoEvento;
+
+      return {
+        id: `t-${item.id}`,
+        rawDataHoraAcao: item.dataHoraAcao ? new Date(item.dataHoraAcao) : null,
+        dataHoraAcao: formatDateTime(item.dataHoraAcao),
+        tipo: item.tipo,
+        reservada,
+        tipoLabel: reservada ? ROTULO_RESERVADO : getTipoLabel(item.tipo),
+        tarefaId: item.tarefaId,
+        tarefaTitulo: item.tarefaTitulo ?? ' ',
+        projetoTitulo: item.projetoTitulo ?? ' ',
+        clienteNome: resolverNomeCliente(item),
+        colaboradorNome: item.colaboradorNome ?? ' ',
+        etapaNome: item.etapaNome ?? ' ',
+        observacao: item.observacao ?? ' ',
+      };
+    });
 
     const projetos = etapaFilter !== 'todos' ? [] : historicoProjetosApi.map((item) => ({
       id: `p-${item.id}`,
@@ -191,6 +202,8 @@ export default function HistoricoTarefasReportPage() {
   const filteredData = useMemo(
     () =>
       data.filter((item) => {
+        // O servidor devolveu todas as mudanças de etapa; aqui fica só o que estava reservado.
+        if (tipoFilter === 'reservada' && !item.reservada) return false;
         const term = search.toLowerCase();
         if (!term) return true;
         return (
@@ -200,7 +213,7 @@ export default function HistoricoTarefasReportPage() {
           item.colaboradorNome.toLowerCase().includes(term)
         );
       }),
-    [data, search]
+    [data, search, tipoFilter]
   );
 
   const sortedData = useMemo(() => {
@@ -264,7 +277,9 @@ export default function HistoricoTarefasReportPage() {
 
     const filters = [
       search ? `Busca: ${search}` : null,
-      tipoFilter !== 'todos' ? `Ação: ${getTipoLabel(tipoFilter)}` : null,
+      tipoFilter !== 'todos'
+        ? `Ação: ${tipoFilter === 'reservada' ? ROTULO_RESERVADO : getTipoLabel(tipoFilter)}`
+        : null,
       colaboradorNome ? `Colaborador: ${colaboradorNome}` : null,
       projetoNome ? `Projeto: ${projetoNome}` : null,
       clienteNome ? `Cliente: ${clienteNome}` : null,
@@ -384,7 +399,7 @@ export default function HistoricoTarefasReportPage() {
           },
           {
             element: '#tour-relatorio-filtros',
-            popover: { title: 'Filtros', description: 'Filtre por <strong>tipo de ação</strong>, <strong>colaborador</strong>, <strong>projeto</strong>, <strong>cliente</strong> e <strong>período</strong>. Os filtros são consultados no servidor.', side: 'bottom', align: 'start' },
+            popover: { title: 'Filtros', description: 'Filtre por <strong>tipo de ação</strong>, <strong>colaborador</strong>, <strong>projeto</strong>, <strong>cliente</strong> e <strong>período</strong>. Os filtros são consultados no servidor.<br>A ação <strong>Reservada</strong> é a entrada na etapa de elaboração antes de qualquer início — o fim desse período é a linha <strong>Início de Elaboração</strong>.', side: 'bottom', align: 'start' },
           },
           {
             element: '#tour-relatorio-colunas',
@@ -459,6 +474,7 @@ export default function HistoricoTarefasReportPage() {
                     <SelectContent>
                       <SelectItem value="todos">Todos</SelectItem>
                       <SelectItem value="E">Mudança de Etapa</SelectItem>
+                      <SelectItem value="reservada">Reservada (entrou na elaboração)</SelectItem>
                       <SelectItem value="A">Atribuição de Colaborador</SelectItem>
                       <SelectItem value="I">Início de Elaboração</SelectItem>
                       <SelectItem value="P">Elaboração Pausada</SelectItem>
