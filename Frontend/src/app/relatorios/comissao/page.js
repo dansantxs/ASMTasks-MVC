@@ -130,10 +130,6 @@ function formatarMinutos(minutos) {
   return restoHoras ? `${dias}d ${restoHoras}h` : `${dias}d`;
 }
 
-/** "2h 15min / 3h" para as colunas do Resumo, com travessão onde não há tempo. */
-const formatarTempoResumo = (minutosRealizados, minutosPrevistos) =>
-  `${formatarMinutos(minutosRealizados) ?? '—'} / ${formatarMinutos(minutosPrevistos) ?? '—'}`;
-
 /** "2h 15min (prev. 3h)" — omite a parte que não existe. */
 function formatarTempoComPrevisto(minutosRealizados, minutosPrevistos) {
   const realizado = formatarMinutos(minutosRealizados);
@@ -736,20 +732,8 @@ export default function RelatorioComissaoPage() {
       const id = porTeste ? grupo.aprovadorId : grupo.desenvolvedorId;
       if (id == null) return;
       const nome = porTeste ? grupo.aprovadorNome : grupo.desenvolvedorNome;
-      const atual = tally.get(id) ?? {
-        colaboradorId: id,
-        nome,
-        total: 0,
-        execucaoRealizadaMin: 0,
-        execucaoPrevistaMin: 0,
-        testeRealizadoMin: 0,
-        testePrevistoMin: 0,
-      };
+      const atual = tally.get(id) ?? { colaboradorId: id, nome, total: 0 };
       atual.total += 1;
-      atual.execucaoRealizadaMin += grupo.execucaoRealizadaMin ?? 0;
-      atual.execucaoPrevistaMin += grupo.execucaoPrevistaMin ?? 0;
-      atual.testeRealizadoMin += grupo.testeRealizadoMin ?? 0;
-      atual.testePrevistoMin += grupo.testePrevistoMin ?? 0;
       tally.set(id, atual);
     });
     let lista = Array.from(tally.values());
@@ -855,15 +839,8 @@ export default function RelatorioComissaoPage() {
     let head;
     const body = [];
     if (viewMode === 'resumo') {
-      head = [['Colaborador', rotuloTotalResumo, 'Execução (real. / prev.)', 'Teste (real. / prev.)']];
-      resumoColaboradores.forEach((r) =>
-        body.push([
-          r.nome,
-          String(r.total),
-          formatarTempoResumo(r.execucaoRealizadaMin, r.execucaoPrevistaMin),
-          formatarTempoResumo(r.testeRealizadoMin, r.testePrevistoMin),
-        ])
-      );
+      head = [['Colaborador', rotuloTotalResumo]];
+      resumoColaboradores.forEach((r) => body.push([r.nome, String(r.total)]));
     } else {
       head = [colunasLinhaAtivas.map((c) => c.label)];
       secoes.forEach((secao) => {
@@ -943,15 +920,8 @@ export default function RelatorioComissaoPage() {
     let colunasCabecalho;
 
     if (viewMode === 'resumo') {
-      colunasCabecalho = ['Colaborador', rotuloTotalResumo, 'Execução (real. / prev.)', 'Teste (real. / prev.)'];
-      resumoColaboradores.forEach((r) =>
-        dataRows.push([
-          r.nome,
-          r.total,
-          formatarTempoResumo(r.execucaoRealizadaMin, r.execucaoPrevistaMin),
-          formatarTempoResumo(r.testeRealizadoMin, r.testePrevistoMin),
-        ])
-      );
+      colunasCabecalho = ['Colaborador', rotuloTotalResumo];
+      resumoColaboradores.forEach((r) => dataRows.push([r.nome, r.total]));
     } else {
       colunasCabecalho = colunasLinhaAtivas.map((c) => c.label);
       const larguraLinha = Math.max(colunasCabecalho.length, 1);
@@ -1242,35 +1212,23 @@ export default function RelatorioComissaoPage() {
                       <TableHead className="font-semibold text-brand-blue text-right">
                         {rotuloTotalResumo}
                       </TableHead>
-                      <TableHead className="font-semibold text-brand-blue text-right whitespace-nowrap">
-                        Execução (real. / prev.)
-                      </TableHead>
-                      <TableHead className="font-semibold text-brand-blue text-right whitespace-nowrap">
-                        Teste (real. / prev.)
-                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {isLoading && (
                       <TableRow>
-                        <TableCell colSpan={4} className="text-center text-muted-foreground">Carregando...</TableCell>
+                        <TableCell colSpan={2} className="text-center text-muted-foreground">Carregando...</TableCell>
                       </TableRow>
                     )}
                     {!isLoading && resumoColaboradores.map((r) => (
                       <TableRow key={r.colaboradorId} className="hover:bg-muted/40">
                         <TableCell>{r.nome}</TableCell>
                         <TableCell className="text-right font-semibold">{r.total}</TableCell>
-                        <TableCell className="text-right whitespace-nowrap">
-                          {formatarTempoResumo(r.execucaoRealizadaMin, r.execucaoPrevistaMin)}
-                        </TableCell>
-                        <TableCell className="text-right whitespace-nowrap">
-                          {formatarTempoResumo(r.testeRealizadoMin, r.testePrevistoMin)}
-                        </TableCell>
                       </TableRow>
                     ))}
                     {!isLoading && resumoColaboradores.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={4} className="text-center text-muted-foreground">
+                        <TableCell colSpan={2} className="text-center text-muted-foreground">
                           Nenhum registro encontrado com os filtros selecionados.
                         </TableCell>
                       </TableRow>
