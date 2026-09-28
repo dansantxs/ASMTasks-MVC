@@ -9,27 +9,7 @@ import { getHistoricoTarefa, getHistoricoProjeto } from '../api/kanban';
 import DialogoPausarTarefa from './DialogoPausarTarefa';
 import DialogoAnexosTarefa from '../../components/DialogoAnexosTarefa';
 import { Combobox } from '../../../../components/ui/form/combobox';
-
-function montarOpcoesColaboradores(colaboradores, setorId, mostrarTodosSetores) {
-  const rotulo = (col) => `${col.nome}${col.cargoNome ? ` — ${col.cargoNome}` : ''}`;
-  const semResponsavel = { value: '', label: 'Sem responsável' };
-
-  if (!setorId) {
-    return [semResponsavel, ...colaboradores.map((col) => ({ value: String(col.id), label: rotulo(col) }))];
-  }
-
-  const doSetor = colaboradores.filter((c) => c.setorId === setorId);
-  if (!mostrarTodosSetores) {
-    return [semResponsavel, ...doSetor.map((col) => ({ value: String(col.id), label: rotulo(col) }))];
-  }
-
-  const outros = colaboradores.filter((c) => c.setorId !== setorId);
-  return [
-    semResponsavel,
-    ...doSetor.map((col) => ({ value: String(col.id), label: `Setor da tarefa · ${rotulo(col)}` })),
-    ...outros.map((col) => ({ value: String(col.id), label: `Outros setores · ${rotulo(col)}` })),
-  ];
-}
+import { montarOpcoesColaboradores, montarOpcoesSuporte } from '../utils/opcoesResponsavel';
 
 const formatDateTime = (value) =>
   value
@@ -82,6 +62,7 @@ export default function DialogoVisualizarTarefa({
   colaboradorLogadoId,
   ehAdmin,
   colaboradores = [],
+  ehEtapaTeste = false,
   onIniciarTarefa,
   isIniciando,
   onPausarTarefa,
@@ -305,7 +286,7 @@ export default function DialogoVisualizarTarefa({
                   </div>
                   {trocandoResponsavel ? (
                     <div>
-                      {tarefa?.setorId && (
+                      {tarefa?.setorId && !ehEtapaTeste && (
                         <label className="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer select-none mb-1.5">
                           <input
                             type="checkbox"
@@ -323,7 +304,11 @@ export default function DialogoVisualizarTarefa({
                         onValueChange={(v) => setNovoColaboradorId(v ? Number(v) : null)}
                         placeholder="Sem responsável"
                         searchPlaceholder="Buscar colaborador..."
-                        options={montarOpcoesColaboradores(colaboradores, tarefa?.setorId, mostrarTodosSetores)}
+                        options={
+                          ehEtapaTeste
+                            ? montarOpcoesSuporte(colaboradores)
+                            : montarOpcoesColaboradores(colaboradores, tarefa?.setorId, mostrarTodosSetores)
+                        }
                       />
                       <Button
                         size="sm"

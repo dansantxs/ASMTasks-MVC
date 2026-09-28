@@ -221,6 +221,7 @@ namespace API.Controllers
                 DataAdmissao = c.DataAdmissao,
                 Ativo = c.Ativo,
                 SetorId = c.SetorId,
+                SetorNome = c.SetorNome,
                 CargoId = c.CargoId,
                 CargoNome = c.CargoNome,
                 PossuiTarefasAtivas = false
@@ -262,6 +263,7 @@ namespace API.Controllers
                 DataAdmissao = colaborador.DataAdmissao,
                 Ativo = colaborador.Ativo,
                 SetorId = colaborador.SetorId,
+                SetorNome = colaborador.SetorNome,
                 CargoId = colaborador.CargoId,
                 PossuiTarefasAtivas = false
             };

@@ -407,6 +407,7 @@ export default function KanbanPage() {
         colaboradorLogadoId={colaboradorLogadoId}
         ehAdmin={ehAdmin}
         colaboradores={colaboradoresAtivos}
+        ehEtapaTeste={etapas.find((e) => e.id === tarefaVisualizando?.etapaId)?.ehEtapaTeste ?? false}
         onIniciarTarefa={(tarefa) => iniciar.mutate(tarefa)}
         isIniciando={iniciar.isPending}
         onPausarTarefa={(tarefa, observacao) => pausar.mutate({ tarefa, observacao })}

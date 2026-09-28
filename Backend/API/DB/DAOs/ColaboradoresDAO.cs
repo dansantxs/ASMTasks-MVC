@@ -98,9 +98,10 @@ namespace API.DB.DAOs
             cmd.CommandText = @"
                 SELECT col.Id, col.Nome, col.CPF, col.Email, col.Telefone, col.CEP, col.Cidade, col.UF,
                        col.Logradouro, col.Bairro, col.Numero, col.DataNascimento, col.DataAdmissao,
-                       col.Ativo, col.SetorId, col.CargoId, c.Nome AS CargoNome
+                       col.Ativo, col.SetorId, col.CargoId, c.Nome AS CargoNome, s.Nome AS SetorNome
                 FROM Colaborador col
-                LEFT JOIN Cargo c ON col.CargoId = c.Id";
+                LEFT JOIN Cargo c ON col.CargoId = c.Id
+                LEFT JOIN Setor s ON col.SetorId = s.Id";
 
             await using var dr = await cmd.ExecuteReaderAsync();
             while (await dr.ReadAsync())
@@ -123,7 +124,8 @@ namespace API.DB.DAOs
                     Ativo = Convert.ToBoolean(dr["Ativo"]),
                     SetorId = Convert.ToInt32(dr["SetorId"]),
                     CargoId = Convert.ToInt32(dr["CargoId"]),
-                    CargoNome = dr["CargoNome"] == DBNull.Value ? null : dr["CargoNome"].ToString()
+                    CargoNome = dr["CargoNome"] == DBNull.Value ? null : dr["CargoNome"].ToString(),
+                    SetorNome = dr["SetorNome"] == DBNull.Value ? null : dr["SetorNome"].ToString()
                 });
             }
 
@@ -137,9 +139,10 @@ namespace API.DB.DAOs
             cmd.CommandText = @"
                 SELECT col.Id, col.Nome, col.CPF, col.Email, col.Telefone, col.CEP, col.Cidade, col.UF,
                        col.Logradouro, col.Bairro, col.Numero, col.DataNascimento, col.DataAdmissao,
-                       col.Ativo, col.SetorId, col.CargoId, c.Nome AS CargoNome
+                       col.Ativo, col.SetorId, col.CargoId, c.Nome AS CargoNome, s.Nome AS SetorNome
                 FROM Colaborador col
                 LEFT JOIN Cargo c ON col.CargoId = c.Id
+                LEFT JOIN Setor s ON col.SetorId = s.Id
                 WHERE col.Id = @Id";
             cmd.Parameters.AddWithValue("@Id", id);
 
@@ -164,7 +167,8 @@ namespace API.DB.DAOs
                     Ativo = Convert.ToBoolean(dr["Ativo"]),
                     SetorId = Convert.ToInt32(dr["SetorId"]),
                     CargoId = Convert.ToInt32(dr["CargoId"]),
-                    CargoNome = dr["CargoNome"] == DBNull.Value ? null : dr["CargoNome"].ToString()
+                    CargoNome = dr["CargoNome"] == DBNull.Value ? null : dr["CargoNome"].ToString(),
+                    SetorNome = dr["SetorNome"] == DBNull.Value ? null : dr["SetorNome"].ToString()
                 };
             }
 

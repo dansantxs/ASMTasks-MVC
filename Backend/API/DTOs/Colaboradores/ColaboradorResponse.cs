@@ -18,6 +18,8 @@ namespace API.DTOs.Colaboradores
         public bool Ativo { get; set; } = true;
         public bool PossuiTarefasAtivas { get; set; } = false;
         public int SetorId { get; set; }
+        /// <summary>Usado pelo Kanban: a etapa de teste so oferece o setor Suporte.</summary>
+        public string? SetorNome { get; set; }
         public int CargoId { get; set; }
         public string? CargoNome { get; set; }
     }

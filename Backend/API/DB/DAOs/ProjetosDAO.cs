@@ -808,6 +808,24 @@ namespace API.DB.DAOs
                     pt.TempoTesteValor,
                     pt.TempoTesteUnidade,
                     {TarefaSql.StatusAtual("pt")} AS StatusAtual,
+                    -- Responsavel da ultima passagem pela etapa de teste. O evento 'E' grava o
+                    -- responsavel da etapa que esta sendo DEIXADA; entao e o ColaboradorId do 'E'
+                    -- que vem logo depois de um 'E' com destino a etapa de teste.
+                    (SELECT TOP 1 saida.ColaboradorId
+                       FROM (SELECT he.ColaboradorId, he.DataHoraAcao, he.Id,
+                                    LAG(he.EtapaId) OVER (ORDER BY he.DataHoraAcao, he.Id) AS EtapaDeixadaId
+                               FROM ProjetoTarefaHistorico he
+                              WHERE he.TarefaId = pt.Id AND he.Tipo = 'E') saida
+                       INNER JOIN Etapa et ON et.Id = saida.EtapaDeixadaId AND et.EhEtapaTeste = 1
+                      ORDER BY saida.DataHoraAcao DESC, saida.Id DESC) AS UltimoResponsavelTesteId,
+                    -- Mesma ideia para a elaboracao: quem desenvolveu na ultima passagem por ela.
+                    (SELECT TOP 1 saida.ColaboradorId
+                       FROM (SELECT he.ColaboradorId, he.DataHoraAcao, he.Id,
+                                    LAG(he.EtapaId) OVER (ORDER BY he.DataHoraAcao, he.Id) AS EtapaDeixadaId
+                               FROM ProjetoTarefaHistorico he
+                              WHERE he.TarefaId = pt.Id AND he.Tipo = 'E') saida
+                       INNER JOIN Etapa ee ON ee.Id = saida.EtapaDeixadaId AND {TarefaSql.EhEtapaElaboracao("ee")}
+                      ORDER BY saida.DataHoraAcao DESC, saida.Id DESC) AS UltimoResponsavelElaboracaoId,
                     {TarefaSql.ElaboracaoJaIniciada("pt")} AS ElaboracaoJaIniciada
                 FROM ProjetoTarefa pt
                 INNER JOIN Projeto p ON pt.ProjetoId = p.Id
@@ -905,6 +923,12 @@ namespace API.DB.DAOs
                     TempoTesteValor = dr["TempoTesteValor"] == DBNull.Value ? null : (int?)Convert.ToInt32(dr["TempoTesteValor"]),
                     TempoTesteUnidade = dr["TempoTesteUnidade"] == DBNull.Value ? null : dr["TempoTesteUnidade"].ToString(),
                     StatusAtual = dr["StatusAtual"].ToString() ?? "Ociosa",
+                    UltimoResponsavelTesteId = dr["UltimoResponsavelTesteId"] == DBNull.Value
+                        ? null
+                        : Convert.ToInt32(dr["UltimoResponsavelTesteId"]),
+                    UltimoResponsavelElaboracaoId = dr["UltimoResponsavelElaboracaoId"] == DBNull.Value
+                        ? null
+                        : Convert.ToInt32(dr["UltimoResponsavelElaboracaoId"]),
                     ElaboracaoJaIniciada = Convert.ToBoolean(dr["ElaboracaoJaIniciada"]),
                 });
             }

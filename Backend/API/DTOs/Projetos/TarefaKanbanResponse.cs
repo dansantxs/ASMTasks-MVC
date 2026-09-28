@@ -25,6 +25,17 @@ namespace API.DTOs.Projetos
     public int QuantidadeAnexos { get; set; }
     public string? ClienteNomeFantasia { get; set; }
     public string StatusAtual { get; set; } = "Ociosa";
+    /// <summary>
+    /// Quem estava responsavel na ultima passagem pela etapa de teste. Nulo se a tarefa nunca
+    /// passou por ela (ou passou sem responsavel) - e o que o Kanban pre-seleciona ao devolve-la
+    /// para o teste.
+    /// </summary>
+    public int? UltimoResponsavelTesteId { get; set; }
+    /// <summary>
+    /// Quem desenvolveu na ultima passagem pela etapa de elaboracao. Nulo se ela nunca saiu de la
+    /// (ou saiu sem responsavel) - e o que o Kanban pre-seleciona ao devolve-la para a elaboracao.
+    /// </summary>
+    public int? UltimoResponsavelElaboracaoId { get; set; }
     /// <summary>A elaboração já foi iniciada alguma vez — separa Reservado de Em elaboração.</summary>
     public bool ElaboracaoJaIniciada { get; set; }
     public int? TempoExecucaoValor { get; set; }
