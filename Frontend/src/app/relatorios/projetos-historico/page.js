@@ -85,9 +85,6 @@ export default function HistoricoTarefasReportPage() {
   const [dataInicioFilter, setDataInicioFilter] = useState('');
   const [dataFimFilter, setDataFimFilter] = useState('');
   const [etapaFilter, setEtapaFilter] = useState('todos');
-  // Visão: a detalhada lista tudo; as outras deixam só a ação mais recente de cada cliente ou de
-  // cada colaborador — é como se responde "quem mexeu nesse cliente por último" sem varrer a lista.
-  const [visao, setVisao] = useState('detalhada'); // detalhada | cliente | colaborador
   const [ultimaOcorrencia, setUltimaOcorrencia] = useState(false);
   const [sortConfig, setSortConfig] = useState({ column: 'dataHoraAcao', direction: 'desc' });
   const [selectedColumns, setSelectedColumns] = useState(columns.map((c) => c.id));
@@ -219,22 +216,8 @@ export default function HistoricoTarefasReportPage() {
     [data, search, tipoFilter]
   );
 
-  // Nas visões de "última ação", sobra uma linha por cliente/colaborador: a mais recente. As
-  // colunas continuam as mesmas, então a tabela e as exportações não mudam.
-  const dadosDaVisao = useMemo(() => {
-    if (visao === 'detalhada') return filteredData;
-    const campo = visao === 'cliente' ? 'clienteNome' : 'colaboradorNome';
-    const ultimos = new Map();
-    filteredData.forEach((item) => {
-      const chave = item[campo] || '—';
-      const atual = ultimos.get(chave);
-      if (!atual || (item.rawDataHoraAcao ?? 0) > (atual.rawDataHoraAcao ?? 0)) ultimos.set(chave, item);
-    });
-    return Array.from(ultimos.values());
-  }, [filteredData, visao]);
-
   const sortedData = useMemo(() => {
-    const dataToSort = [...dadosDaVisao];
+    const dataToSort = [...filteredData];
     const compareStrings = (a = '', b = '') => a.localeCompare(b, 'pt-BR', { sensitivity: 'base' });
     const compareNumbers = (a, b) => a - b;
     const compareDates = (a, b) => {
@@ -259,7 +242,7 @@ export default function HistoricoTarefasReportPage() {
       dataToSort.sort((a, b) => (sortConfig.direction === 'asc' ? sorter(a, b) : sorter(b, a)));
     }
     return dataToSort;
-  }, [dadosDaVisao, sortConfig]);
+  }, [filteredData, sortConfig]);
 
   const toggleColumn = (id) => {
     setSelectedColumns((prev) => (prev.includes(id) ? prev.filter((col) => col !== id) : [...prev, id]));
@@ -302,8 +285,6 @@ export default function HistoricoTarefasReportPage() {
       clienteNome ? `Cliente: ${clienteNome}` : null,
       etapaNome ? `Etapa: ${etapaNome}` : null,
       ultimaOcorrencia ? 'Última ocorrência por tarefa/etapa' : null,
-      visao === 'cliente' ? 'Visão: última ação por cliente' : null,
-      visao === 'colaborador' ? 'Visão: última ação por colaborador' : null,
       dataInicioFilter ? `Data início: ${new Date(`${dataInicioFilter}T00:00:00`).toLocaleDateString('pt-BR')}` : null,
       dataFimFilter ? `Data fim: ${new Date(`${dataFimFilter}T00:00:00`).toLocaleDateString('pt-BR')}` : null,
     ].filter(Boolean);
@@ -418,7 +399,7 @@ export default function HistoricoTarefasReportPage() {
           },
           {
             element: '#tour-relatorio-filtros',
-            popover: { title: 'Filtros', description: 'Filtre por <strong>tipo de ação</strong>, <strong>colaborador</strong>, <strong>projeto</strong>, <strong>cliente</strong> e <strong>período</strong>. Os filtros são consultados no servidor.<br>A ação <strong>Reservada</strong> é a entrada na etapa de elaboração antes de qualquer início — o fim desse período é a linha <strong>Início de Elaboração</strong>.<br>Em <strong>Visão</strong>, troque para <strong>Última ação por cliente</strong> ou <strong>por colaborador</strong> para ver só o serviço mais recente de cada um — quem mexeu por último, quando e no quê.', side: 'bottom', align: 'start' },
+            popover: { title: 'Filtros', description: 'Filtre por <strong>tipo de ação</strong>, <strong>colaborador</strong>, <strong>projeto</strong>, <strong>cliente</strong> e <strong>período</strong>. Os filtros são consultados no servidor.<br>A ação <strong>Reservada</strong> é a entrada na etapa de elaboração antes de qualquer início — o fim desse período é a linha <strong>Início de Elaboração</strong>.', side: 'bottom', align: 'start' },
           },
           {
             element: '#tour-relatorio-colunas',
@@ -557,7 +538,7 @@ export default function HistoricoTarefasReportPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label>Data início</Label>
                   <Input type="date" value={dataInicioFilter} onChange={(e) => setDataInicioFilter(e.target.value)} />
@@ -565,17 +546,6 @@ export default function HistoricoTarefasReportPage() {
                 <div>
                   <Label>Data fim</Label>
                   <Input type="date" value={dataFimFilter} onChange={(e) => setDataFimFilter(e.target.value)} />
-                </div>
-                <div>
-                  <Label>Visão</Label>
-                  <Select value={visao} onValueChange={setVisao}>
-                    <SelectTrigger><SelectValue placeholder="Visão" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="detalhada">Detalhada (todas as ações)</SelectItem>
-                      <SelectItem value="cliente">Última ação por cliente</SelectItem>
-                      <SelectItem value="colaborador">Última ação por colaborador</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
               </div>
             </CardContent>
@@ -603,13 +573,7 @@ export default function HistoricoTarefasReportPage() {
         <Card id="tour-relatorio-tabela">
           <CardHeader>
             <CardTitle className="flex items-center justify-between flex-wrap gap-2">
-              <span>
-                {visao === 'detalhada'
-                  ? `${sortedData.length} registro(s)`
-                  : visao === 'cliente'
-                    ? `${sortedData.length} cliente(s) — última ação de cada um`
-                    : `${sortedData.length} colaborador(es) — última ação de cada um`}
-              </span>
+              <span>{filteredData.length} registro(s)</span>
               {totalTarefas > 0 && (
                 <span className="text-sm font-normal text-muted-foreground">
                   {totalTarefas} tarefa(s) distinta(s) no servidor
@@ -653,7 +617,7 @@ export default function HistoricoTarefasReportPage() {
                       ))}
                     </TableRow>
                   ))}
-                  {!isLoading && sortedData.length === 0 && (
+                  {!isLoading && filteredData.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={activeColumns.length} className="text-center text-muted-foreground">
                         Nenhum registro encontrado com os filtros selecionados.
