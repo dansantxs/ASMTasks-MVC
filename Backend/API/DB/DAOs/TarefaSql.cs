@@ -25,6 +25,16 @@ namespace API.DB.DAOs
                     END";
 
         /// <summary>
+        /// A elaboração já foi iniciada alguma vez (existe evento 'I' no histórico). É o que separa
+        /// "Reservado" (ninguém começou ainda) de "Em elaboração" — inclusive quando a tarefa volta
+        /// do teste para a elaboração: ela já foi elaborada, então não volta a ser reservada.
+        /// </summary>
+        public static string ElaboracaoJaIniciada(string aliasTarefa) => $@"CASE WHEN EXISTS (
+                        SELECT 1 FROM ProjetoTarefaHistorico hi
+                        WHERE hi.TarefaId = {aliasTarefa}.Id AND hi.Tipo = 'I'
+                    ) THEN 1 ELSE 0 END";
+
+        /// <summary>
         /// A etapa de elaboração é a única dividida em "Reservado" (ociosa: alguém vai fazer, mas
         /// não começou) e a própria etapa (já começou). É reconhecida pelo NOME, como no Relatório
         /// de Comissão e em Frontend/src/utils/situacaoTarefa.js — renomear a etapa exige ajustar
