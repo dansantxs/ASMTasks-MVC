@@ -727,15 +727,21 @@ export default function RelatorioComissaoPage() {
     // Quem aprovou fica no cabeçalho do item, ao lado do que identifica a tarefa.
     const comAprovador = grupo.aprovadorNome ? `${titulo} · Aprovado por: ${grupo.aprovadorNome}` : titulo;
 
-    // Tempo de execução e de teste do item: realizado e, entre parênteses, o previsto na tarefa.
+    return grupo.numero ? `${grupo.numero} - ${comAprovador}` : comAprovador;
+  }
+
+  /**
+   * Tempo de execução e de teste do item: realizado e, entre parênteses, o previsto na tarefa.
+   * Fica em linha separada — junto do cabeçalho, se perdia no fim da descrição da tarefa.
+   * Devolve null quando o item não tem tempo nenhum (atendimento, por exemplo).
+   */
+  function buildTemposGrupo(grupo) {
     const tempos = [];
     const execucao = formatarTempoComPrevisto(grupo.execucaoRealizadaMin, grupo.execucaoPrevistaMin);
     const teste = formatarTempoComPrevisto(grupo.testeRealizadoMin, grupo.testePrevistoMin);
     if (execucao) tempos.push(`Execução: ${execucao}`);
     if (teste) tempos.push(`Teste: ${teste}`);
-    const comTempos = tempos.length > 0 ? `${comAprovador} · ${tempos.join(' · ')}` : comAprovador;
-
-    return grupo.numero ? `${grupo.numero} - ${comTempos}` : comTempos;
+    return tempos.length > 0 ? tempos.join(' · ') : null;
   }
 
   const toggleColumn = (id) => {
@@ -823,6 +829,16 @@ export default function RelatorioComissaoPage() {
               styles: { fontStyle: 'bold', fillColor: [230, 240, 250] },
             },
           ]);
+          const tempos = buildTemposGrupo(grupo);
+          if (tempos) {
+            body.push([
+              {
+                content: tempos,
+                colSpan: numColunasLinha,
+                styles: { fontStyle: 'italic', fillColor: [243, 248, 253] },
+              },
+            ]);
+          }
           grupo.itens.forEach((item) => {
             body.push(colunasLinhaAtivas.map((col) => item[col.id] ?? ''));
           });
@@ -895,6 +911,13 @@ export default function RelatorioComissaoPage() {
           dataRows.push([buildGroupHeader(grupo)]);
           if (larguraLinha > 1) {
             merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: larguraLinha - 1 }, __rel: dataRows.length - 1 });
+          }
+          const temposGrupo = buildTemposGrupo(grupo);
+          if (temposGrupo) {
+            dataRows.push([temposGrupo]);
+            if (larguraLinha > 1) {
+              merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: larguraLinha - 1 }, __rel: dataRows.length - 1 });
+            }
           }
           grupo.itens.forEach((item) => {
             dataRows.push(colunasLinhaAtivas.map((col) => item[col.id] ?? ''));
@@ -1232,6 +1255,13 @@ export default function RelatorioComissaoPage() {
                                 {buildGroupHeader(grupo)}
                               </TableCell>
                             </TableRow>
+                            {buildTemposGrupo(grupo) && (
+                              <TableRow className="bg-brand-blue/5 hover:bg-brand-blue/5">
+                                <TableCell colSpan={numColunasLinha} className="text-xs text-muted-foreground">
+                                  {buildTemposGrupo(grupo)}
+                                </TableCell>
+                              </TableRow>
+                            )}
                             {grupo.itens.map((item) => (
                               <TableRow key={item.id} className="hover:bg-muted/40">
                                 {colunasLinhaAtivas.map((col) => (
