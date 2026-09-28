@@ -464,8 +464,8 @@ export default function DialogoVisualizarProjeto({
                   const etapaCadastrada = task.etapaId
                     ? (etapasById.get(task.etapaId) ?? `Etapa #${task.etapaId}`)
                     : null;
-                  const etapaNome = etapaCadastrada ? rotuloEtapa(etapaCadastrada, task.statusAtual) : 'Atendimento';
-                  const reservado = etapaCadastrada ? ehReservado(etapaCadastrada, task.statusAtual) : false;
+                  const etapaNome = etapaCadastrada ? rotuloEtapa(etapaCadastrada, task.elaboracaoJaIniciada) : 'Atendimento';
+                  const reservado = etapaCadastrada ? ehReservado(etapaCadastrada, task.elaboracaoJaIniciada) : false;
                   const etapaConcluida = task.etapaId
                     ? normalizarTexto(etapasById.get(task.etapaId) ?? '').includes('conclu')
                     : false;

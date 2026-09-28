@@ -799,7 +799,8 @@ namespace API.DB.DAOs
                                FROM ProjetoTarefaHistorico he
                               WHERE he.TarefaId = pt.Id AND he.Tipo = 'E') saida
                        INNER JOIN Etapa et ON et.Id = saida.EtapaDeixadaId AND et.EhEtapaTeste = 1
-                      ORDER BY saida.DataHoraAcao DESC, saida.Id DESC) AS UltimoResponsavelTesteId
+                      ORDER BY saida.DataHoraAcao DESC, saida.Id DESC) AS UltimoResponsavelTesteId,
+                    {TarefaSql.ElaboracaoJaIniciada("pt")} AS ElaboracaoJaIniciada
                 FROM ProjetoTarefa pt
                 INNER JOIN Projeto p ON pt.ProjetoId = p.Id
                 INNER JOIN Cliente c ON p.ClienteId = c.Id
@@ -899,6 +900,7 @@ namespace API.DB.DAOs
                     UltimoResponsavelTesteId = dr["UltimoResponsavelTesteId"] == DBNull.Value
                         ? null
                         : Convert.ToInt32(dr["UltimoResponsavelTesteId"]),
+                    ElaboracaoJaIniciada = Convert.ToBoolean(dr["ElaboracaoJaIniciada"]),
                 });
             }
 
@@ -1129,7 +1131,8 @@ namespace API.DB.DAOs
                 SELECT Id, ProjetoId, Titulo, Descricao, PrioridadeId, ColaboradorResponsavelId, DataHoraAtribuicao, EtapaId, DataHoraInicio, SetorId,
                        TempoExecucaoValor, TempoExecucaoUnidade, TempoTesteValor, TempoTesteUnidade,
                        (SELECT COUNT(*) FROM ProjetoTarefaAnexo WHERE TarefaId = pt.Id) AS QuantidadeAnexos,
-                       {TarefaSql.StatusAtual("pt")} AS StatusAtual
+                       {TarefaSql.StatusAtual("pt")} AS StatusAtual,
+                       {TarefaSql.ElaboracaoJaIniciada("pt")} AS ElaboracaoJaIniciada
                 FROM ProjetoTarefa pt
                 ORDER BY pt.ProjetoId, pt.Id;
             ";
@@ -1162,7 +1165,8 @@ namespace API.DB.DAOs
                     TempoExecucaoUnidade = dr["TempoExecucaoUnidade"] == DBNull.Value ? null : dr["TempoExecucaoUnidade"].ToString(),
                     TempoTesteValor = dr["TempoTesteValor"] == DBNull.Value ? null : (int?)Convert.ToInt32(dr["TempoTesteValor"]),
                     TempoTesteUnidade = dr["TempoTesteUnidade"] == DBNull.Value ? null : dr["TempoTesteUnidade"].ToString(),
-                    StatusAtual = dr["StatusAtual"].ToString() ?? "Ociosa"
+                    StatusAtual = dr["StatusAtual"].ToString() ?? "Ociosa",
+                    ElaboracaoJaIniciada = Convert.ToBoolean(dr["ElaboracaoJaIniciada"])
                 };
 
                 if (!mapa.TryGetValue(tarefa.ProjetoId, out var bucket))
@@ -1185,7 +1189,8 @@ namespace API.DB.DAOs
                 SELECT Id, ProjetoId, Titulo, Descricao, PrioridadeId, ColaboradorResponsavelId, DataHoraAtribuicao, EtapaId, DataHoraInicio, SetorId,
                        TempoExecucaoValor, TempoExecucaoUnidade, TempoTesteValor, TempoTesteUnidade,
                        (SELECT COUNT(*) FROM ProjetoTarefaAnexo WHERE TarefaId = pt.Id) AS QuantidadeAnexos,
-                       {TarefaSql.StatusAtual("pt")} AS StatusAtual
+                       {TarefaSql.StatusAtual("pt")} AS StatusAtual,
+                       {TarefaSql.ElaboracaoJaIniciada("pt")} AS ElaboracaoJaIniciada
                 FROM ProjetoTarefa pt
                 WHERE ProjetoId = @ProjetoId
                 ORDER BY pt.Id;
@@ -1220,7 +1225,8 @@ namespace API.DB.DAOs
                     TempoExecucaoUnidade = dr["TempoExecucaoUnidade"] == DBNull.Value ? null : dr["TempoExecucaoUnidade"].ToString(),
                     TempoTesteValor = dr["TempoTesteValor"] == DBNull.Value ? null : (int?)Convert.ToInt32(dr["TempoTesteValor"]),
                     TempoTesteUnidade = dr["TempoTesteUnidade"] == DBNull.Value ? null : dr["TempoTesteUnidade"].ToString(),
-                    StatusAtual = dr["StatusAtual"].ToString() ?? "Ociosa"
+                    StatusAtual = dr["StatusAtual"].ToString() ?? "Ociosa",
+                    ElaboracaoJaIniciada = Convert.ToBoolean(dr["ElaboracaoJaIniciada"])
                 });
             }
 

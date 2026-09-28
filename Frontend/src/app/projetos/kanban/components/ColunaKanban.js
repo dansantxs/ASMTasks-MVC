@@ -29,8 +29,8 @@ function ColunaKanban({ etapaId, titulo, tarefas, ehAdmin, colaboradorLogadoId, 
   const faixas = useMemo(() => {
     if (isAtendimento || !ehEtapaElaboracao(titulo)) return null;
     return [
-      { chave: 'reservado', titulo: ROTULO_RESERVADO, tarefas: tarefas.filter((t) => ehReservado(titulo, t.statusAtual)) },
-      { chave: 'em-elaboracao', titulo: 'Em elaboração', tarefas: tarefas.filter((t) => !ehReservado(titulo, t.statusAtual)) },
+      { chave: 'reservado', titulo: ROTULO_RESERVADO, tarefas: tarefas.filter((t) => ehReservado(titulo, t.elaboracaoJaIniciada)) },
+      { chave: 'em-elaboracao', titulo: 'Em elaboração', tarefas: tarefas.filter((t) => !ehReservado(titulo, t.elaboracaoJaIniciada)) },
     ];
   }, [isAtendimento, titulo, tarefas]);
 

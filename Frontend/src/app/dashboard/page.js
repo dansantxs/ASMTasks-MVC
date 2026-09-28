@@ -56,10 +56,10 @@ const juntar = (...partes) => partes.filter((p) => p != null && p !== '').join('
 function LinhaIndicador({ item }) {
   const contexto = juntar(item.projetoTitulo, item.clienteNome);
   // "Reservado" já diz que a tarefa não foi iniciada: repetir "Ociosa" ao lado só polui.
-  const reservado = ehReservado(item.etapaNome, item.statusAtual);
+  const reservado = ehReservado(item.etapaNome, item.elaboracaoJaIniciada);
   const situacao = juntar(
     item.colaboradorNome ?? 'Sem responsável',
-    rotuloEtapa(item.etapaNome, item.statusAtual),
+    rotuloEtapa(item.etapaNome, item.elaboracaoJaIniciada),
     reservado ? null : item.statusAtual
   );
   const ultimaAcao = item.ultimaAcaoEm
