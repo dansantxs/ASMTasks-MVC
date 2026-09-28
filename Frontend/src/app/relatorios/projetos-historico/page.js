@@ -474,7 +474,7 @@ export default function HistoricoTarefasReportPage() {
                     <SelectContent>
                       <SelectItem value="todos">Todos</SelectItem>
                       <SelectItem value="E">Mudança de Etapa</SelectItem>
-                      <SelectItem value="reservada">Reservada (entrou na elaboração)</SelectItem>
+                      <SelectItem value="reservada">Reservada</SelectItem>
                       <SelectItem value="A">Atribuição de Colaborador</SelectItem>
                       <SelectItem value="I">Início de Elaboração</SelectItem>
                       <SelectItem value="P">Elaboração Pausada</SelectItem>
