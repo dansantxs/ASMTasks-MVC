@@ -234,6 +234,13 @@ export default function RelatorioComissaoPage() {
     [etapasRaw]
   );
 
+  // Nome da etapa de elaboração como está no cadastro, para a linha deduzida usar o mesmo
+  // vocabulário das demais. Sem etapa cadastrada, fica o termo genérico.
+  const nomeEtapaElaboracao = useMemo(
+    () => etapasRaw.find((e) => ehEtapaDesenvolvimento(e.nome))?.nome ?? 'Elaboração',
+    [etapasRaw]
+  );
+
   const exibicaoNomeCliente = systemSettings?.exibicaoNomeCliente ?? 'razaoSocial';
 
   // Cliente vindo do cadastro (id, nome, nomeFantasia) — usado no filtro
@@ -521,9 +528,26 @@ export default function RelatorioComissaoPage() {
         grupo.desenvolvedorId = ref?.concluidoPorId ?? null;
         grupo.desenvolvedorNome = ref?.concluidoPorNome ?? SEM_DESENVOLVEDOR;
       } else {
+        // Caminho normal: quem fez a última passagem pela etapa de elaboração.
         const etapaDev = [...grupo.itens].reverse().find((item) => ehEtapaDesenvolvimento(item.etapaNome));
-        grupo.desenvolvedorId = etapaDev?.colaboradorId ?? null;
-        grupo.desenvolvedorNome = etapaDev?.colaboradorNome ?? SEM_DESENVOLVEDOR;
+
+        // Nem toda tarefa passa pela elaboração: parte é resolvida direto em outra etapa (análise,
+        // atualização) ou vai de Atendimento para a final. Sem fallback, essas caíam todas em
+        // "Sem desenvolvedor" e sumiam da contagem, embora o histórico mostre quem fez.
+        // Cascata: quem estava na etapa anterior à final; se foi direto para a final, quem estava
+        // nela. Só sobra "Sem desenvolvedor" quando não há responsável em passagem nenhuma.
+        const etapasPercorridas = [...grupo.itens].reverse();
+        const referencia =
+          etapaDev ??
+          etapasPercorridas.find((item) => item.etapaId !== etapaFinalId) ??
+          etapasPercorridas[0];
+
+        grupo.desenvolvedorId = referencia?.colaboradorId ?? null;
+        grupo.desenvolvedorNome = referencia?.colaboradorNome ?? SEM_DESENVOLVEDOR;
+
+        // Guarda de onde veio o crédito para montar, mais abaixo, a linha de elaboração — sem
+        // ela o item fica sem a etapa que justifica a comissão de quem o fez.
+        grupo.elaboracaoDeduzidaDe = !etapaDev && referencia?.colaboradorId != null ? referencia : null;
       }
 
       // Aprovador do item: colaborador da última passagem pela etapa de teste. Só tarefa —
@@ -572,6 +596,35 @@ export default function RelatorioComissaoPage() {
         });
       }
 
+      // Tarefa que não passou pela elaboração: o trabalho aconteceu em outra etapa (análise,
+      // atualização) ou entre a abertura e a conclusão. A linha de elaboração é montada aqui,
+      // com quem foi creditado, para o item mostrar a etapa que justifica a comissão. A etapa
+      // real de onde veio o crédito continua na lista, logo acima — nada do histórico some.
+      const deduzida = grupo.elaboracaoDeduzidaDe;
+      if (deduzida) {
+        const linhaElaboracao = {
+          id: `${grupo.tarefaId}-elaboracao-deduzida`,
+          itemTipo: grupo.itemTipo,
+          tarefaId: grupo.tarefaId,
+          colaboradorId: deduzida.colaboradorId,
+          colaboradorNome: deduzida.colaboradorNome,
+          etapaId: null,
+          etapaNome: nomeEtapaElaboracao,
+          rawDataHoraAcao: deduzida.rawDataHoraAcao,
+          dataHoraAcao: deduzida.dataHoraAcao,
+          observacao: `Sem passagem pela elaboração — creditado pela etapa ${deduzida.etapaNome}`,
+          clienteNome: grupo.clienteNome,
+          projetoTitulo: grupo.projetoTitulo,
+          tarefaTitulo: grupo.tarefaTitulo,
+          descricao: grupo.descricao,
+        };
+        // Entra antes da etapa final, que é onde a elaboração termina; sem etapa final na lista,
+        // vai para o fim.
+        const posicaoFinal = grupo.itens.findIndex((item) => item.etapaId === etapaFinalId);
+        if (posicaoFinal >= 0) grupo.itens.splice(posicaoFinal, 0, linhaElaboracao);
+        else grupo.itens.push(linhaElaboracao);
+      }
+
       grupo.participantesIds = participantes;
 
       // Data de conclusão do item = data da última passagem/conclusão (a linha de lançamento fica
@@ -580,7 +633,7 @@ export default function RelatorioComissaoPage() {
     });
 
     return lista;
-  }, [linhasTarefasEAtendimentos, tarefasFinalizadas, tipoItemFilter, infoPorTarefa, etapaTesteIds]);
+  }, [linhasTarefasEAtendimentos, tarefasFinalizadas, tipoItemFilter, infoPorTarefa, etapaTesteIds, etapaFinalId, nomeEtapaElaboracao]);
 
   const colaboradorIdFiltro = colaboradorFilter === 'todos' ? null : Number(colaboradorFilter);
   const aprovadorIdFiltro = aprovadorFilter === 'todos' ? null : Number(aprovadorFilter);

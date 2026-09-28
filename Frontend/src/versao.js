@@ -38,6 +38,7 @@ export const CHANGELOG = [
       'Relatório de Comissão: cada item passa a mostrar o tempo de execução e o de teste — o realizado (somado do histórico da tarefa) e, entre parênteses, o previsto cadastrado nela; no Resumo, os dois tempos aparecem somados por colaborador e acompanham as exportações',
       'Anexos da tarefa: ao clicar numa imagem, ela abre em tela cheia e inteira (antes era cortada num quadro pequeno), com as setas do teclado passando de uma imagem para outra e botões para abrir em nova aba ou baixar; o diálogo de arquivos ficou mais largo, com miniaturas maiores',
       'Correção: a busca de endereço pelo CEP nos cadastros de clientes e colaboradores não trazia o endereço — a consulta ia parar no servidor errado',
+      'Manutenção: os backups automáticos de produção e teste passam a ser copiados também para o Google Drive, mantendo as cópias por 365 dias',
     ],
   },
   {
