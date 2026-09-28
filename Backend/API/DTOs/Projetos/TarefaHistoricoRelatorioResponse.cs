@@ -29,5 +29,18 @@ namespace API.DTOs.Projetos
         /// elaboração significa que a tarefa ficou reservada ali.
         /// </summary>
         public bool ElaboracaoJaIniciadaNoEvento { get; set; }
+
+        /// <summary>Tempo previsto cadastrado na tarefa (valor + unidade D/H/M).</summary>
+        public int? TempoExecucaoValor { get; set; }
+        public string? TempoExecucaoUnidade { get; set; }
+        public int? TempoTesteValor { get; set; }
+        public string? TempoTesteUnidade { get; set; }
+
+        /// <summary>
+        /// Tempo realizado, em minutos, somado de todo o histórico da tarefa (não só do período
+        /// consultado): elaboração e a parte dela que aconteceu dentro da etapa de teste.
+        /// </summary>
+        public int? MinutosElaboracao { get; set; }
+        public int? MinutosTeste { get; set; }
     }
 }
