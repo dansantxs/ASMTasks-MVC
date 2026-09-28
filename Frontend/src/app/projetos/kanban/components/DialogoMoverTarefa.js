@@ -5,40 +5,32 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { Button } from '../../../../components/ui/base/button';
 import { Label } from '../../../../components/ui/form/label';
 import { Combobox } from '../../../../components/ui/form/combobox';
-
-function montarOpcoesColaboradores(colaboradores, setorId, mostrarTodosSetores) {
-  const rotulo = (col) => `${col.nome}${col.cargoNome ? ` — ${col.cargoNome}` : ''}`;
-  const semResponsavel = { value: '', label: 'Sem responsável' };
-
-  if (!setorId) {
-    return [semResponsavel, ...colaboradores.map((col) => ({ value: String(col.id), label: rotulo(col) }))];
-  }
-
-  const doSetor = colaboradores.filter((c) => c.setorId === setorId);
-  if (!mostrarTodosSetores) {
-    return [semResponsavel, ...doSetor.map((col) => ({ value: String(col.id), label: rotulo(col) }))];
-  }
-
-  const outros = colaboradores.filter((c) => c.setorId !== setorId);
-  return [
-    semResponsavel,
-    ...doSetor.map((col) => ({ value: String(col.id), label: `Setor da tarefa · ${rotulo(col)}` })),
-    ...outros.map((col) => ({ value: String(col.id), label: `Outros setores · ${rotulo(col)}` })),
-  ];
-}
+import { colaboradoresDoSuporte, montarOpcoesColaboradores, montarOpcoesSuporte } from '../utils/opcoesResponsavel';
 
 export default function DialogoMoverTarefa({ open, onOpenChange, tarefa, etapaDestino, colaboradores = [], onConfirmar, isMovendo }) {
   const [colaboradorId, setColaboradorId] = useState(null);
   const [mostrarTodosSetores, setMostrarTodosSetores] = useState(false);
 
   const moverParaAtendimento = etapaDestino?.id == null;
+  const moverParaTeste = !moverParaAtendimento && !!etapaDestino?.ehEtapaTeste;
+  const suporte = colaboradoresDoSuporte(colaboradores);
 
   useEffect(() => {
-    if (open) {
-      setColaboradorId(moverParaAtendimento ? null : (tarefa?.colaboradorResponsavelId ?? null));
-      setMostrarTodosSetores(false);
+    if (!open) return;
+    if (moverParaAtendimento) {
+      setColaboradorId(null);
+    } else if (moverParaTeste) {
+      // Primeira vez no teste: sem responsavel. Voltando para o teste: quem estava nele da
+      // ultima vez - desde que ainda seja do Suporte, senao a opcao nem existe na lista.
+      const anterior = tarefa?.ultimoResponsavelTesteId ?? null;
+      setColaboradorId(suporte.some((col) => col.id === anterior) ? anterior : null);
+    } else {
+      setColaboradorId(tarefa?.colaboradorResponsavelId ?? null);
     }
-  }, [open, tarefa, moverParaAtendimento]);
+    setMostrarTodosSetores(false);
+    // `suporte` fica de fora de proposito: so a abertura do dialogo deve escolher o padrao.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, tarefa, moverParaAtendimento, moverParaTeste]);
 
   const handleConfirmar = () => {
     onConfirmar(colaboradorId);
@@ -70,7 +62,7 @@ export default function DialogoMoverTarefa({ open, onOpenChange, tarefa, etapaDe
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <Label>Responsável</Label>
-                  {tarefa?.setorId && (
+                  {tarefa?.setorId && !moverParaTeste && (
                     <label className="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer select-none">
                       <input
                         type="checkbox"
@@ -87,8 +79,19 @@ export default function DialogoMoverTarefa({ open, onOpenChange, tarefa, etapaDe
                   onValueChange={(v) => setColaboradorId(v ? Number(v) : null)}
                   placeholder="Sem responsável"
                   searchPlaceholder="Buscar colaborador..."
-                  options={montarOpcoesColaboradores(colaboradores, tarefa?.setorId, mostrarTodosSetores)}
+                  options={
+                    moverParaTeste
+                      ? montarOpcoesSuporte(colaboradores)
+                      : montarOpcoesColaboradores(colaboradores, tarefa?.setorId, mostrarTodosSetores)
+                  }
                 />
+                {moverParaTeste && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    {suporte.length === 0
+                      ? 'Nenhum colaborador ativo no setor Suporte.'
+                      : 'Etapa de teste: só colaboradores do setor Suporte.'}
+                  </p>
+                )}
                 <p className="text-xs text-gray-400 mt-1">
                   Atual: {tarefa.colaboradorResponsavelNome ?? 'Sem responsável'}
                 </p>
