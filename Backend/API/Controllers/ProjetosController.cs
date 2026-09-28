@@ -383,7 +383,7 @@ namespace API.Controllers
                     colaboradorIds: colaboradorIds ?? [],
                     projetoIds: projetoIds ?? [],
                     clienteIds: clienteIds ?? [],
-                    incluirBacklog: true);
+                    incluirAtendimento: true);
 
                 return Ok(tarefas);
             }
@@ -599,7 +599,7 @@ namespace API.Controllers
                     return NotFound(new { erro = "Tarefa não encontrada." });
 
                 if (!estadoAtual.EtapaId.HasValue)
-                    return BadRequest(new { erro = "Não é possível iniciar uma tarefa que está no backlog." });
+                    return BadRequest(new { erro = "Não é possível iniciar uma tarefa que está em Atendimento." });
 
                 if (!estadoAtual.ColaboradorResponsavelId.HasValue)
                     return BadRequest(new { erro = "Não é possível iniciar uma tarefa sem responsável." });

@@ -31,14 +31,14 @@ export default function DialogoMoverTarefa({ open, onOpenChange, tarefa, etapaDe
   const [colaboradorId, setColaboradorId] = useState(null);
   const [mostrarTodosSetores, setMostrarTodosSetores] = useState(false);
 
-  const moverParaBacklog = etapaDestino?.id == null;
+  const moverParaAtendimento = etapaDestino?.id == null;
 
   useEffect(() => {
     if (open) {
-      setColaboradorId(moverParaBacklog ? null : (tarefa?.colaboradorResponsavelId ?? null));
+      setColaboradorId(moverParaAtendimento ? null : (tarefa?.colaboradorResponsavelId ?? null));
       setMostrarTodosSetores(false);
     }
-  }, [open, tarefa, moverParaBacklog]);
+  }, [open, tarefa, moverParaAtendimento]);
 
   const handleConfirmar = () => {
     onConfirmar(colaboradorId);
@@ -46,7 +46,7 @@ export default function DialogoMoverTarefa({ open, onOpenChange, tarefa, etapaDe
 
   if (!tarefa) return null;
 
-  const nomeEtapaDestino = etapaDestino?.nome ?? 'Backlog';
+  const nomeEtapaDestino = etapaDestino?.nome ?? 'Atendimento';
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -62,9 +62,9 @@ export default function DialogoMoverTarefa({ open, onOpenChange, tarefa, etapaDe
           </Dialog.Description>
 
           <div className="space-y-4">
-            {moverParaBacklog ? (
+            {moverParaAtendimento ? (
               <p className="text-sm text-gray-500 bg-gray-50 rounded-lg px-3 py-2">
-                O responsável será removido automaticamente ao retornar para o Backlog.
+                O responsável será removido automaticamente ao retornar para Atendimento.
               </p>
             ) : (
               <div>

@@ -754,7 +754,7 @@ namespace API.DB.DAOs
             int[] colaboradorIds,
             int[] projetoIds,
             int[] clienteIds,
-            bool incluirBacklog = false)
+            bool incluirAtendimento = false)
         {
             var lista = new List<TarefaKanbanResponse>();
 
@@ -812,7 +812,7 @@ namespace API.DB.DAOs
                 AND p.Concluido = 0
             ");
 
-            if (!incluirBacklog)
+            if (!incluirAtendimento)
                 sql.Append(" AND pt.EtapaId IS NOT NULL");
 
             if (colaboradorIds != null && colaboradorIds.Length > 0)

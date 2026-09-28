@@ -425,7 +425,7 @@ namespace API.DB.DAOs
             var filtro = filtrarPorColaborador ? " AND t.ColaboradorResponsavelId = @ColaboradorId" : "";
 
             // Em andamento = tem etapa e não é a final. Antes contava TODAS as tarefas de projetos
-            // ativos (backlog e concluídas junto) e ainda servia de denominador das barras "Por
+            // ativos (atendimento e concluídas junto) e ainda servia de denominador das barras "Por
             // Etapa", o que deixava os percentuais errados.
             dto.EmAndamento = await LerIndicadorAsync(cmd, $@"
                 SELECT TOP (@Limite){ColunasTarefa}{TotalGeral}
@@ -435,7 +435,7 @@ namespace API.DB.DAOs
                 ORDER BY t.Titulo
             ", usarNomeFantasia);
 
-            dto.Backlog = await LerIndicadorAsync(cmd, $@"
+            dto.Atendimento = await LerIndicadorAsync(cmd, $@"
                 SELECT TOP (@Limite){ColunasTarefa}{TotalGeral}
                 {DeTarefa}
                 WHERE t.EtapaId IS NULL
@@ -445,9 +445,9 @@ namespace API.DB.DAOs
 
             if (visaoGlobal)
             {
-                // Só tarefas JÁ no fluxo. Mover para o Backlog remove o responsável (regra do
-                // Kanban), então toda tarefa de backlog está sem responsável por construção —
-                // contá-las aqui repetia o card Backlog inteiro e escondia o que interessa:
+                // Só tarefas JÁ no fluxo. Mover para Atendimento remove o responsável (regra do
+                // Kanban), então toda tarefa em atendimento está sem responsável por construção —
+                // contá-las aqui repetia o card Atendimento inteiro e escondia o que interessa:
                 // tarefa andando no fluxo sem ninguém responsável.
                 dto.SemResponsavel = await LerIndicadorAsync(cmd, $@"
                     SELECT TOP (@Limite){ColunasTarefa}{TotalGeral}
@@ -612,17 +612,17 @@ namespace API.DB.DAOs
                 }
             }
 
-            // Backlog entra como a primeira faixa, reaproveitando o indicador já lido.
-            if (dto.Backlog.Total > 0)
+            // Atendimento entra como a primeira faixa, reaproveitando o indicador já lido.
+            if (dto.Atendimento.Total > 0)
             {
                 dto.PorEtapa.Insert(0, new TarefaPorEtapaDTO
                 {
                     EtapaId = null,
-                    Etapa = "Backlog",
+                    Etapa = "Atendimento",
                     Ordem = -1,
                     EhEtapaFinal = false,
-                    Total = dto.Backlog.Total,
-                    Itens = dto.Backlog.Itens
+                    Total = dto.Atendimento.Total,
+                    Itens = dto.Atendimento.Itens
                 });
             }
 

@@ -34,7 +34,6 @@ DECLARE @ccedil NCHAR(1) = NCHAR(231);  -- c com cedilha
 DECLARE @atil   NCHAR(1) = NCHAR(227);  -- a com til
 DECLARE @iagudo NCHAR(1) = NCHAR(237);  -- i com acento agudo
 
-DECLARE @Atendimento NVARCHAR(50) = N'Atendimento';
 DECLARE @Elaboracao  NVARCHAR(50) = N'Elabora'  + @ccedil + @atil + N'o';
 DECLARE @Aprovacao   NVARCHAR(50) = N'Aprova'   + @ccedil + @atil + N'o';
 DECLARE @Atualizacao NVARCHAR(50) = N'Atualiza' + @ccedil + @atil + N'o';
@@ -120,14 +119,16 @@ SELECT h.EtapaId,
 -- Conferencias. Nada aqui altera dado; e so para voce olhar o resultado.
 -- ----------------------------------------------------------------------------
 
--- 1) Sobrou alguma etapa fora do modelo de 5? Decida na tela de Etapas se
+-- 1) Sobrou alguma etapa fora do modelo de 4? Decida na tela de Etapas se
 --    desativa (Ativo = 0) ou renomeia. NAO apague: ha historico apontando
 --    para ela, e apagar deixaria essas linhas orfas.
+--    "Atendimento" NAO e etapa cadastrada: e a coluna fixa do Kanban para
+--    tarefa sem etapa. Uma etapa com esse nome apareceria duplicada no quadro.
 PRINT '=== Etapas fora do modelo novo (conferir na tela de Etapas) ===';
 SELECT e.Id, e.Ordem, e.Nome, e.Ativo,
        (SELECT COUNT(*) FROM ProjetoTarefaHistorico h WHERE h.EtapaId = e.Id) AS UsosNoHistorico
   FROM Etapa e
- WHERE e.Nome NOT IN (@Atendimento, @Elaboracao, @Aprovacao, @Atualizacao, @Concluido)
+ WHERE e.Nome NOT IN (@Elaboracao, @Aprovacao, @Atualizacao, @Concluido)
  ORDER BY e.Ordem, e.Id;
 
 -- 2) As flags acompanham o NOME? Renomear nao move flag: se antes a etapa final

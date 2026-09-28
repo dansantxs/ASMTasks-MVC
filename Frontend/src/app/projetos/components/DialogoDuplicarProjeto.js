@@ -91,7 +91,7 @@ export default function DialogoDuplicarProjeto({ open, onOpenChange, projeto, cl
         <div className="space-y-3">
           <p className="text-sm text-muted-foreground">
             Será criado <span className="font-medium text-foreground">"{projeto.titulo}"</span> para cada cliente
-            selecionado, com todas as tarefas no Backlog.
+            selecionado, com todas as tarefas em Atendimento.
           </p>
 
           {/* Busca */}
