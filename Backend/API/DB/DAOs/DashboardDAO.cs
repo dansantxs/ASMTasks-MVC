@@ -51,6 +51,18 @@ namespace API.DB.DAOs
 
         private const string ProjetoAtivo = " AND pr.Ativo = 1 AND pr.Concluido = 0";
 
+        // Ordem das listas de tarefa: etapa na ordem do fluxo — Atendimento (sem etapa) primeiro,
+        // Reservado antes do resto da elaboração e a etapa final por último, como no Kanban — e,
+        // dentro da etapa, colaborador ("Sem responsável" no fim). Serve para o ORDER BY da lista
+        // e para o ORDER BY do ROW_NUMBER(), que decide quais itens entram no limite dela.
+        private static readonly string OrdemTarefaEtapaColaborador = $@"
+                    CASE WHEN e.Id IS NULL THEN 0 WHEN e.EhEtapaFinal = 1 THEN 2 ELSE 1 END,
+                    e.Ordem,
+                    CASE WHEN {TarefaSql.EhEtapaElaboracao("e")} AND {TarefaSql.ElaboracaoJaIniciada("t")} = 0 THEN 0 ELSE 1 END,
+                    CASE WHEN col.Id IS NULL THEN 1 ELSE 0 END,
+                    col.Nome,
+                    t.Titulo";
+
         private const string ColunasAtendimento = @"
                     a.Id,
                     a.Titulo,
@@ -70,7 +82,7 @@ namespace API.DB.DAOs
                 INNER JOIN Cliente c ON c.Id = a.ClienteId
                 LEFT JOIN Colaborador conc ON conc.Id = a.ConcluidoPorColaboradorId
                 OUTER APPLY (
-                    SELECT STRING_AGG(colA.Nome, ', ') AS Nomes
+                    SELECT STRING_AGG(colA.Nome, ', ') WITHIN GROUP (ORDER BY colA.Nome) AS Nomes
                     FROM AtendimentoColaborador ac2
                     INNER JOIN Colaborador colA ON colA.Id = ac2.ColaboradorId
                     WHERE ac2.AtendimentoId = a.Id
@@ -80,6 +92,10 @@ namespace API.DB.DAOs
         // duplicaria a linha — e, com COUNT(*) OVER (), duplicaria também o total.
         private const string FiltroColaboradorAtendimento =
             " AND EXISTS (SELECT 1 FROM AtendimentoColaborador ac WHERE ac.AtendimentoId = a.Id AND ac.ColaboradorId = @ColaboradorId)";
+
+        // Atendimento não tem etapa: a lista vai por colaborador (os atribuídos, em ordem
+        // alfabética), com os sem ninguém no fim; a data desempata em cada consulta.
+        private const string OrdemAtendimentoColaborador = "CASE WHEN resp.Nomes IS NULL THEN 1 ELSE 0 END, resp.Nomes";
 
         private const string ColunasProjeto = @"
                     p.Id,
@@ -98,6 +114,9 @@ namespace API.DB.DAOs
                 INNER JOIN Cliente c ON c.Id = p.ClienteId
                 LEFT JOIN Colaborador cad ON cad.Id = p.CadastradoPorColaboradorId
                 LEFT JOIN Colaborador alt ON alt.Id = p.AlteradoPorColaboradorId";
+
+        // Projeto também não tem etapa: a lista vai por quem lançou; a data desempata.
+        private const string OrdemProjetoColaborador = "CASE WHEN cad.Nome IS NULL THEN 1 ELSE 0 END, cad.Nome";
 
         private const string TotalGeral = ",\n                    COUNT(*) OVER () AS TotalGeral";
 
@@ -291,7 +310,7 @@ namespace API.DB.DAOs
                   AND a.DataHoraInicio >= CAST(GETDATE() AS DATE)
                   AND a.DataHoraInicio < DATEADD(DAY, 1, CAST(GETDATE() AS DATE))
                   {filtro}
-                ORDER BY a.DataHoraInicio
+                ORDER BY {OrdemAtendimentoColaborador}, a.DataHoraInicio
             ", usarNomeFantasia);
 
             // Pendentes do PERÍODO (antes era todo Status='A' da história inteira, um número
@@ -302,7 +321,7 @@ namespace API.DB.DAOs
                 WHERE a.Status = 'A'
                   AND a.DataHoraInicio >= @Inicio AND a.DataHoraInicio < @Fim
                   {filtro}
-                ORDER BY a.DataHoraInicio
+                ORDER BY {OrdemAtendimentoColaborador}, a.DataHoraInicio
             ", usarNomeFantasia);
 
             dto.EmAtraso = await LerIndicadorAsync(cmd, $@"
@@ -311,7 +330,7 @@ namespace API.DB.DAOs
                 WHERE a.Status = 'A'
                   AND a.DataHoraFim IS NOT NULL AND a.DataHoraFim < GETDATE()
                   {filtro}
-                ORDER BY a.DataHoraFim
+                ORDER BY {OrdemAtendimentoColaborador}, a.DataHoraFim
             ", usarNomeFantasia);
 
             dto.RealizadosPeriodo = await LerIndicadorAsync(cmd, $@"
@@ -320,7 +339,7 @@ namespace API.DB.DAOs
                 WHERE a.Status = 'R'
                   AND a.DataHoraConclusao >= @Inicio AND a.DataHoraConclusao < @Fim
                   {filtro}
-                ORDER BY a.DataHoraConclusao DESC
+                ORDER BY {OrdemAtendimentoColaborador}, a.DataHoraConclusao DESC
             ", usarNomeFantasia);
 
             // Tendência: ancorada em hoje (últimos 6 meses), independente do período escolhido —
@@ -336,7 +355,7 @@ namespace API.DB.DAOs
                         COUNT(*) OVER (PARTITION BY YEAR(a.DataHoraConclusao), MONTH(a.DataHoraConclusao)) AS TotalGeral,
                         ROW_NUMBER() OVER (
                             PARTITION BY YEAR(a.DataHoraConclusao), MONTH(a.DataHoraConclusao)
-                            ORDER BY a.DataHoraConclusao DESC
+                            ORDER BY {OrdemAtendimentoColaborador}, a.DataHoraConclusao DESC
                         ) AS Posicao
                     {DeAtendimento}
                     WHERE a.Status = 'R'
@@ -425,7 +444,7 @@ namespace API.DB.DAOs
                 {DeTarefa}
                 WHERE t.EtapaId IS NOT NULL AND e.EhEtapaFinal = 0
                   {ProjetoAtivo}{filtro}
-                ORDER BY t.Titulo
+                ORDER BY{OrdemTarefaEtapaColaborador}
             ", usarNomeFantasia);
 
             dto.Atendimento = await LerIndicadorAsync(cmd, $@"
@@ -433,7 +452,7 @@ namespace API.DB.DAOs
                 {DeTarefa}
                 WHERE t.EtapaId IS NULL
                   {ProjetoAtivo}{filtro}
-                ORDER BY t.Titulo
+                ORDER BY{OrdemTarefaEtapaColaborador}
             ", usarNomeFantasia);
 
             if (visaoGlobal)
@@ -448,7 +467,7 @@ namespace API.DB.DAOs
                     WHERE t.ColaboradorResponsavelId IS NULL
                       AND t.EtapaId IS NOT NULL AND e.EhEtapaFinal = 0
                       {ProjetoAtivo}
-                    ORDER BY t.Titulo
+                    ORDER BY{OrdemTarefaEtapaColaborador}
                 ", usarNomeFantasia);
             }
 
@@ -460,7 +479,7 @@ namespace API.DB.DAOs
                   AND t.DataHoraInicio IS NULL
                   AND NOT EXISTS (SELECT 1 FROM ProjetoTarefaHistorico h WHERE h.TarefaId = t.Id AND h.Tipo IN ('I', 'P'))
                   {ProjetoAtivo}{filtro}
-                ORDER BY t.Titulo
+                ORDER BY{OrdemTarefaEtapaColaborador}
             ", usarNomeFantasia);
 
             // Concluídas no período: entrou na etapa final dentro da janela. DISTINCT por tarefa —
@@ -476,7 +495,7 @@ namespace API.DB.DAOs
                     WHERE h.Tipo = 'E' AND h.DataHoraAcao >= @Inicio AND h.DataHoraAcao < @Fim
                 ) concluidas ON concluidas.TarefaId = t.Id
                 WHERE 1 = 1{filtro}
-                ORDER BY t.Titulo
+                ORDER BY{OrdemTarefaEtapaColaborador}
             ", usarNomeFantasia);
 
             // Em atraso na execução: minutos somados de elaboração (pares 'I' → próximo evento,
@@ -511,7 +530,7 @@ namespace API.DB.DAOs
                 {DeTarefa}
                 INNER JOIN Atrasadas atr ON atr.Id = t.Id
                 WHERE 1 = 1{filtro}
-                ORDER BY t.Titulo
+                ORDER BY{OrdemTarefaEtapaColaborador}
             ", usarNomeFantasia);
 
             // Em atraso no teste: só os minutos de elaboração que caem dentro de uma passagem
@@ -563,7 +582,7 @@ namespace API.DB.DAOs
                 {DeTarefa}
                 INNER JOIN Atrasadas atr ON atr.Id = t.Id
                 WHERE 1 = 1{filtro}
-                ORDER BY t.Titulo
+                ORDER BY{OrdemTarefaEtapaColaborador}
             ", usarNomeFantasia);
 
             // Por etapa, com a lista de cada faixa: uma consulta só, com o total por faixa
@@ -574,7 +593,10 @@ namespace API.DB.DAOs
                 SELECT * FROM (
                     SELECT base.*, r.Reservado,
                         COUNT(*) OVER (PARTITION BY base.EtapaIdFaixa, r.Reservado) AS TotalGeral,
-                        ROW_NUMBER() OVER (PARTITION BY base.EtapaIdFaixa, r.Reservado ORDER BY base.Titulo) AS Posicao
+                        ROW_NUMBER() OVER (
+                            PARTITION BY base.EtapaIdFaixa, r.Reservado
+                            ORDER BY CASE WHEN base.ColaboradorNome IS NULL THEN 1 ELSE 0 END, base.ColaboradorNome, base.Titulo
+                        ) AS Posicao
                     FROM (
                         SELECT{ColunasTarefa},
                             t.EtapaId AS EtapaIdFaixa,
@@ -590,7 +612,7 @@ namespace API.DB.DAOs
                     ) r
                 ) faixas
                 WHERE faixas.Posicao <= @Limite
-                ORDER BY faixas.EtapaOrdem, faixas.Reservado DESC, faixas.Titulo
+                ORDER BY faixas.EtapaOrdem, faixas.Reservado DESC, faixas.Posicao
             ";
             await using (var reader = await cmd.ExecuteReaderAsync())
             {
@@ -639,14 +661,14 @@ namespace API.DB.DAOs
                         p.Cor AS PrioridadeCor,
                         p.Ordem AS PrioridadeOrdem,
                         COUNT(*) OVER (PARTITION BY p.Id) AS TotalGeral,
-                        ROW_NUMBER() OVER (PARTITION BY p.Id ORDER BY t.Titulo) AS Posicao
+                        ROW_NUMBER() OVER (PARTITION BY p.Id ORDER BY{OrdemTarefaEtapaColaborador}) AS Posicao
                     {DeTarefa}
                     INNER JOIN Prioridade p ON p.Id = t.PrioridadeId
                     WHERE COALESCE(e.EhEtapaFinal, 0) = 0
                       {ProjetoAtivo}{filtro}
                 ) faixas
                 WHERE faixas.Posicao <= @Limite
-                ORDER BY faixas.PrioridadeOrdem, faixas.Titulo
+                ORDER BY faixas.PrioridadeOrdem, faixas.Posicao
             ";
             await using (var reader = await cmd.ExecuteReaderAsync())
             {
@@ -679,14 +701,14 @@ namespace API.DB.DAOs
                         SELECT{ColunasTarefa},
                             col.Id AS CargaColaboradorId,
                             COUNT(*) OVER (PARTITION BY col.Id) AS TotalGeral,
-                            ROW_NUMBER() OVER (PARTITION BY col.Id ORDER BY t.Titulo) AS Posicao
+                            ROW_NUMBER() OVER (PARTITION BY col.Id ORDER BY{OrdemTarefaEtapaColaborador}) AS Posicao
                         {DeTarefa}
                         WHERE t.ColaboradorResponsavelId IS NOT NULL
                           AND COALESCE(e.EhEtapaFinal, 0) = 0
                           {ProjetoAtivo}
                     ) faixas
                     WHERE faixas.Posicao <= @Limite
-                    ORDER BY faixas.TotalGeral DESC, faixas.ColaboradorNome, faixas.Titulo
+                    ORDER BY faixas.TotalGeral DESC, faixas.ColaboradorNome, faixas.CargaColaboradorId, faixas.Posicao
                 ";
                 await using var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
@@ -725,7 +747,7 @@ namespace API.DB.DAOs
                     COALESCE(p.DataAlteracao, p.DataCadastro) AS UltimaAcaoEm{TotalGeral}
                 {DeProjeto}
                 WHERE p.Ativo = 1 AND p.Concluido = 0
-                ORDER BY p.DataCadastro DESC
+                ORDER BY {OrdemProjetoColaborador}, p.DataCadastro DESC
             ", usarNomeFantasia);
 
             // Concluídos no período: a data vem do histórico do projeto (ProjetoHistorico, Tipo
@@ -745,7 +767,7 @@ namespace API.DB.DAOs
                     GROUP BY ph.ProjetoId
                 ) conc ON conc.ProjetoId = p.Id
                 WHERE p.Concluido = 1
-                ORDER BY conc.ConcluidoEm DESC
+                ORDER BY {OrdemProjetoColaborador}, conc.ConcluidoEm DESC
             ", usarNomeFantasia);
 
             dto.CadastradosPeriodo = await LerIndicadorAsync(cmd, $@"
@@ -754,7 +776,7 @@ namespace API.DB.DAOs
                     p.DataCadastro AS UltimaAcaoEm{TotalGeral}
                 {DeProjeto}
                 WHERE p.DataCadastro >= @Inicio AND p.DataCadastro < @Fim
-                ORDER BY p.DataCadastro DESC
+                ORDER BY {OrdemProjetoColaborador}, p.DataCadastro DESC
             ", usarNomeFantasia);
 
             return dto;
@@ -798,7 +820,7 @@ namespace API.DB.DAOs
                         colRank.Id AS RankId,
                         colRank.Nome AS RankNome,
                         COUNT(*) OVER (PARTITION BY colRank.Id) AS TotalGeral,
-                        ROW_NUMBER() OVER (PARTITION BY colRank.Id ORDER BY t.Titulo) AS Posicao
+                        ROW_NUMBER() OVER (PARTITION BY colRank.Id ORDER BY{OrdemTarefaEtapaColaborador}) AS Posicao
                     {DeTarefa}
                     INNER JOIN (
                         SELECT DISTINCT
