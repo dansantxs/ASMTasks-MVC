@@ -18,16 +18,6 @@ import { useConfiguracoesSistema, configuracoesPadrao } from '../../../services/
 import FormularioPrioridade from '../../cadastros/prioridades/components/FormularioPrioridade';
 import FormularioSetor from '../../cadastros/setores/components/FormularioSetor';
 import DialogoAnexosTarefa from './DialogoAnexosTarefa';
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogCancel,
-  AlertDialogAction,
-} from '../../../components/ui/feedback/alert/alert-dialog';
 
 function gerarTempId() {
   return typeof crypto !== 'undefined' && crypto.randomUUID
@@ -43,8 +33,6 @@ function criarTarefaDoProjeto(tarefa) {
   return {
     _tempId: gerarTempId(),
     id: tarefa?.id ?? null,
-    // Usado só para avisar, ao remover, que a tarefa já entrou no fluxo do Kanban.
-    etapaId: tarefa?.etapaId ?? null,
     titulo: tarefa?.titulo ?? '',
     descricao: tarefa?.descricao ?? '',
     prioridadeId: tarefa?.prioridadeId ? String(tarefa.prioridadeId) : '',
@@ -314,7 +302,6 @@ export default function FormularioProjeto({
   const [showModalSetor, setShowModalSetor] = useState(false);
   const [indicePrioridadeTarefa, setIndicePrioridadeTarefa] = useState(null);
   const [tarefaAnexosAberta, setTarefaAnexosAberta] = useState(null);
-  const [tarefaParaRemover, setTarefaParaRemover] = useState(null);
   const [showMergeDialog, setShowMergeDialog] = useState(false);
   const [projetosParaMesclar, setProjetosParaMesclar] = useState([]);
   const [projetoMesclarId, setProjetoMesclarId] = useState(null);
@@ -422,17 +409,6 @@ export default function FormularioProjeto({
       }
       return { ...prev, tarefas: prev.tarefas.filter((_, i) => i !== index) };
     });
-  };
-
-  // Tarefa que já está numa etapa do quadro leva junto o histórico dela (quem pegou, quando
-  // mudou de etapa), então vale avisar antes. Tarefa nova ou ainda em Atendimento sai direto.
-  const solicitarRemocaoTarefa = (index) => {
-    const tarefa = formData.tarefas[index];
-    if (tarefa?.id && tarefa?.etapaId) {
-      setTarefaParaRemover(index);
-      return;
-    }
-    removerTarefa(index);
   };
 
   const adicionarArquivosPendentes = useCallback((tempId, files) => {
@@ -766,7 +742,7 @@ export default function FormularioProjeto({
                       setoresAtivos={setoresAtivos}
                       errors={errors.tarefasDetalhes?.[index]}
                       onChange={atualizarTarefa}
-                      onRemove={solicitarRemocaoTarefa}
+                      onRemove={removerTarefa}
                       totalTarefas={formData.tarefas.length}
                       onAbrirCriarPrioridade={setIndicePrioridadeTarefa}
                       onAbrirAnexos={isEditMode && tarefa.id ? setTarefaAnexosAberta : undefined}
@@ -844,32 +820,6 @@ export default function FormularioProjeto({
         tarefaId={tarefaAnexosAberta?.id ?? null}
         tarefaTitulo={tarefaAnexosAberta?.titulo ?? ''}
       />
-
-      <AlertDialog open={tarefaParaRemover !== null} onOpenChange={(v) => { if (!v) setTarefaParaRemover(null); }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir esta tarefa do projeto?</AlertDialogTitle>
-            <AlertDialogDescription>
-              A tarefa <strong>{tarefaParaRemover !== null ? formData.tarefas[tarefaParaRemover]?.titulo : ''}</strong> já
-              está numa etapa do quadro. Ao salvar o projeto, ela e o histórico dela (atribuições e
-              movimentações) serão apagados. Se a tarefa já chegou na etapa final, a exclusão é
-              recusada, porque ela entra no Relatório de Comissão.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => {
-                removerTarefa(tarefaParaRemover);
-                setTarefaParaRemover(null);
-              }}
-            >
-              Excluir tarefa
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       {/* Diálogo de mesclagem de tarefas com projeto existente */}
       <Dialog open={showMergeDialog} onOpenChange={(next) => { if (!next) handleCriarNovoProjeto(); }}>

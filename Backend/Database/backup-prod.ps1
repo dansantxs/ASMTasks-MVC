@@ -23,17 +23,7 @@ param(
     [string]$Container = 'asmtasks-prod-sqlserver-1',
 
     # Por quantos dias manter os backups. Arquivos mais antigos sao apagados.
-    [int]$RetentionDays = 30,
-
-    # Copia na nuvem: remote do rclone + pasta. Vazio ('') = nao envia para a nuvem.
-    [string]$CloudRemote = 'gdrive:ASMTasks/backups/prod',
-
-    # Por quantos dias manter as copias na nuvem.
-    [int]$CloudRetentionDays = 365,
-
-    # rclone e configuracao dele (caminho fixo: a tarefa agendada roda como SYSTEM).
-    [string]$RcloneExe = 'C:\ASMTasks\rclone\rclone.exe',
-    [string]$RcloneConfig = 'C:\ASMTasks\rclone\rclone.conf'
+    [int]$RetentionDays = 30
 )
 
 $ErrorActionPreference = 'Stop'
@@ -100,24 +90,6 @@ try {
         foreach ($f in $antigos) {
             Remove-Item $f.FullName -Force
             Write-Log "Removido backup antigo (> $RetentionDays dias): $($f.Name)"
-        }
-    }
-
-    # --- Copia na nuvem --------------------------------------------------------
-    # Falha aqui NAO invalida o backup local: registra o erro e sai com codigo 2,
-    # para o 'Last Result' da tarefa agendada acusar que a nuvem ficou sem copia.
-    if ($CloudRemote) {
-        try {
-            . (Join-Path $PSScriptRoot 'backup-nuvem.ps1')
-            Write-Log "Enviando para a nuvem ($CloudRemote)..."
-            Send-BackupNuvem -Arquivo $destPath -Remote $CloudRemote -Filtro 'backup_prod_*.bak' `
-                -RcloneExe $RcloneExe -RcloneConfig $RcloneConfig -RetentionDays $CloudRetentionDays
-            Write-Log "Copia na nuvem concluida."
-        }
-        catch {
-            Write-Log "Falha ao enviar para a nuvem (backup local mantido): $($_.Exception.Message)" 'ERROR'
-            Write-Log "===== Backup de PRODUCAO finalizado SEM copia na nuvem =====" 'WARN'
-            exit 2
         }
     }
 

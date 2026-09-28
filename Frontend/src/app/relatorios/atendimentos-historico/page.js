@@ -74,9 +74,6 @@ export default function HistoricoAtendimentosReportPage() {
   const [colaboradorFilter, setColaboradorFilter] = useState('todos');
   const [dataInicioFilter, setDataInicioFilter] = useState('');
   const [dataFimFilter, setDataFimFilter] = useState('');
-  // Visão: a detalhada lista tudo; as outras deixam só a ação mais recente de cada cliente ou de
-  // cada colaborador — é como se responde "quem atendeu esse cliente por último" sem varrer a lista.
-  const [visao, setVisao] = useState('detalhada'); // detalhada | cliente | colaborador
   const [sortConfig, setSortConfig] = useState({ column: 'dataHoraAcao', direction: 'desc' });
   const [selectedColumns, setSelectedColumns] = useState(columns.map((c) => c.id));
   const { data: systemSettings = configuracoesPadrao } = useConfiguracoesSistema();
@@ -155,22 +152,8 @@ export default function HistoricoAtendimentosReportPage() {
     [data, search]
   );
 
-  // Nas visões de "última ação", sobra uma linha por cliente/colaborador: a mais recente. As
-  // colunas continuam as mesmas, então a tabela e as exportações não mudam.
-  const dadosDaVisao = useMemo(() => {
-    if (visao === 'detalhada') return filteredData;
-    const campo = visao === 'cliente' ? 'clienteNome' : 'colaboradorNome';
-    const ultimos = new Map();
-    filteredData.forEach((item) => {
-      const chave = item[campo] || '—';
-      const atual = ultimos.get(chave);
-      if (!atual || (item.rawDataHoraAcao ?? 0) > (atual.rawDataHoraAcao ?? 0)) ultimos.set(chave, item);
-    });
-    return Array.from(ultimos.values());
-  }, [filteredData, visao]);
-
   const sortedData = useMemo(() => {
-    const dataToSort = [...dadosDaVisao];
+    const dataToSort = [...filteredData];
 
     const compareStrings = (a = '', b = '') => a.localeCompare(b, 'pt-BR', { sensitivity: 'base' });
     const compareNumbers = (a, b) => a - b;
@@ -199,7 +182,7 @@ export default function HistoricoAtendimentosReportPage() {
     }
 
     return dataToSort;
-  }, [dadosDaVisao, sortConfig]);
+  }, [filteredData, sortConfig]);
 
   const toggleColumn = (id) => {
     setSelectedColumns((prev) => (prev.includes(id) ? prev.filter((col) => col !== id) : [...prev, id]));
@@ -226,8 +209,6 @@ export default function HistoricoAtendimentosReportPage() {
       tipoFilter !== 'todos' ? `Ação: ${getTipoLabel(tipoFilter)}` : null,
       clienteNome ? `Cliente: ${clienteNome}` : null,
       colaboradorNome ? `Usuário: ${colaboradorNome}` : null,
-      visao === 'cliente' ? 'Visão: última ação por cliente' : null,
-      visao === 'colaborador' ? 'Visão: última ação por colaborador' : null,
       dataInicioFilter ? `Data início: ${new Date(`${dataInicioFilter}T00:00:00`).toLocaleDateString('pt-BR')}` : null,
       dataFimFilter ? `Data fim: ${new Date(`${dataFimFilter}T00:00:00`).toLocaleDateString('pt-BR')}` : null,
     ].filter(Boolean);
@@ -345,7 +326,7 @@ export default function HistoricoAtendimentosReportPage() {
           },
           {
             element: '#tour-relatorio-filtros',
-            popover: { title: 'Filtros', description: 'Filtre por <strong>tipo de ação</strong>, <strong>cliente</strong>, <strong>colaborador</strong> e <strong>período</strong> (data início/fim). Os filtros de período são consultados diretamente no servidor.<br>Em <strong>Visão</strong>, troque para <strong>Última ação por cliente</strong> ou <strong>por colaborador</strong> para ver só o atendimento mais recente de cada um.', side: 'bottom', align: 'start' },
+            popover: { title: 'Filtros', description: 'Filtre por <strong>tipo de ação</strong>, <strong>cliente</strong>, <strong>colaborador</strong> e <strong>período</strong> (data início/fim). Os filtros de período são consultados diretamente no servidor.', side: 'bottom', align: 'start' },
           },
           {
             element: '#tour-relatorio-colunas',
@@ -466,17 +447,6 @@ export default function HistoricoAtendimentosReportPage() {
                   <Label>Data fim</Label>
                   <Input type="date" value={dataFimFilter} onChange={(e) => setDataFimFilter(e.target.value)} />
                 </div>
-                <div>
-                  <Label>Visão</Label>
-                  <Select value={visao} onValueChange={setVisao}>
-                    <SelectTrigger><SelectValue placeholder="Visão" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="detalhada">Detalhada (todas as ações)</SelectItem>
-                      <SelectItem value="cliente">Última ação por cliente</SelectItem>
-                      <SelectItem value="colaborador">Última ação por colaborador</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
               </div>
             </CardContent>
           </Card>
@@ -502,13 +472,7 @@ export default function HistoricoAtendimentosReportPage() {
 
         <Card id="tour-relatorio-tabela">
           <CardHeader>
-            <CardTitle>
-              {visao === 'detalhada'
-                ? `${sortedData.length} resultado(s)`
-                : visao === 'cliente'
-                  ? `${sortedData.length} cliente(s) — última ação de cada um`
-                  : `${sortedData.length} colaborador(es) — última ação de cada um`}
-            </CardTitle>
+            <CardTitle>{filteredData.length} resultado(s)</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
@@ -546,7 +510,7 @@ export default function HistoricoAtendimentosReportPage() {
                       ))}
                     </TableRow>
                   ))}
-                  {!isLoading && sortedData.length === 0 && (
+                  {!isLoading && filteredData.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={activeColumns.length} className="text-center text-muted-foreground">
                         Nenhum registro encontrado com os filtros selecionados.
