@@ -176,48 +176,6 @@ schtasks /Query /TN "ASMTasks\Backup Prod 12h" /V /FO LIST   # 'Last Result' dev
 > (`docker: command not found`), rode o setup com `-RunAsUser "SERVIDOR\usuario"`
 > — a conta SYSTEM às vezes não enxerga o Docker Desktop.
 
-### Cópia no Google Drive
-
-Depois do backup local, cada script envia o `.bak` para o Google Drive com o
-[rclone](https://rclone.org) — `ASMTasks/backups/prod` e `ASMTasks/backups/test` — e
-apaga por lá as cópias com mais de 365 dias (`-CloudRetentionDays` ajusta).
-Se o envio falhar, o backup local continua valendo: o erro vai para o log e o
-script sai com **código 2** (é isso que aparece no `Last Result` da tarefa).
-
-O rclone e a configuração dele ficam em `C:\ASMTasks\rclone`, e não no perfil do
-usuário, porque a tarefa agendada roda como SYSTEM. Configuração, uma vez, no servidor:
-
-1. Baixe o rclone para Windows (zip, *Intel/AMD 64 bit*) em https://rclone.org/downloads/
-   e extraia o `rclone.exe` em `C:\ASMTasks\rclone\`.
-2. Crie o remote `gdrive` (use a conta Google **da empresa**, não uma pessoal):
-
-   ```powershell
-   C:\ASMTasks\rclone\rclone.exe config --config C:\ASMTasks\rclone\rclone.conf
-   # n (new remote) -> name: gdrive -> Storage: drive
-   # client_id e client_secret: em branco
-   # scope: drive.file (o rclone só enxerga os arquivos que ele mesmo criou)
-   # root_folder_id e service_account_file: em branco
-   # Edit advanced config: n -> Use web browser: y (abre o login do Google)
-   # Configure as Shared Drive: n -> Keep this remote: y -> q
-   ```
-
-3. Proteja o arquivo — ele guarda o token de acesso ao Drive. Só SYSTEM e
-   Administradores (se a tarefa roda com `-RunAsUser`, inclua esse usuário):
-
-   ```powershell
-   icacls C:\ASMTasks\rclone\rclone.conf /inheritance:r /grant:r "*S-1-5-18:F" "*S-1-5-32-544:F"
-   ```
-
-4. Teste:
-
-   ```powershell
-   C:\ASMTasks\rclone\rclone.exe lsd gdrive: --config C:\ASMTasks\rclone\rclone.conf
-   .\backup-prod.ps1     # o log deve terminar com "Copia na nuvem concluida."
-   ```
-
-Para desligar a cópia na nuvem sem mexer no script: `.\backup-prod.ps1 -CloudRemote ''`.
-Para restaurar a partir do Drive, baixe o `.bak` e siga a seção 5.
-
 ---
 
 ## 5. Restaurar backup localmente
