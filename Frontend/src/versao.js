@@ -39,6 +39,7 @@ export const CHANGELOG = [
       'Anexos da tarefa: ao clicar numa imagem, ela abre em tela cheia e inteira (antes era cortada num quadro pequeno), com as setas do teclado passando de uma imagem para outra e botões para abrir em nova aba ou baixar; o diálogo de arquivos ficou mais largo, com miniaturas maiores',
       'Correção: excluir do projeto uma tarefa que já estava em alguma etapa do quadro dava "Erro ao atualizar o projeto" sem explicar o motivo — agora a exclusão funciona (levando junto o histórico da tarefa) e só é recusada, com o motivo na tela, quando a tarefa já chegou na etapa final, porque essa entra no Relatório de Comissão',
       'Correção: a busca de endereço pelo CEP nos cadastros de clientes e colaboradores não trazia o endereço — a consulta ia parar no servidor errado',
+      'Manutenção: os backups automáticos de produção e teste passam a ser copiados também para o Google Drive, mantendo as cópias por 365 dias',
     ],
   },
   {
