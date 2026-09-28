@@ -58,7 +58,7 @@ namespace API.DB.DAOs
         private static readonly string OrdemTarefaEtapaColaborador = $@"
                     CASE WHEN e.Id IS NULL THEN 0 WHEN e.EhEtapaFinal = 1 THEN 2 ELSE 1 END,
                     e.Ordem,
-                    CASE WHEN {TarefaSql.EhEtapaElaboracao("e")} AND {TarefaSql.StatusAtual("t")} = 'Ociosa' THEN 0 ELSE 1 END,
+                    CASE WHEN {TarefaSql.EhEtapaElaboracao("e")} AND {TarefaSql.ElaboracaoJaIniciada("t")} = 0 THEN 0 ELSE 1 END,
                     CASE WHEN col.Id IS NULL THEN 1 ELSE 0 END,
                     col.Nome,
                     t.Titulo";
