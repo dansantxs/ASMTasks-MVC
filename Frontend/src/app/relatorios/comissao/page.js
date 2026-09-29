@@ -239,6 +239,29 @@ export default function RelatorioComissaoPage() {
     [etapasRaw]
   );
 
+  // Ordem das etapas como estão cadastradas no fluxo. As linhas de cada item são exibidas
+  // nessa ordem, e não na cronológica: como fica só a última passagem por etapa, uma tarefa que
+  // voltou da aprovação para a elaboração mostraria a elaboração depois da aprovação.
+  const ordemPorEtapaId = useMemo(
+    () => new Map(etapasRaw.map((e) => [e.id, e.ordem ?? 0])),
+    [etapasRaw]
+  );
+  const ordemEtapaElaboracao = useMemo(
+    () => etapasRaw.find((e) => ehEtapaDesenvolvimento(e.nome))?.ordem ?? 0,
+    [etapasRaw]
+  );
+
+  // Lugar de cada linha no fluxo. As linhas sintéticas não têm etapa cadastrada: o lançamento
+  // abre o item, o Reservado encosta na elaboração que antecede, e a elaboração deduzida ocupa
+  // o lugar da própria elaboração. Etapa que saiu do cadastro vai para o fim.
+  const ordemDaLinha = (item) => {
+    if (item.etapaId != null) return ordemPorEtapaId.get(item.etapaId) ?? Number.MAX_SAFE_INTEGER;
+    if (item.etapaNome === ETAPA_LANCAMENTO) return Number.MIN_SAFE_INTEGER;
+    if (item.etapaNome === ROTULO_RESERVADO) return ordemEtapaElaboracao - 0.5;
+    if (item.etapaNome === nomeEtapaElaboracao) return ordemEtapaElaboracao;
+    return Number.MAX_SAFE_INTEGER;
+  };
+
   const exibicaoNomeCliente = systemSettings?.exibicaoNomeCliente ?? 'razaoSocial';
 
   // Cliente vindo do cadastro (id, nome, nomeFantasia) — usado no filtro
@@ -683,9 +706,20 @@ export default function RelatorioComissaoPage() {
 
       grupo.participantesIds = participantes;
 
-      // Data de conclusão do item = data da última passagem/conclusão (a linha de lançamento fica
-      // no início, então nunca é a última).
-      grupo.dataConclusao = grupo.itens[grupo.itens.length - 1]?.rawDataHoraAcao ?? null;
+      // Data de conclusão do item = a mais recente das passagens. Tem de ser o máximo, e não a
+      // última linha, porque a ordem de exibição segue o fluxo e não o relógio.
+      grupo.dataConclusao = grupo.itens.reduce(
+        (maior, item) => (item.rawDataHoraAcao > (maior ?? 0) ? item.rawDataHoraAcao : maior),
+        null
+      );
+
+      // Exibição na ordem do fluxo; entre linhas da mesma etapa, a mais antiga primeiro.
+      if (grupo.itemTipo === 'tarefa') {
+        grupo.itens.sort(
+          (a, b) =>
+            ordemDaLinha(a) - ordemDaLinha(b) || (a.rawDataHoraAcao ?? 0) - (b.rawDataHoraAcao ?? 0)
+        );
+      }
     });
 
     // Item sem ninguém a creditar (nenhuma passagem teve responsável) fica de fora: o
@@ -694,7 +728,7 @@ export default function RelatorioComissaoPage() {
     // Em "Teste", quem não passou pela etapa de teste também fica de fora, pela mesma razão:
     // ninguém a testou, então ela não rende comissão de teste.
     return lista.filter((grupo) => creditoDoGrupo(grupo).id != null);
-  }, [linhasTarefasEAtendimentos, tarefasFinalizadas, tipoItemBase, creditoPorTeste, infoPorTarefa, etapaTesteIds, etapaFinalId, nomeEtapaElaboracao, colaboradorNomePorId]);
+  }, [linhasTarefasEAtendimentos, tarefasFinalizadas, tipoItemBase, creditoPorTeste, infoPorTarefa, etapaTesteIds, etapaFinalId, nomeEtapaElaboracao, ordemPorEtapaId, ordemEtapaElaboracao, colaboradorNomePorId]);
 
   const colaboradorIdFiltro = colaboradorFilter === 'todos' ? null : Number(colaboradorFilter);
   const aprovadorIdFiltro = aprovadorFilter === 'todos' ? null : Number(aprovadorFilter);
