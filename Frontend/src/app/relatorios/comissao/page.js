@@ -297,7 +297,7 @@ export default function RelatorioComissaoPage() {
   // Uma linha "Atendimento Concluído" por atendimento concluído no período (Status ainda 'R' — se
   // foi reaberto depois, não conta). Diferente de tarefa, não tem etapas; o crédito da comissão é
   // de quem concluiu (concluidoPor*). Os demais colaboradores atribuídos ficam só em
-  // `participantesIds`, pra que o filtro de colaborador continue trazendo o atendimento.
+  // `participantesIds`, usado como reserva quando não se sabe quem concluiu.
   const linhasAtendimento = useMemo(() => {
     const resultado = [];
     const atendimentosVistos = new Set();
@@ -488,8 +488,8 @@ export default function RelatorioComissaoPage() {
 
   // Junta tarefas e atendimentos numa lista só — cada linha já carrega itemTipo, então o resto do
   // relatório trata os dois de forma uniforme. O filtro de colaborador NÃO é aplicado aqui: ele
-  // define quais itens aparecem (item em que o colaborador participou de qualquer etapa), mas
-  // todas as etapas do item continuam visíveis (ver `grupos`).
+  // define quais itens aparecem (aqueles creditados a ele), mas todas as etapas do item
+  // continuam visíveis (ver `grupos`).
   const linhasTarefasEAtendimentos = useMemo(
     () => [...segmentos, ...linhasAtendimento],
     [segmentos, linhasAtendimento]
@@ -592,8 +592,9 @@ export default function RelatorioComissaoPage() {
       grupo.aprovadorId = etapaAprovacao?.colaboradorId ?? null;
       grupo.aprovadorNome = etapaAprovacao?.colaboradorNome ?? null;
 
-      // Colaboradores que participaram do item — usado pelo filtro de colaborador (o item aparece
-      // se a pessoa filtrada fez ao menos uma etapa dele / está atribuída ao atendimento).
+      // Colaboradores que participaram do item: quem fez alguma etapa dela, quem a lançou e, no
+      // atendimento, quem está atribuído. Não decide quais itens aparecem — isso é do crédito —;
+      // serve de reserva para achar um responsável quando o item não aponta um.
       const participantes = new Set(
         grupo.itens.map((item) => item.colaboradorId).filter((id) => id != null)
       );
@@ -697,11 +698,14 @@ export default function RelatorioComissaoPage() {
     [grupos, aprovadorIdFiltro]
   );
 
-  // Item 3: o filtro de colaborador seleciona os ITENS (participou de qualquer etapa) — todas as
-  // etapas do item continuam visíveis, mesmo as de outros colaboradores.
+  // O filtro de colaborador seleciona os itens pelo CRÉDITO, não pela participação: entra a tarefa
+  // que a pessoa elaborou e o atendimento que ela concluiu. Ter só lançado, testado ou feito uma
+  // etapa de atualização não traz o item para a lista dela — é o mesmo critério do Resumo, então a
+  // Detalhada e o Resumo mostram sempre o mesmo número. As etapas das outras pessoas continuam
+  // visíveis dentro de cada item; muda só quais itens entram.
   const gruposVisiveis = useMemo(() => {
     if (colaboradorIdFiltro == null) return gruposPorAprovador;
-    return gruposPorAprovador.filter((grupo) => grupo.participantesIds.has(colaboradorIdFiltro));
+    return gruposPorAprovador.filter((grupo) => grupo.desenvolvedorId === colaboradorIdFiltro);
   }, [gruposPorAprovador, colaboradorIdFiltro]);
 
   // Itens 1 e 2: relatório dividido em seções por Colaborador(Desenvolvedor), cada item numerado
@@ -1041,7 +1045,7 @@ export default function RelatorioComissaoPage() {
           },
           {
             element: '#tour-comissao-filtros',
-            popover: { title: 'Filtros', description: 'Filtre por <strong>período</strong>, <strong>tipo</strong> (Tarefas/Atendimentos), <strong>colaborador</strong>, <strong>aprovado por</strong> e <strong>cliente</strong>. Ao filtrar um colaborador, aparecem os itens em que ele participou de <strong>qualquer</strong> etapa — e todas as etapas continuam visíveis, mesmo as de outras pessoas. Já <strong>Aprovado por</strong> deixa só os itens cuja etapa de teste foi feita pela pessoa escolhida, e conta também no Resumo; o nome dela aparece no cabeçalho de cada item.', side: 'bottom', align: 'start' },
+            popover: { title: 'Filtros', description: 'Filtre por <strong>período</strong>, <strong>tipo</strong> (Tarefas/Atendimentos), <strong>colaborador</strong>, <strong>aprovado por</strong> e <strong>cliente</strong>. Ao filtrar um colaborador, aparecem os itens <strong>creditados a ele</strong> — a tarefa que ele elaborou e o atendimento que ele concluiu; ter só lançado ou testado não traz o item. Dentro de cada item, as etapas das outras pessoas continuam visíveis. Já <strong>Aprovado por</strong> deixa só os itens cuja etapa de teste foi feita pela pessoa escolhida, e conta também no Resumo; o nome dela aparece no cabeçalho de cada item.', side: 'bottom', align: 'start' },
           },
           {
             element: '#tour-comissao-colunas',
