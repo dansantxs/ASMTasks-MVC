@@ -30,6 +30,14 @@ namespace API.DTOs.Projetos
         /// </summary>
         public bool ElaboracaoJaIniciadaNoEvento { get; set; }
 
+        /// <summary>
+        /// Quem ficou com a tarefa ao entrar na etapa. O responsável gravado na linha de troca de
+        /// etapa é o de ANTES da troca, então não serve para dizer de quem é a reserva.
+        /// </summary>
+        public int? ResponsavelReservaId { get; set; }
+
+        public string? ResponsavelReservaNome { get; set; }
+
         /// <summary>Tempo previsto cadastrado na tarefa (valor + unidade D/H/M).</summary>
         public int? TempoExecucaoValor { get; set; }
         public string? TempoExecucaoUnidade { get; set; }
