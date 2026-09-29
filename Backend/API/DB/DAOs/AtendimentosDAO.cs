@@ -36,6 +36,23 @@ namespace API.DB.DAOs
 
                 await InserirColaboradoresAsync(con, transaction, atendimento.Id, atendimento.ColaboradoresIds);
                 await InserirNotificacoesAsync(con, transaction, atendimento.Id, atendimento.NotificacoesMinutosAntecedencia);
+
+                // Evento de agendamento. Sem ele, atendimento que ainda nao foi concluido nem
+                // cancelado nao tem linha nenhuma no historico e fica invisivel no Relatorio de
+                // Historico de Atendimentos ate alguem mexer nele.
+                //
+                // A data do evento e a data AGENDADA, e nao a do cadastro: o relatorio nao tem
+                // coluna para a data do atendimento, entao e por ela que se procura "o que estava
+                // marcado para tal dia".
+                await InserirHistoricoStatusAsync(
+                    con,
+                    transaction,
+                    atendimento.Id,
+                    'A',
+                    atendimento.CadastradoPorColaboradorId,
+                    null,
+                    atendimento.DataHoraInicio);
+
                 await transaction.CommitAsync();
 
                 return atendimento.Id;
