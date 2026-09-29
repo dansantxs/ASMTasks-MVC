@@ -558,11 +558,21 @@ export default function RelatorioComissaoPage() {
       // Desenvolvedor do item — calculado antes de injetar a linha de lançamento.
       if (grupo.itemTipo === 'atendimento') {
         const ref = grupo.itens.find((i) => i.etapaNome === ETAPA_ATENDIMENTO_CONCLUIDO) ?? grupo.itens[0];
-        grupo.desenvolvedorId = ref?.concluidoPorId ?? null;
-        grupo.desenvolvedorNome = ref?.concluidoPorNome ?? SEM_DESENVOLVEDOR;
+        // Quem concluiu é o crédito. Faltando o registro, cai no colaborador atribuído ao
+        // atendimento — é quem o atendeu, e sem isso o item ficaria sem ninguém.
+        const atribuido = ref?.participantesIds?.find((id) => id != null) ?? null;
+        grupo.desenvolvedorId = ref?.concluidoPorId ?? atribuido;
+        grupo.desenvolvedorNome =
+          ref?.concluidoPorId != null
+            ? ref.concluidoPorNome
+            : colaboradorNomePorId.get(atribuido) ?? SEM_DESENVOLVEDOR;
       } else {
-        // Caminho normal: quem fez a última passagem pela etapa de elaboração.
-        const etapaDev = [...grupo.itens].reverse().find((item) => ehEtapaDesenvolvimento(item.etapaNome));
+        // Caminho normal: quem fez a última passagem pela etapa de elaboração. Só vale passagem
+        // com responsável: etapa sem ninguém não credita comissão a ninguém.
+        const temResponsavel = (item) => item?.colaboradorId != null;
+        const etapaDev = [...grupo.itens]
+          .reverse()
+          .find((item) => ehEtapaDesenvolvimento(item.etapaNome) && temResponsavel(item));
 
         // Nem toda tarefa passa pela elaboração: parte é resolvida direto em outra etapa (análise,
         // atualização) ou vai de Atendimento para a final. Sem fallback, essas caíam todas em
@@ -572,8 +582,9 @@ export default function RelatorioComissaoPage() {
         const etapasPercorridas = [...grupo.itens].reverse();
         const referencia =
           etapaDev ??
-          etapasPercorridas.find((item) => item.etapaId !== etapaFinalId) ??
-          etapasPercorridas[0];
+          etapasPercorridas.find((item) => item.etapaId !== etapaFinalId && temResponsavel(item)) ??
+          etapasPercorridas.find(temResponsavel) ??
+          null;
 
         grupo.desenvolvedorId = referencia?.colaboradorId ?? null;
         grupo.desenvolvedorNome = referencia?.colaboradorNome ?? SEM_DESENVOLVEDOR;
@@ -666,8 +677,11 @@ export default function RelatorioComissaoPage() {
       grupo.dataConclusao = grupo.itens[grupo.itens.length - 1]?.rawDataHoraAcao ?? null;
     });
 
-    return lista;
-  }, [linhasTarefasEAtendimentos, tarefasFinalizadas, tipoItemFilter, infoPorTarefa, etapaTesteIds, etapaFinalId, nomeEtapaElaboracao]);
+    // Item sem ninguém a creditar (nenhuma passagem teve responsável) fica de fora: o
+    // relatório é de comissão, e um item que não rende comissão a ninguém só atrapalharia a
+    // conferência. É falha de cadastro da tarefa, não do relatório.
+    return lista.filter((grupo) => grupo.desenvolvedorId != null);
+  }, [linhasTarefasEAtendimentos, tarefasFinalizadas, tipoItemFilter, infoPorTarefa, etapaTesteIds, etapaFinalId, nomeEtapaElaboracao, colaboradorNomePorId]);
 
   const colaboradorIdFiltro = colaboradorFilter === 'todos' ? null : Number(colaboradorFilter);
   const aprovadorIdFiltro = aprovadorFilter === 'todos' ? null : Number(aprovadorFilter);
@@ -719,12 +733,9 @@ export default function RelatorioComissaoPage() {
     };
 
     const mapa = new Map();
+    // Todo item que chega aqui tem desenvolvedor — os sem crédito já ficaram de fora em `grupos`.
     const chaveSecao = (grupo) =>
-      colaboradorIdFiltro != null
-        ? String(colaboradorIdFiltro)
-        : grupo.desenvolvedorId != null
-          ? String(grupo.desenvolvedorId)
-          : SEM_DESENVOLVEDOR;
+      colaboradorIdFiltro != null ? String(colaboradorIdFiltro) : String(grupo.desenvolvedorId);
 
     gruposVisiveis.forEach((grupo) => {
       const chave = chaveSecao(grupo);
@@ -739,13 +750,7 @@ export default function RelatorioComissaoPage() {
     });
 
     const lista = Array.from(mapa.values());
-    lista.sort((a, b) => {
-      // "Sem desenvolvedor" sempre por último.
-      if ((a.chave === SEM_DESENVOLVEDOR) !== (b.chave === SEM_DESENVOLVEDOR)) {
-        return a.chave === SEM_DESENVOLVEDOR ? 1 : -1;
-      }
-      return compararTexto(a.nome, b.nome);
-    });
+    lista.sort((a, b) => compararTexto(a.nome, b.nome));
     lista.forEach((secao) => {
       secao.grupos.sort(comparadorItens);
       secao.grupos = secao.grupos.map((grupo, idx) => ({ ...grupo, numero: idx + 1 }));
