@@ -264,7 +264,45 @@ produção `asmtasks-sqlserver-1`. Para ver os containers ativos:
 
 ---
 
-## 7. Outros comandos úteis do dia a dia
+## 7. Correções de dados da versão 1.12.0 (`aplicar_correcoes_atendimentos.ps1`)
+
+A 1.12.0 corrigiu duas coisas no código que também precisam de um acerto no
+banco. **Rode depois do deploy, em cada ambiente.**
+
+> **O segundo script não é opcional.** Ele libera o tipo `A` no CHECK da tabela
+> `AtendimentoHistoricoStatus`. Sem ele, o código novo não consegue cadastrar
+> atendimento nenhum — o INSERT do evento de agendamento falha.
+
+```powershell
+cd C:\ASMTasks\app\Backend\Database
+
+# 1) Simule primeiro: roda tudo numa transação e desfaz no fim.
+.\aplicar_correcoes_atendimentos.ps1 -Env test -Simular
+
+# 2) Aplique em teste.
+.\aplicar_correcoes_atendimentos.ps1 -Env test
+
+# 3) Produção: simule, faça o backup e só então aplique.
+.\aplicar_correcoes_atendimentos.ps1 -Env prod -Simular
+.\backup-prod.ps1
+.\aplicar_correcoes_atendimentos.ps1 -Env prod   # pede para digitar APLICAR
+```
+
+O script mostra a conferência antes e depois. Aplicado de verdade, os dois
+números têm de terminar em zero.
+
+**`-PularDatasComissao`** pula a parte que corrige a data dos eventos no
+histórico. Essa parte muda o dia — e, em poucos casos, o mês — em que o
+atendimento aparece no Relatório de Comissão. Se a comissão desses meses já foi
+paga conferindo o relatório antigo, use a opção; o resto da correção continua
+sendo aplicado.
+
+Os dois `.sql` também podem ser rodados à mão (`db.ps1 -File`), na ordem acima.
+Cada um traz no cabeçalho o que faz e por quê.
+
+---
+
+## 8. Outros comandos úteis do dia a dia
 
 ```powershell
 # Ver logs do banco em tempo real
