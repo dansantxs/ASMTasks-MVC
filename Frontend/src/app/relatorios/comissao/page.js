@@ -851,7 +851,7 @@ export default function RelatorioComissaoPage() {
       dataInicioFilter ? `Data início: ${new Date(`${dataInicioFilter}T00:00:00`).toLocaleDateString('pt-BR')}` : null,
       dataFimFilter ? `Data fim: ${new Date(`${dataFimFilter}T00:00:00`).toLocaleDateString('pt-BR')}` : null,
       tipoLabel ? `Tipo: ${tipoLabel}` : null,
-      colaboradorNome ? `Colaborador: ${colaboradorNome}` : null,
+      colaboradorNome ? `Elaborado por: ${colaboradorNome}` : null,
       aprovadorNome ? `Aprovado por: ${aprovadorNome}` : null,
       clienteNome ? `Cliente: ${clienteNome}` : null,
       viewMode === 'resumo'
@@ -1045,7 +1045,7 @@ export default function RelatorioComissaoPage() {
           },
           {
             element: '#tour-comissao-filtros',
-            popover: { title: 'Filtros', description: 'Filtre por <strong>período</strong>, <strong>tipo</strong> (Tarefas/Atendimentos), <strong>colaborador</strong>, <strong>aprovado por</strong> e <strong>cliente</strong>. Ao filtrar um colaborador, aparecem os itens <strong>creditados a ele</strong> — a tarefa que ele elaborou e o atendimento que ele concluiu; ter só lançado ou testado não traz o item. Dentro de cada item, as etapas das outras pessoas continuam visíveis. Já <strong>Aprovado por</strong> deixa só os itens cuja etapa de teste foi feita pela pessoa escolhida, e conta também no Resumo; o nome dela aparece no cabeçalho de cada item.', side: 'bottom', align: 'start' },
+            popover: { title: 'Filtros', description: 'Filtre por <strong>período</strong>, <strong>tipo</strong> (Tarefas/Atendimentos), <strong>elaborado por</strong>, <strong>aprovado por</strong> e <strong>cliente</strong>. <strong>Elaborado por</strong> traz os itens <strong>creditados</strong> à pessoa — a tarefa que ela elaborou e o atendimento que ela concluiu; ter só lançado ou testado não traz o item. Dentro de cada item, as etapas das outras pessoas continuam visíveis. Já <strong>Aprovado por</strong> deixa só os itens cuja etapa de teste foi feita pela pessoa escolhida, e conta também no Resumo; o nome dela aparece no cabeçalho de cada item.', side: 'bottom', align: 'start' },
           },
           {
             element: '#tour-comissao-colunas',
@@ -1125,11 +1125,11 @@ export default function RelatorioComissaoPage() {
                   </Select>
                 </div>
                 <div>
-                  <Label>Colaborador</Label>
+                  <Label>Elaborado por</Label>
                   <Combobox
                     value={colaboradorFilter}
                     onValueChange={setColaboradorFilter}
-                    placeholder="Colaborador"
+                    placeholder="Elaborado por"
                     searchPlaceholder="Buscar colaborador..."
                     options={[
                       { value: 'todos', label: 'Todos' },
