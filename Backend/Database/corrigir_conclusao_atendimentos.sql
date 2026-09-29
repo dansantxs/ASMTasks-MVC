@@ -23,6 +23,11 @@
 
 SET NOCOUNT ON;
 
+-- Parte 1 (datas do historico) liga e desliga aqui. Ver o aviso sobre o Relatorio de
+-- Comissao logo antes dela. O aplicar_correcoes_atendimentos.ps1 troca este 1 por 0
+-- quando recebe -PularDatasComissao.
+DECLARE @CorrigirDatasDoHistorico BIT = 1;
+
 -- ---------------------------------------------------------------------------
 -- O conjunto: atendimentos realizados, sem conclusao gravada e com hora de
 -- termino conhecida. Fica num temp porque a parte 1 preenche a conclusao e,
@@ -51,14 +56,19 @@ PRINT 'Atendimentos a corrigir: ' + CAST(@Qtd AS VARCHAR);
 -- conferindo o relatorio antigo, rode a conferencia no fim deste arquivo antes
 -- de decidir -- ou pule esta parte, rodando so a parte 2.
 -- ---------------------------------------------------------------------------
-UPDATE h
-SET h.DataHoraAcao = alvo.DataHoraFim
-FROM AtendimentoHistoricoStatus h
-INNER JOIN #Alvo alvo ON alvo.Id = h.AtendimentoId
-WHERE h.Tipo = 'C'
-  AND h.DataHoraAcao <> alvo.DataHoraFim;
+IF @CorrigirDatasDoHistorico = 1
+BEGIN
+    UPDATE h
+    SET h.DataHoraAcao = alvo.DataHoraFim
+    FROM AtendimentoHistoricoStatus h
+    INNER JOIN #Alvo alvo ON alvo.Id = h.AtendimentoId
+    WHERE h.Tipo = 'C'
+      AND h.DataHoraAcao <> alvo.DataHoraFim;
 
-PRINT 'Parte 1: data corrigida em ' + CAST(@@ROWCOUNT AS VARCHAR) + ' evento(s) do historico.';
+    PRINT 'Parte 1: data corrigida em ' + CAST(@@ROWCOUNT AS VARCHAR) + ' evento(s) do historico.';
+END
+ELSE
+    PRINT 'Parte 1: PULADA a pedido; as datas do historico ficam como estao.';
 
 -- ---------------------------------------------------------------------------
 -- Parte 2: preenche a conclusao que faltou.
