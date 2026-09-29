@@ -612,6 +612,20 @@ namespace API.DB.DAOs
             await using var con = await dbContext.GetConnectionAsync();
             await using var cmd = con.CreateCommand();
 
+            // Uma linha vira "Reservada" no relatório quando é a entrada na elaboração antes de
+            // qualquer início. O responsável gravado nela é o de ANTES da troca de etapa, então
+            // quem está com a reserva vem da atribuição do próprio movimento (OUTER APPLY assumiu).
+            // A regra fica numa expressão só para a tela e o filtro não discordarem.
+            const string condicaoReservada = @"h.Tipo = 'E'
+                AND (LOWER(h.EtapaNome) LIKE '%elabora%' OR LOWER(h.EtapaNome) LIKE '%desenvolv%')
+                AND NOT EXISTS (
+                    SELECT 1 FROM ProjetoTarefaHistorico hr
+                    WHERE hr.TarefaId = h.TarefaId AND hr.Tipo = 'I'
+                      AND (hr.DataHoraAcao < h.DataHoraAcao
+                           OR (hr.DataHoraAcao = h.DataHoraAcao AND hr.Id <= h.Id)))";
+            string colaboradorEfetivoId = $"CASE WHEN {condicaoReservada} THEN COALESCE(assumiu.ColaboradorId, h.ColaboradorId) ELSE h.ColaboradorId END";
+            string colaboradorEfetivoNome = $"CASE WHEN {condicaoReservada} THEN COALESCE(assumiu.ColaboradorNome, h.ColaboradorNome) ELSE h.ColaboradorNome END";
+
             var filtros = new System.Text.StringBuilder("WHERE 1 = 1");
             if (tipo.HasValue)
             {
@@ -620,7 +634,8 @@ namespace API.DB.DAOs
             }
             if (colaboradorId.HasValue)
             {
-                filtros.Append(" AND h.ColaboradorId = @ColaboradorId");
+                // Inclui a linha Reservada da pessoa, cujo responsável gravado é o da etapa anterior.
+                filtros.Append($" AND {colaboradorEfetivoId} = @ColaboradorId");
                 cmd.Parameters.AddWithValue("@ColaboradorId", colaboradorId.Value);
             }
             if (projetoId.HasValue)
@@ -737,12 +752,23 @@ namespace API.DB.DAOs
                         WHERE hi.TarefaId = h.TarefaId AND hi.Tipo = 'I'
                           AND (hi.DataHoraAcao < h.DataHoraAcao
                                OR (hi.DataHoraAcao = h.DataHoraAcao AND hi.Id <= h.Id))
-                    ) THEN 1 ELSE 0 END AS ElaboracaoJaIniciadaNoEvento" + colunasTempos + @"
+                    ) THEN 1 ELSE 0 END AS ElaboracaoJaIniciadaNoEvento,
+                    " + colaboradorEfetivoId + @" AS ResponsavelReservaId,
+                    " + colaboradorEfetivoNome + @" AS ResponsavelReservaNome" + colunasTempos + @"
                 FROM ProjetoTarefaHistorico h
                 INNER JOIN ProjetoTarefa pt ON h.TarefaId = pt.Id
                 INNER JOIN Projeto p ON pt.ProjetoId = p.Id
                 INNER JOIN Cliente c ON p.ClienteId = c.Id
                 LEFT JOIN Colaborador colCad ON colCad.Id = COALESCE(pt.CadastradoPorColaboradorId, p.CadastradoPorColaboradorId)
+                -- Quem ficou com a tarefa ao entrar na etapa: a atribuicao gravada no MESMO instante do
+                -- movimento, que e como o sistema registra a escolha do responsavel ao mover a tarefa.
+                -- Atribuicao posterior e outra troca e nao vale para este momento.
+                OUTER APPLY (
+                    SELECT TOP 1 ha.ColaboradorId, ha.ColaboradorNome
+                    FROM ProjetoTarefaHistorico ha
+                    WHERE ha.TarefaId = h.TarefaId AND ha.Tipo = 'A' AND ha.DataHoraAcao = h.DataHoraAcao
+                    ORDER BY ha.Id
+                ) assumiu
             " + temposRealizados;
 
             string sqlQuery;
@@ -765,6 +791,8 @@ namespace API.DB.DAOs
                                      AND (hi.DataHoraAcao < h.DataHoraAcao
                                           OR (hi.DataHoraAcao = h.DataHoraAcao AND hi.Id <= h.Id))
                                ) THEN 1 ELSE 0 END AS ElaboracaoJaIniciadaNoEvento,
+                               {colaboradorEfetivoId} AS ResponsavelReservaId,
+                               {colaboradorEfetivoNome} AS ResponsavelReservaNome,
                                pt.TempoExecucaoValor, pt.TempoExecucaoUnidade,
                                pt.TempoTesteValor, pt.TempoTesteUnidade,
                                elab.MinutosElaboracao, teste.MinutosTeste,
@@ -774,6 +802,15 @@ namespace API.DB.DAOs
                         INNER JOIN Projeto p ON pt.ProjetoId = p.Id
                         INNER JOIN Cliente c ON p.ClienteId = c.Id
                         LEFT JOIN Colaborador colCad ON colCad.Id = COALESCE(pt.CadastradoPorColaboradorId, p.CadastradoPorColaboradorId)
+                        -- Quem ficou com a tarefa ao entrar na etapa: a atribuicao gravada no MESMO instante do
+                        -- movimento, que e como o sistema registra a escolha do responsavel ao mover a tarefa.
+                        -- Atribuicao posterior e outra troca e nao vale para este momento.
+                        OUTER APPLY (
+                            SELECT TOP 1 ha.ColaboradorId, ha.ColaboradorNome
+                            FROM ProjetoTarefaHistorico ha
+                            WHERE ha.TarefaId = h.TarefaId AND ha.Tipo = 'A' AND ha.DataHoraAcao = h.DataHoraAcao
+                            ORDER BY ha.Id
+                        ) assumiu
                         {temposRealizados}
                         {filtros}
                     )
@@ -781,7 +818,7 @@ namespace API.DB.DAOs
                            Tipo, ColaboradorId, ColaboradorNome, EtapaId, EtapaNome, Observacao, DataHoraAcao,
                            RealizadoPorColaboradorId, RealizadoPorColaboradorNome,
                            CadastradoPorColaboradorId, CadastradoPorNome, TarefaDataCadastro,
-                           ElaboracaoJaIniciadaNoEvento,
+                           ElaboracaoJaIniciadaNoEvento, ResponsavelReservaId, ResponsavelReservaNome,
                            TempoExecucaoValor, TempoExecucaoUnidade, TempoTesteValor, TempoTesteUnidade,
                            MinutosElaboracao, MinutosTeste
                     FROM Ranked WHERE rn = 1
@@ -822,6 +859,8 @@ namespace API.DB.DAOs
                     CadastradoPorNome = dr["CadastradoPorNome"] == DBNull.Value ? null : dr["CadastradoPorNome"].ToString(),
                     TarefaDataCadastro = dr["TarefaDataCadastro"] == DBNull.Value ? null : Convert.ToDateTime(dr["TarefaDataCadastro"]),
                     ElaboracaoJaIniciadaNoEvento = Convert.ToBoolean(dr["ElaboracaoJaIniciadaNoEvento"]),
+                    ResponsavelReservaId = dr["ResponsavelReservaId"] == DBNull.Value ? null : Convert.ToInt32(dr["ResponsavelReservaId"]),
+                    ResponsavelReservaNome = dr["ResponsavelReservaNome"] == DBNull.Value ? null : dr["ResponsavelReservaNome"].ToString(),
                     TempoExecucaoValor = dr["TempoExecucaoValor"] == DBNull.Value ? null : Convert.ToInt32(dr["TempoExecucaoValor"]),
                     TempoExecucaoUnidade = dr["TempoExecucaoUnidade"] == DBNull.Value ? null : dr["TempoExecucaoUnidade"].ToString(),
                     TempoTesteValor = dr["TempoTesteValor"] == DBNull.Value ? null : Convert.ToInt32(dr["TempoTesteValor"]),
