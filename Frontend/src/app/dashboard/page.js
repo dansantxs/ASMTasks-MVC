@@ -62,9 +62,15 @@ function LinhaIndicador({ item }) {
     rotuloEtapa(item.etapaNome, item.elaboracaoJaIniciada),
     reservado ? null : item.statusAtual
   );
+  // Sem última ação a linha ficava sem data nenhuma — o caso dos atendimentos ainda pendentes,
+  // em que o que importa é justamente para quando eles estão marcados. Data no futuro é
+  // compromisso; no passado, tempo de espera (tarefa parada na etapa, atendimento vencido).
+  const quando = item.desdeQuando ? new Date(item.desdeQuando) : null;
   const ultimaAcao = item.ultimaAcaoEm
     ? `Última ação: ${juntar(item.ultimaAcaoPor, formatarDataHora(item.ultimaAcaoEm))}`
-    : null;
+    : quando
+      ? `${quando > new Date() ? 'Agendado para' : 'Desde'} ${formatarDataHora(item.desdeQuando)}`
+      : null;
 
   return (
     <div className="py-2 border-b last:border-0">
