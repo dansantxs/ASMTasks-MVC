@@ -441,17 +441,25 @@ namespace API.DB.DAOs
             {
                 await using var cmd = connection.CreateCommand();
                 cmd.Transaction = transaction;
+                // A conclusao fica com a hora de TERMINO agendada, nao com a da varredura: o
+                // atendimento acabou quando o agendamento dizia que acabaria, e a varredura so
+                // roda quando alguem abre o sistema - as vezes dias depois. Como o dashboard conta
+                // por DataHoraConclusao e o Relatorio de Comissao pela data do evento, usar a hora
+                // da varredura jogava o atendimento para outro dia, e perto da virada, outro mes.
                 cmd.CommandText = @"
                     DECLARE @AtendimentosFechados TABLE
                     (
                         AtendimentoId int NOT NULL,
-                        ColaboradorId int NOT NULL
+                        ColaboradorId int NOT NULL,
+                        DataHoraFim datetime NOT NULL
                     );
 
                     UPDATE a
-                    SET a.Status = 'R'
-                    OUTPUT inserted.Id, inserted.CadastradoPorColaboradorId
-                    INTO @AtendimentosFechados (AtendimentoId, ColaboradorId)
+                    SET a.Status = 'R',
+                        a.DataHoraConclusao = a.DataHoraFim,
+                        a.ConcluidoPorColaboradorId = a.CadastradoPorColaboradorId
+                    OUTPUT inserted.Id, inserted.CadastradoPorColaboradorId, inserted.DataHoraFim
+                    INTO @AtendimentosFechados (AtendimentoId, ColaboradorId, DataHoraFim)
                     FROM Atendimento a
                     WHERE a.Status = 'A'
                       AND a.DataHoraFim IS NOT NULL
@@ -460,6 +468,7 @@ namespace API.DB.DAOs
                           SELECT 1
                           FROM AtendimentoHistoricoStatus hs
                           WHERE hs.AtendimentoId = a.Id
+                            AND hs.Tipo <> 'A'
                       );
 
                     INSERT INTO AtendimentoHistoricoStatus
@@ -468,7 +477,7 @@ namespace API.DB.DAOs
                         af.AtendimentoId,
                         'C',
                         af.ColaboradorId,
-                        @Agora,
+                        af.DataHoraFim,
                         @ObservacaoSistema
                     FROM @AtendimentosFechados af;
                 ";
