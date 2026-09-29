@@ -1,4 +1,4 @@
-export const VERSAO_ATUAL = '1.11.1';
+export const VERSAO_ATUAL = '1.12.0';
 
 /**
  * Regra de versionamento (major.minor.patch):
@@ -19,9 +19,9 @@ export const VERSAO_ATUAL = '1.11.1';
  */
 export const CHANGELOG = [
   {
-    versao: '1.11.1',
+    versao: '1.12.0',
     data: '2026-09-29',
-    titulo: 'Correções no Relatório de Comissão e no Histórico de Tarefas',
+    titulo: 'Comissão por Teste, Correções em Atendimentos e no Dashboard',
     mudancas: [
       'Dashboard: o indicador "Atendimentos Realizados" deixava de fora tudo o que o sistema fechou sozinho por horário — o fechamento automático marcava o atendimento como realizado mas não gravava a data de conclusão, que é por onde o indicador conta. A conclusão passa a ser gravada com a hora de término agendada, e não com a hora em que o sistema percebeu, o que também corrige o dia em que o atendimento entra no Relatório de Comissão',
       'Relatório de Histórico de Atendimentos: atendimento apenas agendado não aparecia, porque o relatório lista ações e ele ainda não tinha nenhuma. Agora todo atendimento nasce com a ação "Agendamento", na data marcada, e o filtro de Ação ganha essa opção',
