@@ -23,6 +23,7 @@ export const CHANGELOG = [
     data: '2026-09-29',
     titulo: 'Correções no Relatório de Comissão e no Histórico de Tarefas',
     mudancas: [
+      'Relatório de Comissão: as etapas de cada item passam a sair na ordem do fluxo, e não na ordem do relógio. Como o relatório mostra só a última passagem por etapa, uma tarefa que voltou da aprovação para a elaboração aparecia com a elaboração depois da aprovação',
       'Relatório de Comissão: o filtro Tipo ganha a opção "Teste" — traz só tarefas e as agrupa, ordena e soma por quem fez a etapa de teste, em vez de por quem elaborou. Tarefa que não passou pelo teste fica de fora, e o "Totalizar por" do Resumo some, porque o próprio Tipo já diz que o total é por teste',
       'Relatório de Comissão: o filtro "Colaborador" passou a se chamar "Elaborado por" e traz só os itens creditados à pessoa — a tarefa que ela elaborou e o atendimento que ela concluiu. Antes bastava ter lançado, testado ou feito uma etapa de atualização, e por isso a visão Detalhada mostrava mais itens do que o Resumo com os mesmos filtros; agora as duas fecham no mesmo número',
       'Relatório de Comissão: item cujo histórico não tem responsável em passagem nenhuma deixa de aparecer no relatório, porque não rende comissão a ninguém — a seção "Sem desenvolvedor" deixou de existir. Tarefa que não passou pela elaboração continua creditada pela etapa anterior à final',
