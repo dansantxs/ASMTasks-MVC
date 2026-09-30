@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useCallback } from 'react';
+import { Fragment, useMemo, useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/layout/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../components/ui/layout/table';
@@ -19,6 +19,7 @@ import TourGuia from '../../../components/TourGuia';
 import { getHistoricoAtendimentos } from './api/historicoAtendimentos';
 import { getClientes, getColaboradores } from '../../atendimentos/api/atendimentos';
 import { useDebouncedValue } from '../../../hooks/useDebouncedValue';
+import { usePreferenciaLocal } from '../../../hooks/usePreferenciaLocal';
 import { mesAtualParaInputs } from '../../../utils/periodoRelatorio';
 
 const columns = [
@@ -82,6 +83,8 @@ export default function HistoricoAtendimentosReportPage() {
   const [dataFimFilter, setDataFimFilter] = useState(() => mesAtualParaInputs().fim);
   const [sortConfig, setSortConfig] = useState({ column: 'dataHoraAcao', direction: 'desc' });
   const [selectedColumns, setSelectedColumns] = useState(columns.map((c) => c.id));
+  // Guardada por pessoa: a tela volta do jeito que ela deixou.
+  const [visao, definirVisao] = usePreferenciaLocal('asm_relatorio_atendimentos_visao', 'agrupada');
   const { data: systemSettings = configuracoesPadrao } = useConfiguracoesSistema();
 
   const historicoQueryParams = useMemo(
@@ -202,6 +205,47 @@ export default function HistoricoAtendimentosReportPage() {
     return dataToSort;
   }, [filteredData, sortConfig]);
 
+  // VisÃ£o agrupada: um bloco por atendimento, com a ÃLTIMA ocorrÃªncia de cada aÃ§Ã£o. Atendimento
+  // nÃ£o tem etapas, entÃ£o o que se repete aqui Ã© o tipo de aÃ§Ã£o â agendamento, conclusÃ£o,
+  // reabertura â, e Ã© por ele que a deduplicaÃ§Ã£o acontece.
+  const grupos = useMemo(() => {
+    const mapa = new Map();
+
+    sortedData.forEach((linha) => {
+      if (linha.atendimentoId == null) return;
+
+      if (!mapa.has(linha.atendimentoId)) {
+        mapa.set(linha.atendimentoId, {
+          atendimentoId: linha.atendimentoId,
+          atendimentoTitulo: linha.atendimentoTitulo,
+          atendimentoDescricao: linha.atendimentoDescricao,
+          clienteNome: linha.clienteNome,
+          porAcao: new Map(),
+        });
+      }
+
+      const grupo = mapa.get(linha.atendimentoId);
+      const atual = grupo.porAcao.get(linha.tipo);
+      if (!atual || (linha.rawDataHoraAcao ?? 0) >= (atual.rawDataHoraAcao ?? 0)) {
+        grupo.porAcao.set(linha.tipo, linha);
+      }
+    });
+
+    const lista = Array.from(mapa.values()).map((grupo) => {
+      const itens = Array.from(grupo.porAcao.values()).sort(
+        (a, b) => (a.rawDataHoraAcao ?? 0) - (b.rawDataHoraAcao ?? 0)
+      );
+      const maisRecente = itens.reduce(
+        (maior, item) => (item.rawDataHoraAcao > (maior ?? 0) ? item.rawDataHoraAcao : maior),
+        null
+      );
+      return { ...grupo, itens, maisRecente };
+    });
+
+    lista.sort((a, b) => (b.maisRecente ?? 0) - (a.maisRecente ?? 0));
+    return lista;
+  }, [sortedData]);
+
   const toggleColumn = (id) => {
     setSelectedColumns((prev) => (prev.includes(id) ? prev.filter((col) => col !== id) : [...prev, id]));
   };
@@ -247,7 +291,23 @@ export default function HistoricoAtendimentosReportPage() {
     const doc = new jsPDF();
     const activeColumns = columns.filter((c) => selectedColumns.includes(c.id));
     const { filtersSummary, columnsSummary } = buildFiltersSummary(activeColumns);
-    const body = sortedData.map((row) => activeColumns.map((col) => row[col.id] ?? ''));
+    // As exportações seguem a visão escolhida na tela.
+    const colunasDaLinha = visao === 'agrupada' ? colunasVisiveis : activeColumns;
+    const body = [];
+    if (visao === 'agrupada') {
+      grupos.forEach((grupo) => {
+        body.push([
+          {
+            content: buildCabecalhoGrupo(grupo),
+            colSpan: colunasDaLinha.length,
+            styles: { fontStyle: 'bold', fillColor: [230, 240, 250] },
+          },
+        ]);
+        grupo.itens.forEach((item) => body.push(colunasDaLinha.map((col) => item[col.id] ?? '')));
+      });
+    } else {
+      sortedData.forEach((row) => body.push(colunasDaLinha.map((col) => row[col.id] ?? '')));
+    }
     const emissionDate = new Date().toLocaleString('pt-BR');
     const logoDataUrl = await obterLogotipo(systemSettings);
     const footerLines = obterRodapeRelatorio(systemSettings);
@@ -258,7 +318,7 @@ export default function HistoricoAtendimentosReportPage() {
     const headerEndY = 30 + (filtersLines.length * 6) + (columnsLines.length * 6);
 
     autoTable(doc, {
-      head: [activeColumns.map((c) => c.label)],
+      head: [colunasDaLinha.map((c) => c.label)],
       body,
       styles: { fontSize: 8 },
       headStyles: { overflow: 'ellipsize' },
@@ -304,15 +364,24 @@ export default function HistoricoAtendimentosReportPage() {
       [`Filtros: ${filtersSummary}`],
       [columnsSummary],
       [],
-      activeColumns.map((c) => c.label),
+      colunasDaLinha.map((c) => c.label),
     ];
 
-    const dataRows = sortedData.map((row) => activeColumns.map((col) => row[col.id] ?? ''));
+    const colunasDaLinha = visao === 'agrupada' ? colunasVisiveis : activeColumns;
+    const dataRows = [];
+    if (visao === 'agrupada') {
+      grupos.forEach((grupo) => {
+        dataRows.push([buildCabecalhoGrupo(grupo)]);
+        grupo.itens.forEach((item) => dataRows.push(colunasDaLinha.map((col) => item[col.id] ?? '')));
+      });
+    } else {
+      sortedData.forEach((row) => dataRows.push(colunasDaLinha.map((col) => row[col.id] ?? '')));
+    }
     const footerRows = [[], ...footerLines.map((line) => [line])];
     const worksheet = XLSX.utils.aoa_to_sheet([...headerRows, ...dataRows, ...footerRows]);
 
-    if (activeColumns.length > 1) {
-      const lastColumnIndex = activeColumns.length - 1;
+    if (colunasDaLinha.length > 1) {
+      const lastColumnIndex = colunasDaLinha.length - 1;
       worksheet['!merges'] = [
         { s: { r: 0, c: 0 }, e: { r: 0, c: lastColumnIndex } },
         { s: { r: 1, c: 0 }, e: { r: 1, c: lastColumnIndex } },
@@ -373,6 +442,21 @@ export default function HistoricoAtendimentosReportPage() {
   }, []);
 
   const activeColumns = columns.filter((c) => selectedColumns.includes(c.id));
+
+  // Na visão agrupada estas sobem para o cabeçalho do bloco: identificam o atendimento e se
+  // repetiriam em toda linha dele.
+  const COLUNAS_DO_CABECALHO = ['atendimentoId', 'atendimentoTitulo', 'atendimentoDescricao', 'clienteNome'];
+  const colunasVisiveis =
+    visao === 'agrupada'
+      ? activeColumns.filter((c) => !COLUNAS_DO_CABECALHO.includes(c.id))
+      : activeColumns;
+
+  const buildCabecalhoGrupo = (grupo) => {
+    const partes = COLUNAS_DO_CABECALHO.filter((id) => selectedColumns.includes(id))
+      .map((id) => (id === 'atendimentoId' ? `#${grupo.atendimentoId}` : grupo[id]))
+      .filter((valor) => valor && String(valor).trim());
+    return partes.length > 0 ? partes.join(' — ') : `Atendimento #${grupo.atendimentoId}`;
+  };
 
   // Não retorna cedo em isLoading: isso desmontaria os campos de filtro (incluindo os de data) a
   // cada busca — inclusive as disparadas por cada tecla digitada — fazendo o campo perder o foco.
@@ -495,25 +579,45 @@ export default function HistoricoAtendimentosReportPage() {
 
         <Card id="tour-relatorio-tabela">
           <CardHeader>
-            <CardTitle>{filteredData.length} resultado(s)</CardTitle>
+            <CardTitle className="flex items-center justify-between flex-wrap gap-2">
+              <span>
+                {visao === 'agrupada'
+                  ? `${grupos.length} atendimento(s)`
+                  : `${filteredData.length} resultado(s)`}
+              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-normal text-muted-foreground whitespace-nowrap">Visão</span>
+                <Select value={visao} onValueChange={definirVisao}>
+                  <SelectTrigger className="w-56"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="agrupada">Agrupada por atendimento</SelectItem>
+                    <SelectItem value="detalhada">Detalhada (log)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-brand-blue/5">
-                    {activeColumns.map((col) => (
+                    {colunasVisiveis.map((col) => (
                       <TableHead key={col.id} className="font-semibold text-brand-blue">
-                        <button
-                          type="button"
-                          onClick={() => handleSort(col.id)}
-                          className="flex items-center gap-2 w-full text-left focus:outline-none"
-                        >
-                          <span>{col.label}</span>
-                          {sortConfig.column === col.id && (
-                            <span className="text-xs">{sortConfig.direction === 'asc' ? '▲' : '▼'}</span>
-                          )}
-                        </button>
+                        {visao === 'agrupada' ? (
+                          col.label
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleSort(col.id)}
+                            className="flex items-center gap-2 w-full text-left focus:outline-none"
+                          >
+                            <span>{col.label}</span>
+                            {sortConfig.column === col.id && (
+                              <span className="text-xs">{sortConfig.direction === 'asc' ? '▲' : '▼'}</span>
+                            )}
+                          </button>
+                        )}
                       </TableHead>
                     ))}
                   </TableRow>
@@ -521,22 +625,48 @@ export default function HistoricoAtendimentosReportPage() {
                 <TableBody>
                   {isLoading && (
                     <TableRow>
-                      <TableCell colSpan={activeColumns.length} className="text-center text-muted-foreground">
+                      <TableCell colSpan={colunasVisiveis.length} className="text-center text-muted-foreground">
                         Carregando...
                       </TableCell>
                     </TableRow>
                   )}
-                  {!isLoading && sortedData.map((row) => (
+
+                  {!isLoading && visao === 'detalhada' && sortedData.map((row) => (
                     <TableRow key={row.id} className="hover:bg-muted/40">
                       {activeColumns.map((col) => (
                         <TableCell key={col.id}>{row[col.id]}</TableCell>
                       ))}
                     </TableRow>
                   ))}
-                  {!isLoading && filteredData.length === 0 && (
+
+                  {!isLoading && visao === 'agrupada' && grupos.map((grupo) => (
+                    <Fragment key={grupo.atendimentoId}>
+                      <TableRow className="bg-brand-blue/10 hover:bg-brand-blue/10">
+                        <TableCell colSpan={colunasVisiveis.length} className="font-semibold text-brand-blue">
+                          {buildCabecalhoGrupo(grupo)}
+                        </TableCell>
+                      </TableRow>
+                      {grupo.itens.map((item) => (
+                        <TableRow key={item.id} className="hover:bg-muted/40">
+                          {colunasVisiveis.map((col) => (
+                            <TableCell key={col.id}>{item[col.id]}</TableCell>
+                          ))}
+                        </TableRow>
+                      ))}
+                    </Fragment>
+                  ))}
+
+                  {!isLoading && visao === 'detalhada' && filteredData.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={activeColumns.length} className="text-center text-muted-foreground">
+                      <TableCell colSpan={colunasVisiveis.length} className="text-center text-muted-foreground">
                         Nenhum registro encontrado com os filtros selecionados.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {!isLoading && visao === 'agrupada' && grupos.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={colunasVisiveis.length} className="text-center text-muted-foreground">
+                        Nenhum atendimento encontrado com os filtros selecionados.
                       </TableCell>
                     </TableRow>
                   )}
