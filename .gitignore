@@ -17,6 +17,7 @@ $RECYCLE.BIN/
 # ==========================================
 .vscode/
 .idea/
+.vs/
 .dotnet/
 *.swp
 *.swo
