@@ -88,7 +88,7 @@ export default function HistoricoTarefasReportPage() {
   const [dataInicioFilter, setDataInicioFilter] = useState(() => mesAtualParaInputs().inicio);
   const [dataFimFilter, setDataFimFilter] = useState(() => mesAtualParaInputs().fim);
   const [etapaFilter, setEtapaFilter] = useState('todos');
-  const [sortConfig, setSortConfig] = useState({ column: 'dataHoraAcao', direction: 'desc' });
+  const [sortConfig, setSortConfig] = useState({ column: 'primeiraEtapa', direction: 'asc' });
   const [selectedColumns, setSelectedColumns] = useState(columns.map((c) => c.id));
   // Guardada por pessoa: a tela volta do jeito que ela deixou.
   const [visao, definirVisao] = usePreferenciaLocal('asm_relatorio_tarefas_visao', 'agrupada');
@@ -232,6 +232,20 @@ export default function HistoricoTarefasReportPage() {
     [data, search, tipoFilter]
   );
 
+
+  // Ordem padrao da visao detalhada: os eventos de um mesmo tarefa ficam juntos, e os itens
+  // vem do mais antigo para o mais novo pela data do PRIMEIRO evento deles. Sem isso o log
+  // intercala itens diferentes e a sequencia de cada um se perde no meio.
+  const primeiroEventoPorItem = useMemo(() => {
+    const mapa = new Map();
+    filteredData.forEach((linha) => {
+      const chave = linha.tarefaId;
+      if (chave == null) return;
+      const atual = mapa.get(chave);
+      if (!atual || (linha.rawDataHoraAcao ?? 0) < atual) mapa.set(chave, linha.rawDataHoraAcao ?? 0);
+    });
+    return mapa;
+  }, [filteredData]);
   const sortedData = useMemo(() => {
     const dataToSort = [...filteredData];
     const compareStrings = (a = '', b = '') => a.localeCompare(b, 'pt-BR', { sensitivity: 'base' });
@@ -243,6 +257,11 @@ export default function HistoricoTarefasReportPage() {
       return a - b;
     };
     const sorters = {
+      primeiraEtapa: (a, b) =>
+        compareDates(
+          primeiroEventoPorItem.get(a.tarefaId) ?? a.rawDataHoraAcao,
+          primeiroEventoPorItem.get(b.tarefaId) ?? b.rawDataHoraAcao
+        ) || compareDates(a.rawDataHoraAcao, b.rawDataHoraAcao),
       dataHoraAcao: (a, b) => compareDates(a.rawDataHoraAcao, b.rawDataHoraAcao),
       tipoLabel: (a, b) => compareStrings(a.tipoLabel, b.tipoLabel),
       tarefaId: (a, b) => compareNumbers(a.tarefaId, b.tarefaId),
@@ -258,7 +277,7 @@ export default function HistoricoTarefasReportPage() {
       dataToSort.sort((a, b) => (sortConfig.direction === 'asc' ? sorter(a, b) : sorter(b, a)));
     }
     return dataToSort;
-  }, [filteredData, sortConfig]);
+  }, [filteredData, sortConfig, primeiroEventoPorItem]);
 
   // Os blocos sao montados pelo mesmo motor do Relatorio de Comissao, que reconstroi a historia
   // da tarefa: passagens por etapa, a linha de lancamento, o Reservado e a elaboracao deduzida.
