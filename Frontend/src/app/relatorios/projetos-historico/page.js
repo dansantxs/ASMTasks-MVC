@@ -20,6 +20,7 @@ import { getHistoricoTarefas, getHistoricoProjetosRelatorio } from './api/histor
 import { getColaboradoresKanban, getClientesKanban, getEtapasKanban } from '../../projetos/kanban/api/kanban';
 import { useDebouncedValue } from '../../../hooks/useDebouncedValue';
 import { usePreferenciaLocal } from '../../../hooks/usePreferenciaLocal';
+import { useItensAgrupados, formatarTempoComPrevisto } from '../useItensAgrupados';
 import { mesAtualParaInputs } from '../../../utils/periodoRelatorio';
 import { ROTULO_RESERVADO, ehEtapaElaboracao } from '../../../utils/situacaoTarefa';
 
@@ -259,59 +260,18 @@ export default function HistoricoTarefasReportPage() {
     return dataToSort;
   }, [filteredData, sortConfig]);
 
-  // VisÃ£o agrupada: um bloco por tarefa, com a ÃLTIMA passagem por cada etapa. Ã o mesmo
-  // desenho do RelatÃ³rio de ComissÃ£o, sem o recorte dele â aqui entram as tarefas em
-  // andamento tambÃ©m, nÃ£o sÃ³ as concluÃ­das.
-  //
-  // Evento sem etapa fica de fora: atribuiÃ§Ã£o de colaborador, inÃ­cio/pausa de elaboraÃ§Ã£o e os
-  // eventos de projeto continuam sÃ³ na visÃ£o detalhada, que Ã© o log real.
-  const ordemPorEtapaId = useMemo(
-    () => new Map(etapas.map((e) => [e.id, e.ordem ?? 0])),
-    [etapas]
-  );
-
-  const grupos = useMemo(() => {
-    const mapa = new Map();
-
-    sortedData.forEach((linha) => {
-      if (linha.tarefaId == null || linha.etapaId == null) return;
-
-      if (!mapa.has(linha.tarefaId)) {
-        mapa.set(linha.tarefaId, {
-          tarefaId: linha.tarefaId,
-          tarefaTitulo: linha.tarefaTitulo,
-          projetoTitulo: linha.projetoTitulo,
-          clienteNome: linha.clienteNome,
-          porEtapa: new Map(),
-        });
-      }
-
-      const grupo = mapa.get(linha.tarefaId);
-      const atual = grupo.porEtapa.get(linha.etapaId);
-      if (!atual || (linha.rawDataHoraAcao ?? 0) >= (atual.rawDataHoraAcao ?? 0)) {
-        grupo.porEtapa.set(linha.etapaId, linha);
-      }
-    });
-
-    const lista = Array.from(mapa.values()).map((grupo) => {
-      // Na ordem do fluxo, e nÃ£o na do relÃ³gio: como fica sÃ³ a Ãºltima passagem por etapa, uma
-      // tarefa que voltou da aprovaÃ§Ã£o mostraria a elaboraÃ§Ã£o depois dela.
-      const itens = Array.from(grupo.porEtapa.values()).sort(
-        (a, b) =>
-          (ordemPorEtapaId.get(a.etapaId) ?? Number.MAX_SAFE_INTEGER) -
-            (ordemPorEtapaId.get(b.etapaId) ?? Number.MAX_SAFE_INTEGER) ||
-          (a.rawDataHoraAcao ?? 0) - (b.rawDataHoraAcao ?? 0)
-      );
-      const maisRecente = itens.reduce(
-        (maior, item) => (item.rawDataHoraAcao > (maior ?? 0) ? item.rawDataHoraAcao : maior),
-        null
-      );
-      return { ...grupo, itens, maisRecente };
-    });
-
-    lista.sort((a, b) => (b.maisRecente ?? 0) - (a.maisRecente ?? 0));
-    return lista;
-  }, [sortedData, ordemPorEtapaId]);
+  // Os blocos sao montados pelo mesmo motor do Relatorio de Comissao, que reconstroi a historia
+  // da tarefa: passagens por etapa, a linha de lancamento, o Reservado e a elaboracao deduzida.
+  // A diferenca e o recorte: la so entra o que chegou na etapa final; aqui entra tudo.
+  const { grupos } = useItensAgrupados({
+    registrosTarefa: historicoTarefasApi.registros ?? [],
+    colaboradores: colaboradoresRaw,
+    clientes: clientesRaw,
+    etapas: etapasRaw,
+    exibicaoNomeCliente,
+    somenteConcluidas: false,
+    tipoItem: 'tarefa',
+  });
 
   const toggleColumn = (id) => {
     setSelectedColumns((prev) => (prev.includes(id) ? prev.filter((col) => col !== id) : [...prev, id]));
@@ -371,14 +331,20 @@ export default function HistoricoTarefasReportPage() {
     const colunasDaLinha = visao === 'agrupada' ? colunasVisiveis : activeColumns;
     const body = [];
     if (visao === 'agrupada') {
-      grupos.forEach((grupo) => {
+      grupos.forEach((grupo, indice) => {
         body.push([
           {
-            content: buildCabecalhoGrupo(grupo),
+            content: buildCabecalhoGrupo(grupo, indice + 1),
             colSpan: colunasDaLinha.length,
             styles: { fontStyle: 'bold', fillColor: [230, 240, 250] },
           },
         ]);
+        const tempos = buildTemposGrupo(grupo);
+        if (tempos) {
+          body.push([
+            { content: tempos, colSpan: colunasDaLinha.length, styles: { fontStyle: 'italic', fillColor: [243, 248, 253] } },
+          ]);
+        }
         grupo.itens.forEach((item) => body.push(colunasDaLinha.map((col) => item[col.id] ?? '')));
       });
     } else {
@@ -450,8 +416,10 @@ export default function HistoricoTarefasReportPage() {
     const colunasDaLinha = visao === 'agrupada' ? colunasVisiveis : activeColumns;
     const dataRows = [];
     if (visao === 'agrupada') {
-      grupos.forEach((grupo) => {
-        dataRows.push([buildCabecalhoGrupo(grupo)]);
+      grupos.forEach((grupo, indice) => {
+        dataRows.push([buildCabecalhoGrupo(grupo, indice + 1)]);
+        const tempos = buildTemposGrupo(grupo);
+        if (tempos) dataRows.push([tempos]);
         grupo.itens.forEach((item) => dataRows.push(colunasDaLinha.map((col) => item[col.id] ?? '')));
       });
     } else {
@@ -526,17 +494,35 @@ export default function HistoricoTarefasReportPage() {
 
   // Na visão agrupada estas quatro sobem para o cabeçalho do bloco, como no Relatório de
   // Comissão: identificam a tarefa e se repetiriam em toda linha dela.
-  const COLUNAS_DO_CABECALHO = ['tarefaId', 'tarefaTitulo', 'projetoTitulo', 'clienteNome'];
+  // Na visão agrupada o bloco é o mesmo do Relatório de Comissão: o que identifica a tarefa sobe
+  // para o cabeçalho e as linhas ficam só com a passagem por etapa. As demais colunas do relatório
+  // (ID, Ação) não existem numa passagem — ela é reconstruída de vários eventos.
+  const COLUNAS_DA_PASSAGEM = ['etapaNome', 'colaboradorNome', 'dataHoraAcao', 'observacao'];
   const colunasVisiveis =
     visao === 'agrupada'
-      ? activeColumns.filter((c) => !COLUNAS_DO_CABECALHO.includes(c.id))
+      ? activeColumns.filter((c) => COLUNAS_DA_PASSAGEM.includes(c.id))
       : activeColumns;
 
-  const buildCabecalhoGrupo = (grupo) => {
-    const partes = COLUNAS_DO_CABECALHO.filter((id) => selectedColumns.includes(id))
-      .map((id) => (id === 'tarefaId' ? `#${grupo.tarefaId}` : grupo[id]))
-      .filter((valor) => valor && String(valor).trim());
-    return partes.length > 0 ? partes.join(' — ') : `Tarefa #${grupo.tarefaId}`;
+  const buildCabecalhoGrupo = (grupo, numero) => {
+    const partes = [];
+    if (selectedColumns.includes('clienteNome')) partes.push(grupo.clienteNome);
+    if (selectedColumns.includes('projetoTitulo')) partes.push(grupo.projetoTitulo);
+    if (selectedColumns.includes('tarefaTitulo')) partes.push(grupo.tarefaTitulo);
+    if (grupo.descricao?.trim()) partes.push(grupo.descricao.trim());
+    const titulo = partes.length > 0 ? partes.join(' — ') : `Tarefa #${grupo.tarefaId}`;
+    // Quem aprovou fica no cabeçalho do item, ao lado do que identifica a tarefa.
+    const comAprovador = grupo.aprovadorNome ? `${titulo} · Aprovado por: ${grupo.aprovadorNome}` : titulo;
+    return numero ? `${numero} - ${comAprovador}` : comAprovador;
+  };
+
+  /** Execução e teste do item: realizado e, entre parênteses, o previsto na tarefa. */
+  const buildTemposGrupo = (grupo) => {
+    const tempos = [];
+    const execucao = formatarTempoComPrevisto(grupo.execucaoRealizadaMin, grupo.execucaoPrevistaMin);
+    const teste = formatarTempoComPrevisto(grupo.testeRealizadoMin, grupo.testePrevistoMin);
+    if (execucao) tempos.push(`Execução: ${execucao}`);
+    if (teste) tempos.push(`Teste: ${teste}`);
+    return tempos.length > 0 ? tempos.join(' · ') : null;
   };
 
   // Não retorna cedo em isLoading: isso desmontaria os campos de filtro (incluindo os de data) a
@@ -744,13 +730,20 @@ export default function HistoricoTarefasReportPage() {
                     </TableRow>
                   ))}
 
-                  {!isLoading && visao === 'agrupada' && grupos.map((grupo) => (
+                  {!isLoading && visao === 'agrupada' && grupos.map((grupo, indice) => (
                     <Fragment key={grupo.tarefaId}>
                       <TableRow className="bg-brand-blue/10 hover:bg-brand-blue/10">
                         <TableCell colSpan={colunasVisiveis.length} className="font-semibold text-brand-blue">
-                          {buildCabecalhoGrupo(grupo)}
+                          {buildCabecalhoGrupo(grupo, indice + 1)}
                         </TableCell>
                       </TableRow>
+                      {buildTemposGrupo(grupo) && (
+                        <TableRow className="bg-brand-blue/5 hover:bg-brand-blue/5">
+                          <TableCell colSpan={colunasVisiveis.length} className="text-xs text-muted-foreground">
+                            {buildTemposGrupo(grupo)}
+                          </TableCell>
+                        </TableRow>
+                      )}
                       {grupo.itens.map((item) => (
                         <TableRow key={item.id} className="hover:bg-muted/40">
                           {colunasVisiveis.map((col) => (

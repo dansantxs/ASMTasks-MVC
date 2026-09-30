@@ -17,7 +17,8 @@ import { configuracoesPadrao, useConfiguracoesSistema } from '../../../services/
 import { obterRodapeRelatorio, obterLogotipo } from '../../../services/configuracoes/reportBranding';
 import TourGuia from '../../../components/TourGuia';
 import { getHistoricoAtendimentos } from './api/historicoAtendimentos';
-import { getClientes, getColaboradores } from '../../atendimentos/api/atendimentos';
+import { getAtendimentos, getClientes, getColaboradores } from '../../atendimentos/api/atendimentos';
+import { useItensAgrupados } from '../useItensAgrupados';
 import { useDebouncedValue } from '../../../hooks/useDebouncedValue';
 import { usePreferenciaLocal } from '../../../hooks/usePreferenciaLocal';
 import { mesAtualParaInputs } from '../../../utils/periodoRelatorio';
@@ -133,6 +134,12 @@ export default function HistoricoAtendimentosReportPage() {
     [clientesApi, porFantasia]
   );
 
+  // Lista completa: o evento do histórico não traz quem lançou nem a observação de conclusão.
+  const { data: atendimentosTodos = [] } = useQuery({
+    queryKey: ['relatorio-historico-atendimentos-todos'],
+    queryFn: getAtendimentos,
+  });
+
   const { data: colaboradores = [] } = useQuery({
     queryKey: ['relatorio-historico-colaboradores'],
     queryFn: getColaboradores,
@@ -205,46 +212,17 @@ export default function HistoricoAtendimentosReportPage() {
     return dataToSort;
   }, [filteredData, sortConfig]);
 
-  // VisÃ£o agrupada: um bloco por atendimento, com a ÃLTIMA ocorrÃªncia de cada aÃ§Ã£o. Atendimento
-  // nÃ£o tem etapas, entÃ£o o que se repete aqui Ã© o tipo de aÃ§Ã£o â agendamento, conclusÃ£o,
-  // reabertura â, e Ã© por ele que a deduplicaÃ§Ã£o acontece.
-  const grupos = useMemo(() => {
-    const mapa = new Map();
-
-    sortedData.forEach((linha) => {
-      if (linha.atendimentoId == null) return;
-
-      if (!mapa.has(linha.atendimentoId)) {
-        mapa.set(linha.atendimentoId, {
-          atendimentoId: linha.atendimentoId,
-          atendimentoTitulo: linha.atendimentoTitulo,
-          atendimentoDescricao: linha.atendimentoDescricao,
-          clienteNome: linha.clienteNome,
-          porAcao: new Map(),
-        });
-      }
-
-      const grupo = mapa.get(linha.atendimentoId);
-      const atual = grupo.porAcao.get(linha.tipo);
-      if (!atual || (linha.rawDataHoraAcao ?? 0) >= (atual.rawDataHoraAcao ?? 0)) {
-        grupo.porAcao.set(linha.tipo, linha);
-      }
-    });
-
-    const lista = Array.from(mapa.values()).map((grupo) => {
-      const itens = Array.from(grupo.porAcao.values()).sort(
-        (a, b) => (a.rawDataHoraAcao ?? 0) - (b.rawDataHoraAcao ?? 0)
-      );
-      const maisRecente = itens.reduce(
-        (maior, item) => (item.rawDataHoraAcao > (maior ?? 0) ? item.rawDataHoraAcao : maior),
-        null
-      );
-      return { ...grupo, itens, maisRecente };
-    });
-
-    lista.sort((a, b) => (b.maisRecente ?? 0) - (a.maisRecente ?? 0));
-    return lista;
-  }, [sortedData]);
+  // Os blocos vem do mesmo motor do Relatorio de Comissao: a linha de lancamento ("Atendimento")
+  // e a de conclusao, montadas a partir do cadastro do atendimento e nao do evento cru.
+  const { grupos } = useItensAgrupados({
+    eventosAtendimento: historicoApi,
+    atendimentos: atendimentosTodos,
+    colaboradores,
+    clientes: clientesApi,
+    exibicaoNomeCliente: systemSettings.exibicaoNomeCliente,
+    somenteConcluidas: false,
+    tipoItem: 'atendimento',
+  });
 
   const toggleColumn = (id) => {
     setSelectedColumns((prev) => (prev.includes(id) ? prev.filter((col) => col !== id) : [...prev, id]));
@@ -295,15 +273,15 @@ export default function HistoricoAtendimentosReportPage() {
     const colunasDaLinha = visao === 'agrupada' ? colunasVisiveis : activeColumns;
     const body = [];
     if (visao === 'agrupada') {
-      grupos.forEach((grupo) => {
+      grupos.forEach((grupo, indice) => {
         body.push([
           {
-            content: buildCabecalhoGrupo(grupo),
+            content: buildCabecalhoGrupo(grupo, indice + 1),
             colSpan: colunasDaLinha.length,
             styles: { fontStyle: 'bold', fillColor: [230, 240, 250] },
           },
         ]);
-        grupo.itens.forEach((item) => body.push(colunasDaLinha.map((col) => item[col.id] ?? '')));
+        grupo.itens.forEach((item) => body.push(colunasDaLinha.map((col) => valorDaLinha(item, col) ?? '')));
       });
     } else {
       sortedData.forEach((row) => body.push(colunasDaLinha.map((col) => row[col.id] ?? '')));
@@ -370,9 +348,9 @@ export default function HistoricoAtendimentosReportPage() {
     const colunasDaLinha = visao === 'agrupada' ? colunasVisiveis : activeColumns;
     const dataRows = [];
     if (visao === 'agrupada') {
-      grupos.forEach((grupo) => {
-        dataRows.push([buildCabecalhoGrupo(grupo)]);
-        grupo.itens.forEach((item) => dataRows.push(colunasDaLinha.map((col) => item[col.id] ?? '')));
+      grupos.forEach((grupo, indice) => {
+        dataRows.push([buildCabecalhoGrupo(grupo, indice + 1)]);
+        grupo.itens.forEach((item) => dataRows.push(colunasDaLinha.map((col) => valorDaLinha(item, col) ?? '')));
       });
     } else {
       sortedData.forEach((row) => dataRows.push(colunasDaLinha.map((col) => row[col.id] ?? '')));
@@ -445,17 +423,25 @@ export default function HistoricoAtendimentosReportPage() {
 
   // Na visão agrupada estas sobem para o cabeçalho do bloco: identificam o atendimento e se
   // repetiriam em toda linha dele.
-  const COLUNAS_DO_CABECALHO = ['atendimentoId', 'atendimentoTitulo', 'atendimentoDescricao', 'clienteNome'];
+  // Na visão agrupada o bloco é o mesmo do Relatório de Comissão: o que identifica o atendimento
+  // sobe para o cabeçalho e as linhas ficam só com a ação. As demais colunas do relatório não
+  // existem nessas linhas, que são reconstruídas do cadastro e não do evento cru.
+  const COLUNAS_DA_PASSAGEM = ['tipoLabel', 'colaboradorNome', 'dataHoraAcao', 'observacao'];
+
+  // A linha do motor chama de `etapaNome` o que aqui é a coluna "Ação".
+  const valorDaLinha = (item, col) => (col.id === 'tipoLabel' ? item.etapaNome : item[col.id]);
   const colunasVisiveis =
     visao === 'agrupada'
-      ? activeColumns.filter((c) => !COLUNAS_DO_CABECALHO.includes(c.id))
+      ? activeColumns.filter((c) => COLUNAS_DA_PASSAGEM.includes(c.id))
       : activeColumns;
 
-  const buildCabecalhoGrupo = (grupo) => {
-    const partes = COLUNAS_DO_CABECALHO.filter((id) => selectedColumns.includes(id))
-      .map((id) => (id === 'atendimentoId' ? `#${grupo.atendimentoId}` : grupo[id]))
-      .filter((valor) => valor && String(valor).trim());
-    return partes.length > 0 ? partes.join(' — ') : `Atendimento #${grupo.atendimentoId}`;
+  const buildCabecalhoGrupo = (grupo, numero) => {
+    const partes = [];
+    if (selectedColumns.includes('clienteNome')) partes.push(grupo.clienteNome);
+    if (selectedColumns.includes('atendimentoTitulo')) partes.push(grupo.tarefaTitulo);
+    if (grupo.descricao?.trim()) partes.push(grupo.descricao.trim());
+    const titulo = partes.length > 0 ? partes.join(' — ') : `Atendimento ${grupo.tarefaId}`;
+    return numero ? `${numero} - ${titulo}` : titulo;
   };
 
   // Não retorna cedo em isLoading: isso desmontaria os campos de filtro (incluindo os de data) a
@@ -639,17 +625,17 @@ export default function HistoricoAtendimentosReportPage() {
                     </TableRow>
                   ))}
 
-                  {!isLoading && visao === 'agrupada' && grupos.map((grupo) => (
-                    <Fragment key={grupo.atendimentoId}>
+                  {!isLoading && visao === 'agrupada' && grupos.map((grupo, indice) => (
+                    <Fragment key={grupo.tarefaId}>
                       <TableRow className="bg-brand-blue/10 hover:bg-brand-blue/10">
                         <TableCell colSpan={colunasVisiveis.length} className="font-semibold text-brand-blue">
-                          {buildCabecalhoGrupo(grupo)}
+                          {buildCabecalhoGrupo(grupo, indice + 1)}
                         </TableCell>
                       </TableRow>
                       {grupo.itens.map((item) => (
                         <TableRow key={item.id} className="hover:bg-muted/40">
                           {colunasVisiveis.map((col) => (
-                            <TableCell key={col.id}>{item[col.id]}</TableCell>
+                            <TableCell key={col.id}>{valorDaLinha(item, col)}</TableCell>
                           ))}
                         </TableRow>
                       ))}
