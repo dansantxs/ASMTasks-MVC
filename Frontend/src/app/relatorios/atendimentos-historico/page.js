@@ -18,7 +18,7 @@ import { obterRodapeRelatorio, obterLogotipo } from '../../../services/configura
 import TourGuia from '../../../components/TourGuia';
 import { getHistoricoAtendimentos } from './api/historicoAtendimentos';
 import { getAtendimentos, getClientes, getColaboradores } from '../../atendimentos/api/atendimentos';
-import { useItensAgrupados } from '../useItensAgrupados';
+import { useItensAgrupados, ETAPA_LANCAMENTO } from '../useItensAgrupados';
 import { useDebouncedValue } from '../../../hooks/useDebouncedValue';
 import { usePreferenciaLocal } from '../../../hooks/usePreferenciaLocal';
 import { mesAtualParaInputs } from '../../../utils/periodoRelatorio';
@@ -225,9 +225,21 @@ export default function HistoricoAtendimentosReportPage() {
   });
 
   // O motor devolve os itens na ordem em que os encontrou, que e a da consulta. Aqui a ordem
-  // e explicita: o mais recente primeiro, igual ao padrao da visao detalhada.
+  // e explicita: pela linha de Atendimento, que e quando a demanda entrou, do mais antigo para
+  // o mais recente.
+  const dataDoAtendimento = (grupo) => {
+    const lancamento = grupo.itens.find((item) => item.etapaNome === ETAPA_LANCAMENTO);
+    if (lancamento?.rawDataHoraAcao) return lancamento.rawDataHoraAcao;
+    // Item sem a linha de lancamento: vale a passagem mais antiga que ele tiver.
+    return grupo.itens.reduce(
+      (menor, item) =>
+        item.rawDataHoraAcao && (!menor || item.rawDataHoraAcao < menor) ? item.rawDataHoraAcao : menor,
+      null
+    );
+  };
+
   const gruposOrdenados = useMemo(
-    () => [...grupos].sort((a, b) => (b.dataConclusao ?? 0) - (a.dataConclusao ?? 0)),
+    () => [...grupos].sort((a, b) => (dataDoAtendimento(a) ?? 0) - (dataDoAtendimento(b) ?? 0)),
     [grupos]
   );
 
