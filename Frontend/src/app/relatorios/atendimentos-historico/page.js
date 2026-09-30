@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useCallback } from 'react';
+import { Fragment, useMemo, useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/layout/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../components/ui/layout/table';
@@ -17,8 +17,11 @@ import { configuracoesPadrao, useConfiguracoesSistema } from '../../../services/
 import { obterRodapeRelatorio, obterLogotipo } from '../../../services/configuracoes/reportBranding';
 import TourGuia from '../../../components/TourGuia';
 import { getHistoricoAtendimentos } from './api/historicoAtendimentos';
-import { getClientes, getColaboradores } from '../../atendimentos/api/atendimentos';
+import { getAtendimentos, getClientes, getColaboradores } from '../../atendimentos/api/atendimentos';
+import { useItensAgrupados, ETAPA_LANCAMENTO } from '../useItensAgrupados';
 import { useDebouncedValue } from '../../../hooks/useDebouncedValue';
+import { usePreferenciaLocal } from '../../../hooks/usePreferenciaLocal';
+import { mesAtualParaInputs } from '../../../utils/periodoRelatorio';
 
 const columns = [
   { id: 'dataHoraAcao', label: 'Data/Hora' },
@@ -27,7 +30,7 @@ const columns = [
   { id: 'atendimentoTitulo', label: 'Título do Atendimento' },
   { id: 'atendimentoDescricao', label: 'Descrição do Atendimento' },
   { id: 'clienteNome', label: 'Cliente' },
-  { id: 'colaboradorNome', label: 'Usuário' },
+  { id: 'colaboradorNome', label: 'Colaborador' },
   { id: 'statusAtualLabel', label: 'Status Atual' },
   { id: 'observacao', label: 'Observação' },
 ];
@@ -76,10 +79,13 @@ export default function HistoricoAtendimentosReportPage() {
   const [tipoFilter, setTipoFilter] = useState('todos');
   const [clienteFilter, setClienteFilter] = useState('todos');
   const [colaboradorFilter, setColaboradorFilter] = useState('todos');
-  const [dataInicioFilter, setDataInicioFilter] = useState('');
-  const [dataFimFilter, setDataFimFilter] = useState('');
-  const [sortConfig, setSortConfig] = useState({ column: 'dataHoraAcao', direction: 'desc' });
+  // O periodo ja abre no mes corrente (dia 1 ate hoje) - ver utils/periodoRelatorio.
+  const [dataInicioFilter, setDataInicioFilter] = useState(() => mesAtualParaInputs().inicio);
+  const [dataFimFilter, setDataFimFilter] = useState(() => mesAtualParaInputs().fim);
+  const [sortConfig, setSortConfig] = useState({ column: 'dataHoraAcao', direction: 'asc' });
   const [selectedColumns, setSelectedColumns] = useState(columns.map((c) => c.id));
+  // Guardada por pessoa: a tela volta do jeito que ela deixou.
+  const [visao, definirVisao] = usePreferenciaLocal('asm_relatorio_atendimentos_visao', 'agrupada');
   const { data: systemSettings = configuracoesPadrao } = useConfiguracoesSistema();
 
   const historicoQueryParams = useMemo(
@@ -106,15 +112,33 @@ export default function HistoricoAtendimentosReportPage() {
     queryFn: getClientes,
   });
 
-  const clientes = useMemo(
-    () => clientesApi.filter((c) => c.ativo && c.matrizId == null),
-    [clientesApi]
-  );
-
+  // Serve para o cadastro (nome/nomeFantasia) e para a linha do relatório
+  // (clienteNome/clienteNomeFantasia), que vêm com nomes de campo diferentes.
+  const porFantasia = systemSettings.exibicaoNomeCliente === 'nomeFantasia';
   const resolverNomeCliente = (c) => {
-    if (systemSettings.exibicaoNomeCliente === 'nomeFantasia' && c.nomeFantasia) return c.nomeFantasia;
+    if (porFantasia && c.nomeFantasia) return c.nomeFantasia;
     return c.nome;
   };
+  const resolverNomeClienteDaLinha = (item) => {
+    if (porFantasia && item.clienteNomeFantasia) return item.clienteNomeFantasia;
+    return item.clienteNome;
+  };
+
+  const clientes = useMemo(
+    () =>
+      clientesApi
+        .filter((c) => c.ativo && c.matrizId == null)
+        .sort((a, b) =>
+          resolverNomeCliente(a).localeCompare(resolverNomeCliente(b), 'pt-BR', { sensitivity: 'base' })
+        ),
+    [clientesApi, porFantasia]
+  );
+
+  // Lista completa: o evento do histórico não traz quem lançou nem a observação de conclusão.
+  const { data: atendimentosTodos = [] } = useQuery({
+    queryKey: ['relatorio-historico-atendimentos-todos'],
+    queryFn: getAtendimentos,
+  });
 
   const { data: colaboradores = [] } = useQuery({
     queryKey: ['relatorio-historico-colaboradores'],
@@ -132,7 +156,7 @@ export default function HistoricoAtendimentosReportPage() {
         atendimentoId: item.atendimentoId,
         atendimentoTitulo: item.atendimentoTitulo ?? ' ',
         atendimentoDescricao: item.atendimentoDescricao ?? ' ',
-        clienteNome: item.clienteNome ?? ' ',
+        clienteNome: resolverNomeClienteDaLinha(item) ?? ' ',
         colaboradorNome: item.colaboradorNome ?? ' ',
         statusAtual: item.atendimentoStatusAtual,
         statusAtualLabel: getStatusLabel(item.atendimentoStatusAtual),
@@ -188,6 +212,57 @@ export default function HistoricoAtendimentosReportPage() {
     return dataToSort;
   }, [filteredData, sortConfig]);
 
+  // Os blocos vem do mesmo motor do Relatorio de Comissao: a linha de lancamento ("Atendimento")
+  // e a de conclusao, montadas a partir do cadastro do atendimento e nao do evento cru.
+  const { grupos } = useItensAgrupados({
+    eventosAtendimento: historicoApi,
+    atendimentos: atendimentosTodos,
+    colaboradores,
+    clientes: clientesApi,
+    exibicaoNomeCliente: systemSettings.exibicaoNomeCliente,
+    somenteConcluidas: false,
+    tipoItem: 'atendimento',
+  });
+
+  // O motor devolve os itens na ordem em que os encontrou, que e a da consulta. Aqui a ordem
+  // e explicita: pela linha de Atendimento, que e quando a demanda entrou, do mais antigo para
+  // o mais recente.
+  const dataDoAtendimento = (grupo) => {
+    const lancamento = grupo.itens.find((item) => item.etapaNome === ETAPA_LANCAMENTO);
+    if (lancamento?.rawDataHoraAcao) return lancamento.rawDataHoraAcao;
+    // Item sem a linha de lancamento: vale a passagem mais antiga que ele tiver.
+    return grupo.itens.reduce(
+      (menor, item) =>
+        item.rawDataHoraAcao && (!menor || item.rawDataHoraAcao < menor) ? item.rawDataHoraAcao : menor,
+      null
+    );
+  };
+
+  // A linha de Atendimento nao e um evento do historico: o motor a monta com a data de
+  // cadastro do item, que nao passa pelo filtro de periodo. Num relatorio filtrado por data,
+  // ela aparecia fora da janela escolhida - entao aqui ela so entra se couber no periodo.
+  const inicioPeriodo = dataInicioFilter ? new Date(`${dataInicioFilter}T00:00:00`) : null;
+  const fimPeriodo = dataFimFilter ? new Date(`${dataFimFilter}T23:59:59`) : null;
+  const dentroDoPeriodo = (data) => {
+    if (!data) return false;
+    if (inicioPeriodo && data < inicioPeriodo) return false;
+    if (fimPeriodo && data > fimPeriodo) return false;
+    return true;
+  };
+
+  const gruposOrdenados = useMemo(
+    () =>
+      [...grupos]
+        .map((grupo) => ({
+          ...grupo,
+          itens: grupo.itens.filter(
+            (item) => item.etapaNome !== ETAPA_LANCAMENTO || dentroDoPeriodo(item.rawDataHoraAcao)
+          ),
+        }))
+        .sort((a, b) => (dataDoAtendimento(a) ?? 0) - (dataDoAtendimento(b) ?? 0)),
+    [grupos, dataInicioFilter, dataFimFilter]
+  );
+
   const toggleColumn = (id) => {
     setSelectedColumns((prev) => (prev.includes(id) ? prev.filter((col) => col !== id) : [...prev, id]));
   };
@@ -203,7 +278,10 @@ export default function HistoricoAtendimentosReportPage() {
   const buildFiltersSummary = (activeColumns) => {
     const clienteNome = clienteFilter === 'todos'
       ? null
-      : clientes.find((c) => c.id === Number(clienteFilter))?.nome ?? `#${clienteFilter}`;
+      : (() => {
+          const achado = clientes.find((c) => c.id === Number(clienteFilter));
+          return achado ? resolverNomeCliente(achado) : `#${clienteFilter}`;
+        })();
     const colaboradorNome = colaboradorFilter === 'todos'
       ? null
       : colaboradores.find((c) => c.id === Number(colaboradorFilter))?.nome ?? `#${colaboradorFilter}`;
@@ -212,7 +290,7 @@ export default function HistoricoAtendimentosReportPage() {
       search ? `Busca: ${search}` : null,
       tipoFilter !== 'todos' ? `Ação: ${getTipoLabel(tipoFilter)}` : null,
       clienteNome ? `Cliente: ${clienteNome}` : null,
-      colaboradorNome ? `Usuário: ${colaboradorNome}` : null,
+      colaboradorNome ? `Colaborador: ${colaboradorNome}` : null,
       dataInicioFilter ? `Data início: ${new Date(`${dataInicioFilter}T00:00:00`).toLocaleDateString('pt-BR')}` : null,
       dataFimFilter ? `Data fim: ${new Date(`${dataFimFilter}T00:00:00`).toLocaleDateString('pt-BR')}` : null,
     ].filter(Boolean);
@@ -230,7 +308,23 @@ export default function HistoricoAtendimentosReportPage() {
     const doc = new jsPDF();
     const activeColumns = columns.filter((c) => selectedColumns.includes(c.id));
     const { filtersSummary, columnsSummary } = buildFiltersSummary(activeColumns);
-    const body = sortedData.map((row) => activeColumns.map((col) => row[col.id] ?? ''));
+    // As exportações seguem a visão escolhida na tela.
+    const colunasDaLinha = visao === 'agrupada' ? colunasVisiveis : activeColumns;
+    const body = [];
+    if (visao === 'agrupada') {
+      gruposOrdenados.forEach((grupo, indice) => {
+        body.push([
+          {
+            content: buildCabecalhoGrupo(grupo, indice + 1),
+            colSpan: colunasDaLinha.length,
+            styles: { fontStyle: 'bold', fillColor: [230, 240, 250] },
+          },
+        ]);
+        grupo.itens.forEach((item) => body.push(colunasDaLinha.map((col) => valorDaLinha(item, col) ?? '')));
+      });
+    } else {
+      sortedData.forEach((row) => body.push(colunasDaLinha.map((col) => row[col.id] ?? '')));
+    }
     const emissionDate = new Date().toLocaleString('pt-BR');
     const logoDataUrl = await obterLogotipo(systemSettings);
     const footerLines = obterRodapeRelatorio(systemSettings);
@@ -241,7 +335,7 @@ export default function HistoricoAtendimentosReportPage() {
     const headerEndY = 30 + (filtersLines.length * 6) + (columnsLines.length * 6);
 
     autoTable(doc, {
-      head: [activeColumns.map((c) => c.label)],
+      head: [colunasDaLinha.map((c) => c.label)],
       body,
       styles: { fontSize: 8 },
       headStyles: { overflow: 'ellipsize' },
@@ -287,15 +381,24 @@ export default function HistoricoAtendimentosReportPage() {
       [`Filtros: ${filtersSummary}`],
       [columnsSummary],
       [],
-      activeColumns.map((c) => c.label),
+      colunasDaLinha.map((c) => c.label),
     ];
 
-    const dataRows = sortedData.map((row) => activeColumns.map((col) => row[col.id] ?? ''));
+    const colunasDaLinha = visao === 'agrupada' ? colunasVisiveis : activeColumns;
+    const dataRows = [];
+    if (visao === 'agrupada') {
+      gruposOrdenados.forEach((grupo, indice) => {
+        dataRows.push([buildCabecalhoGrupo(grupo, indice + 1)]);
+        grupo.itens.forEach((item) => dataRows.push(colunasDaLinha.map((col) => valorDaLinha(item, col) ?? '')));
+      });
+    } else {
+      sortedData.forEach((row) => dataRows.push(colunasDaLinha.map((col) => row[col.id] ?? '')));
+    }
     const footerRows = [[], ...footerLines.map((line) => [line])];
     const worksheet = XLSX.utils.aoa_to_sheet([...headerRows, ...dataRows, ...footerRows]);
 
-    if (activeColumns.length > 1) {
-      const lastColumnIndex = activeColumns.length - 1;
+    if (colunasDaLinha.length > 1) {
+      const lastColumnIndex = colunasDaLinha.length - 1;
       worksheet['!merges'] = [
         { s: { r: 0, c: 0 }, e: { r: 0, c: lastColumnIndex } },
         { s: { r: 1, c: 0 }, e: { r: 1, c: lastColumnIndex } },
@@ -338,7 +441,7 @@ export default function HistoricoAtendimentosReportPage() {
           },
           {
             element: '#tour-relatorio-tabela',
-            popover: { title: 'Tabela de Resultados', description: 'Clique no cabeçalho de uma coluna para <strong>ordenar</strong>. Por padrão, ordenado pela data mais recente.', side: 'top', align: 'center' },
+            popover: { title: 'Tabela de Resultados', description: 'Clique no cabeçalho de uma coluna para <strong>ordenar</strong>. Por padrão, em ordem cronológica: do mais antigo para o mais recente.', side: 'top', align: 'center' },
           },
           {
             element: '#tour-relatorio-filtros',
@@ -356,6 +459,29 @@ export default function HistoricoAtendimentosReportPage() {
   }, []);
 
   const activeColumns = columns.filter((c) => selectedColumns.includes(c.id));
+
+  // Na visão agrupada estas sobem para o cabeçalho do bloco: identificam o atendimento e se
+  // repetiriam em toda linha dele.
+  // Na visão agrupada o bloco é o mesmo do Relatório de Comissão: o que identifica o atendimento
+  // sobe para o cabeçalho e as linhas ficam só com a ação. As demais colunas do relatório não
+  // existem nessas linhas, que são reconstruídas do cadastro e não do evento cru.
+  const COLUNAS_DA_PASSAGEM = ['tipoLabel', 'colaboradorNome', 'dataHoraAcao', 'observacao'];
+
+  // A linha do motor chama de `etapaNome` o que aqui é a coluna "Ação".
+  const valorDaLinha = (item, col) => (col.id === 'tipoLabel' ? item.etapaNome : item[col.id]);
+  const colunasVisiveis =
+    visao === 'agrupada'
+      ? activeColumns.filter((c) => COLUNAS_DA_PASSAGEM.includes(c.id))
+      : activeColumns;
+
+  const buildCabecalhoGrupo = (grupo, numero) => {
+    const partes = [];
+    if (selectedColumns.includes('clienteNome')) partes.push(grupo.clienteNome);
+    if (selectedColumns.includes('atendimentoTitulo')) partes.push(grupo.tarefaTitulo);
+    if (grupo.descricao?.trim()) partes.push(grupo.descricao.trim());
+    const titulo = partes.length > 0 ? partes.join(' — ') : `Atendimento ${grupo.tarefaId}`;
+    return numero ? `${numero} - ${titulo}` : titulo;
+  };
 
   // Não retorna cedo em isLoading: isso desmontaria os campos de filtro (incluindo os de data) a
   // cada busca — inclusive as disparadas por cada tecla digitada — fazendo o campo perder o foco.
@@ -414,7 +540,16 @@ export default function HistoricoAtendimentosReportPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {/* Mesmo arranjo do Relatório de Comissão: três filtros por linha. */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label>Data início</Label>
+                  <Input type="date" value={dataInicioFilter} onChange={(e) => setDataInicioFilter(e.target.value)} />
+                </div>
+                <div>
+                  <Label>Data fim</Label>
+                  <Input type="date" value={dataFimFilter} onChange={(e) => setDataFimFilter(e.target.value)} />
+                </div>
                 <div>
                   <Label>Cliente</Label>
                   <Combobox
@@ -429,12 +564,12 @@ export default function HistoricoAtendimentosReportPage() {
                   />
                 </div>
                 <div>
-                  <Label>Usuário</Label>
+                  <Label>Colaborador</Label>
                   <Combobox
                     value={colaboradorFilter}
                     onValueChange={setColaboradorFilter}
-                    placeholder="Usuário"
-                    searchPlaceholder="Buscar usuário..."
+                    placeholder="Colaborador"
+                    searchPlaceholder="Buscar colaborador..."
                     options={[
                       { value: 'todos', label: 'Todos' },
                       ...colaboradores
@@ -443,14 +578,6 @@ export default function HistoricoAtendimentosReportPage() {
                         .map((colaborador) => ({ value: String(colaborador.id), label: colaborador.nome })),
                     ]}
                   />
-                </div>
-                <div>
-                  <Label>Data início</Label>
-                  <Input type="date" value={dataInicioFilter} onChange={(e) => setDataInicioFilter(e.target.value)} />
-                </div>
-                <div>
-                  <Label>Data fim</Label>
-                  <Input type="date" value={dataFimFilter} onChange={(e) => setDataFimFilter(e.target.value)} />
                 </div>
               </div>
             </CardContent>
@@ -477,25 +604,45 @@ export default function HistoricoAtendimentosReportPage() {
 
         <Card id="tour-relatorio-tabela">
           <CardHeader>
-            <CardTitle>{filteredData.length} resultado(s)</CardTitle>
+            <CardTitle className="flex items-center justify-between flex-wrap gap-2">
+              <span>
+                {visao === 'agrupada'
+                  ? `${gruposOrdenados.length} atendimento(s)`
+                  : `${filteredData.length} resultado(s)`}
+              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-normal text-muted-foreground whitespace-nowrap">Visão</span>
+                <Select value={visao} onValueChange={definirVisao}>
+                  <SelectTrigger className="w-56"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="agrupada">Agrupada por atendimento</SelectItem>
+                    <SelectItem value="detalhada">Detalhada (log)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-brand-blue/5">
-                    {activeColumns.map((col) => (
+                    {colunasVisiveis.map((col) => (
                       <TableHead key={col.id} className="font-semibold text-brand-blue">
-                        <button
-                          type="button"
-                          onClick={() => handleSort(col.id)}
-                          className="flex items-center gap-2 w-full text-left focus:outline-none"
-                        >
-                          <span>{col.label}</span>
-                          {sortConfig.column === col.id && (
-                            <span className="text-xs">{sortConfig.direction === 'asc' ? '▲' : '▼'}</span>
-                          )}
-                        </button>
+                        {visao === 'agrupada' ? (
+                          col.label
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleSort(col.id)}
+                            className="flex items-center gap-2 w-full text-left focus:outline-none"
+                          >
+                            <span>{col.label}</span>
+                            {sortConfig.column === col.id && (
+                              <span className="text-xs">{sortConfig.direction === 'asc' ? '▲' : '▼'}</span>
+                            )}
+                          </button>
+                        )}
                       </TableHead>
                     ))}
                   </TableRow>
@@ -503,22 +650,48 @@ export default function HistoricoAtendimentosReportPage() {
                 <TableBody>
                   {isLoading && (
                     <TableRow>
-                      <TableCell colSpan={activeColumns.length} className="text-center text-muted-foreground">
+                      <TableCell colSpan={colunasVisiveis.length} className="text-center text-muted-foreground">
                         Carregando...
                       </TableCell>
                     </TableRow>
                   )}
-                  {!isLoading && sortedData.map((row) => (
+
+                  {!isLoading && visao === 'detalhada' && sortedData.map((row) => (
                     <TableRow key={row.id} className="hover:bg-muted/40">
                       {activeColumns.map((col) => (
                         <TableCell key={col.id}>{row[col.id]}</TableCell>
                       ))}
                     </TableRow>
                   ))}
-                  {!isLoading && filteredData.length === 0 && (
+
+                  {!isLoading && visao === 'agrupada' && gruposOrdenados.map((grupo, indice) => (
+                    <Fragment key={grupo.tarefaId}>
+                      <TableRow className="bg-brand-blue/10 hover:bg-brand-blue/10">
+                        <TableCell colSpan={colunasVisiveis.length} className="font-semibold text-brand-blue">
+                          {buildCabecalhoGrupo(grupo, indice + 1)}
+                        </TableCell>
+                      </TableRow>
+                      {grupo.itens.map((item) => (
+                        <TableRow key={item.id} className="hover:bg-muted/40">
+                          {colunasVisiveis.map((col) => (
+                            <TableCell key={col.id}>{valorDaLinha(item, col)}</TableCell>
+                          ))}
+                        </TableRow>
+                      ))}
+                    </Fragment>
+                  ))}
+
+                  {!isLoading && visao === 'detalhada' && filteredData.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={activeColumns.length} className="text-center text-muted-foreground">
+                      <TableCell colSpan={colunasVisiveis.length} className="text-center text-muted-foreground">
                         Nenhum registro encontrado com os filtros selecionados.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {!isLoading && visao === 'agrupada' && gruposOrdenados.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={colunasVisiveis.length} className="text-center text-muted-foreground">
+                        Nenhum atendimento encontrado com os filtros selecionados.
                       </TableCell>
                     </TableRow>
                   )}

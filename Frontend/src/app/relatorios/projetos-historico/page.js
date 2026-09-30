@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useCallback } from 'react';
+import { Fragment, useMemo, useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/layout/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../components/ui/layout/table';
@@ -17,8 +17,11 @@ import { configuracoesPadrao, useConfiguracoesSistema } from '../../../services/
 import { obterRodapeRelatorio, obterLogotipo } from '../../../services/configuracoes/reportBranding';
 import TourGuia from '../../../components/TourGuia';
 import { getHistoricoTarefas, getHistoricoProjetosRelatorio } from './api/historicoTarefas';
-import { getColaboradoresKanban, getProjetosKanban, getClientesKanban, getEtapasKanban } from '../../projetos/kanban/api/kanban';
+import { getColaboradoresKanban, getClientesKanban, getEtapasKanban } from '../../projetos/kanban/api/kanban';
 import { useDebouncedValue } from '../../../hooks/useDebouncedValue';
+import { usePreferenciaLocal } from '../../../hooks/usePreferenciaLocal';
+import { useItensAgrupados, formatarTempoComPrevisto, ETAPA_LANCAMENTO } from '../useItensAgrupados';
+import { mesAtualParaInputs } from '../../../utils/periodoRelatorio';
 import { ROTULO_RESERVADO, ehEtapaElaboracao } from '../../../utils/situacaoTarefa';
 
 const columns = [
@@ -80,14 +83,15 @@ export default function HistoricoTarefasReportPage() {
   const [search, setSearch] = useState('');
   const [tipoFilter, setTipoFilter] = useState('todos');
   const [colaboradorFilter, setColaboradorFilter] = useState('todos');
-  const [projetoFilter, setProjetoFilter] = useState('todos');
   const [clienteFilter, setClienteFilter] = useState('todos');
-  const [dataInicioFilter, setDataInicioFilter] = useState('');
-  const [dataFimFilter, setDataFimFilter] = useState('');
+  // O periodo ja abre no mes corrente (dia 1 ate hoje) - ver utils/periodoRelatorio.
+  const [dataInicioFilter, setDataInicioFilter] = useState(() => mesAtualParaInputs().inicio);
+  const [dataFimFilter, setDataFimFilter] = useState(() => mesAtualParaInputs().fim);
   const [etapaFilter, setEtapaFilter] = useState('todos');
-  const [ultimaOcorrencia, setUltimaOcorrencia] = useState(false);
-  const [sortConfig, setSortConfig] = useState({ column: 'dataHoraAcao', direction: 'desc' });
+  const [sortConfig, setSortConfig] = useState({ column: 'dataHoraAcao', direction: 'asc' });
   const [selectedColumns, setSelectedColumns] = useState(columns.map((c) => c.id));
+  // Guardada por pessoa: a tela volta do jeito que ela deixou.
+  const [visao, definirVisao] = usePreferenciaLocal('asm_relatorio_tarefas_visao', 'agrupada');
   const { data: systemSettings = configuracoesPadrao } = useConfiguracoesSistema();
 
   const queryParams = useMemo(
@@ -96,14 +100,12 @@ export default function HistoricoTarefasReportPage() {
       // reconhece pelo destino e por ainda não ter havido início. O servidor recebe 'E'.
       tipo: tipoFilter === 'reservada' ? 'E' : tipoFilter,
       colaboradorId: colaboradorFilter,
-      projetoId: projetoFilter,
       clienteId: clienteFilter,
       etapaId: etapaFilter,
-      ultimaOcorrencia,
       dataInicio: toIsoStartOfDay(dataInicioFilter),
       dataFim: toIsoEndOfDay(dataFimFilter),
     }),
-    [tipoFilter, colaboradorFilter, projetoFilter, clienteFilter, etapaFilter, ultimaOcorrencia, dataInicioFilter, dataFimFilter]
+    [tipoFilter, colaboradorFilter, clienteFilter, etapaFilter, dataInicioFilter, dataFimFilter]
   );
   // Espera o filtro parar de mudar por um instante antes de buscar — evita disparar uma busca a
   // cada tecla digitada (nas datas, isso também dava tempo pro ano ficar completo antes de valer).
@@ -126,11 +128,6 @@ export default function HistoricoTarefasReportPage() {
     queryFn: getColaboradoresKanban,
   });
 
-  const { data: projetosRaw = [] } = useQuery({
-    queryKey: ['relatorio-tarefas-projetos'],
-    queryFn: getProjetosKanban,
-  });
-
   const { data: clientesRaw = [] } = useQuery({
     queryKey: ['relatorio-tarefas-clientes'],
     queryFn: getClientesKanban,
@@ -142,20 +139,30 @@ export default function HistoricoTarefasReportPage() {
   });
 
   const colaboradores = useMemo(() => colaboradoresRaw.filter((c) => c.ativo !== false), [colaboradoresRaw]);
-  const projetos = useMemo(
-    () => projetosRaw.filter((p) => p.ativo !== false).map((p) => ({ ...p, nome: p.titulo })),
-    [projetosRaw]
-  );
-  const clientes = useMemo(() => clientesRaw.filter((c) => c.ativo !== false), [clientesRaw]);
-  const etapas = useMemo(() => etapasRaw.filter((e) => e.ativo !== false), [etapasRaw]);
-  const totalTarefas = historicoTarefasApi.totalTarefas ?? 0;
-
   const exibicaoNomeCliente = systemSettings?.exibicaoNomeCliente ?? 'razaoSocial';
+
+  // O cadastro traz nome/nomeFantasia; a linha do relatório, clienteNome/clienteNomeFantasia.
+  function resolverNomeClienteCadastro(cliente) {
+    if (exibicaoNomeCliente === 'nomeFantasia' && cliente.nomeFantasia) return cliente.nomeFantasia;
+    return cliente.nome ?? ' ';
+  }
 
   function resolverNomeCliente(item) {
     if (exibicaoNomeCliente === 'nomeFantasia' && item.clienteNomeFantasia) return item.clienteNomeFantasia;
     return item.clienteNome ?? ' ';
   }
+
+  const clientes = useMemo(
+    () =>
+      clientesRaw
+        // Só matriz: a filial é atendida sob o cadastro da matriz, e listá-las duplicava a escolha.
+        .filter((c) => c.ativo !== false && c.matrizId == null)
+        .sort((a, b) =>
+          resolverNomeClienteCadastro(a).localeCompare(resolverNomeClienteCadastro(b), 'pt-BR', { sensitivity: 'base' })
+        ),
+    [clientesRaw, exibicaoNomeCliente]
+  );
+  const etapas = useMemo(() => etapasRaw.filter((e) => e.ativo !== false), [etapasRaw]);
 
   const data = useMemo(() => {
     const tarefas = (historicoTarefasApi.registros ?? []).map((item) => {
@@ -173,11 +180,14 @@ export default function HistoricoTarefasReportPage() {
         tipoLabel: reservada ? ROTULO_RESERVADO : getTipoLabel(item.tipo),
         tarefaId: item.tarefaId,
         tarefaTitulo: item.tarefaTitulo ?? ' ',
+        // Não vira coluna; existe para a busca alcançar o texto da tarefa.
+        tarefaDescricao: item.tarefaDescricao ?? ' ',
         projetoTitulo: item.projetoTitulo ?? ' ',
         clienteNome: resolverNomeCliente(item),
         // Na linha "Reservada" o responsável gravado é o de ANTES da troca de etapa — quem
         // ficou com a reserva vem do backend em responsavelReservaNome.
         colaboradorNome: (reservada ? item.responsavelReservaNome : item.colaboradorNome) ?? ' ',
+        etapaId: item.etapaId ?? null,
         etapaNome: item.etapaNome ?? ' ',
         observacao: item.observacao ?? ' ',
       };
@@ -190,7 +200,9 @@ export default function HistoricoTarefasReportPage() {
       tipo: item.tipo,
       tipoLabel: getTipoLabel(item.tipo),
       tarefaId: null,
+      etapaId: null,
       tarefaTitulo: '—',
+      tarefaDescricao: ' ',
       projetoTitulo: item.projetoTitulo ?? ' ',
       clienteNome: resolverNomeCliente(item),
       colaboradorNome: item.realizadoPorColaboradorNome ?? ' ',
@@ -208,11 +220,13 @@ export default function HistoricoTarefasReportPage() {
         if (tipoFilter === 'reservada' && !item.reservada) return false;
         const term = search.toLowerCase();
         if (!term) return true;
+        // Colaborador e cliente ficaram de fora de propósito: têm filtro próprio, e procurar pelo nome aqui
+        // trazia o histórico inteiro de quem a pessoa tocou. A descrição entrou no lugar — o
+        // endpoint sempre a devolveu e a busca nunca a usava.
         return (
           item.tarefaTitulo.toLowerCase().includes(term) ||
-          item.projetoTitulo.toLowerCase().includes(term) ||
-          item.clienteNome.toLowerCase().includes(term) ||
-          item.colaboradorNome.toLowerCase().includes(term)
+          item.tarefaDescricao.toLowerCase().includes(term) ||
+          item.projetoTitulo.toLowerCase().includes(term)
         );
       }),
     [data, search, tipoFilter]
@@ -246,6 +260,58 @@ export default function HistoricoTarefasReportPage() {
     return dataToSort;
   }, [filteredData, sortConfig]);
 
+  // Os blocos sao montados pelo mesmo motor do Relatorio de Comissao, que reconstroi a historia
+  // da tarefa: passagens por etapa, a linha de lancamento, o Reservado e a elaboracao deduzida.
+  // A diferenca e o recorte: la so entra o que chegou na etapa final; aqui entra tudo.
+  const { grupos } = useItensAgrupados({
+    registrosTarefa: historicoTarefasApi.registros ?? [],
+    colaboradores: colaboradoresRaw,
+    clientes: clientesRaw,
+    etapas: etapasRaw,
+    exibicaoNomeCliente,
+    somenteConcluidas: false,
+    tipoItem: 'tarefa',
+  });
+
+  // O motor devolve os itens na ordem em que os encontrou, que e a da consulta. Aqui a ordem
+  // e explicita: pela linha de Atendimento, que e quando a demanda entrou, do mais antigo para
+  // o mais recente.
+  const dataDoAtendimento = (grupo) => {
+    const lancamento = grupo.itens.find((item) => item.etapaNome === ETAPA_LANCAMENTO);
+    if (lancamento?.rawDataHoraAcao) return lancamento.rawDataHoraAcao;
+    // Item sem a linha de lancamento: vale a passagem mais antiga que ele tiver.
+    return grupo.itens.reduce(
+      (menor, item) =>
+        item.rawDataHoraAcao && (!menor || item.rawDataHoraAcao < menor) ? item.rawDataHoraAcao : menor,
+      null
+    );
+  };
+
+  // A linha de Atendimento nao e um evento do historico: o motor a monta com a data de
+  // cadastro do item, que nao passa pelo filtro de periodo. Num relatorio filtrado por data,
+  // ela aparecia fora da janela escolhida - entao aqui ela so entra se couber no periodo.
+  const inicioPeriodo = dataInicioFilter ? new Date(`${dataInicioFilter}T00:00:00`) : null;
+  const fimPeriodo = dataFimFilter ? new Date(`${dataFimFilter}T23:59:59`) : null;
+  const dentroDoPeriodo = (data) => {
+    if (!data) return false;
+    if (inicioPeriodo && data < inicioPeriodo) return false;
+    if (fimPeriodo && data > fimPeriodo) return false;
+    return true;
+  };
+
+  const gruposOrdenados = useMemo(
+    () =>
+      [...grupos]
+        .map((grupo) => ({
+          ...grupo,
+          itens: grupo.itens.filter(
+            (item) => item.etapaNome !== ETAPA_LANCAMENTO || dentroDoPeriodo(item.rawDataHoraAcao)
+          ),
+        }))
+        .sort((a, b) => (dataDoAtendimento(a) ?? 0) - (dataDoAtendimento(b) ?? 0)),
+    [grupos, dataInicioFilter, dataFimFilter]
+  );
+
   const toggleColumn = (id) => {
     setSelectedColumns((prev) => (prev.includes(id) ? prev.filter((col) => col !== id) : [...prev, id]));
   };
@@ -263,14 +329,13 @@ export default function HistoricoTarefasReportPage() {
       colaboradorFilter === 'todos'
         ? null
         : colaboradores.find((c) => c.id === Number(colaboradorFilter))?.nome ?? `#${colaboradorFilter}`;
-    const projetoNome =
-      projetoFilter === 'todos'
-        ? null
-        : projetos.find((p) => p.id === Number(projetoFilter))?.nome ?? `#${projetoFilter}`;
     const clienteNome =
       clienteFilter === 'todos'
         ? null
-        : clientes.find((c) => c.id === Number(clienteFilter))?.nome ?? `#${clienteFilter}`;
+        : (() => {
+            const achado = clientes.find((c) => c.id === Number(clienteFilter));
+            return achado ? resolverNomeClienteCadastro(achado) : `#${clienteFilter}`;
+          })();
 
     const etapaNome =
       etapaFilter === 'todos'
@@ -283,10 +348,8 @@ export default function HistoricoTarefasReportPage() {
         ? `Ação: ${tipoFilter === 'reservada' ? ROTULO_RESERVADO : getTipoLabel(tipoFilter)}`
         : null,
       colaboradorNome ? `Colaborador: ${colaboradorNome}` : null,
-      projetoNome ? `Projeto: ${projetoNome}` : null,
       clienteNome ? `Cliente: ${clienteNome}` : null,
       etapaNome ? `Etapa: ${etapaNome}` : null,
-      ultimaOcorrencia ? 'Última ocorrência por tarefa/etapa' : null,
       dataInicioFilter ? `Data início: ${new Date(`${dataInicioFilter}T00:00:00`).toLocaleDateString('pt-BR')}` : null,
       dataFimFilter ? `Data fim: ${new Date(`${dataFimFilter}T00:00:00`).toLocaleDateString('pt-BR')}` : null,
     ].filter(Boolean);
@@ -303,19 +366,44 @@ export default function HistoricoTarefasReportPage() {
     const doc = new jsPDF();
     const activeColumns = columns.filter((c) => selectedColumns.includes(c.id));
     const { filtersSummary, columnsSummary } = buildFiltersSummary(activeColumns);
-    const body = sortedData.map((row) => activeColumns.map((col) => row[col.id] ?? ''));
+    // As exportações seguem a visão escolhida na tela.
+    const colunasDaLinha = visao === 'agrupada' ? colunasVisiveis : activeColumns;
+    const body = [];
+    if (visao === 'agrupada') {
+      gruposOrdenados.forEach((grupo, indice) => {
+        body.push([
+          {
+            content: buildCabecalhoGrupo(grupo, indice + 1),
+            colSpan: colunasDaLinha.length,
+            styles: { fontStyle: 'bold', fillColor: [230, 240, 250] },
+          },
+        ]);
+        const tempos = buildTemposGrupo(grupo);
+        if (tempos) {
+          body.push([
+            { content: tempos, colSpan: colunasDaLinha.length, styles: { fontStyle: 'italic', fillColor: [243, 248, 253] } },
+          ]);
+        }
+        grupo.itens.forEach((item) => body.push(colunasDaLinha.map((col) => item[col.id] ?? '')));
+      });
+    } else {
+      sortedData.forEach((row) => body.push(colunasDaLinha.map((col) => row[col.id] ?? '')));
+    }
     const emissionDate = new Date().toLocaleString('pt-BR');
     const logoDataUrl = await obterLogotipo(systemSettings);
     const footerLines = obterRodapeRelatorio(systemSettings);
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const countLine = `Total: ${sortedData.length} registro(s) | ${totalTarefas} tarefa(s) distinta(s)`;
+    const countLine =
+      visao === 'agrupada'
+        ? `Total: ${gruposOrdenados.length} tarefa(s)`
+        : `Total: ${sortedData.length} registro(s)`;
     const filtersLines = doc.splitTextToSize(`Filtros: ${filtersSummary}`, pageWidth - 70);
     const columnsLines = doc.splitTextToSize(columnsSummary, pageWidth - 70);
     const headerEndY = 30 + 6 + filtersLines.length * 6 + columnsLines.length * 6;
 
     autoTable(doc, {
-      head: [activeColumns.map((c) => c.label)],
+      head: [colunasDaLinha.map((c) => c.label)],
       body,
       styles: { fontSize: 8 },
       headStyles: { overflow: 'ellipsize' },
@@ -353,19 +441,34 @@ export default function HistoricoTarefasReportPage() {
     const headerRows = [
       [reportTitle],
       [`Data de emissão: ${emissionDate}`],
-      [`Total: ${sortedData.length} registro(s) | ${totalTarefas} tarefa(s) distinta(s)`],
+      [
+        visao === 'agrupada'
+          ? `Total: ${gruposOrdenados.length} tarefa(s)`
+          : `Total: ${sortedData.length} registro(s)`,
+      ],
       [`Filtros: ${filtersSummary}`],
       [columnsSummary],
       [],
-      activeColumns.map((c) => c.label),
+      colunasDaLinha.map((c) => c.label),
     ];
 
-    const dataRows = sortedData.map((row) => activeColumns.map((col) => row[col.id] ?? ''));
+    const colunasDaLinha = visao === 'agrupada' ? colunasVisiveis : activeColumns;
+    const dataRows = [];
+    if (visao === 'agrupada') {
+      gruposOrdenados.forEach((grupo, indice) => {
+        dataRows.push([buildCabecalhoGrupo(grupo, indice + 1)]);
+        const tempos = buildTemposGrupo(grupo);
+        if (tempos) dataRows.push([tempos]);
+        grupo.itens.forEach((item) => dataRows.push(colunasDaLinha.map((col) => item[col.id] ?? '')));
+      });
+    } else {
+      sortedData.forEach((row) => dataRows.push(colunasDaLinha.map((col) => row[col.id] ?? '')));
+    }
     const footerRows = [[], ...footerLines.map((line) => [line])];
     const worksheet = XLSX.utils.aoa_to_sheet([...headerRows, ...dataRows, ...footerRows]);
 
-    if (activeColumns.length > 1) {
-      const lastColumnIndex = activeColumns.length - 1;
+    if (colunasDaLinha.length > 1) {
+      const lastColumnIndex = colunasDaLinha.length - 1;
       worksheet['!merges'] = [
         { s: { r: 0, c: 0 }, e: { r: 0, c: lastColumnIndex } },
         { s: { r: 1, c: 0 }, e: { r: 1, c: lastColumnIndex } },
@@ -401,7 +504,7 @@ export default function HistoricoTarefasReportPage() {
           },
           {
             element: '#tour-relatorio-filtros',
-            popover: { title: 'Filtros', description: 'Filtre por <strong>tipo de ação</strong>, <strong>colaborador</strong>, <strong>projeto</strong>, <strong>cliente</strong> e <strong>período</strong>. Os filtros são consultados no servidor.<br>A ação <strong>Reservada</strong> é a entrada na etapa de elaboração antes de qualquer início — o fim desse período é a linha <strong>Início de Elaboração</strong>.', side: 'bottom', align: 'start' },
+            popover: { title: 'Filtros', description: 'Filtre por <strong>tipo de ação</strong>, <strong>colaborador</strong>, <strong>cliente</strong>, <strong>etapa</strong> e <strong>período</strong>, todos consultados no servidor. A <strong>busca</strong> procura na tarefa, na descrição e no projeto — colaborador e cliente têm filtro próprio ao lado.<br>A ação <strong>Reservada</strong> é a entrada na etapa de elaboração antes de qualquer início — o fim desse período é a linha <strong>Início de Elaboração</strong>.', side: 'bottom', align: 'start' },
           },
           {
             element: '#tour-relatorio-colunas',
@@ -409,7 +512,7 @@ export default function HistoricoTarefasReportPage() {
           },
           {
             element: '#tour-relatorio-tabela',
-            popover: { title: 'Tabela de Resultados', description: 'Clique no cabeçalho de uma coluna para <strong>ordenar</strong>. Por padrão, ordenado pela data mais recente.', side: 'top', align: 'center' },
+            popover: { title: 'Tabela de Resultados', description: 'Clique no cabeçalho de uma coluna para <strong>ordenar</strong>. Por padrão, em ordem cronológica: do mais antigo para o mais recente.', side: 'top', align: 'center' },
           },
           {
             element: '#tour-relatorio-filtros',
@@ -427,6 +530,39 @@ export default function HistoricoTarefasReportPage() {
   }, []);
 
   const activeColumns = columns.filter((c) => selectedColumns.includes(c.id));
+
+  // Na visão agrupada estas quatro sobem para o cabeçalho do bloco, como no Relatório de
+  // Comissão: identificam a tarefa e se repetiriam em toda linha dela.
+  // Na visão agrupada o bloco é o mesmo do Relatório de Comissão: o que identifica a tarefa sobe
+  // para o cabeçalho e as linhas ficam só com a passagem por etapa. As demais colunas do relatório
+  // (ID, Ação) não existem numa passagem — ela é reconstruída de vários eventos.
+  const COLUNAS_DA_PASSAGEM = ['etapaNome', 'colaboradorNome', 'dataHoraAcao', 'observacao'];
+  const colunasVisiveis =
+    visao === 'agrupada'
+      ? activeColumns.filter((c) => COLUNAS_DA_PASSAGEM.includes(c.id))
+      : activeColumns;
+
+  const buildCabecalhoGrupo = (grupo, numero) => {
+    const partes = [];
+    if (selectedColumns.includes('clienteNome')) partes.push(grupo.clienteNome);
+    if (selectedColumns.includes('projetoTitulo')) partes.push(grupo.projetoTitulo);
+    if (selectedColumns.includes('tarefaTitulo')) partes.push(grupo.tarefaTitulo);
+    if (grupo.descricao?.trim()) partes.push(grupo.descricao.trim());
+    const titulo = partes.length > 0 ? partes.join(' — ') : `Tarefa #${grupo.tarefaId}`;
+    // Quem aprovou fica no cabeçalho do item, ao lado do que identifica a tarefa.
+    const comAprovador = grupo.aprovadorNome ? `${titulo} · Aprovado por: ${grupo.aprovadorNome}` : titulo;
+    return numero ? `${numero} - ${comAprovador}` : comAprovador;
+  };
+
+  /** Execução e teste do item: realizado e, entre parênteses, o previsto na tarefa. */
+  const buildTemposGrupo = (grupo) => {
+    const tempos = [];
+    const execucao = formatarTempoComPrevisto(grupo.execucaoRealizadaMin, grupo.execucaoPrevistaMin);
+    const teste = formatarTempoComPrevisto(grupo.testeRealizadoMin, grupo.testePrevistoMin);
+    if (execucao) tempos.push(`Execução: ${execucao}`);
+    if (teste) tempos.push(`Teste: ${teste}`);
+    return tempos.length > 0 ? tempos.join(' · ') : null;
+  };
 
   // Não retorna cedo em isLoading: isso desmontaria os campos de filtro (incluindo os de data) a
   // cada busca — inclusive as disparadas por cada tecla digitada — fazendo o campo perder o foco.
@@ -464,10 +600,16 @@ export default function HistoricoTarefasReportPage() {
               <CardTitle className="flex items-center gap-2"><Filter className="h-5 w-5" /> Filtros</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Mesmo arranjo do Relatório de Comissão: três filtros por linha. A busca é a
+                  exceção — ocupa duas colunas, então a linha dela tem dois. */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="md:col-span-2">
                   <Label>Busca</Label>
-                  <Input placeholder="Tarefa, projeto, cliente ou colaborador" value={search} onChange={(e) => setSearch(e.target.value)} />
+                  <Input
+                    placeholder="Tarefa, descrição ou projeto"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
                 </div>
                 <div>
                   <Label>Ação</Label>
@@ -488,7 +630,15 @@ export default function HistoricoTarefasReportPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label>Data início</Label>
+                  <Input type="date" value={dataInicioFilter} onChange={(e) => setDataInicioFilter(e.target.value)} />
+                </div>
+                <div>
+                  <Label>Data fim</Label>
+                  <Input type="date" value={dataFimFilter} onChange={(e) => setDataFimFilter(e.target.value)} />
+                </div>
                 <div>
                   <Label>Colaborador</Label>
                   <Combobox
@@ -503,15 +653,15 @@ export default function HistoricoTarefasReportPage() {
                   />
                 </div>
                 <div>
-                  <Label>Projeto</Label>
+                  <Label>Cliente</Label>
                   <Combobox
-                    value={projetoFilter}
-                    onValueChange={setProjetoFilter}
-                    placeholder="Projeto"
-                    searchPlaceholder="Buscar projeto..."
+                    value={clienteFilter}
+                    onValueChange={setClienteFilter}
+                    placeholder="Cliente"
+                    searchPlaceholder="Buscar cliente..."
                     options={[
                       { value: 'todos', label: 'Todos' },
-                      ...projetos.map((p) => ({ value: String(p.id), label: p.nome })),
+                      ...clientes.map((c) => ({ value: String(c.id), label: resolverNomeClienteCadastro(c) })),
                     ]}
                   />
                 </div>
@@ -526,28 +676,6 @@ export default function HistoricoTarefasReportPage() {
                       ))}
                     </SelectContent>
                   </Select>
-                </div>
-                <div className="flex flex-col justify-end">
-                  <label className="flex items-center gap-2 cursor-pointer select-none h-10 px-3 rounded-md border border-input bg-background text-sm">
-                    <input
-                      type="checkbox"
-                      checked={ultimaOcorrencia}
-                      onChange={(e) => setUltimaOcorrencia(e.target.checked)}
-                      className="rounded"
-                    />
-                    Última ocorrência
-                  </label>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label>Data início</Label>
-                  <Input type="date" value={dataInicioFilter} onChange={(e) => setDataInicioFilter(e.target.value)} />
-                </div>
-                <div>
-                  <Label>Data fim</Label>
-                  <Input type="date" value={dataFimFilter} onChange={(e) => setDataFimFilter(e.target.value)} />
                 </div>
               </div>
             </CardContent>
@@ -575,12 +703,23 @@ export default function HistoricoTarefasReportPage() {
         <Card id="tour-relatorio-tabela">
           <CardHeader>
             <CardTitle className="flex items-center justify-between flex-wrap gap-2">
-              <span>{filteredData.length} registro(s)</span>
-              {totalTarefas > 0 && (
-                <span className="text-sm font-normal text-muted-foreground">
-                  {totalTarefas} tarefa(s) distinta(s) no servidor
-                </span>
-              )}
+              <span>
+                {visao === 'agrupada'
+                  ? `${gruposOrdenados.length} tarefa(s)`
+                  : `${filteredData.length} registro(s)`}
+              </span>
+              <div className="flex items-center gap-3 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-normal text-muted-foreground whitespace-nowrap">Visão</span>
+                  <Select value={visao} onValueChange={definirVisao}>
+                    <SelectTrigger className="w-52"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="agrupada">Agrupada por tarefa</SelectItem>
+                      <SelectItem value="detalhada">Detalhada (log)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -588,18 +727,22 @@ export default function HistoricoTarefasReportPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-brand-blue/5">
-                    {activeColumns.map((col) => (
+                    {colunasVisiveis.map((col) => (
                       <TableHead key={col.id} className="font-semibold text-brand-blue">
-                        <button
-                          type="button"
-                          onClick={() => handleSort(col.id)}
-                          className="flex items-center gap-2 w-full text-left focus:outline-none"
-                        >
-                          <span>{col.label}</span>
-                          {sortConfig.column === col.id && (
-                            <span className="text-xs">{sortConfig.direction === 'asc' ? '▲' : '▼'}</span>
-                          )}
-                        </button>
+                        {visao === 'agrupada' ? (
+                          col.label
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleSort(col.id)}
+                            className="flex items-center gap-2 w-full text-left focus:outline-none"
+                          >
+                            <span>{col.label}</span>
+                            {sortConfig.column === col.id && (
+                              <span className="text-xs">{sortConfig.direction === 'asc' ? '▲' : '▼'}</span>
+                            )}
+                          </button>
+                        )}
                       </TableHead>
                     ))}
                   </TableRow>
@@ -607,22 +750,55 @@ export default function HistoricoTarefasReportPage() {
                 <TableBody>
                   {isLoading && (
                     <TableRow>
-                      <TableCell colSpan={activeColumns.length} className="text-center text-muted-foreground">
+                      <TableCell colSpan={colunasVisiveis.length} className="text-center text-muted-foreground">
                         Carregando...
                       </TableCell>
                     </TableRow>
                   )}
-                  {!isLoading && sortedData.map((row) => (
+
+                  {!isLoading && visao === 'detalhada' && sortedData.map((row) => (
                     <TableRow key={row.id} className="hover:bg-muted/40">
                       {activeColumns.map((col) => (
                         <TableCell key={col.id}>{row[col.id]}</TableCell>
                       ))}
                     </TableRow>
                   ))}
-                  {!isLoading && filteredData.length === 0 && (
+
+                  {!isLoading && visao === 'agrupada' && gruposOrdenados.map((grupo, indice) => (
+                    <Fragment key={grupo.tarefaId}>
+                      <TableRow className="bg-brand-blue/10 hover:bg-brand-blue/10">
+                        <TableCell colSpan={colunasVisiveis.length} className="font-semibold text-brand-blue">
+                          {buildCabecalhoGrupo(grupo, indice + 1)}
+                        </TableCell>
+                      </TableRow>
+                      {buildTemposGrupo(grupo) && (
+                        <TableRow className="bg-brand-blue/5 hover:bg-brand-blue/5">
+                          <TableCell colSpan={colunasVisiveis.length} className="text-xs text-muted-foreground">
+                            {buildTemposGrupo(grupo)}
+                          </TableCell>
+                        </TableRow>
+                      )}
+                      {grupo.itens.map((item) => (
+                        <TableRow key={item.id} className="hover:bg-muted/40">
+                          {colunasVisiveis.map((col) => (
+                            <TableCell key={col.id}>{item[col.id]}</TableCell>
+                          ))}
+                        </TableRow>
+                      ))}
+                    </Fragment>
+                  ))}
+
+                  {!isLoading && visao === 'detalhada' && filteredData.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={activeColumns.length} className="text-center text-muted-foreground">
+                      <TableCell colSpan={colunasVisiveis.length} className="text-center text-muted-foreground">
                         Nenhum registro encontrado com os filtros selecionados.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {!isLoading && visao === 'agrupada' && gruposOrdenados.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={colunasVisiveis.length} className="text-center text-muted-foreground">
+                        Nenhuma tarefa com passagem por etapa nos filtros selecionados.
                       </TableCell>
                     </TableRow>
                   )}
