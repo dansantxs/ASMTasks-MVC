@@ -135,11 +135,25 @@ export default function HistoricoTarefasReportPage() {
   });
 
   const colaboradores = useMemo(() => colaboradoresRaw.filter((c) => c.ativo !== false), [colaboradoresRaw]);
-  const clientes = useMemo(() => clientesRaw.filter((c) => c.ativo !== false), [clientesRaw]);
+  const clientes = useMemo(
+    () =>
+      clientesRaw
+        .filter((c) => c.ativo !== false)
+        .sort((a, b) =>
+          resolverNomeClienteCadastro(a).localeCompare(resolverNomeClienteCadastro(b), 'pt-BR', { sensitivity: 'base' })
+        ),
+    [clientesRaw, exibicaoNomeCliente]
+  );
   const etapas = useMemo(() => etapasRaw.filter((e) => e.ativo !== false), [etapasRaw]);
   const totalTarefas = historicoTarefasApi.totalTarefas ?? 0;
 
   const exibicaoNomeCliente = systemSettings?.exibicaoNomeCliente ?? 'razaoSocial';
+
+  // O cadastro traz nome/nomeFantasia; a linha do relatório, clienteNome/clienteNomeFantasia.
+  function resolverNomeClienteCadastro(cliente) {
+    if (exibicaoNomeCliente === 'nomeFantasia' && cliente.nomeFantasia) return cliente.nomeFantasia;
+    return cliente.nome ?? ' ';
+  }
 
   function resolverNomeCliente(item) {
     if (exibicaoNomeCliente === 'nomeFantasia' && item.clienteNomeFantasia) return item.clienteNomeFantasia;
@@ -200,14 +214,13 @@ export default function HistoricoTarefasReportPage() {
         if (tipoFilter === 'reservada' && !item.reservada) return false;
         const term = search.toLowerCase();
         if (!term) return true;
-        // Colaborador ficou de fora de propósito: tem filtro próprio, e procurar pelo nome aqui
+        // Colaborador e cliente ficaram de fora de propósito: têm filtro próprio, e procurar pelo nome aqui
         // trazia o histórico inteiro de quem a pessoa tocou. A descrição entrou no lugar — o
         // endpoint sempre a devolveu e a busca nunca a usava.
         return (
           item.tarefaTitulo.toLowerCase().includes(term) ||
           item.tarefaDescricao.toLowerCase().includes(term) ||
-          item.projetoTitulo.toLowerCase().includes(term) ||
-          item.clienteNome.toLowerCase().includes(term)
+          item.projetoTitulo.toLowerCase().includes(term)
         );
       }),
     [data, search, tipoFilter]
@@ -261,7 +274,10 @@ export default function HistoricoTarefasReportPage() {
     const clienteNome =
       clienteFilter === 'todos'
         ? null
-        : clientes.find((c) => c.id === Number(clienteFilter))?.nome ?? `#${clienteFilter}`;
+        : (() => {
+            const achado = clientes.find((c) => c.id === Number(clienteFilter));
+            return achado ? resolverNomeClienteCadastro(achado) : `#${clienteFilter}`;
+          })();
 
     const etapaNome =
       etapaFilter === 'todos'
@@ -390,7 +406,7 @@ export default function HistoricoTarefasReportPage() {
           },
           {
             element: '#tour-relatorio-filtros',
-            popover: { title: 'Filtros', description: 'Filtre por <strong>tipo de ação</strong>, <strong>colaborador</strong>, <strong>etapa</strong> e <strong>período</strong>, todos consultados no servidor. A <strong>busca</strong> procura na tarefa, na descrição, no projeto e no cliente — no colaborador não, que para isso há o filtro ao lado.<br>A ação <strong>Reservada</strong> é a entrada na etapa de elaboração antes de qualquer início — o fim desse período é a linha <strong>Início de Elaboração</strong>.', side: 'bottom', align: 'start' },
+            popover: { title: 'Filtros', description: 'Filtre por <strong>tipo de ação</strong>, <strong>colaborador</strong>, <strong>cliente</strong>, <strong>etapa</strong> e <strong>período</strong>, todos consultados no servidor. A <strong>busca</strong> procura na tarefa, na descrição e no projeto — colaborador e cliente têm filtro próprio ao lado.<br>A ação <strong>Reservada</strong> é a entrada na etapa de elaboração antes de qualquer início — o fim desse período é a linha <strong>Início de Elaboração</strong>.', side: 'bottom', align: 'start' },
           },
           {
             element: '#tour-relatorio-colunas',
@@ -459,7 +475,7 @@ export default function HistoricoTarefasReportPage() {
                 <div className="md:col-span-2">
                   <Label>Busca</Label>
                   <Input
-                    placeholder="Tarefa, descrição, projeto ou cliente"
+                    placeholder="Tarefa, descrição ou projeto"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                   />
@@ -502,6 +518,19 @@ export default function HistoricoTarefasReportPage() {
                     options={[
                       { value: 'todos', label: 'Todos' },
                       ...colaboradores.map((c) => ({ value: String(c.id), label: c.nome })),
+                    ]}
+                  />
+                </div>
+                <div>
+                  <Label>Cliente</Label>
+                  <Combobox
+                    value={clienteFilter}
+                    onValueChange={setClienteFilter}
+                    placeholder="Cliente"
+                    searchPlaceholder="Buscar cliente..."
+                    options={[
+                      { value: 'todos', label: 'Todos' },
+                      ...clientes.map((c) => ({ value: String(c.id), label: resolverNomeClienteCadastro(c) })),
                     ]}
                   />
                 </div>

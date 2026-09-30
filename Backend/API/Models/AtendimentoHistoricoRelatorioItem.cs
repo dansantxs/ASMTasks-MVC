@@ -8,6 +8,9 @@ namespace API.Models
         public string? AtendimentoDescricao { get; set; }
         public int ClienteId { get; set; }
         public string ClienteNome { get; set; } = string.Empty;
+
+        /// <summary>Para a tela mostrar o cliente conforme a configuracao do sistema.</summary>
+        public string? ClienteNomeFantasia { get; set; }
         public char Tipo { get; set; }
         public int ColaboradorId { get; set; }
         public string ColaboradorNome { get; set; } = string.Empty;

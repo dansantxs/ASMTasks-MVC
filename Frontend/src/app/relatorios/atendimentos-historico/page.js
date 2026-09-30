@@ -109,13 +109,25 @@ export default function HistoricoAtendimentosReportPage() {
   });
 
   const clientes = useMemo(
-    () => clientesApi.filter((c) => c.ativo && c.matrizId == null),
-    [clientesApi]
+    () =>
+      clientesApi
+        .filter((c) => c.ativo && c.matrizId == null)
+        .sort((a, b) =>
+          resolverNomeCliente(a).localeCompare(resolverNomeCliente(b), 'pt-BR', { sensitivity: 'base' })
+        ),
+    [clientesApi, porFantasia]
   );
 
+  // Serve para o cadastro (nome/nomeFantasia) e para a linha do relatório
+  // (clienteNome/clienteNomeFantasia), que vêm com nomes de campo diferentes.
+  const porFantasia = systemSettings.exibicaoNomeCliente === 'nomeFantasia';
   const resolverNomeCliente = (c) => {
-    if (systemSettings.exibicaoNomeCliente === 'nomeFantasia' && c.nomeFantasia) return c.nomeFantasia;
+    if (porFantasia && c.nomeFantasia) return c.nomeFantasia;
     return c.nome;
+  };
+  const resolverNomeClienteDaLinha = (item) => {
+    if (porFantasia && item.clienteNomeFantasia) return item.clienteNomeFantasia;
+    return item.clienteNome;
   };
 
   const { data: colaboradores = [] } = useQuery({
@@ -134,7 +146,7 @@ export default function HistoricoAtendimentosReportPage() {
         atendimentoId: item.atendimentoId,
         atendimentoTitulo: item.atendimentoTitulo ?? ' ',
         atendimentoDescricao: item.atendimentoDescricao ?? ' ',
-        clienteNome: item.clienteNome ?? ' ',
+        clienteNome: resolverNomeClienteDaLinha(item) ?? ' ',
         colaboradorNome: item.colaboradorNome ?? ' ',
         statusAtual: item.atendimentoStatusAtual,
         statusAtualLabel: getStatusLabel(item.atendimentoStatusAtual),
@@ -205,7 +217,10 @@ export default function HistoricoAtendimentosReportPage() {
   const buildFiltersSummary = (activeColumns) => {
     const clienteNome = clienteFilter === 'todos'
       ? null
-      : clientes.find((c) => c.id === Number(clienteFilter))?.nome ?? `#${clienteFilter}`;
+      : (() => {
+          const achado = clientes.find((c) => c.id === Number(clienteFilter));
+          return achado ? resolverNomeCliente(achado) : `#${clienteFilter}`;
+        })();
     const colaboradorNome = colaboradorFilter === 'todos'
       ? null
       : colaboradores.find((c) => c.id === Number(colaboradorFilter))?.nome ?? `#${colaboradorFilter}`;

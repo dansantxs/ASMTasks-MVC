@@ -270,6 +270,7 @@ namespace API.Controllers
                 AtendimentoDescricao = item.AtendimentoDescricao,
                 ClienteId = item.ClienteId,
                 ClienteNome = item.ClienteNome,
+                ClienteNomeFantasia = item.ClienteNomeFantasia,
                 Tipo = item.Tipo,
                 ColaboradorId = item.ColaboradorId,
                 ColaboradorNome = item.ColaboradorNome,
