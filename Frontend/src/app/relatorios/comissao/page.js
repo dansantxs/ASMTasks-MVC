@@ -29,6 +29,9 @@ const colunasGrupo = [
   { id: 'projetoTitulo', label: 'Projeto' },
   { id: 'tarefaTitulo', label: 'Tarefa/Atendimento' },
   { id: 'descricao', label: 'Descrição' },
+  // Não é uma coluna da tabela: é a linha de tempos abaixo do cabeçalho do item. Fica aqui para
+  // poder ser desligada junto com as outras, na tela e nas exportações.
+  { id: 'tempos', label: 'Tempos (execução/teste)' },
 ];
 
 // Colunas exibidas em cada linha de passagem de etapa, dentro do grupo
@@ -870,6 +873,8 @@ export default function RelatorioComissaoPage() {
    * Devolve null quando o item não tem tempo nenhum (atendimento, por exemplo).
    */
   function buildTemposGrupo(grupo) {
+    if (!selectedColumns.includes('tempos')) return null;
+
     const tempos = [];
     const execucao = formatarTempoComPrevisto(grupo.execucaoRealizadaMin, grupo.execucaoPrevistaMin);
     const teste = formatarTempoComPrevisto(grupo.testeRealizadoMin, grupo.testePrevistoMin);
