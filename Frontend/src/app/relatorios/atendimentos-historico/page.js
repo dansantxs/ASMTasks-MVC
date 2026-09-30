@@ -108,16 +108,6 @@ export default function HistoricoAtendimentosReportPage() {
     queryFn: getClientes,
   });
 
-  const clientes = useMemo(
-    () =>
-      clientesApi
-        .filter((c) => c.ativo && c.matrizId == null)
-        .sort((a, b) =>
-          resolverNomeCliente(a).localeCompare(resolverNomeCliente(b), 'pt-BR', { sensitivity: 'base' })
-        ),
-    [clientesApi, porFantasia]
-  );
-
   // Serve para o cadastro (nome/nomeFantasia) e para a linha do relatório
   // (clienteNome/clienteNomeFantasia), que vêm com nomes de campo diferentes.
   const porFantasia = systemSettings.exibicaoNomeCliente === 'nomeFantasia';
@@ -129,6 +119,16 @@ export default function HistoricoAtendimentosReportPage() {
     if (porFantasia && item.clienteNomeFantasia) return item.clienteNomeFantasia;
     return item.clienteNome;
   };
+
+  const clientes = useMemo(
+    () =>
+      clientesApi
+        .filter((c) => c.ativo && c.matrizId == null)
+        .sort((a, b) =>
+          resolverNomeCliente(a).localeCompare(resolverNomeCliente(b), 'pt-BR', { sensitivity: 'base' })
+        ),
+    [clientesApi, porFantasia]
+  );
 
   const { data: colaboradores = [] } = useQuery({
     queryKey: ['relatorio-historico-colaboradores'],

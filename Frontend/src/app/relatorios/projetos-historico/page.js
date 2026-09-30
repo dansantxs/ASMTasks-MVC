@@ -135,18 +135,6 @@ export default function HistoricoTarefasReportPage() {
   });
 
   const colaboradores = useMemo(() => colaboradoresRaw.filter((c) => c.ativo !== false), [colaboradoresRaw]);
-  const clientes = useMemo(
-    () =>
-      clientesRaw
-        .filter((c) => c.ativo !== false)
-        .sort((a, b) =>
-          resolverNomeClienteCadastro(a).localeCompare(resolverNomeClienteCadastro(b), 'pt-BR', { sensitivity: 'base' })
-        ),
-    [clientesRaw, exibicaoNomeCliente]
-  );
-  const etapas = useMemo(() => etapasRaw.filter((e) => e.ativo !== false), [etapasRaw]);
-  const totalTarefas = historicoTarefasApi.totalTarefas ?? 0;
-
   const exibicaoNomeCliente = systemSettings?.exibicaoNomeCliente ?? 'razaoSocial';
 
   // O cadastro traz nome/nomeFantasia; a linha do relatório, clienteNome/clienteNomeFantasia.
@@ -159,6 +147,18 @@ export default function HistoricoTarefasReportPage() {
     if (exibicaoNomeCliente === 'nomeFantasia' && item.clienteNomeFantasia) return item.clienteNomeFantasia;
     return item.clienteNome ?? ' ';
   }
+
+  const clientes = useMemo(
+    () =>
+      clientesRaw
+        .filter((c) => c.ativo !== false)
+        .sort((a, b) =>
+          resolverNomeClienteCadastro(a).localeCompare(resolverNomeClienteCadastro(b), 'pt-BR', { sensitivity: 'base' })
+        ),
+    [clientesRaw, exibicaoNomeCliente]
+  );
+  const etapas = useMemo(() => etapasRaw.filter((e) => e.ativo !== false), [etapasRaw]);
+  const totalTarefas = historicoTarefasApi.totalTarefas ?? 0;
 
   const data = useMemo(() => {
     const tarefas = (historicoTarefasApi.registros ?? []).map((item) => {
