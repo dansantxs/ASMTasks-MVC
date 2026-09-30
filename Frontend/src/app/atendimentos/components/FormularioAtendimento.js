@@ -13,6 +13,7 @@ import { Button } from '../../../components/ui/base/button';
 import { Input } from '../../../components/ui/form/input';
 import { Label } from '../../../components/ui/form/label';
 import { Textarea } from '../../../components/ui/form/textarea';
+import { LIMITES, contagem } from '../../../utils/limitesTexto';
 import { Switch } from '../../../components/ui/form/switch';
 import {
   Select,
@@ -84,6 +85,7 @@ export default function FormularioAtendimento({
     notificacoesMinutosAntecedencia: [],
   });
   const [erros, setErros] = useState({});
+  const contagemDescricao = contagem(dadosFormulario.descricao, LIMITES.atendimento.descricao);
   const [configsNotificacao, setConfigsNotificacao] = useState([]);
   const [semHorarioFim, setSemHorarioFim] = useState(false);
   const [showModalBuscaCliente, setShowModalBuscaCliente] = useState(false);
@@ -287,18 +289,28 @@ export default function FormularioAtendimento({
                 value={dadosFormulario.titulo}
                 onChange={(e) => setDadosFormulario((prev) => ({ ...prev, titulo: e.target.value }))}
                 placeholder="Ex.: Atendimento comercial"
+                maxLength={LIMITES.atendimento.titulo}
                 className={erros.titulo ? 'border-destructive' : ''}
               />
               {erros.titulo && <p className="text-sm text-destructive">{erros.titulo}</p>}
             </div>
 
             <div className="md:col-span-2">
-              <Label htmlFor="descricao">Descrição</Label>
+              <div className="flex items-baseline justify-between">
+                <Label htmlFor="descricao">Descrição</Label>
+                {/* Só aparece quando o espaço começa a acabar; antes disso é ruído. */}
+                {contagemDescricao.perto && (
+                  <span className="text-xs text-muted-foreground">
+                    {contagemDescricao.usado} de {contagemDescricao.maximo} caracteres
+                  </span>
+                )}
+              </div>
               <Textarea
                 id="descricao"
                 value={dadosFormulario.descricao}
                 onChange={(e) => setDadosFormulario((prev) => ({ ...prev, descricao: e.target.value }))}
                 placeholder="Observações do atendimento"
+                maxLength={LIMITES.atendimento.descricao}
               />
             </div>
 

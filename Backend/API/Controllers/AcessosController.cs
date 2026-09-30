@@ -1,4 +1,5 @@
 using API.DB;
+using API.Erros;
 using API.DTOs.NiveisAcesso;
 using API.DTOs.Usuarios;
 using API.Models;

@@ -1,4 +1,5 @@
 ﻿using API.DB;
+using API.Erros;
 using API.DTOs.Prioridades;
 using API.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -14,7 +15,7 @@ namespace API.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-    public class PrioridadesController(DBContext dbContext) : ControllerBase
+    public class PrioridadesController(DBContext dbContext, ILogger<PrioridadesController> logger) : ControllerBase
     {
 
         /// <summary>
@@ -51,9 +52,9 @@ namespace API.Controllers
             {
                 return BadRequest(new { erro = ex.Message });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Ocorreu um erro ao criar a prioridade." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "criar a prioridade");
             }
         }
 
@@ -94,9 +95,9 @@ namespace API.Controllers
             {
                 return BadRequest(new { erro = ex.Message });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Ocorreu um erro ao atualizar a prioridade." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "atualizar a prioridade");
             }
         }
 
@@ -126,9 +127,9 @@ namespace API.Controllers
             {
                 return BadRequest(new { erro = ex.Message });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Ocorreu um erro ao inativar a prioridade." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "inativar a prioridade");
             }
         }
 
@@ -154,9 +155,9 @@ namespace API.Controllers
                 await prioridade.ReativarAsync(dbContext);
                 return NoContent();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Ocorreu um erro ao reativar a prioridade." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "reativar a prioridade");
             }
         }
 

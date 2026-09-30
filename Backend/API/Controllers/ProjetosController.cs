@@ -1,4 +1,5 @@
 using API.DB;
+using API.Erros;
 using API.DB.DAOs;
 using API.DTOs.Projetos;
 using API.Models;
@@ -13,7 +14,7 @@ namespace API.Controllers
     [Route("api/[controller]")]
     [Authorize]
     [Produces("application/json")]
-    public class ProjetosController(DBContext dbContext) : ControllerBase
+    public class ProjetosController(DBContext dbContext, ILogger<ProjetosController> logger) : ControllerBase
     {
         private readonly DBContext _dbContext = dbContext;
         private static readonly ProjetosDAO _projetosDAO = new();
@@ -124,7 +125,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao criar o projeto." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "criar o projeto");
             }
         }
 
@@ -149,7 +150,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao inativar o projeto." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "inativar o projeto");
             }
         }
 
@@ -201,7 +202,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao atualizar o projeto." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "atualizar o projeto");
             }
         }
 
@@ -226,7 +227,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao reativar o projeto." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "reativar o projeto");
             }
         }
 
@@ -257,7 +258,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao desmarcar conclusão do projeto." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "desmarcar conclusão do projeto");
             }
         }
 
@@ -301,7 +302,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao obter documento do projeto." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "obter documento do projeto");
             }
         }
 
@@ -362,7 +363,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao duplicar o projeto." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "duplicar o projeto");
             }
         }
 
@@ -389,7 +390,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao obter tarefas do kanban." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "obter tarefas do kanban");
             }
         }
 
@@ -510,7 +511,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao mover tarefa de etapa." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "mover tarefa de etapa");
             }
         }
 
@@ -580,7 +581,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao trocar responsável." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "trocar responsável");
             }
         }
 
@@ -627,7 +628,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao iniciar tarefa." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "iniciar tarefa");
             }
         }
 
@@ -668,7 +669,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao pausar tarefa." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "pausar tarefa");
             }
         }
 
@@ -688,7 +689,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao obter tarefa em andamento." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "obter tarefa em andamento");
             }
         }
 
@@ -721,7 +722,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao obter relatório de histórico de projetos." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "obter relatório de histórico de projetos");
             }
         }
 
@@ -736,7 +737,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao obter histórico do projeto." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "obter histórico do projeto");
             }
         }
 
@@ -752,7 +753,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao obter histórico da tarefa." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "obter histórico da tarefa");
             }
         }
 
@@ -789,7 +790,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao obter relatório de histórico." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "obter relatório de histórico");
             }
         }
 
@@ -861,7 +862,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao fazer upload do anexo." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "fazer upload do anexo");
             }
         }
 
@@ -890,7 +891,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao obter anexos." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "obter anexos");
             }
         }
 
@@ -924,7 +925,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao obter arquivo." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "obter arquivo");
             }
         }
 
@@ -958,7 +959,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao deletar anexo." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "deletar anexo");
             }
         }
 

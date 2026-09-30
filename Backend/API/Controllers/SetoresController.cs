@@ -1,4 +1,5 @@
 ﻿using API.DB;
+using API.Erros;
 using API.DTOs.Setores;
 using API.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -14,7 +15,7 @@ namespace API.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-    public class SetoresController(DBContext dbContext) : ControllerBase
+    public class SetoresController(DBContext dbContext, ILogger<SetoresController> logger) : ControllerBase
     {
 
         /// <summary>
@@ -51,7 +52,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Ocorreu um erro ao criar o setor." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "criar o setor");
             }
         }
 
@@ -92,7 +93,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Ocorreu um erro ao atualizar o setor." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "atualizar o setor");
             }
         }
 
@@ -124,7 +125,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Ocorreu um erro ao inativar o setor." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "inativar o setor");
             }
         }
 
@@ -152,7 +153,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Ocorreu um erro ao reativar o setor." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "reativar o setor");
             }
         }
 

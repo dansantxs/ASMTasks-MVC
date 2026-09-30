@@ -1,4 +1,5 @@
 ﻿using API.DB;
+using API.Erros;
 using API.DB.DAOs;
 using API.DTOs.Cargos;
 using API.DTOs.Etapas;
@@ -16,7 +17,7 @@ namespace API.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-    public class EtapasController(DBContext dbContext) : ControllerBase
+    public class EtapasController(DBContext dbContext, ILogger<EtapasController> logger) : ControllerBase
     {
         private static readonly EtapasDAO _etapasDAO = new EtapasDAO();
 
@@ -55,9 +56,9 @@ namespace API.Controllers
             {
                 return BadRequest(new { erro = ex.Message });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Ocorreu um erro ao criar a etapa." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "criar a etapa");
             }
         }
 
@@ -99,9 +100,9 @@ namespace API.Controllers
             {
                 return BadRequest(new { erro = ex.Message });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Ocorreu um erro ao atualizar a etapa." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "atualizar a etapa");
             }
         }
 
@@ -131,9 +132,9 @@ namespace API.Controllers
             {
                 return BadRequest(new { erro = ex.Message });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Ocorreu um erro ao inativar a etapa." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "inativar a etapa");
             }
         }
 
@@ -159,9 +160,9 @@ namespace API.Controllers
                 await etapa.ReativarAsync(dbContext);
                 return NoContent();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Ocorreu um erro ao reativar a etapa." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "reativar a etapa");
             }
         }
 
@@ -179,9 +180,9 @@ namespace API.Controllers
                 await _etapasDAO.ReordenarAsync(dbContext, itens);
                 return NoContent();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Ocorreu um erro ao reordenar as etapas." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "reordenar as etapas");
             }
         }
 
