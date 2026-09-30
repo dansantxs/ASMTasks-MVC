@@ -1,4 +1,4 @@
-export const VERSAO_ATUAL = '1.12.0';
+export const VERSAO_ATUAL = '1.13.0';
 
 /**
  * Regra de versionamento (major.minor.patch):
@@ -18,6 +18,17 @@ export const VERSAO_ATUAL = '1.12.0';
  *  2. Adicione uma nova entrada NO INÍCIO do array CHANGELOG.
  */
 export const CHANGELOG = [
+  {
+    versao: '1.13.0',
+    data: '2026-09-30',
+    titulo: 'Etapa de Elaboração no Cadastro e Mensagens de Erro que Explicam o Problema',
+    mudancas: [
+      'Cadastro de Etapas: nova marcação "Etapa de Elaboração", ao lado das de "Etapa Final" e "Etapa de Teste". Antes o sistema descobria qual era a etapa de elaboração procurando "elabora" ou "desenvolv" no nome dela — e isso define quem recebe o crédito no Relatório de Comissão e o que aparece como Reservado, de modo que renomear a etapa quebrava o relatório sem avisar. Marcada a etapa, o nome deixa de importar',
+      'Erros do sistema: em vez de "Erro ao criar o atendimento." sem mais nada, a tela passa a explicar o que houve — texto maior que o campo (dizendo qual campo e quantos caracteres tirar), registro em uso por outro cadastro, dado duplicado, demora demais ou banco fora do ar. O que o sistema não souber explicar vem com um código curto para informar ao suporte, e toda falha passa a ficar registrada no log',
+      'Atendimentos: os campos de título, descrição e observação de conclusão passam a parar de aceitar texto ao chegar no limite, mostrando a contagem de caracteres quando o espaço começa a acabar. Antes dava para escrever à vontade e só descobrir o problema ao salvar',
+      'Visualização do projeto: a etapa concluída deixa de ser reconhecida por conter "conclu" no nome e passa a usar a marcação "Etapa Final" do cadastro',
+    ],
+  },
   {
     versao: '1.12.0',
     data: '2026-09-29',
