@@ -1,5 +1,4 @@
 using API.DB;
-using API.Erros;
 using API.DTOs.Auth;
 using API.Models;
 using API.Services;
