@@ -1,4 +1,5 @@
 ﻿using API.DB;
+using API.Erros;
 using API.DTOs.Clientes;
 using API.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -11,7 +12,7 @@ namespace API.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-    public class ClientesController(DBContext dbContext) : ControllerBase
+    public class ClientesController(DBContext dbContext, ILogger<ClientesController> logger) : ControllerBase
     {
 
         [HttpPost]
@@ -50,9 +51,9 @@ namespace API.Controllers
             {
                 return BadRequest(new { erro = ex.Message });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao criar o cliente." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "criar o cliente");
             }
         }
 
@@ -94,9 +95,9 @@ namespace API.Controllers
             {
                 return BadRequest(new { erro = ex.Message });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao atualizar o cliente." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "atualizar o cliente");
             }
         }
 
@@ -119,9 +120,9 @@ namespace API.Controllers
             {
                 return BadRequest(new { erro = ex.Message });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao inativar o cliente." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "inativar o cliente");
             }
         }
 
@@ -140,9 +141,9 @@ namespace API.Controllers
                 await cliente.ReativarAsync(dbContext);
                 return NoContent();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao reativar o cliente." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "reativar o cliente");
             }
         }
 

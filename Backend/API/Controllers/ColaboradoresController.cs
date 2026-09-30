@@ -1,4 +1,5 @@
 ﻿using API.DB;
+using API.Erros;
 using API.DTOs.Colaboradores;
 using API.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -14,7 +15,7 @@ namespace API.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-    public class ColaboradoresController(DBContext dbContext) : ControllerBase
+    public class ColaboradoresController(DBContext dbContext, ILogger<ColaboradoresController> logger) : ControllerBase
     {
 
         /// <summary>
@@ -70,9 +71,9 @@ namespace API.Controllers
             {
                 return BadRequest(new { erro = ex.Message });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Ocorreu um erro ao criar o colaborador." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "criar o colaborador");
             }
         }
 
@@ -123,9 +124,9 @@ namespace API.Controllers
             {
                 return BadRequest(new { erro = ex.Message });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Ocorreu um erro ao atualizar o colaborador." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "atualizar o colaborador");
             }
         }
 
@@ -155,9 +156,9 @@ namespace API.Controllers
             {
                 return BadRequest(new { erro = ex.Message });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Ocorreu um erro ao inativar o colaborador." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "inativar o colaborador");
             }
         }
 
@@ -183,9 +184,9 @@ namespace API.Controllers
                 await colaborador.ReativarAsync(dbContext);
                 return NoContent();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Ocorreu um erro ao reativar o colaborador." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "reativar o colaborador");
             }
         }
 

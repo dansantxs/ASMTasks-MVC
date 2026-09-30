@@ -1,4 +1,5 @@
 using API.DB;
+using API.Erros;
 using API.DTOs.Atendimentos;
 using API.Models;
 using API.Security;
@@ -14,7 +15,7 @@ namespace API.Controllers
     [Route("api/[controller]")]
     [Produces("application/json")]
     [Authorize]
-    public class AtendimentosController(DBContext dbContext) : ControllerBase
+    public class AtendimentosController(DBContext dbContext, ILogger<AtendimentosController> logger) : ControllerBase
     {
 
         [HttpPost]
@@ -46,7 +47,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao criar o atendimento." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "criar o atendimento");
             }
         }
 
@@ -83,7 +84,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao atualizar o atendimento." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "atualizar o atendimento");
             }
         }
 
@@ -111,7 +112,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao excluir o atendimento." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "excluir o atendimento");
             }
         }
 
@@ -144,7 +145,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao atualizar status do atendimento." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "atualizar status do atendimento");
             }
         }
 
@@ -193,7 +194,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { erro = "Erro ao atualizar status do atendimento." });
+                return RespostaDeErro.Inesperado(this, logger, ex, "atualizar status do atendimento");
             }
         }
 

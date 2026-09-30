@@ -29,6 +29,10 @@ namespace API.Models
             if (string.IsNullOrWhiteSpace(Titulo))
                 throw new ValidationException("O titulo do atendimento e obrigatorio.");
 
+            LimitesDeTexto.Exigir(Titulo, LimitesDeTexto.AtendimentoTitulo, "O título");
+            LimitesDeTexto.Exigir(Descricao, LimitesDeTexto.AtendimentoDescricao, "A descrição");
+            LimitesDeTexto.Exigir(ObservacaoConclusao, LimitesDeTexto.AtendimentoObservacaoConclusao, "A observação de conclusão");
+
             if (DataHoraInicio == default)
                 throw new ValidationException("A data/hora de inicio do atendimento e obrigatoria.");
 
@@ -133,6 +137,8 @@ namespace API.Models
         {
             if (concluidoPorColaboradorId <= 0)
                 throw new ValidationException("O colaborador que finalizou e obrigatorio.");
+
+            LimitesDeTexto.Exigir(observacaoConclusao, LimitesDeTexto.AtendimentoObservacaoConclusao, "A observação de conclusão");
 
             var colaboradorFinalizacao = await Colaborador.ObterPorIdAsync(dbContext, concluidoPorColaboradorId);
             if (colaboradorFinalizacao == null || !colaboradorFinalizacao.Ativo)
