@@ -224,6 +224,13 @@ export default function HistoricoAtendimentosReportPage() {
     tipoItem: 'atendimento',
   });
 
+  // O motor devolve os itens na ordem em que os encontrou, que e a da consulta. Aqui a ordem
+  // e explicita: o mais recente primeiro, igual ao padrao da visao detalhada.
+  const gruposOrdenados = useMemo(
+    () => [...grupos].sort((a, b) => (b.dataConclusao ?? 0) - (a.dataConclusao ?? 0)),
+    [grupos]
+  );
+
   const toggleColumn = (id) => {
     setSelectedColumns((prev) => (prev.includes(id) ? prev.filter((col) => col !== id) : [...prev, id]));
   };
@@ -273,7 +280,7 @@ export default function HistoricoAtendimentosReportPage() {
     const colunasDaLinha = visao === 'agrupada' ? colunasVisiveis : activeColumns;
     const body = [];
     if (visao === 'agrupada') {
-      grupos.forEach((grupo, indice) => {
+      gruposOrdenados.forEach((grupo, indice) => {
         body.push([
           {
             content: buildCabecalhoGrupo(grupo, indice + 1),
@@ -348,7 +355,7 @@ export default function HistoricoAtendimentosReportPage() {
     const colunasDaLinha = visao === 'agrupada' ? colunasVisiveis : activeColumns;
     const dataRows = [];
     if (visao === 'agrupada') {
-      grupos.forEach((grupo, indice) => {
+      gruposOrdenados.forEach((grupo, indice) => {
         dataRows.push([buildCabecalhoGrupo(grupo, indice + 1)]);
         grupo.itens.forEach((item) => dataRows.push(colunasDaLinha.map((col) => valorDaLinha(item, col) ?? '')));
       });
@@ -568,7 +575,7 @@ export default function HistoricoAtendimentosReportPage() {
             <CardTitle className="flex items-center justify-between flex-wrap gap-2">
               <span>
                 {visao === 'agrupada'
-                  ? `${grupos.length} atendimento(s)`
+                  ? `${gruposOrdenados.length} atendimento(s)`
                   : `${filteredData.length} resultado(s)`}
               </span>
               <div className="flex items-center gap-2">
@@ -625,7 +632,7 @@ export default function HistoricoAtendimentosReportPage() {
                     </TableRow>
                   ))}
 
-                  {!isLoading && visao === 'agrupada' && grupos.map((grupo, indice) => (
+                  {!isLoading && visao === 'agrupada' && gruposOrdenados.map((grupo, indice) => (
                     <Fragment key={grupo.tarefaId}>
                       <TableRow className="bg-brand-blue/10 hover:bg-brand-blue/10">
                         <TableCell colSpan={colunasVisiveis.length} className="font-semibold text-brand-blue">
@@ -649,7 +656,7 @@ export default function HistoricoAtendimentosReportPage() {
                       </TableCell>
                     </TableRow>
                   )}
-                  {!isLoading && visao === 'agrupada' && grupos.length === 0 && (
+                  {!isLoading && visao === 'agrupada' && gruposOrdenados.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={colunasVisiveis.length} className="text-center text-muted-foreground">
                         Nenhum atendimento encontrado com os filtros selecionados.
