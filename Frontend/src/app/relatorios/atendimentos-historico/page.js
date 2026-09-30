@@ -28,7 +28,7 @@ const columns = [
   { id: 'atendimentoTitulo', label: 'Título do Atendimento' },
   { id: 'atendimentoDescricao', label: 'Descrição do Atendimento' },
   { id: 'clienteNome', label: 'Cliente' },
-  { id: 'colaboradorNome', label: 'Usuário' },
+  { id: 'colaboradorNome', label: 'Colaborador' },
   { id: 'statusAtualLabel', label: 'Status Atual' },
   { id: 'observacao', label: 'Observação' },
 ];
@@ -210,7 +210,7 @@ export default function HistoricoAtendimentosReportPage() {
       search ? `Busca: ${search}` : null,
       tipoFilter !== 'todos' ? `Ação: ${getTipoLabel(tipoFilter)}` : null,
       clienteNome ? `Cliente: ${clienteNome}` : null,
-      colaboradorNome ? `Usuário: ${colaboradorNome}` : null,
+      colaboradorNome ? `Colaborador: ${colaboradorNome}` : null,
       dataInicioFilter ? `Data início: ${new Date(`${dataInicioFilter}T00:00:00`).toLocaleDateString('pt-BR')}` : null,
       dataFimFilter ? `Data fim: ${new Date(`${dataFimFilter}T00:00:00`).toLocaleDateString('pt-BR')}` : null,
     ].filter(Boolean);
@@ -411,7 +411,16 @@ export default function HistoricoAtendimentosReportPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {/* Mesmo arranjo do Relatório de Comissão: três filtros por linha. */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label>Data início</Label>
+                  <Input type="date" value={dataInicioFilter} onChange={(e) => setDataInicioFilter(e.target.value)} />
+                </div>
+                <div>
+                  <Label>Data fim</Label>
+                  <Input type="date" value={dataFimFilter} onChange={(e) => setDataFimFilter(e.target.value)} />
+                </div>
                 <div>
                   <Label>Cliente</Label>
                   <Combobox
@@ -426,12 +435,12 @@ export default function HistoricoAtendimentosReportPage() {
                   />
                 </div>
                 <div>
-                  <Label>Usuário</Label>
+                  <Label>Colaborador</Label>
                   <Combobox
                     value={colaboradorFilter}
                     onValueChange={setColaboradorFilter}
-                    placeholder="Usuário"
-                    searchPlaceholder="Buscar usuário..."
+                    placeholder="Colaborador"
+                    searchPlaceholder="Buscar colaborador..."
                     options={[
                       { value: 'todos', label: 'Todos' },
                       ...colaboradores
@@ -440,14 +449,6 @@ export default function HistoricoAtendimentosReportPage() {
                         .map((colaborador) => ({ value: String(colaborador.id), label: colaborador.nome })),
                     ]}
                   />
-                </div>
-                <div>
-                  <Label>Data início</Label>
-                  <Input type="date" value={dataInicioFilter} onChange={(e) => setDataInicioFilter(e.target.value)} />
-                </div>
-                <div>
-                  <Label>Data fim</Label>
-                  <Input type="date" value={dataFimFilter} onChange={(e) => setDataFimFilter(e.target.value)} />
                 </div>
               </div>
             </CardContent>

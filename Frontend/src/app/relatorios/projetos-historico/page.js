@@ -17,7 +17,7 @@ import { configuracoesPadrao, useConfiguracoesSistema } from '../../../services/
 import { obterRodapeRelatorio, obterLogotipo } from '../../../services/configuracoes/reportBranding';
 import TourGuia from '../../../components/TourGuia';
 import { getHistoricoTarefas, getHistoricoProjetosRelatorio } from './api/historicoTarefas';
-import { getColaboradoresKanban, getProjetosKanban, getClientesKanban, getEtapasKanban } from '../../projetos/kanban/api/kanban';
+import { getColaboradoresKanban, getClientesKanban, getEtapasKanban } from '../../projetos/kanban/api/kanban';
 import { useDebouncedValue } from '../../../hooks/useDebouncedValue';
 import { mesAtualParaInputs } from '../../../utils/periodoRelatorio';
 import { ROTULO_RESERVADO, ehEtapaElaboracao } from '../../../utils/situacaoTarefa';
@@ -81,13 +81,11 @@ export default function HistoricoTarefasReportPage() {
   const [search, setSearch] = useState('');
   const [tipoFilter, setTipoFilter] = useState('todos');
   const [colaboradorFilter, setColaboradorFilter] = useState('todos');
-  const [projetoFilter, setProjetoFilter] = useState('todos');
   const [clienteFilter, setClienteFilter] = useState('todos');
   // O periodo ja abre no mes corrente (dia 1 ate hoje) - ver utils/periodoRelatorio.
   const [dataInicioFilter, setDataInicioFilter] = useState(() => mesAtualParaInputs().inicio);
   const [dataFimFilter, setDataFimFilter] = useState(() => mesAtualParaInputs().fim);
   const [etapaFilter, setEtapaFilter] = useState('todos');
-  const [ultimaOcorrencia, setUltimaOcorrencia] = useState(false);
   const [sortConfig, setSortConfig] = useState({ column: 'dataHoraAcao', direction: 'desc' });
   const [selectedColumns, setSelectedColumns] = useState(columns.map((c) => c.id));
   const { data: systemSettings = configuracoesPadrao } = useConfiguracoesSistema();
@@ -98,14 +96,12 @@ export default function HistoricoTarefasReportPage() {
       // reconhece pelo destino e por ainda não ter havido início. O servidor recebe 'E'.
       tipo: tipoFilter === 'reservada' ? 'E' : tipoFilter,
       colaboradorId: colaboradorFilter,
-      projetoId: projetoFilter,
       clienteId: clienteFilter,
       etapaId: etapaFilter,
-      ultimaOcorrencia,
       dataInicio: toIsoStartOfDay(dataInicioFilter),
       dataFim: toIsoEndOfDay(dataFimFilter),
     }),
-    [tipoFilter, colaboradorFilter, projetoFilter, clienteFilter, etapaFilter, ultimaOcorrencia, dataInicioFilter, dataFimFilter]
+    [tipoFilter, colaboradorFilter, clienteFilter, etapaFilter, dataInicioFilter, dataFimFilter]
   );
   // Espera o filtro parar de mudar por um instante antes de buscar — evita disparar uma busca a
   // cada tecla digitada (nas datas, isso também dava tempo pro ano ficar completo antes de valer).
@@ -128,11 +124,6 @@ export default function HistoricoTarefasReportPage() {
     queryFn: getColaboradoresKanban,
   });
 
-  const { data: projetosRaw = [] } = useQuery({
-    queryKey: ['relatorio-tarefas-projetos'],
-    queryFn: getProjetosKanban,
-  });
-
   const { data: clientesRaw = [] } = useQuery({
     queryKey: ['relatorio-tarefas-clientes'],
     queryFn: getClientesKanban,
@@ -144,10 +135,6 @@ export default function HistoricoTarefasReportPage() {
   });
 
   const colaboradores = useMemo(() => colaboradoresRaw.filter((c) => c.ativo !== false), [colaboradoresRaw]);
-  const projetos = useMemo(
-    () => projetosRaw.filter((p) => p.ativo !== false).map((p) => ({ ...p, nome: p.titulo })),
-    [projetosRaw]
-  );
   const clientes = useMemo(() => clientesRaw.filter((c) => c.ativo !== false), [clientesRaw]);
   const etapas = useMemo(() => etapasRaw.filter((e) => e.ativo !== false), [etapasRaw]);
   const totalTarefas = historicoTarefasApi.totalTarefas ?? 0;
@@ -175,6 +162,8 @@ export default function HistoricoTarefasReportPage() {
         tipoLabel: reservada ? ROTULO_RESERVADO : getTipoLabel(item.tipo),
         tarefaId: item.tarefaId,
         tarefaTitulo: item.tarefaTitulo ?? ' ',
+        // Não vira coluna; existe para a busca alcançar o texto da tarefa.
+        tarefaDescricao: item.tarefaDescricao ?? ' ',
         projetoTitulo: item.projetoTitulo ?? ' ',
         clienteNome: resolverNomeCliente(item),
         colaboradorNome: item.colaboradorNome ?? ' ',
@@ -191,6 +180,7 @@ export default function HistoricoTarefasReportPage() {
       tipoLabel: getTipoLabel(item.tipo),
       tarefaId: null,
       tarefaTitulo: '—',
+      tarefaDescricao: ' ',
       projetoTitulo: item.projetoTitulo ?? ' ',
       clienteNome: resolverNomeCliente(item),
       colaboradorNome: item.realizadoPorColaboradorNome ?? ' ',
@@ -208,11 +198,14 @@ export default function HistoricoTarefasReportPage() {
         if (tipoFilter === 'reservada' && !item.reservada) return false;
         const term = search.toLowerCase();
         if (!term) return true;
+        // Colaborador ficou de fora de propósito: tem filtro próprio, e procurar pelo nome aqui
+        // trazia o histórico inteiro de quem a pessoa tocou. A descrição entrou no lugar — o
+        // endpoint sempre a devolveu e a busca nunca a usava.
         return (
           item.tarefaTitulo.toLowerCase().includes(term) ||
+          item.tarefaDescricao.toLowerCase().includes(term) ||
           item.projetoTitulo.toLowerCase().includes(term) ||
-          item.clienteNome.toLowerCase().includes(term) ||
-          item.colaboradorNome.toLowerCase().includes(term)
+          item.clienteNome.toLowerCase().includes(term)
         );
       }),
     [data, search, tipoFilter]
@@ -263,10 +256,6 @@ export default function HistoricoTarefasReportPage() {
       colaboradorFilter === 'todos'
         ? null
         : colaboradores.find((c) => c.id === Number(colaboradorFilter))?.nome ?? `#${colaboradorFilter}`;
-    const projetoNome =
-      projetoFilter === 'todos'
-        ? null
-        : projetos.find((p) => p.id === Number(projetoFilter))?.nome ?? `#${projetoFilter}`;
     const clienteNome =
       clienteFilter === 'todos'
         ? null
@@ -283,10 +272,8 @@ export default function HistoricoTarefasReportPage() {
         ? `Ação: ${tipoFilter === 'reservada' ? ROTULO_RESERVADO : getTipoLabel(tipoFilter)}`
         : null,
       colaboradorNome ? `Colaborador: ${colaboradorNome}` : null,
-      projetoNome ? `Projeto: ${projetoNome}` : null,
       clienteNome ? `Cliente: ${clienteNome}` : null,
       etapaNome ? `Etapa: ${etapaNome}` : null,
-      ultimaOcorrencia ? 'Última ocorrência por tarefa/etapa' : null,
       dataInicioFilter ? `Data início: ${new Date(`${dataInicioFilter}T00:00:00`).toLocaleDateString('pt-BR')}` : null,
       dataFimFilter ? `Data fim: ${new Date(`${dataFimFilter}T00:00:00`).toLocaleDateString('pt-BR')}` : null,
     ].filter(Boolean);
@@ -401,7 +388,7 @@ export default function HistoricoTarefasReportPage() {
           },
           {
             element: '#tour-relatorio-filtros',
-            popover: { title: 'Filtros', description: 'Filtre por <strong>tipo de ação</strong>, <strong>colaborador</strong>, <strong>projeto</strong>, <strong>cliente</strong> e <strong>período</strong>. Os filtros são consultados no servidor.<br>A ação <strong>Reservada</strong> é a entrada na etapa de elaboração antes de qualquer início — o fim desse período é a linha <strong>Início de Elaboração</strong>.', side: 'bottom', align: 'start' },
+            popover: { title: 'Filtros', description: 'Filtre por <strong>tipo de ação</strong>, <strong>colaborador</strong>, <strong>etapa</strong> e <strong>período</strong>, todos consultados no servidor. A <strong>busca</strong> procura na tarefa, na descrição, no projeto e no cliente — no colaborador não, que para isso há o filtro ao lado.<br>A ação <strong>Reservada</strong> é a entrada na etapa de elaboração antes de qualquer início — o fim desse período é a linha <strong>Início de Elaboração</strong>.', side: 'bottom', align: 'start' },
           },
           {
             element: '#tour-relatorio-colunas',
@@ -464,10 +451,16 @@ export default function HistoricoTarefasReportPage() {
               <CardTitle className="flex items-center gap-2"><Filter className="h-5 w-5" /> Filtros</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Mesmo arranjo do Relatório de Comissão: três filtros por linha. A busca é a
+                  exceção — ocupa duas colunas, então a linha dela tem dois. */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="md:col-span-2">
                   <Label>Busca</Label>
-                  <Input placeholder="Tarefa, projeto, cliente ou colaborador" value={search} onChange={(e) => setSearch(e.target.value)} />
+                  <Input
+                    placeholder="Tarefa, descrição, projeto ou cliente"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
                 </div>
                 <div>
                   <Label>Ação</Label>
@@ -488,7 +481,15 @@ export default function HistoricoTarefasReportPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label>Data início</Label>
+                  <Input type="date" value={dataInicioFilter} onChange={(e) => setDataInicioFilter(e.target.value)} />
+                </div>
+                <div>
+                  <Label>Data fim</Label>
+                  <Input type="date" value={dataFimFilter} onChange={(e) => setDataFimFilter(e.target.value)} />
+                </div>
                 <div>
                   <Label>Colaborador</Label>
                   <Combobox
@@ -503,19 +504,6 @@ export default function HistoricoTarefasReportPage() {
                   />
                 </div>
                 <div>
-                  <Label>Projeto</Label>
-                  <Combobox
-                    value={projetoFilter}
-                    onValueChange={setProjetoFilter}
-                    placeholder="Projeto"
-                    searchPlaceholder="Buscar projeto..."
-                    options={[
-                      { value: 'todos', label: 'Todos' },
-                      ...projetos.map((p) => ({ value: String(p.id), label: p.nome })),
-                    ]}
-                  />
-                </div>
-                <div>
                   <Label>Etapa</Label>
                   <Select value={etapaFilter} onValueChange={setEtapaFilter}>
                     <SelectTrigger><SelectValue placeholder="Etapa" /></SelectTrigger>
@@ -526,28 +514,6 @@ export default function HistoricoTarefasReportPage() {
                       ))}
                     </SelectContent>
                   </Select>
-                </div>
-                <div className="flex flex-col justify-end">
-                  <label className="flex items-center gap-2 cursor-pointer select-none h-10 px-3 rounded-md border border-input bg-background text-sm">
-                    <input
-                      type="checkbox"
-                      checked={ultimaOcorrencia}
-                      onChange={(e) => setUltimaOcorrencia(e.target.checked)}
-                      className="rounded"
-                    />
-                    Última ocorrência
-                  </label>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label>Data início</Label>
-                  <Input type="date" value={dataInicioFilter} onChange={(e) => setDataInicioFilter(e.target.value)} />
-                </div>
-                <div>
-                  <Label>Data fim</Label>
-                  <Input type="date" value={dataFimFilter} onChange={(e) => setDataFimFilter(e.target.value)} />
                 </div>
               </div>
             </CardContent>
