@@ -46,7 +46,11 @@ const formatDateTime = (value) =>
       }).format(new Date(value))
     : ' ';
 
-const getTipoLabel = (tipo) => (tipo === 'C' ? 'Conclusão' : tipo === 'R' ? 'Reabertura' : ' ');
+// 'A' e o agendamento, gravado quando o atendimento e criado: sem ele, atendimento que ainda
+// nao foi concluido nem cancelado nao apareceria neste relatorio. A data da linha e a data
+// agendada do atendimento.
+const getTipoLabel = (tipo) =>
+  tipo === 'C' ? 'Conclusão' : tipo === 'R' ? 'Reabertura' : tipo === 'A' ? 'Agendamento' : ' ';
 const getStatusLabel = (status) => (status === 'R' ? 'Concluído' : status === 'A' ? 'Agendado' : status ?? ' ');
 
 // Enquanto o usuário ainda está digitando o ano no <input type="date">, o navegador já reporta
@@ -404,6 +408,7 @@ export default function HistoricoAtendimentosReportPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="todos">Todos</SelectItem>
+                      <SelectItem value="A">Agendamento</SelectItem>
                       <SelectItem value="C">Conclusão</SelectItem>
                       <SelectItem value="R">Reabertura</SelectItem>
                     </SelectContent>

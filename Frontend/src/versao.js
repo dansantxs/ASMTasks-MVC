@@ -1,4 +1,4 @@
-export const VERSAO_ATUAL = '1.11.0';
+export const VERSAO_ATUAL = '1.12.0';
 
 /**
  * Regra de versionamento (major.minor.patch):
@@ -19,6 +19,21 @@ export const VERSAO_ATUAL = '1.11.0';
  */
 export const CHANGELOG = [
   {
+    versao: '1.12.0',
+    data: '2026-09-29',
+    titulo: 'Comissão por Teste, Correções em Atendimentos e no Dashboard',
+    mudancas: [
+      'Dashboard: o indicador "Atendimentos Realizados" deixava de fora tudo o que o sistema fechou sozinho por horário — o fechamento automático marcava o atendimento como realizado mas não gravava a data de conclusão, que é por onde o indicador conta. A conclusão passa a ser gravada com a hora de término agendada, e não com a hora em que o sistema percebeu, o que também corrige o dia em que o atendimento entra no Relatório de Comissão',
+      'Relatório de Histórico de Atendimentos: atendimento apenas agendado não aparecia, porque o relatório lista ações e ele ainda não tinha nenhuma. Agora todo atendimento nasce com a ação "Agendamento", na data marcada, e o filtro de Ação ganha essa opção',
+      'Dashboard: nas listas que abrem ao passar o mouse sobre um indicador, item que ainda não teve ação nenhuma — atendimento pendente, por exemplo — aparecia sem data. Passa a mostrar "Agendado para" quando a data é futura e "Desde" quando já passou',
+      'Relatório de Comissão: as etapas de cada item passam a sair na ordem do fluxo, e não na ordem do relógio. Como o relatório mostra só a última passagem por etapa, uma tarefa que voltou da aprovação para a elaboração aparecia com a elaboração depois da aprovação',
+      'Relatório de Comissão: o filtro Tipo ganha a opção "Teste" — traz só tarefas e as agrupa, ordena e soma por quem fez a etapa de teste, em vez de por quem elaborou. Tarefa que não passou pelo teste fica de fora, e o "Totalizar por" do Resumo some, porque o próprio Tipo já diz que o total é por teste',
+      'Relatório de Comissão: o filtro "Colaborador" passou a se chamar "Elaborado por" e traz só os itens creditados à pessoa — a tarefa que ela elaborou e o atendimento que ela concluiu. Antes bastava ter lançado, testado ou feito uma etapa de atualização, e por isso a visão Detalhada mostrava mais itens do que o Resumo com os mesmos filtros; agora as duas fecham no mesmo número',
+      'Relatório de Comissão: item cujo histórico não tem responsável em passagem nenhuma deixa de aparecer no relatório, porque não rende comissão a ninguém — a seção "Sem desenvolvedor" deixou de existir. Tarefa que não passou pela elaboração continua creditada pela etapa anterior à final',
+      'Relatório de Histórico de Tarefas: a ação "Reservada" mostrava o responsável da etapa anterior — ou nada, quando a etapa anterior não tinha responsável — em vez de quem recebeu a tarefa. Passa a mostrar para quem ela ficou reservada, e o filtro de Colaborador acompanha esse nome',
+    ],
+  },
+  {
     versao: '1.11.0',
     data: '2026-09-28',
     titulo: 'Reservado na Elaboração, Coluna de Teste com o Suporte, Dashboard por Etapa e Tempos na Comissão',
@@ -35,7 +50,8 @@ export const CHANGELOG = [
       'Menu lateral: o grupo "Projetos" deixa de existir — "Cadastro de Projeto" e "Quadro Kanban" ficam direto no menu',
       'Relatório de Comissão: "Aprovado por" passa a se basear na etapa marcada como "Etapa de Teste" no cadastro de Etapas, em vez de procurar uma etapa chamada "Aprovação" — quem fez essa etapa é quem aparece no filtro e no cabeçalho de cada item',
       'Relatório de Comissão: a visão Resumo ganha "Totalizar por" — Elaboração (como antes) ou Teste (quem fez a etapa de teste de cada tarefa)',
-      'Relatório de Comissão: cada item passa a mostrar o tempo de execução e o de teste — o realizado (somado do histórico da tarefa) e, entre parênteses, o previsto cadastrado nela; no Resumo, os dois tempos aparecem somados por colaborador e acompanham as exportações',
+      'Relatório de Comissão: a espera entre a tarefa entrar na elaboração e alguém começar passa a aparecer como uma linha "Reservado" própria, e a linha de Elaboração passa a contar do início — antes esse período ficava embutido na elaboração',
+      'Relatório de Comissão: cada item passa a mostrar o tempo de execução e o de teste — o realizado (somado do histórico da tarefa) e, entre parênteses, o previsto cadastrado nela. As exportações levam os mesmos tempos de cada item',
       'Relatório de Comissão: tarefa que não passou pela elaboração — resolvida direto em outra etapa ou levada de Atendimento para a etapa final — deixa de cair em "Sem desenvolvedor". O crédito vai para quem estava na etapa anterior à final (ou na própria final) e o item passa a mostrar uma linha de Elaboração com essa pessoa, dizendo na observação de qual etapa veio o crédito',
       'Anexos da tarefa: ao clicar numa imagem, ela abre em tela cheia e inteira (antes era cortada num quadro pequeno), com as setas do teclado passando de uma imagem para outra e botões para abrir em nova aba ou baixar; o diálogo de arquivos ficou mais largo, com miniaturas maiores',
       'Correção: a busca de endereço pelo CEP nos cadastros de clientes e colaboradores não trazia o endereço — a consulta ia parar no servidor errado',

@@ -166,7 +166,9 @@ export default function HistoricoTarefasReportPage() {
         tarefaDescricao: item.tarefaDescricao ?? ' ',
         projetoTitulo: item.projetoTitulo ?? ' ',
         clienteNome: resolverNomeCliente(item),
-        colaboradorNome: item.colaboradorNome ?? ' ',
+        // Na linha "Reservada" o responsável gravado é o de ANTES da troca de etapa — quem
+        // ficou com a reserva vem do backend em responsavelReservaNome.
+        colaboradorNome: (reservada ? item.responsavelReservaNome : item.colaboradorNome) ?? ' ',
         etapaNome: item.etapaNome ?? ' ',
         observacao: item.observacao ?? ' ',
       };

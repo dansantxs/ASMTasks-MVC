@@ -21,6 +21,7 @@ import { getColaboradoresKanban, getClientesKanban, getEtapasKanban } from '../.
 import { getHistoricoAtendimentos } from '../atendimentos-historico/api/historicoAtendimentos';
 import { getAtendimentos } from '../../atendimentos/api/atendimentos';
 import { useDebouncedValue } from '../../../hooks/useDebouncedValue';
+import { ROTULO_RESERVADO, ehEtapaElaboracao } from '../../../utils/situacaoTarefa';
 
 // Colunas que formam o cabeçalho de cada grupo (cliente / projeto / tarefa / descrição)
 const colunasGrupo = [
@@ -28,6 +29,9 @@ const colunasGrupo = [
   { id: 'projetoTitulo', label: 'Projeto' },
   { id: 'tarefaTitulo', label: 'Tarefa/Atendimento' },
   { id: 'descricao', label: 'Descrição' },
+  // Não é uma coluna da tabela: é a linha de tempos abaixo do cabeçalho do item. Fica aqui para
+  // poder ser desligada junto com as outras, na tela e nas exportações.
+  { id: 'tempos', label: 'Tempos (execução/teste)' },
 ];
 
 // Colunas exibidas em cada linha de passagem de etapa, dentro do grupo
@@ -130,10 +134,6 @@ function formatarMinutos(minutos) {
   return restoHoras ? `${dias}d ${restoHoras}h` : `${dias}d`;
 }
 
-/** "2h 15min / 3h" para as colunas do Resumo, com travessão onde não há tempo. */
-const formatarTempoResumo = (minutosRealizados, minutosPrevistos) =>
-  `${formatarMinutos(minutosRealizados) ?? '—'} / ${formatarMinutos(minutosPrevistos) ?? '—'}`;
-
 /** "2h 15min (prev. 3h)" — omite a parte que não existe. */
 function formatarTempoComPrevisto(minutosRealizados, minutosPrevistos) {
   const realizado = formatarMinutos(minutosRealizados);
@@ -152,9 +152,10 @@ export default function RelatorioComissaoPage() {
   const [colaboradorFilter, setColaboradorFilter] = useState('todos');
   const [clienteFilter, setClienteFilter] = useState('todos');
   const [aprovadorFilter, setAprovadorFilter] = useState('todos'); // colaborador da etapa de teste
-  const [tipoItemFilter, setTipoItemFilter] = useState('todos'); // todos | tarefa | atendimento
+  const [tipoItemFilter, setTipoItemFilter] = useState('todos'); // todos | tarefa | atendimento | teste
   const [selectedColumns, setSelectedColumns] = useState(todasColunas.map((c) => c.id));
-  // Agrupamento é sempre por Colaborador(Desenvolvedor); só a ordenação secundária dos itens é ajustável.
+  // Agrupamento: por Colaborador(Desenvolvedor), ou por quem testou quando o Tipo é "Teste";
+  // só a ordenação secundária dos itens é ajustável.
   const [sortConfig, setSortConfig] = useState({ ordem: 'cliente', direction: 'asc' });
   const [viewMode, setViewMode] = useState('detalhado'); // detalhado | resumo
   const [totalizarPor, setTotalizarPor] = useState('elaboracao'); // elaboracao | teste — só no Resumo
@@ -241,6 +242,29 @@ export default function RelatorioComissaoPage() {
     [etapasRaw]
   );
 
+  // Ordem das etapas como estão cadastradas no fluxo. As linhas de cada item são exibidas
+  // nessa ordem, e não na cronológica: como fica só a última passagem por etapa, uma tarefa que
+  // voltou da aprovação para a elaboração mostraria a elaboração depois da aprovação.
+  const ordemPorEtapaId = useMemo(
+    () => new Map(etapasRaw.map((e) => [e.id, e.ordem ?? 0])),
+    [etapasRaw]
+  );
+  const ordemEtapaElaboracao = useMemo(
+    () => etapasRaw.find((e) => ehEtapaDesenvolvimento(e.nome))?.ordem ?? 0,
+    [etapasRaw]
+  );
+
+  // Lugar de cada linha no fluxo. As linhas sintéticas não têm etapa cadastrada: o lançamento
+  // abre o item, o Reservado encosta na elaboração que antecede, e a elaboração deduzida ocupa
+  // o lugar da própria elaboração. Etapa que saiu do cadastro vai para o fim.
+  const ordemDaLinha = (item) => {
+    if (item.etapaId != null) return ordemPorEtapaId.get(item.etapaId) ?? Number.MAX_SAFE_INTEGER;
+    if (item.etapaNome === ETAPA_LANCAMENTO) return Number.MIN_SAFE_INTEGER;
+    if (item.etapaNome === ROTULO_RESERVADO) return ordemEtapaElaboracao - 0.5;
+    if (item.etapaNome === nomeEtapaElaboracao) return ordemEtapaElaboracao;
+    return Number.MAX_SAFE_INTEGER;
+  };
+
   const exibicaoNomeCliente = systemSettings?.exibicaoNomeCliente ?? 'razaoSocial';
 
   // Cliente vindo do cadastro (id, nome, nomeFantasia) — usado no filtro
@@ -300,7 +324,7 @@ export default function RelatorioComissaoPage() {
   // Uma linha "Atendimento Concluído" por atendimento concluído no período (Status ainda 'R' — se
   // foi reaberto depois, não conta). Diferente de tarefa, não tem etapas; o crédito da comissão é
   // de quem concluiu (concluidoPor*). Os demais colaboradores atribuídos ficam só em
-  // `participantesIds`, pra que o filtro de colaborador continue trazendo o atendimento.
+  // `participantesIds`, usado como reserva quando não se sabe quem concluiu.
   const linhasAtendimento = useMemo(() => {
     const resultado = [];
     const atendimentosVistos = new Set();
@@ -364,7 +388,7 @@ export default function RelatorioComissaoPage() {
   const eventosPorTarefa = useMemo(() => {
     const mapa = new Map();
     (historicoApi.registros ?? [])
-      .filter((item) => item.tipo === 'E' || item.tipo === 'A')
+      .filter((item) => item.tipo === 'E' || item.tipo === 'A' || item.tipo === 'I')
       .forEach((item) => {
         if (!mapa.has(item.tarefaId)) mapa.set(item.tarefaId, []);
         mapa.get(item.tarefaId).push({
@@ -375,6 +399,7 @@ export default function RelatorioComissaoPage() {
           colaboradorNome: item.colaboradorNome ?? null,
           etapaId: item.etapaId ?? null,
           etapaNome: item.etapaNome ?? '—',
+          elaboracaoJaIniciadaNoEvento: !!item.elaboracaoJaIniciadaNoEvento,
           observacao: item.observacao ?? null,
           clienteNome: resolverNomeCliente(item),
           projetoTitulo: item.projetoTitulo ?? '—',
@@ -405,6 +430,30 @@ export default function RelatorioComissaoPage() {
 
       const fecharEtapa = (colaborador) => {
         if (!etapaAberta || !colaborador?.colaboradorNome) return;
+
+        // Elaboração que ficou reservada antes de começar: o período entre a entrada na etapa e
+        // o início vira uma linha "Reservado", e a linha da elaboração passa a contar do início.
+        const inicio = etapaAberta.inicioElaboracao;
+        if (inicio) {
+          const reservadoPor = etapaAberta.reservadoPor?.colaboradorNome ? etapaAberta.reservadoPor : colaborador;
+          resultado.push({
+            id: `${tarefaId}-${etapaAberta.id}-reservado`,
+            itemTipo: 'tarefa',
+            tarefaId,
+            colaboradorId: reservadoPor.colaboradorId,
+            colaboradorNome: reservadoPor.colaboradorNome,
+            etapaId: null,
+            etapaNome: ROTULO_RESERVADO,
+            rawDataHoraAcao: etapaAberta.dataHoraAcao,
+            dataHoraAcao: formatDateTime(etapaAberta.dataHoraAcao),
+            observacao: ' ',
+            clienteNome: etapaAberta.clienteNome,
+            projetoTitulo: etapaAberta.projetoTitulo,
+            tarefaTitulo: etapaAberta.tarefaTitulo,
+          });
+        }
+        const dataElaboracao = inicio?.dataHoraAcao ?? etapaAberta.dataHoraAcao;
+
         resultado.push({
           id: `${tarefaId}-${etapaAberta.id}`,
           itemTipo: 'tarefa',
@@ -413,8 +462,8 @@ export default function RelatorioComissaoPage() {
           colaboradorNome: colaborador.colaboradorNome,
           etapaId: etapaAberta.etapaId,
           etapaNome: etapaAberta.etapaNome,
-          rawDataHoraAcao: etapaAberta.dataHoraAcao,
-          dataHoraAcao: formatDateTime(etapaAberta.dataHoraAcao),
+          rawDataHoraAcao: dataElaboracao,
+          dataHoraAcao: formatDateTime(dataElaboracao),
           observacao: colaborador.observacao ?? ' ',
           clienteNome: etapaAberta.clienteNome,
           projetoTitulo: etapaAberta.projetoTitulo,
@@ -427,10 +476,21 @@ export default function RelatorioComissaoPage() {
           colaboradorAtual = evento;
           return;
         }
+        if (evento.tipo === 'I') {
+          // Primeiro início de uma elaboração que entrou reservada; reinícios após pausa não contam.
+          if (etapaAberta?.reservada && !etapaAberta.inicioElaboracao) {
+            etapaAberta.inicioElaboracao = evento;
+            etapaAberta.reservadoPor = colaboradorAtual;
+          }
+          return;
+        }
         // evento.tipo === 'E': fecha a etapa em andamento, creditando ao colaborador do PRÓPRIO
         // evento 'E' (quem estava responsável antes desta troca — ver comentário acima)
         fecharEtapa(evento);
-        etapaAberta = evento;
+        etapaAberta = {
+          ...evento,
+          reservada: ehEtapaElaboracao(evento.etapaNome) && !evento.elaboracaoJaIniciadaNoEvento,
+        };
       });
 
       // Etapa ainda aberta no fim do período: credita ao último responsável conhecido
@@ -455,8 +515,8 @@ export default function RelatorioComissaoPage() {
 
   // Junta tarefas e atendimentos numa lista só — cada linha já carrega itemTipo, então o resto do
   // relatório trata os dois de forma uniforme. O filtro de colaborador NÃO é aplicado aqui: ele
-  // define quais itens aparecem (item em que o colaborador participou de qualquer etapa), mas
-  // todas as etapas do item continuam visíveis (ver `grupos`).
+  // define quais itens aparecem (aqueles creditados a ele), mas todas as etapas do item
+  // continuam visíveis (ver `grupos`).
   const linhasTarefasEAtendimentos = useMemo(
     () => [...segmentos, ...linhasAtendimento],
     [segmentos, linhasAtendimento]
@@ -469,12 +529,22 @@ export default function RelatorioComissaoPage() {
   //     só na passagem mais recente);
   //   - o "Desenvolvedor" do item: para tarefa, o colaborador da última etapa cujo nome contém
   //     "desenvolv"; para atendimento, quem concluiu.
+  // "Teste" não é um tipo de item: é a mesma lista de tarefas vista por outro ângulo — o crédito
+  // de cada uma passa a ser de quem fez a etapa de teste, em vez de quem elaborou. É isso que
+  // muda o agrupamento, a ordenação e o Resumo, que leem esse mesmo crédito.
+  const creditoPorTeste = tipoItemFilter === 'teste';
+  const tipoItemBase = creditoPorTeste ? 'tarefa' : tipoItemFilter;
+  const creditoDoGrupo = (grupo) =>
+    creditoPorTeste
+      ? { id: grupo.aprovadorId, nome: grupo.aprovadorNome }
+      : { id: grupo.desenvolvedorId, nome: grupo.desenvolvedorNome };
+
   const grupos = useMemo(() => {
     const mapa = new Map();
 
     linhasTarefasEAtendimentos
       .filter((item) => item.itemTipo === 'atendimento' || !tarefasFinalizadas || tarefasFinalizadas.has(item.tarefaId))
-      .filter((item) => tipoItemFilter === 'todos' || item.itemTipo === tipoItemFilter)
+      .filter((item) => tipoItemBase === 'todos' || item.itemTipo === tipoItemBase)
       .forEach((item) => {
         if (!mapa.has(item.tarefaId)) {
           mapa.set(item.tarefaId, {
@@ -525,11 +595,21 @@ export default function RelatorioComissaoPage() {
       // Desenvolvedor do item — calculado antes de injetar a linha de lançamento.
       if (grupo.itemTipo === 'atendimento') {
         const ref = grupo.itens.find((i) => i.etapaNome === ETAPA_ATENDIMENTO_CONCLUIDO) ?? grupo.itens[0];
-        grupo.desenvolvedorId = ref?.concluidoPorId ?? null;
-        grupo.desenvolvedorNome = ref?.concluidoPorNome ?? SEM_DESENVOLVEDOR;
+        // Quem concluiu é o crédito. Faltando o registro, cai no colaborador atribuído ao
+        // atendimento — é quem o atendeu, e sem isso o item ficaria sem ninguém.
+        const atribuido = ref?.participantesIds?.find((id) => id != null) ?? null;
+        grupo.desenvolvedorId = ref?.concluidoPorId ?? atribuido;
+        grupo.desenvolvedorNome =
+          ref?.concluidoPorId != null
+            ? ref.concluidoPorNome
+            : colaboradorNomePorId.get(atribuido) ?? SEM_DESENVOLVEDOR;
       } else {
-        // Caminho normal: quem fez a última passagem pela etapa de elaboração.
-        const etapaDev = [...grupo.itens].reverse().find((item) => ehEtapaDesenvolvimento(item.etapaNome));
+        // Caminho normal: quem fez a última passagem pela etapa de elaboração. Só vale passagem
+        // com responsável: etapa sem ninguém não credita comissão a ninguém.
+        const temResponsavel = (item) => item?.colaboradorId != null;
+        const etapaDev = [...grupo.itens]
+          .reverse()
+          .find((item) => ehEtapaDesenvolvimento(item.etapaNome) && temResponsavel(item));
 
         // Nem toda tarefa passa pela elaboração: parte é resolvida direto em outra etapa (análise,
         // atualização) ou vai de Atendimento para a final. Sem fallback, essas caíam todas em
@@ -539,8 +619,9 @@ export default function RelatorioComissaoPage() {
         const etapasPercorridas = [...grupo.itens].reverse();
         const referencia =
           etapaDev ??
-          etapasPercorridas.find((item) => item.etapaId !== etapaFinalId) ??
-          etapasPercorridas[0];
+          etapasPercorridas.find((item) => item.etapaId !== etapaFinalId && temResponsavel(item)) ??
+          etapasPercorridas.find(temResponsavel) ??
+          null;
 
         grupo.desenvolvedorId = referencia?.colaboradorId ?? null;
         grupo.desenvolvedorNome = referencia?.colaboradorNome ?? SEM_DESENVOLVEDOR;
@@ -559,8 +640,9 @@ export default function RelatorioComissaoPage() {
       grupo.aprovadorId = etapaAprovacao?.colaboradorId ?? null;
       grupo.aprovadorNome = etapaAprovacao?.colaboradorNome ?? null;
 
-      // Colaboradores que participaram do item — usado pelo filtro de colaborador (o item aparece
-      // se a pessoa filtrada fez ao menos uma etapa dele / está atribuída ao atendimento).
+      // Colaboradores que participaram do item: quem fez alguma etapa dela, quem a lançou e, no
+      // atendimento, quem está atribuído. Não decide quais itens aparecem — isso é do crédito —;
+      // serve de reserva para achar um responsável quando o item não aponta um.
       const participantes = new Set(
         grupo.itens.map((item) => item.colaboradorId).filter((id) => id != null)
       );
@@ -627,13 +709,29 @@ export default function RelatorioComissaoPage() {
 
       grupo.participantesIds = participantes;
 
-      // Data de conclusão do item = data da última passagem/conclusão (a linha de lançamento fica
-      // no início, então nunca é a última).
-      grupo.dataConclusao = grupo.itens[grupo.itens.length - 1]?.rawDataHoraAcao ?? null;
+      // Data de conclusão do item = a mais recente das passagens. Tem de ser o máximo, e não a
+      // última linha, porque a ordem de exibição segue o fluxo e não o relógio.
+      grupo.dataConclusao = grupo.itens.reduce(
+        (maior, item) => (item.rawDataHoraAcao > (maior ?? 0) ? item.rawDataHoraAcao : maior),
+        null
+      );
+
+      // Exibição na ordem do fluxo; entre linhas da mesma etapa, a mais antiga primeiro.
+      if (grupo.itemTipo === 'tarefa') {
+        grupo.itens.sort(
+          (a, b) =>
+            ordemDaLinha(a) - ordemDaLinha(b) || (a.rawDataHoraAcao ?? 0) - (b.rawDataHoraAcao ?? 0)
+        );
+      }
     });
 
-    return lista;
-  }, [linhasTarefasEAtendimentos, tarefasFinalizadas, tipoItemFilter, infoPorTarefa, etapaTesteIds, etapaFinalId, nomeEtapaElaboracao]);
+    // Item sem ninguém a creditar (nenhuma passagem teve responsável) fica de fora: o
+    // relatório é de comissão, e um item que não rende comissão a ninguém só atrapalharia a
+    // conferência. É falha de cadastro da tarefa, não do relatório.
+    // Em "Teste", quem não passou pela etapa de teste também fica de fora, pela mesma razão:
+    // ninguém a testou, então ela não rende comissão de teste.
+    return lista.filter((grupo) => creditoDoGrupo(grupo).id != null);
+  }, [linhasTarefasEAtendimentos, tarefasFinalizadas, tipoItemBase, creditoPorTeste, infoPorTarefa, etapaTesteIds, etapaFinalId, nomeEtapaElaboracao, ordemPorEtapaId, ordemEtapaElaboracao, colaboradorNomePorId]);
 
   const colaboradorIdFiltro = colaboradorFilter === 'todos' ? null : Number(colaboradorFilter);
   const aprovadorIdFiltro = aprovadorFilter === 'todos' ? null : Number(aprovadorFilter);
@@ -664,15 +762,18 @@ export default function RelatorioComissaoPage() {
     [grupos, aprovadorIdFiltro]
   );
 
-  // Item 3: o filtro de colaborador seleciona os ITENS (participou de qualquer etapa) — todas as
-  // etapas do item continuam visíveis, mesmo as de outros colaboradores.
+  // O filtro de colaborador seleciona os itens pelo CRÉDITO, não pela participação: entra a tarefa
+  // que a pessoa elaborou e o atendimento que ela concluiu. Ter só lançado, testado ou feito uma
+  // etapa de atualização não traz o item para a lista dela — é o mesmo critério do Resumo, então a
+  // Detalhada e o Resumo mostram sempre o mesmo número. As etapas das outras pessoas continuam
+  // visíveis dentro de cada item; muda só quais itens entram.
   const gruposVisiveis = useMemo(() => {
     if (colaboradorIdFiltro == null) return gruposPorAprovador;
-    return gruposPorAprovador.filter((grupo) => grupo.participantesIds.has(colaboradorIdFiltro));
+    return gruposPorAprovador.filter((grupo) => grupo.desenvolvedorId === colaboradorIdFiltro);
   }, [gruposPorAprovador, colaboradorIdFiltro]);
 
-  // Itens 1 e 2: relatório dividido em seções por Colaborador(Desenvolvedor), cada item numerado
-  // dentro da sua seção. Quando há um colaborador filtrado, tudo cai numa seção só (a dele).
+  // Itens 1 e 2: relatório dividido em seções por quem recebe o crédito do item, cada item numerado
+  // dentro da sua seção.
   const secoes = useMemo(() => {
     const comparadorItens = (a, b) => {
       const porCliente = compararTexto(a.clienteNome, b.clienteNome);
@@ -682,39 +783,29 @@ export default function RelatorioComissaoPage() {
     };
 
     const mapa = new Map();
-    const chaveSecao = (grupo) =>
-      colaboradorIdFiltro != null
-        ? String(colaboradorIdFiltro)
-        : grupo.desenvolvedorId != null
-          ? String(grupo.desenvolvedorId)
-          : SEM_DESENVOLVEDOR;
+    // Todo item que chega aqui tem crédito — os sem crédito já ficaram de fora em `grupos`. Em
+    // "Teste" o crédito é de quem testou, e aí as seções são por testador, mesmo com um colaborador
+    // filtrado — o filtro escolhe as tarefas pela elaboração, não pelo agrupamento.
+    const chaveSecao = (grupo) => String(creditoDoGrupo(grupo).id);
 
     gruposVisiveis.forEach((grupo) => {
       const chave = chaveSecao(grupo);
       if (!mapa.has(chave)) {
-        const nome =
-          colaboradorIdFiltro != null
-            ? colaboradorNomePorId.get(colaboradorIdFiltro) ?? `#${colaboradorIdFiltro}`
-            : grupo.desenvolvedorNome;
-        mapa.set(chave, { chave, colaboradorId: colaboradorIdFiltro ?? grupo.desenvolvedorId ?? null, nome, grupos: [] });
+        const credito = creditoDoGrupo(grupo);
+        const nome = credito.nome ?? colaboradorNomePorId.get(credito.id) ?? `#${credito.id}`;
+        mapa.set(chave, { chave, colaboradorId: credito.id, nome, grupos: [] });
       }
       mapa.get(chave).grupos.push(grupo);
     });
 
     const lista = Array.from(mapa.values());
-    lista.sort((a, b) => {
-      // "Sem desenvolvedor" sempre por último.
-      if ((a.chave === SEM_DESENVOLVEDOR) !== (b.chave === SEM_DESENVOLVEDOR)) {
-        return a.chave === SEM_DESENVOLVEDOR ? 1 : -1;
-      }
-      return compararTexto(a.nome, b.nome);
-    });
+    lista.sort((a, b) => compararTexto(a.nome, b.nome));
     lista.forEach((secao) => {
       secao.grupos.sort(comparadorItens);
       secao.grupos = secao.grupos.map((grupo, idx) => ({ ...grupo, numero: idx + 1 }));
     });
     return lista;
-  }, [gruposVisiveis, sortConfig, colaboradorIdFiltro, colaboradorNomePorId]);
+  }, [gruposVisiveis, sortConfig, creditoPorTeste, colaboradorNomePorId]);
 
   const totalGrupos = useMemo(
     () => secoes.reduce((acc, secao) => acc + secao.grupos.length, 0),
@@ -724,42 +815,35 @@ export default function RelatorioComissaoPage() {
   // Item 4: contagem por colaborador. Por elaboração: quem fez o desenvolvimento (tarefa) ou
   // concluiu o atendimento. Por teste: quem fez a etapa de teste — só tarefa, atendimento não
   // passa por teste. Respeita período/cliente/tipo/"aprovado por"; o filtro de colaborador só
-  // restringe a linha exibida.
+  // restringe a linha exibida — menos em "Teste", onde ele escolhe as tarefas (ver abaixo).
   const resumoColaboradores = useMemo(() => {
-    const porTeste = totalizarPor === 'teste';
+    const porTeste = creditoPorTeste || totalizarPor === 'teste';
     const tally = new Map();
-    gruposPorAprovador.forEach((grupo) => {
+    // Em "Teste" o Resumo soma sobre os mesmos itens da Detalhada: o filtro de colaborador
+    // escolhe as tarefas pela elaboração e o total sai por testador, então não dá para filtrar a
+    // linha exibida por esse mesmo id — ele é de outra pessoa.
+    (creditoPorTeste ? gruposVisiveis : gruposPorAprovador).forEach((grupo) => {
       // Reforça o filtro de tipo aqui (além de `grupos`) pra não sobrar tarefa quando o filtro é
       // "Atendimentos" nem o contrário.
-      if (tipoItemFilter !== 'todos' && grupo.itemTipo !== tipoItemFilter) return;
+      if (tipoItemBase !== 'todos' && grupo.itemTipo !== tipoItemBase) return;
       if (porTeste && grupo.itemTipo !== 'tarefa') return;
       const id = porTeste ? grupo.aprovadorId : grupo.desenvolvedorId;
       if (id == null) return;
       const nome = porTeste ? grupo.aprovadorNome : grupo.desenvolvedorNome;
-      const atual = tally.get(id) ?? {
-        colaboradorId: id,
-        nome,
-        total: 0,
-        execucaoRealizadaMin: 0,
-        execucaoPrevistaMin: 0,
-        testeRealizadoMin: 0,
-        testePrevistoMin: 0,
-      };
+      const atual = tally.get(id) ?? { colaboradorId: id, nome, total: 0 };
       atual.total += 1;
-      atual.execucaoRealizadaMin += grupo.execucaoRealizadaMin ?? 0;
-      atual.execucaoPrevistaMin += grupo.execucaoPrevistaMin ?? 0;
-      atual.testeRealizadoMin += grupo.testeRealizadoMin ?? 0;
-      atual.testePrevistoMin += grupo.testePrevistoMin ?? 0;
       tally.set(id, atual);
     });
     let lista = Array.from(tally.values());
-    if (colaboradorIdFiltro != null) lista = lista.filter((r) => r.colaboradorId === colaboradorIdFiltro);
+    if (!creditoPorTeste && colaboradorIdFiltro != null) {
+      lista = lista.filter((r) => r.colaboradorId === colaboradorIdFiltro);
+    }
     lista.sort((a, b) => b.total - a.total || compararTexto(a.nome, b.nome));
     return lista;
-  }, [gruposPorAprovador, tipoItemFilter, colaboradorIdFiltro, totalizarPor]);
+  }, [gruposPorAprovador, gruposVisiveis, tipoItemBase, creditoPorTeste, colaboradorIdFiltro, totalizarPor]);
 
   const rotuloTotalResumo =
-    totalizarPor === 'teste'
+    creditoPorTeste || totalizarPor === 'teste'
       ? 'Total (teste)'
       : tipoItemFilter === 'tarefa'
         ? 'Total (desenvolvimento)'
@@ -789,6 +873,8 @@ export default function RelatorioComissaoPage() {
    * Devolve null quando o item não tem tempo nenhum (atendimento, por exemplo).
    */
   function buildTemposGrupo(grupo) {
+    if (!selectedColumns.includes('tempos')) return null;
+
     const tempos = [];
     const execucao = formatarTempoComPrevisto(grupo.execucaoRealizadaMin, grupo.execucaoPrevistaMin);
     const teste = formatarTempoComPrevisto(grupo.testeRealizadoMin, grupo.testePrevistoMin);
@@ -815,7 +901,13 @@ export default function RelatorioComissaoPage() {
           : `#${clienteFilter}`;
 
     const tipoLabel =
-      tipoItemFilter === 'tarefa' ? 'Tarefas' : tipoItemFilter === 'atendimento' ? 'Atendimentos' : null;
+      tipoItemFilter === 'tarefa'
+        ? 'Tarefas'
+        : tipoItemFilter === 'atendimento'
+          ? 'Atendimentos'
+          : tipoItemFilter === 'teste'
+            ? 'Teste (tarefas, por quem testou)'
+            : null;
 
     const aprovadorNome =
       aprovadorFilter === 'todos'
@@ -826,7 +918,7 @@ export default function RelatorioComissaoPage() {
       dataInicioFilter ? `Data início: ${new Date(`${dataInicioFilter}T00:00:00`).toLocaleDateString('pt-BR')}` : null,
       dataFimFilter ? `Data fim: ${new Date(`${dataFimFilter}T00:00:00`).toLocaleDateString('pt-BR')}` : null,
       tipoLabel ? `Tipo: ${tipoLabel}` : null,
-      colaboradorNome ? `Colaborador: ${colaboradorNome}` : null,
+      colaboradorNome ? `Elaborado por: ${colaboradorNome}` : null,
       aprovadorNome ? `Aprovado por: ${aprovadorNome}` : null,
       clienteNome ? `Cliente: ${clienteNome}` : null,
       viewMode === 'resumo'
@@ -855,15 +947,8 @@ export default function RelatorioComissaoPage() {
     let head;
     const body = [];
     if (viewMode === 'resumo') {
-      head = [['Colaborador', rotuloTotalResumo, 'Execução (real. / prev.)', 'Teste (real. / prev.)']];
-      resumoColaboradores.forEach((r) =>
-        body.push([
-          r.nome,
-          String(r.total),
-          formatarTempoResumo(r.execucaoRealizadaMin, r.execucaoPrevistaMin),
-          formatarTempoResumo(r.testeRealizadoMin, r.testePrevistoMin),
-        ])
-      );
+      head = [['Colaborador', rotuloTotalResumo]];
+      resumoColaboradores.forEach((r) => body.push([r.nome, String(r.total)]));
     } else {
       head = [colunasLinhaAtivas.map((c) => c.label)];
       secoes.forEach((secao) => {
@@ -943,15 +1028,8 @@ export default function RelatorioComissaoPage() {
     let colunasCabecalho;
 
     if (viewMode === 'resumo') {
-      colunasCabecalho = ['Colaborador', rotuloTotalResumo, 'Execução (real. / prev.)', 'Teste (real. / prev.)'];
-      resumoColaboradores.forEach((r) =>
-        dataRows.push([
-          r.nome,
-          r.total,
-          formatarTempoResumo(r.execucaoRealizadaMin, r.execucaoPrevistaMin),
-          formatarTempoResumo(r.testeRealizadoMin, r.testePrevistoMin),
-        ])
-      );
+      colunasCabecalho = ['Colaborador', rotuloTotalResumo];
+      resumoColaboradores.forEach((r) => dataRows.push([r.nome, r.total]));
     } else {
       colunasCabecalho = colunasLinhaAtivas.map((c) => c.label);
       const larguraLinha = Math.max(colunasCabecalho.length, 1);
@@ -1023,7 +1101,7 @@ export default function RelatorioComissaoPage() {
             popover: {
               title: 'Relatório de Comissão',
               description:
-                'Base de cálculo da comissão: tarefas que chegaram na etapa final e atendimentos concluídos no período. Cada item aparece sob o <strong>Colaborador(Desenvolvedor)</strong> — quem fez a etapa de desenvolvimento (ou concluiu o atendimento).',
+                'Base de cálculo da comissão: tarefas que chegaram na etapa final e atendimentos concluídos no período. Cada item aparece sob o <strong>Colaborador(Desenvolvedor)</strong> — quem fez a etapa de desenvolvimento (ou concluiu o atendimento). Em <strong>Tipo: Teste</strong>, as mesmas tarefas aparecem sob quem fez a <strong>etapa de teste</strong>.',
               side: 'bottom',
               align: 'start',
             },
@@ -1034,7 +1112,7 @@ export default function RelatorioComissaoPage() {
           },
           {
             element: '#tour-comissao-filtros',
-            popover: { title: 'Filtros', description: 'Filtre por <strong>período</strong>, <strong>tipo</strong> (Tarefas/Atendimentos), <strong>colaborador</strong>, <strong>aprovado por</strong> e <strong>cliente</strong>. Ao filtrar um colaborador, aparecem os itens em que ele participou de <strong>qualquer</strong> etapa — e todas as etapas continuam visíveis, mesmo as de outras pessoas. Já <strong>Aprovado por</strong> deixa só os itens cuja etapa de teste foi feita pela pessoa escolhida, e conta também no Resumo; o nome dela aparece no cabeçalho de cada item.', side: 'bottom', align: 'start' },
+            popover: { title: 'Filtros', description: 'Filtre por <strong>período</strong>, <strong>tipo</strong> (Tarefas, Atendimentos ou Teste — este último traz só tarefas, agrupadas e somadas por quem as testou, deixando de fora as que não passaram pelo teste), <strong>elaborado por</strong>, <strong>aprovado por</strong> e <strong>cliente</strong>. <strong>Elaborado por</strong> traz os itens <strong>creditados</strong> à pessoa — a tarefa que ela elaborou e o atendimento que ela concluiu; ter só lançado ou testado não traz o item. Dentro de cada item, as etapas das outras pessoas continuam visíveis. Já <strong>Aprovado por</strong> deixa só os itens cuja etapa de teste foi feita pela pessoa escolhida, e conta também no Resumo; o nome dela aparece no cabeçalho de cada item.', side: 'bottom', align: 'start' },
           },
           {
             element: '#tour-comissao-colunas',
@@ -1042,7 +1120,7 @@ export default function RelatorioComissaoPage() {
           },
           {
             element: '#tour-comissao-visao',
-            popover: { title: 'Visão e Ordenação', description: '<strong>Detalhada</strong>: todas as etapas de cada item, numeradas por colaborador.<br><strong>Resumo</strong>: o total por colaborador, totalizado por <strong>Elaboração</strong> (desenvolvimento e atendimentos concluídos) ou por <strong>Teste</strong> (quem fez a etapa de teste), com o <strong>tempo de execução e de teste</strong> somado — realizado (pelo histórico) e previsto (cadastrado na tarefa).<br>A ordem dos itens dentro do colaborador pode ser <strong>Cliente → Data</strong> ou <strong>Data → Cliente</strong>.', side: 'bottom', align: 'end' },
+            popover: { title: 'Visão e Ordenação', description: '<strong>Detalhada</strong>: todas as etapas de cada item, numeradas por colaborador.<br><strong>Resumo</strong>: o total por colaborador, totalizado por <strong>Elaboração</strong> (desenvolvimento e atendimentos concluídos) ou por <strong>Teste</strong> (quem fez a etapa de teste) — com <strong>Tipo: Teste</strong> o total já sai por testador e esse seletor não aparece, com o <strong>tempo de execução e de teste</strong> somado — realizado (pelo histórico) e previsto (cadastrado na tarefa).<br>A ordem dos itens dentro do colaborador pode ser <strong>Cliente → Data</strong> ou <strong>Data → Cliente</strong>.', side: 'bottom', align: 'end' },
           },
           {
             element: '#tour-comissao-tabela',
@@ -1068,7 +1146,9 @@ export default function RelatorioComissaoPage() {
             <div>
               <h1>Relatório de Comissão</h1>
               <p className="text-muted-foreground">
-                Tarefas e atendimentos concluídos no período, agrupados por Colaborador(Desenvolvedor), com as etapas percorridas e os responsáveis
+                {creditoPorTeste
+                  ? 'Tarefas concluídas no período, agrupadas por quem fez a etapa de teste, com as etapas percorridas e os responsáveis'
+                  : 'Tarefas e atendimentos concluídos no período, agrupados por Colaborador(Desenvolvedor), com as etapas percorridas e os responsáveis'}
               </p>
             </div>
           </div>
@@ -1110,15 +1190,16 @@ export default function RelatorioComissaoPage() {
                       <SelectItem value="todos">Todos</SelectItem>
                       <SelectItem value="tarefa">Tarefas</SelectItem>
                       <SelectItem value="atendimento">Atendimentos</SelectItem>
+                      <SelectItem value="teste">Teste</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label>Colaborador</Label>
+                  <Label>Elaborado por</Label>
                   <Combobox
                     value={colaboradorFilter}
                     onValueChange={setColaboradorFilter}
-                    placeholder="Colaborador"
+                    placeholder="Elaborado por"
                     searchPlaceholder="Buscar colaborador..."
                     options={[
                       { value: 'todos', label: 'Todos' },
@@ -1192,7 +1273,9 @@ export default function RelatorioComissaoPage() {
                     <SelectItem value="resumo">Resumo (total)</SelectItem>
                   </SelectContent>
                 </Select>
-                {viewMode === 'resumo' && (
+                {/* Com Tipo = Teste o total já sai por testador; o seletor seria outra forma de
+                    dizer o mesmo, e permitiria a combinação sem sentido "Teste / por Elaboração". */}
+                {viewMode === 'resumo' && !creditoPorTeste && (
                   <>
                     <Label className="whitespace-nowrap">Totalizar por</Label>
                     <Select value={totalizarPor} onValueChange={setTotalizarPor}>
@@ -1242,35 +1325,23 @@ export default function RelatorioComissaoPage() {
                       <TableHead className="font-semibold text-brand-blue text-right">
                         {rotuloTotalResumo}
                       </TableHead>
-                      <TableHead className="font-semibold text-brand-blue text-right whitespace-nowrap">
-                        Execução (real. / prev.)
-                      </TableHead>
-                      <TableHead className="font-semibold text-brand-blue text-right whitespace-nowrap">
-                        Teste (real. / prev.)
-                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {isLoading && (
                       <TableRow>
-                        <TableCell colSpan={4} className="text-center text-muted-foreground">Carregando...</TableCell>
+                        <TableCell colSpan={2} className="text-center text-muted-foreground">Carregando...</TableCell>
                       </TableRow>
                     )}
                     {!isLoading && resumoColaboradores.map((r) => (
                       <TableRow key={r.colaboradorId} className="hover:bg-muted/40">
                         <TableCell>{r.nome}</TableCell>
                         <TableCell className="text-right font-semibold">{r.total}</TableCell>
-                        <TableCell className="text-right whitespace-nowrap">
-                          {formatarTempoResumo(r.execucaoRealizadaMin, r.execucaoPrevistaMin)}
-                        </TableCell>
-                        <TableCell className="text-right whitespace-nowrap">
-                          {formatarTempoResumo(r.testeRealizadoMin, r.testePrevistoMin)}
-                        </TableCell>
                       </TableRow>
                     ))}
                     {!isLoading && resumoColaboradores.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={4} className="text-center text-muted-foreground">
+                        <TableCell colSpan={2} className="text-center text-muted-foreground">
                           Nenhum registro encontrado com os filtros selecionados.
                         </TableCell>
                       </TableRow>
