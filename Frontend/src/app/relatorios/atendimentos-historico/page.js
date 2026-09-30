@@ -82,7 +82,7 @@ export default function HistoricoAtendimentosReportPage() {
   // O periodo ja abre no mes corrente (dia 1 ate hoje) - ver utils/periodoRelatorio.
   const [dataInicioFilter, setDataInicioFilter] = useState(() => mesAtualParaInputs().inicio);
   const [dataFimFilter, setDataFimFilter] = useState(() => mesAtualParaInputs().fim);
-  const [sortConfig, setSortConfig] = useState({ column: 'primeiraEtapa', direction: 'asc' });
+  const [sortConfig, setSortConfig] = useState({ column: 'dataHoraAcao', direction: 'asc' });
   const [selectedColumns, setSelectedColumns] = useState(columns.map((c) => c.id));
   // Guardada por pessoa: a tela volta do jeito que ela deixou.
   const [visao, definirVisao] = usePreferenciaLocal('asm_relatorio_atendimentos_visao', 'agrupada');
@@ -180,20 +180,6 @@ export default function HistoricoAtendimentosReportPage() {
     [data, search]
   );
 
-
-  // Ordem padrao da visao detalhada: os eventos de um mesmo atendimento ficam juntos, e os itens
-  // vem do mais antigo para o mais novo pela data do PRIMEIRO evento deles. Sem isso o log
-  // intercala itens diferentes e a sequencia de cada um se perde no meio.
-  const primeiroEventoPorItem = useMemo(() => {
-    const mapa = new Map();
-    filteredData.forEach((linha) => {
-      const chave = linha.atendimentoId;
-      if (chave == null) return;
-      const atual = mapa.get(chave);
-      if (!atual || (linha.rawDataHoraAcao ?? 0) < atual) mapa.set(chave, linha.rawDataHoraAcao ?? 0);
-    });
-    return mapa;
-  }, [filteredData]);
   const sortedData = useMemo(() => {
     const dataToSort = [...filteredData];
 
@@ -207,11 +193,6 @@ export default function HistoricoAtendimentosReportPage() {
     };
 
     const sorters = {
-      primeiraEtapa: (a, b) =>
-        compareDates(
-          primeiroEventoPorItem.get(a.atendimentoId) ?? a.rawDataHoraAcao,
-          primeiroEventoPorItem.get(b.atendimentoId) ?? b.rawDataHoraAcao
-        ) || compareDates(a.rawDataHoraAcao, b.rawDataHoraAcao),
       dataHoraAcao: (a, b) => compareDates(a.rawDataHoraAcao, b.rawDataHoraAcao),
       tipoLabel: (a, b) => compareStrings(a.tipoLabel, b.tipoLabel),
       atendimentoId: (a, b) => compareNumbers(a.atendimentoId, b.atendimentoId),
@@ -229,7 +210,7 @@ export default function HistoricoAtendimentosReportPage() {
     }
 
     return dataToSort;
-  }, [filteredData, sortConfig, primeiroEventoPorItem]);
+  }, [filteredData, sortConfig]);
 
   // Os blocos vem do mesmo motor do Relatorio de Comissao: a linha de lancamento ("Atendimento")
   // e a de conclusao, montadas a partir do cadastro do atendimento e nao do evento cru.
@@ -428,7 +409,7 @@ export default function HistoricoAtendimentosReportPage() {
           },
           {
             element: '#tour-relatorio-tabela',
-            popover: { title: 'Tabela de Resultados', description: 'Clique no cabeçalho de uma coluna para <strong>ordenar</strong>. Por padrão, ordenado pela data mais recente.', side: 'top', align: 'center' },
+            popover: { title: 'Tabela de Resultados', description: 'Clique no cabeçalho de uma coluna para <strong>ordenar</strong>. Por padrão, em ordem cronológica: do mais antigo para o mais recente.', side: 'top', align: 'center' },
           },
           {
             element: '#tour-relatorio-filtros',
