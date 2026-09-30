@@ -287,9 +287,29 @@ export default function HistoricoTarefasReportPage() {
     );
   };
 
+  // A linha de Atendimento nao e um evento do historico: o motor a monta com a data de
+  // cadastro do item, que nao passa pelo filtro de periodo. Num relatorio filtrado por data,
+  // ela aparecia fora da janela escolhida - entao aqui ela so entra se couber no periodo.
+  const inicioPeriodo = dataInicioFilter ? new Date(`${dataInicioFilter}T00:00:00`) : null;
+  const fimPeriodo = dataFimFilter ? new Date(`${dataFimFilter}T23:59:59`) : null;
+  const dentroDoPeriodo = (data) => {
+    if (!data) return false;
+    if (inicioPeriodo && data < inicioPeriodo) return false;
+    if (fimPeriodo && data > fimPeriodo) return false;
+    return true;
+  };
+
   const gruposOrdenados = useMemo(
-    () => [...grupos].sort((a, b) => (dataDoAtendimento(a) ?? 0) - (dataDoAtendimento(b) ?? 0)),
-    [grupos]
+    () =>
+      [...grupos]
+        .map((grupo) => ({
+          ...grupo,
+          itens: grupo.itens.filter(
+            (item) => item.etapaNome !== ETAPA_LANCAMENTO || dentroDoPeriodo(item.rawDataHoraAcao)
+          ),
+        }))
+        .sort((a, b) => (dataDoAtendimento(a) ?? 0) - (dataDoAtendimento(b) ?? 0)),
+    [grupos, dataInicioFilter, dataFimFilter]
   );
 
   const toggleColumn = (id) => {
