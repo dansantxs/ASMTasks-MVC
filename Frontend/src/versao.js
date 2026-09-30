@@ -21,12 +21,15 @@ export const CHANGELOG = [
   {
     versao: '1.13.0',
     data: '2026-09-30',
-    titulo: 'Etapa de Elaboração no Cadastro e Mensagens de Erro que Explicam o Problema',
+    titulo: 'Relatórios de Histórico Agrupados por Tarefa e Mensagens de Erro que Explicam o Problema',
     mudancas: [
-      'Cadastro de Etapas: nova marcação "Etapa de Elaboração", ao lado das de "Etapa Final" e "Etapa de Teste". Antes o sistema descobria qual era a etapa de elaboração procurando "elabora" ou "desenvolv" no nome dela — e isso define quem recebe o crédito no Relatório de Comissão e o que aparece como Reservado, de modo que renomear a etapa quebrava o relatório sem avisar. Marcada a etapa, o nome deixa de importar',
+      'Relatórios de Histórico de Tarefas e de Atendimentos: nova visão "Agrupada", que passa a ser a padrão. Em vez do log de eventos, cada tarefa ou atendimento vira um bloco com as etapas percorridas, no mesmo formato do Relatório de Comissão — com a linha de Atendimento, o Reservado, os tempos de execução e teste e o "Aprovado por". A diferença é que aqui entram também as tarefas em andamento, e não só as concluídas. A visão "Detalhada" continua sendo o log completo, e a escolha fica guardada para a próxima vez que você abrir a tela',
+      'Relatórios de Histórico: os blocos saem na ordem da linha de Atendimento — quando a demanda entrou —, do mais antigo para o mais recente; a visão Detalhada abre em ordem cronológica. Antes não havia ordenação definida: valia a ordem em que a consulta devolvia',
+      'Relatórios de Histórico: os dois abrem com o mês atual preenchido e ganham o mesmo desenho de filtros do Relatório de Comissão — três por linha, datas primeiro. No de Tarefas entra o filtro de Cliente, saem os de Projeto e "Última ocorrência", e a busca passa a procurar também na descrição, deixando de fora colaborador e cliente, que têm filtro próprio. No de Atendimentos, "Usuário" passa a se chamar "Colaborador"',
+      'Relatório de Histórico de Atendimentos: o cliente passa a aparecer conforme a configuração do sistema (razão social ou nome fantasia) na coluna, no filtro e nas exportações — antes saía sempre a razão social —, e a lista do filtro vem ordenada',
+      'Relatório de Comissão: a linha de tempos de execução e teste vira uma coluna que dá para desligar em "Colunas"',
       'Erros do sistema: em vez de "Erro ao criar o atendimento." sem mais nada, a tela passa a explicar o que houve — texto maior que o campo (dizendo qual campo e quantos caracteres tirar), registro em uso por outro cadastro, dado duplicado, demora demais ou banco fora do ar. O que o sistema não souber explicar vem com um código curto para informar ao suporte, e toda falha passa a ficar registrada no log',
       'Atendimentos: os campos de título, descrição e observação de conclusão passam a parar de aceitar texto ao chegar no limite, mostrando a contagem de caracteres quando o espaço começa a acabar. Antes dava para escrever à vontade e só descobrir o problema ao salvar',
-      'Visualização do projeto: a etapa concluída deixa de ser reconhecida por conter "conclu" no nome e passa a usar a marcação "Etapa Final" do cadastro',
     ],
   },
   {
