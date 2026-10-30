@@ -7,11 +7,7 @@ import { GripVertical, CheckCircle2 } from 'lucide-react';
 import { cn } from '../../../../components/ui/form/utils';
 import { ROTULO_RESERVADO, ehEtapaElaboracao, ehReservado } from '../../../../utils/situacaoTarefa';
 import CartaoTarefa from './CartaoTarefa';
-
-function resolverNomeCliente(tarefa, exibicao) {
-  if (exibicao === 'nomeFantasia' && tarefa.clienteNomeFantasia) return tarefa.clienteNomeFantasia;
-  return tarefa.clienteNome;
-}
+import { resolverNomeCliente } from '../utils/nomeCliente';
 
 function ColunaKanban({ etapaId, titulo, tarefas, ehAdmin, colaboradorLogadoId, isAtendimento, isEtapaFinal, onVisualizarTarefa, exibicaoNomeCliente = 'razaoSocial', mostrarLancamento = false }) {
   const podeMoverTarefa = (tarefa) => {
