@@ -1,6 +1,7 @@
 using API.DTOs.Projetos;
 using API.Models;
 using Microsoft.Data.SqlClient;
+using System.ComponentModel.DataAnnotations;
 
 namespace API.DB.DAOs
 {
@@ -108,14 +109,57 @@ namespace API.DB.DAOs
                     .Select(t => t.Id)
                     .ToHashSet();
 
-                // Remove tarefas que foram excluídas do formulário
+                // Remove tarefas que foram excluídas do formulário.
+                //
+                // O histórico (ProjetoTarefaHistorico) tem FK sem cascata: sem apagá-lo antes, o
+                // DELETE falhava e a tela mostrava só "Erro ao atualizar o projeto". Tarefa que já
+                // chegou na etapa final é base do Relatório de Comissão e não pode ser apagada; as
+                // demais vão junto com o histórico delas, que sozinho não diz mais nada.
                 var toDeleteIds = existingIds.Except(requestedIds).ToList();
                 if (toDeleteIds.Count > 0)
                 {
-                    await using var deleteCmd = con.CreateCommand();
-                    deleteCmd.Transaction = transaction;
-                    deleteCmd.CommandText = $"DELETE FROM ProjetoTarefa WHERE Id IN ({string.Join(",", toDeleteIds)})";
-                    await deleteCmd.ExecuteNonQueryAsync();
+                    var idsSql = string.Join(",", toDeleteIds);
+                    var concluidas = new List<string>();
+
+                    await using (var checagem = con.CreateCommand())
+                    {
+                        checagem.Transaction = transaction;
+                        checagem.CommandText = $@"
+                            SELECT t.Titulo
+                            FROM ProjetoTarefa t
+                            WHERE t.Id IN ({idsSql})
+                              AND EXISTS (
+                                  SELECT 1
+                                  FROM ProjetoTarefaHistorico h
+                                  INNER JOIN Etapa e ON e.Id = h.EtapaId AND e.EhEtapaFinal = 1
+                                  WHERE h.TarefaId = t.Id AND h.Tipo = 'E'
+                              );
+                        ";
+                        await using var dr = await checagem.ExecuteReaderAsync();
+                        while (await dr.ReadAsync())
+                            concluidas.Add(dr["Titulo"]?.ToString() ?? string.Empty);
+                    }
+
+                    if (concluidas.Count > 0)
+                    {
+                        throw new ValidationException(
+                            "Não é possível excluir uma tarefa que já chegou na etapa final, porque ela entra no Relatório de Comissão: "
+                            + string.Join(", ", concluidas) + ".");
+                    }
+
+                    await using (var deleteHistorico = con.CreateCommand())
+                    {
+                        deleteHistorico.Transaction = transaction;
+                        deleteHistorico.CommandText = $"DELETE FROM ProjetoTarefaHistorico WHERE TarefaId IN ({idsSql})";
+                        await deleteHistorico.ExecuteNonQueryAsync();
+                    }
+
+                    await using (var deleteCmd = con.CreateCommand())
+                    {
+                        deleteCmd.Transaction = transaction;
+                        deleteCmd.CommandText = $"DELETE FROM ProjetoTarefa WHERE Id IN ({idsSql})";
+                        await deleteCmd.ExecuteNonQueryAsync();
+                    }
                 }
 
                 // Atualiza apenas Titulo/Descricao/PrioridadeId das tarefas existentes (preserva estado do Kanban)
