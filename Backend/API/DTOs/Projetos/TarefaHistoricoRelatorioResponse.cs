@@ -50,5 +50,12 @@ namespace API.DTOs.Projetos
         /// </summary>
         public int? MinutosElaboracao { get; set; }
         public int? MinutosTeste { get; set; }
+
+        /// <summary>
+        /// O evento casa com os filtros da consulta (período, tipo, colaborador...). Com o
+        /// histórico completo, vêm também os eventos anteriores das mesmas tarefas, que chegam
+        /// com false; sem ele, todo evento devolvido é true.
+        /// </summary>
+        public bool DentroDoFiltro { get; set; } = true;
     }
 }

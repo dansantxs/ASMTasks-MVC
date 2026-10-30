@@ -605,7 +605,8 @@ namespace API.DB.DAOs
             int? etapaId,
             DateTime? dataInicio,
             DateTime? dataFim,
-            bool ultimaOcorrencia = false)
+            bool ultimaOcorrencia = false,
+            bool historicoCompleto = false)
         {
             var lista = new List<TarefaHistoricoRelatorioResponse>();
 
@@ -720,6 +721,17 @@ namespace API.DB.DAOs
                     elab.MinutosElaboracao,
                     teste.MinutosTeste";
 
+            // Histórico completo (COM-02): os filtros só escolhem as TAREFAS (CTE Selecionados), e
+            // cada tarefa vem com todos os eventos até o fim do período. Sem isso, a tarefa que
+            // atravessa a virada do mês chega pela metade, e o crédito sai errado. DentroDoFiltro
+            // marca os eventos que casam com os filtros, para quem quer só o log do período.
+            bool usarHistoricoCompleto = historicoCompleto && !ultimaOcorrencia;
+            string colunaDentroDoFiltro = usarHistoricoCompleto
+                ? @",
+                    CASE WHEN EXISTS (SELECT 1 FROM Selecionados s WHERE s.Id = h.Id) THEN 1 ELSE 0 END AS DentroDoFiltro"
+                : @",
+                    CAST(1 AS bit) AS DentroDoFiltro";
+
             string baseSelect = @"
                 SELECT
                     h.Id,
@@ -754,7 +766,7 @@ namespace API.DB.DAOs
                                OR (hi.DataHoraAcao = h.DataHoraAcao AND hi.Id <= h.Id))
                     ) THEN 1 ELSE 0 END AS ElaboracaoJaIniciadaNoEvento,
                     " + colaboradorEfetivoId + @" AS ResponsavelReservaId,
-                    " + colaboradorEfetivoNome + @" AS ResponsavelReservaNome" + colunasTempos + @"
+                    " + colaboradorEfetivoNome + @" AS ResponsavelReservaNome" + colunasTempos + colunaDentroDoFiltro + @"
                 FROM ProjetoTarefaHistorico h
                 INNER JOIN ProjetoTarefa pt ON h.TarefaId = pt.Id
                 INNER JOIN Projeto p ON pt.ProjetoId = p.Id
@@ -820,10 +832,35 @@ namespace API.DB.DAOs
                            CadastradoPorColaboradorId, CadastradoPorNome, TarefaDataCadastro,
                            ElaboracaoJaIniciadaNoEvento, ResponsavelReservaId, ResponsavelReservaNome,
                            TempoExecucaoValor, TempoExecucaoUnidade, TempoTesteValor, TempoTesteUnidade,
-                           MinutosElaboracao, MinutosTeste
+                           MinutosElaboracao, MinutosTeste,
+                           CAST(1 AS bit) AS DentroDoFiltro
                     FROM Ranked WHERE rn = 1
                     ORDER BY DataHoraAcao DESC;
                 ";
+            }
+            else if (usarHistoricoCompleto)
+            {
+                // Eventos depois do fim do período ficam de fora: o que aconteceu depois (uma
+                // reabertura, por exemplo) não muda o retrato do período consultado.
+                string ateOFim = dataFim.HasValue ? " AND h.DataHoraAcao <= @DataFim" : "";
+                sqlQuery = $@"
+                    WITH Selecionados AS (
+                        SELECT h.Id, h.TarefaId
+                        FROM ProjetoTarefaHistorico h
+                        INNER JOIN ProjetoTarefa pt ON h.TarefaId = pt.Id
+                        INNER JOIN Projeto p ON pt.ProjetoId = p.Id
+                        INNER JOIN Cliente c ON p.ClienteId = c.Id
+                        OUTER APPLY (
+                            SELECT TOP 1 ha.ColaboradorId, ha.ColaboradorNome
+                            FROM ProjetoTarefaHistorico ha
+                            WHERE ha.TarefaId = h.TarefaId AND ha.Tipo = 'A' AND ha.DataHoraAcao = h.DataHoraAcao
+                            ORDER BY ha.Id
+                        ) assumiu
+                        {filtros}
+                    )"
+                    + baseSelect
+                    + " WHERE h.TarefaId IN (SELECT TarefaId FROM Selecionados)" + ateOFim
+                    + " ORDER BY h.DataHoraAcao DESC;";
             }
             else
             {
@@ -867,6 +904,7 @@ namespace API.DB.DAOs
                     TempoTesteUnidade = dr["TempoTesteUnidade"] == DBNull.Value ? null : dr["TempoTesteUnidade"].ToString(),
                     MinutosElaboracao = dr["MinutosElaboracao"] == DBNull.Value ? null : Convert.ToInt32(dr["MinutosElaboracao"]),
                     MinutosTeste = dr["MinutosTeste"] == DBNull.Value ? null : Convert.ToInt32(dr["MinutosTeste"]),
+                    DentroDoFiltro = Convert.ToBoolean(dr["DentroDoFiltro"]),
                 });
             }
 
@@ -919,18 +957,12 @@ namespace API.DB.DAOs
                     -- responsavel da etapa que esta sendo DEIXADA; entao e o ColaboradorId do 'E'
                     -- que vem logo depois de um 'E' com destino a etapa de teste.
                     (SELECT TOP 1 saida.ColaboradorId
-                       FROM (SELECT he.ColaboradorId, he.DataHoraAcao, he.Id,
-                                    LAG(he.EtapaId) OVER (ORDER BY he.DataHoraAcao, he.Id) AS EtapaDeixadaId
-                               FROM ProjetoTarefaHistorico he
-                              WHERE he.TarefaId = pt.Id AND he.Tipo = 'E') saida
+                       FROM {TarefaSql.SaidasDeEtapa("pt.Id")} saida
                        INNER JOIN Etapa et ON et.Id = saida.EtapaDeixadaId AND et.EhEtapaTeste = 1
                       ORDER BY saida.DataHoraAcao DESC, saida.Id DESC) AS UltimoResponsavelTesteId,
                     -- Mesma ideia para a elaboracao: quem desenvolveu na ultima passagem por ela.
                     (SELECT TOP 1 saida.ColaboradorId
-                       FROM (SELECT he.ColaboradorId, he.DataHoraAcao, he.Id,
-                                    LAG(he.EtapaId) OVER (ORDER BY he.DataHoraAcao, he.Id) AS EtapaDeixadaId
-                               FROM ProjetoTarefaHistorico he
-                              WHERE he.TarefaId = pt.Id AND he.Tipo = 'E') saida
+                       FROM {TarefaSql.SaidasDeEtapa("pt.Id")} saida
                        INNER JOIN Etapa ee ON ee.Id = saida.EtapaDeixadaId AND {TarefaSql.EhEtapaElaboracao("ee")}
                       ORDER BY saida.DataHoraAcao DESC, saida.Id DESC) AS UltimoResponsavelElaboracaoId,
                     {TarefaSql.ElaboracaoJaIniciada("pt")} AS ElaboracaoJaIniciada

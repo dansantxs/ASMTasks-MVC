@@ -82,6 +82,8 @@ export function formatarTempoComPrevisto(minutosRealizados, minutosPrevistos) {
  * @param {string}  opcoes.exibicaoNomeCliente  'razaoSocial' | 'nomeFantasia'
  * @param {boolean} opcoes.somenteConcluidas    true na Comissão: só tarefas que chegaram na etapa
  *                                              final. Os históricos mostram tudo.
+ * @param {string}  opcoes.inicioPeriodo        ISO do início do período (com somenteConcluidas):
+ *                                              a tarefa só conta se entrou na final a partir dele.
  * @param {string}  opcoes.tipoItem             'todos' | 'tarefa' | 'atendimento' | 'teste'
  */
 export function useItensAgrupados({
@@ -93,6 +95,7 @@ export function useItensAgrupados({
   etapas = [],
   exibicaoNomeCliente = 'razaoSocial',
   somenteConcluidas = false,
+  inicioPeriodo = null,
   tipoItem = 'todos',
 }) {
   // Etapa marcada como final (Configurações > Etapas).
@@ -351,19 +354,24 @@ export function useItensAgrupados({
     return resultado;
   }, [eventosPorTarefa]);
 
-  // Tarefas cuja última etapa conhecida no período é a etapa final — calculado a partir de
-  // `segmentos` (não filtrado por colaborador ainda), já que o último segmento de uma tarefa pode
-  // ter ficado com um colaborador diferente do que está selecionado no filtro.
+  // Tarefas concluídas no período (COM-03): a última mudança de etapa até o fim do período leva
+  // para a etapa final E aconteceu a partir do início dele. O histórico chega completo (os
+  // eventos anteriores ao período também vêm), então sem a checagem do início uma tarefa
+  // concluída num mês voltaria a contar no seguinte só por ter uma reatribuição nele.
+  // Sai dos eventos, e não dos segmentos: a passagem pela final sem responsável não vira
+  // segmento, e a tarefa concluída assim sumiria do relatório.
   const tarefasFinalizadas = useMemo(() => {
     if (!somenteConcluidas || !etapaFinalId) return null; // sem recorte: entram todas
-    const ultimaEtapaPorTarefa = new Map();
-    segmentos.forEach((segmento) => ultimaEtapaPorTarefa.set(segmento.tarefaId, segmento.etapaId));
+    const inicio = inicioPeriodo ? new Date(inicioPeriodo) : null;
     const set = new Set();
-    ultimaEtapaPorTarefa.forEach((etapaId, tarefaId) => {
-      if (etapaId === etapaFinalId) set.add(tarefaId);
+    eventosPorTarefa.forEach((eventos, tarefaId) => {
+      const ultimaMudanca = [...eventos].reverse().find((evento) => evento.tipo === 'E');
+      if (ultimaMudanca?.etapaId !== etapaFinalId) return;
+      if (inicio && ultimaMudanca.dataHoraAcao < inicio) return;
+      set.add(tarefaId);
     });
     return set;
-  }, [segmentos, etapaFinalId, somenteConcluidas]);
+  }, [eventosPorTarefa, etapaFinalId, somenteConcluidas, inicioPeriodo]);
 
   // Junta tarefas e atendimentos numa lista só — cada linha já carrega itemTipo, então o resto do
   // relatório trata os dois de forma uniforme.

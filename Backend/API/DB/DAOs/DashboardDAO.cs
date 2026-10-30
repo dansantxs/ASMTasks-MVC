@@ -789,9 +789,10 @@ namespace API.DB.DAOs
             ";
             await LerRankingAsync(cmd, dto.AtendimentosPeriodo, usarNomeFantasia);
 
-            // Crédito de quem estava com a etapa quando ela foi fechada (h.ColaboradorId), com
-            // fallback para o responsável atual — mesmo critério do Relatório de Comissão. E
-            // DISTINCT por tarefa: reabrir e reconcluir não conta duas vezes.
+            // Crédito por elaboração, o mesmo do Relatório de Comissão (COM-10 e COM-11), com o
+            // histórico até o fim do período. Antes ia para quem fechou a etapa anterior à final,
+            // que no fluxo normal é quem testou. DISTINCT por tarefa: reabrir e reconcluir não
+            // conta duas vezes.
             cmd.CommandText = $@"
                 SELECT * FROM (
                     SELECT{ColunasTarefa},
@@ -801,14 +802,15 @@ namespace API.DB.DAOs
                         ROW_NUMBER() OVER (PARTITION BY colRank.Id ORDER BY{OrdemTarefaEtapaColaborador}) AS Posicao
                     {DeTarefa}
                     INNER JOIN (
-                        SELECT DISTINCT
-                            COALESCE(h.ColaboradorId, tc.ColaboradorResponsavelId) AS ColaboradorId,
-                            h.TarefaId
-                        FROM ProjetoTarefaHistorico h
-                        INNER JOIN Etapa ef ON ef.Id = h.EtapaId AND ef.EhEtapaFinal = 1
-                        INNER JOIN ProjetoTarefa tc ON tc.Id = h.TarefaId
-                        WHERE h.Tipo = 'E'
-                          AND h.DataHoraAcao >= @Inicio AND h.DataHoraAcao < @Fim
+                        SELECT concl.TarefaId,
+                               {TarefaSql.CreditoElaboracao("concl.TarefaId", "< @Fim")} AS ColaboradorId
+                        FROM (
+                            SELECT DISTINCT h.TarefaId
+                            FROM ProjetoTarefaHistorico h
+                            INNER JOIN Etapa ef ON ef.Id = h.EtapaId AND ef.EhEtapaFinal = 1
+                            WHERE h.Tipo = 'E'
+                              AND h.DataHoraAcao >= @Inicio AND h.DataHoraAcao < @Fim
+                        ) concl
                     ) credito ON credito.TarefaId = t.Id
                     INNER JOIN Colaborador colRank ON colRank.Id = credito.ColaboradorId
                 ) rank

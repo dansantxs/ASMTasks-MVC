@@ -767,7 +767,8 @@ namespace API.Controllers
             [FromQuery] int? etapaId,
             [FromQuery] DateTime? dataInicio,
             [FromQuery] DateTime? dataFim,
-            [FromQuery] bool ultimaOcorrencia = false)
+            [FromQuery] bool ultimaOcorrencia = false,
+            [FromQuery] bool historicoCompleto = false)
         {
             try
             {
@@ -784,7 +785,8 @@ namespace API.Controllers
                     etapaId,
                     dataInicio,
                     dataFim,
-                    ultimaOcorrencia);
+                    ultimaOcorrencia,
+                    historicoCompleto);
 
                 return Ok(new { registros, totalTarefas });
             }
