@@ -1,6 +1,6 @@
 # Relatórios mostram a tarefa inteira, não só o pedaço dentro do período
 
-- **Status:** rascunho
+- **Status:** aprovada (2026-10-30)
 - **Pedido por:** Daniel, 2026-10-30
 - **Branch:** `fix/historico-completo-da-tarefa`
 - **Versão:**
@@ -73,7 +73,8 @@ antes do início.
 ### Dashboard
 
 - **CA-9.** O ranking de tarefas concluídas no período credita a mesma pessoa que o Relatório de
-  Comissão (COM-10 e COM-11) e soma o mesmo total por colaborador. Hoje ele credita quem estava
+  Comissão (COM-10 e COM-11) e soma, por colaborador, o mesmo total do Resumo da Comissão com o
+  tipo "Tarefas" no mesmo período. Hoje ele credita quem estava
   na etapa anterior à final: no fluxo normal, quem testou. O comentário no código afirma que o
   critério é o mesmo da Comissão, mas não é.
 - **CA-10.** O card "Concluídas no período" não muda: ele já conta pela entrada na etapa final
@@ -87,10 +88,8 @@ antes do início.
 - Recalcular comissões de meses já fechados. Se algum mês foi pago com o relatório errado, a
   conferência é manual.
 
-## Perguntas em aberto
+## Decisões
 
-1. **CA-7.** Na visão Agrupada do Histórico, mostrar o histórico inteiro é o desejado? A
-   alternativa é manter só o período e marcar o bloco como "começou antes do período".
-   *Recomendação:* histórico inteiro, igual à Comissão.
-2. **CA-9.** Alinhar o Dashboard entra nesta mudança ou fica numa mudança própria?
-   *Recomendação:* nesta. É o mesmo erro de fundo, e você suspeitou dos gráficos.
+- **2026-10-30 (Daniel):** a visão Agrupada do Histórico mostra a tarefa inteira (CA-7), inclusive
+  a linha de Atendimento, mesmo que ela seja anterior ao período.
+- **2026-10-30 (Daniel):** o Dashboard é corrigido nesta mesma mudança (CA-9).

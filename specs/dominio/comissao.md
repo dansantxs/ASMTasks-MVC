@@ -112,7 +112,7 @@ O relatório depende do cadastro de Etapas, e duas dessas dependências são pel
 
 | Depende de | Como é reconhecido | Se mudar |
 |---|---|---|
-| Etapa final | flag "Etapa Final" | Sem etapa final cadastrada, o recorte de COM-03 deixa de existir e entram todas as tarefas com movimento no período. |
+| Etapa final | flag "Etapa Final" | Sem etapa final cadastrada, o recorte de COM-03 deixa de existir e entram todas as tarefas com movimento no período, sem aviso. Decidido em 2026-10-30 que continua assim. |
 | Etapa de teste | flag "Etapa de Teste" | Seguro contra renomeação. |
 | Etapa de elaboração | nome contém "desenvolv" ou "elabora" | Renomear para algo sem esses trechos faz todo crédito cair no COM-11 e as linhas "Reservado" sumirem. Nenhum erro aparece. |
 
@@ -129,10 +129,7 @@ O relatório depende do cadastro de Etapas, e duas dessas dependências são pel
 
 ## Perguntas em aberto
 
-1. **Sem etapa final cadastrada.** Hoje, se nenhuma etapa estiver marcada como final, o relatório
-   não tem como saber o que está concluído e lista toda tarefa que se moveu no período, sem
-   avisar. O total de comissão sai inflado. Deve continuar assim, ou o relatório deveria mostrar
-   um aviso "configure a etapa final em Cadastros › Etapas" e não listar tarefas?
+Nenhuma.
 
 ## Onde está no código
 

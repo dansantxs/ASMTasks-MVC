@@ -1,6 +1,6 @@
 # Flag "Etapa de Elaboração" e "Setor de Teste" no cadastro
 
-- **Status:** rascunho
+- **Status:** aprovada (2026-10-30)
 - **Pedido por:** Daniel, 2026-10-30
 - **Branch:** `feat/flag-etapa-elaboracao`
 - **Versão:**
@@ -40,15 +40,13 @@ teste e o crédito da comissão. As etapas final e de teste já usam flag e não
   da comissão cai inteiro na regra COM-11. A tela de Etapas avisa que a marcação está faltando.
 - **CA-7.** Sem nenhum setor marcado como de teste, o diálogo de mover para o teste avisa, como já
   faz hoje quando o Suporte não tem ninguém.
+- **CA-8.** Só um setor pode ser de teste. Marcar outro desmarca o anterior.
 
 ## Fora de escopo
 
 - Permitir mais de uma etapa de elaboração.
 
-## Perguntas em aberto
+## Decisões
 
-1. **"Setor de Teste" entra junto?** Você aprovou a flag de elaboração; a do setor Suporte estava
-   na mesma pergunta. *Recomendação:* entra junto, porque o risco é o mesmo e o trabalho é
-   pequeno.
-2. **Mais de um setor de teste?** Diferente da etapa, pode fazer sentido ter mais de um setor
-   marcado (Suporte e um setor de QA, por exemplo). *Recomendação:* permitir vários.
+- **2026-10-30 (Daniel):** a flag "Setor de Teste" entra junto nesta mudança.
+- **2026-10-30 (Daniel):** só pode haver um setor de teste (CA-8).
