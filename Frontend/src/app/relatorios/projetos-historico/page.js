@@ -104,6 +104,9 @@ export default function HistoricoTarefasReportPage() {
       etapaId: etapaFilter,
       dataInicio: toIsoStartOfDay(dataInicioFilter),
       dataFim: toIsoEndOfDay(dataFimFilter),
+      // Os filtros escolhem as tarefas; a Agrupada recebe a historia inteira delas e a
+      // Detalhada separa so os eventos do filtro (dentroDoFiltro).
+      historicoCompleto: true,
     }),
     [tipoFilter, colaboradorFilter, clienteFilter, etapaFilter, dataInicioFilter, dataFimFilter]
   );
@@ -165,7 +168,9 @@ export default function HistoricoTarefasReportPage() {
   const etapas = useMemo(() => etapasRaw.filter((e) => e.ativo !== false), [etapasRaw]);
 
   const data = useMemo(() => {
-    const tarefas = (historicoTarefasApi.registros ?? []).map((item) => {
+    // A visao Detalhada e o log do periodo: os eventos anteriores, que vem para a Agrupada
+    // montar a tarefa inteira, ficam de fora.
+    const tarefas = (historicoTarefasApi.registros ?? []).filter((item) => item.dentroDoFiltro !== false).map((item) => {
       // Entrar na etapa de elaboração sem nunca ter sido iniciada é o momento em que a tarefa
       // ficou reservada. O fim desse período é a linha "Início de Elaboração".
       const reservada =
@@ -287,29 +292,11 @@ export default function HistoricoTarefasReportPage() {
     );
   };
 
-  // A linha de Atendimento nao e um evento do historico: o motor a monta com a data de
-  // cadastro do item, que nao passa pelo filtro de periodo. Num relatorio filtrado por data,
-  // ela aparecia fora da janela escolhida - entao aqui ela so entra se couber no periodo.
-  const inicioPeriodo = dataInicioFilter ? new Date(`${dataInicioFilter}T00:00:00`) : null;
-  const fimPeriodo = dataFimFilter ? new Date(`${dataFimFilter}T23:59:59`) : null;
-  const dentroDoPeriodo = (data) => {
-    if (!data) return false;
-    if (inicioPeriodo && data < inicioPeriodo) return false;
-    if (fimPeriodo && data > fimPeriodo) return false;
-    return true;
-  };
-
+  // A tarefa aparece inteira, inclusive a linha de Atendimento e as passagens anteriores ao
+  // periodo: o periodo escolhe quais tarefas entram, nao corta a historia delas.
   const gruposOrdenados = useMemo(
-    () =>
-      [...grupos]
-        .map((grupo) => ({
-          ...grupo,
-          itens: grupo.itens.filter(
-            (item) => item.etapaNome !== ETAPA_LANCAMENTO || dentroDoPeriodo(item.rawDataHoraAcao)
-          ),
-        }))
-        .sort((a, b) => (dataDoAtendimento(a) ?? 0) - (dataDoAtendimento(b) ?? 0)),
-    [grupos, dataInicioFilter, dataFimFilter]
+    () => [...grupos].sort((a, b) => (dataDoAtendimento(a) ?? 0) - (dataDoAtendimento(b) ?? 0)),
+    [grupos]
   );
 
   const toggleColumn = (id) => {

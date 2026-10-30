@@ -1,9 +1,9 @@
 # Relatórios mostram a tarefa inteira, não só o pedaço dentro do período
 
-- **Status:** aprovada (2026-10-30)
+- **Status:** implementada (2026-10-30), aguardando conferência na tela
 - **Pedido por:** Daniel, 2026-10-30
 - **Branch:** `fix/historico-completo-da-tarefa`
-- **Versão:**
+- **Versão:** 1.14.0
 - **Specs de domínio afetadas:** `dominio/comissao.md` (COM-02, COM-03, COM-10, COM-11, COM-14);
   `relatorios-historico.md` (a escrever)
 
@@ -13,7 +13,7 @@ Os relatórios de Comissão e de Histórico de Tarefas (visão Agrupada) só rec
 aconteceram **dentro** do período filtrado. Uma tarefa que começou num mês e terminou no outro
 chega pela metade, e o relatório monta o bloco e calcula o crédito só com essa metade.
 
-Caso real, tarefa 355 (Granja Indaiá, "Vendas de ovos — impressão romaneio"):
+Caso real, tarefa 2494 (Granja Indaiá, "Vendas de ovos — impressão romaneio"; era o item 355 do relatório):
 
 | Data | Colaborador | Etapa |
 |---|---|---|
@@ -49,7 +49,7 @@ antes do início.
 
 ### Comissão
 
-- **CA-1.** Dada a tarefa 355, quando o relatório de Comissão é filtrado só por outubro, então
+- **CA-1.** Dada a tarefa 2494, quando o relatório de Comissão é filtrado só por outubro, então
   ela aparece com as seis linhas da tabela acima, "Aprovado por: Edmundo", e o crédito de
   elaboração do Yuri vem da etapa Elaboração, sem a linha "Sem passagem pela elaboração".
 - **CA-2.** Dada a mesma tarefa, quando o tipo é "Teste" e o período é outubro, então ela entra

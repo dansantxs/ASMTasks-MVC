@@ -30,13 +30,19 @@ O relatório não calcula valores, só conta itens por colaborador.
 
 - **COM-01. Período padrão.** O relatório abre com o último mês completo: do dia 1 ao último dia
   do mês anterior ao atual. *Por quê:* logo depois da virada, o que interessa é o mês que fechou.
-- **COM-02. Recorte por período.** Só os eventos de histórico com data/hora dentro do período
-  (início 00:00:00, fim 23:59:59) são considerados. O filtro de cliente também é aplicado na
-  busca. Colaborador, tipo e "Aprovado por" **não** restringem a busca: o crédito depende de
-  todas as reatribuições da tarefa, inclusive as de outras pessoas.
-- **COM-03. Tarefa concluída.** Uma tarefa entra quando a última etapa em que ela aparece
-  **dentro do período** é a etapa final. Tarefa que chegou à final e foi reaberta no mesmo
-  período não entra.
+- **COM-02. Recorte por período.** O período (início 00:00:00, fim 23:59:59) e o filtro de
+  cliente escolhem as **tarefas**: as que têm algum evento no período. Cada uma vem com o
+  histórico inteiro até o fim do período, inclusive o que aconteceu antes do início. Eventos
+  depois do fim são ignorados. Colaborador, tipo e "Aprovado por" **não** restringem a busca: o
+  crédito depende de todas as reatribuições da tarefa, inclusive as de outras pessoas.
+  *Por quê:* a tarefa que atravessa a virada do mês chegava pela metade, sem a elaboração ou o
+  teste do mês anterior, e o crédito saía errado (corrigido na
+  [historico-completo-da-tarefa](../mudancas/2026-10-30-historico-completo-da-tarefa/spec.md)).
+- **COM-03. Tarefa concluída.** Uma tarefa entra quando a última mudança de etapa dela até o fim
+  do período leva à etapa final **e** aconteceu dentro do período. Ela conta só no mês em que
+  entrou na final: uma reatribuição no mês seguinte não a traz de volta. Reaberta e concluída de
+  novo no mesmo período, conta uma vez. Reaberta depois do fim do período, continua contando.
+  Vale também quando a etapa final ficou sem responsável.
 - **COM-04. Atendimento concluído.** Um atendimento entra quando tem um evento de conclusão
   (marcado como Realizado) no período **e** continua Realizado hoje. Se foi reaberto depois, não
   entra. Se foi concluído mais de uma vez no período, conta uma vez só.
@@ -118,12 +124,6 @@ O relatório depende do cadastro de Etapas, e duas dessas dependências são pel
 
 ## Problemas conhecidos
 
-- **Tarefa que atravessa a virada do mês sai pela metade** (COM-02). Confirmado em 2026-10-30
-  com a tarefa 355: filtrando só outubro, somem a elaboração e o teste de setembro, o crédito de
-  elaboração cai no COM-11 e o de teste se perde. Correção proposta em
-  [historico-completo-da-tarefa](../mudancas/2026-10-30-historico-completo-da-tarefa/spec.md).
-- **O ranking do Dashboard credita outra pessoa.** Ele dá o crédito a quem estava na etapa anterior
-  à final, e não segue COM-10/COM-11. Entra na mesma correção.
 - **Elaboração reconhecida pelo nome.** Será trocada por flag no cadastro (decidido em
   2026-10-30): [flag-etapa-elaboracao](../mudancas/2026-10-30-flag-etapa-elaboracao/spec.md).
 
@@ -136,5 +136,7 @@ Nenhuma.
 - Tela, filtros e visões: `Frontend/src/app/relatorios/comissao/page.js`
 - Montagem dos itens e crédito (compartilhado com os relatórios de histórico):
   `Frontend/src/app/relatorios/useItensAgrupados.js`
-- Busca dos eventos: `GET /projetos/tarefas/relatorio-historico` →
+- Busca dos eventos: `GET /projetos/tarefas/relatorio-historico?historicoCompleto=true` →
   `ProjetosDAO.ObterRelatorioHistoricoAsync`; atendimentos em `AtendimentosDAO`.
+- A mesma regra de crédito em SQL, para o ranking do Dashboard: `TarefaSql.CreditoElaboracao`.
+  Mudou a regra num lado, mude no outro.
