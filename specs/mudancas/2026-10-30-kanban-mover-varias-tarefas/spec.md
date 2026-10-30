@@ -1,6 +1,6 @@
 # Kanban: mover várias tarefas de uma vez
 
-- **Status:** rascunho
+- **Status:** aprovada (2026-10-30)
 - **Pedido por:** Daniel, 2026-10-30
 - **Branch:** `feat/kanban-mover-varias-tarefas`
 - **Versão:**
@@ -20,9 +20,10 @@ coluna de destino, com um único diálogo de mover.
 
 ### Seleção
 
-- **CA-1.** Ctrl+clique (Cmd+clique no Mac) num cartão marca ou desmarca a tarefa. Cartões
-  marcados ficam visualmente destacados, e uma barra mostra "N tarefas selecionadas", com a
-  opção de limpar a seleção.
+- **CA-1.** Ctrl+clique (Cmd+clique no Mac) num cartão marca ou desmarca a tarefa. Uma caixinha
+  no canto do cartão, que aparece ao passar o mouse (e fica visível enquanto ele estiver
+  marcado), faz o mesmo. Cartões marcados ficam visualmente destacados, e uma barra mostra
+  "N tarefas selecionadas", com a opção de limpar a seleção.
 - **CA-2.** Clique simples, sem Ctrl, continua abrindo a tarefa, como hoje.
 - **CA-3.** Esc limpa a seleção. Mudar os filtros do quadro também limpa.
 - **CA-4.** A seleção pode ter tarefas de colunas diferentes.
@@ -59,11 +60,7 @@ coluna de destino, com um único diálogo de mover.
 - Seleção em massa por checkbox no modo lista.
 - Ações em lote que não sejam mover (trocar só o responsável, excluir).
 
-## Perguntas em aberto
+## Decisões
 
-1. **Tudo ou nada?** Em CA-12, se uma tarefa falhar, as outras seguem. A alternativa é não mover
-   nenhuma. *Recomendação:* mover as que podem e mostrar as que ficaram, porque é o que menos
-   atrapalha no dia a dia.
-2. **Selecionar pelo teclado/clique.** Ctrl+clique serve, ou prefere uma caixinha de seleção
-   em cada cartão, que é mais fácil de descobrir? *Recomendação:* os dois. A caixinha aparece
-   ao passar o mouse.
+- **2026-10-30 (Daniel):** se alguma tarefa não puder ser movida, as outras seguem (CA-12).
+- **2026-10-30 (Daniel):** seleção por Ctrl+clique e por caixinha no cartão (CA-1).

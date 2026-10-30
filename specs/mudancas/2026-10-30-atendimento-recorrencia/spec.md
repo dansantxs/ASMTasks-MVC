@@ -1,6 +1,6 @@
 # Atendimento recorrente
 
-- **Status:** rascunho
+- **Status:** aprovada (2026-10-30)
 - **Pedido por:** Álvaro; desenho aprovado por Daniel em 2026-10-30, com recorrência semanal
 - **Branch:** `feat/atendimento-recorrencia`
 - **Versão:** 1.14.0
@@ -43,18 +43,18 @@ pergunta: **só esta**, **esta e as próximas** ou **a série inteira**.
 - **CA-8.** Na lista, no calendário e no detalhe, a ocorrência de uma série é identificada como tal
   (por exemplo, "3 de 4" ou "semanal até 15/12").
 - **CA-9.** Atendimento sem recorrência funciona exatamente como hoje.
+- **CA-10.** "Gerar todas agora" aceita no máximo 52 ocorrências. Acima disso, o cadastro recusa e
+  sugere "gerar a próxima ao concluir", que não tem limite.
+- **CA-11.** Cada ocorrência copia os avisos (notificações) configurados na primeira.
 
 ## Fora de escopo
 
 - Recorrência diária, quinzenal ou "a cada N semanas".
 - Transformar um atendimento já existente em recorrente. A recorrência só pode ser escolhida na criação.
+- Mudar a recorrência de uma série existente (de semanal para mensal, por exemplo). Para mudar,
+  exclui-se "esta e as próximas" e cria-se uma série nova.
 
-## Perguntas em aberto
+## Decisões
 
-1. **Limite de "gerar todas agora".** Uma série semanal até daqui a dois anos são mais de 100
-   atendimentos. *Recomendação:* limitar a 52 ocorrências por vez.
-2. **Avisos (notificações).** As ocorrências copiam os avisos configurados na primeira?
-   *Recomendação:* sim.
-3. **Mudar a recorrência depois de criada** (por exemplo, de semanal para mensal) entra?
-   *Recomendação:* não nesta versão. Para mudar, exclui-se "esta e as próximas" e cria-se uma
-   série nova.
+- **2026-10-30 (Daniel):** limite de 52 ocorrências no "gerar todas agora" (CA-10); avisos
+  copiados (CA-11); mudar a recorrência de uma série fica fora desta versão.

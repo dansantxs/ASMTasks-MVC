@@ -1,6 +1,6 @@
 # Dashboard: atendimentos por dia da semana
 
-- **Status:** rascunho
+- **Status:** aprovada (2026-10-30)
 - **Pedido por:** Álvaro
 - **Branch:** `feat/dashboard-dia-semana-atendimentos` (mergear depois de `fix/dashboard-nome-cliente`)
 - **Versão:** 1.14.0
@@ -21,9 +21,9 @@ selecionado, destacando o dia com mais atendimentos.
   nos outros indicadores.
 - **CA-4.** O indicador respeita o período e o filtro de colaborador do Dashboard, e o nome do
   cliente segue a configuração.
+- **CA-5.** O atendimento conta no dia da semana da sua data **marcada** (início), esteja ele
+  concluído ou não. Exemplo: marcado para terça e concluído na quinta conta na terça.
 
-## Perguntas em aberto
+## Decisões
 
-1. **Qual data conta?** A data **marcada** do atendimento (início) ou a data em que ele foi
-   **concluído**? *Recomendação:* a data marcada, contando só os não cancelados, porque mostra
-   a demanda de cada dia.
+- **2026-10-30 (Daniel):** conta a data marcada, porque mostra a demanda de cada dia (CA-5).
