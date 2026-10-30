@@ -70,7 +70,10 @@ relatórios de histórico e de comissão.
 - **ETP-10. Status.** "Em andamento" com o cronômetro aberto; "Pausada" se houve pausa depois da
   última mudança de etapa; senão, "Ociosa".
 - **ETP-11. Iniciar.** Só é possível iniciar uma tarefa que está numa etapa (não em Atendimento),
-  tem responsável e não está em andamento. Só o responsável ou um administrador pode iniciar.
+  tem responsável e não está em andamento. Só o responsável ou um administrador pode iniciar. O
+  início é permitido em qualquer etapa, e o evento `I` grava a etapa em que aconteceu.
+- **ETP-14. Uma tarefa em andamento por pessoa.** O responsável não pode iniciar uma tarefa se
+  já tiver outra em andamento: o sistema pede que ele pause a outra antes.
 - **ETP-12. Pausar.** Só é possível pausar uma tarefa em andamento, e só o responsável ou um
   administrador pode fazê-lo.
 
@@ -89,11 +92,16 @@ relatórios de histórico e de comissão.
 | Etapa de elaboração | nome contém "elabora" ou "desenvolv" | A faixa Reservado some, a sugestão de ETP-06 deixa de funcionar e o crédito da comissão muda. Nenhum erro aparece. |
 | Setor Suporte | nome contém "suporte" | O seletor da etapa de teste fica vazio. |
 
+## Problemas conhecidos
+
+- **Início fora da elaboração esconde o Reservado.** Hoje, um início em qualquer etapa conta para
+  ETP-09, e uma tarefa iniciada na análise nunca aparece como Reservada. Daniel confirmou em
+  2026-10-30 que isso não é o desejado. Correção em
+  [reservado-so-inicio-na-elaboracao](../mudancas/2026-10-30-reservado-so-inicio-na-elaboracao/spec.md).
+
 ## Perguntas em aberto
 
-1. **Início fora da elaboração.** É possível iniciar a tarefa em qualquer etapa (ETP-11). Uma
-   tarefa iniciada numa etapa antes da elaboração (análise, por exemplo) já conta como
-   "elaboração iniciada" e nunca aparece como Reservada. É o comportamento desejado?
+Nenhuma.
 
 ## Onde está no código
 
