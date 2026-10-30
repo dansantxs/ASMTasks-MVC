@@ -110,14 +110,37 @@ houver, propor um `migration_*.sql` só com o índice.
 Ainda não há testes automatizados; a verificação é manual, contra a base de desenvolvimento com
 uma cópia dos dados de produção.
 
-- **CA-1, CA-2.** Comissão de outubro: tarefa 355 com as seis linhas, aprovador Edmundo, sem a
+- **CA-1, CA-2.** Comissão de outubro: tarefa 2494 com as seis linhas, aprovador Edmundo, sem a
   linha "Sem passagem pela elaboração"; no tipo "Teste", na seção do Edmundo.
 - **CA-3, CA-4, CA-5.** Consultas SQL para achar um caso real de cada (concluída antes do mês com
   reatribuição no mês; concluída e reaberta depois; reaberta e reconcluída no mês). Onde não
   houver caso real, monto um na base de desenvolvimento.
 - **CA-6.** Para três colaboradores, conferir que Detalhada e Resumo dão o mesmo número.
-- **CA-7, CA-8.** Histórico de outubro: tarefa 355 inteira na Agrupada; na Detalhada, só os
+- **CA-7, CA-8.** Histórico de outubro: tarefa 2494 inteira na Agrupada; na Detalhada, só os
   eventos de 01/10.
 - **CA-9.** Dashboard de outubro: ranking igual ao Resumo da Comissão de outubro, tipo "Tarefas".
 - **CA-10.** Card "Concluídas no período" com o mesmo número de antes da mudança.
 - Build do backend e do frontend sem erro (o que o CI roda).
+
+## Verificação feita (2026-10-30)
+
+Contra a base de desenvolvimento (cópia de produção), outubro de 2026, chamando o próprio
+`ProjetosDAO` e o próprio `useItensAgrupados` (antes e depois da mudança):
+
+- **Consulta:** as mesmas 354 tarefas com e sem histórico completo; os 3.074 eventos marcados
+  `DentroDoFiltro` são exatamente os que a consulta antiga devolvia (CA-8), mais 178 eventos
+  anteriores ao período; nenhum evento depois do fim (CA-4). O mesmo vale com filtro de tipo.
+- **CA-1, CA-2:** tarefa 2494 com Atendimento › Reservado › Elaboração › Aprovação › Atualização ›
+  Concluído, desenvolvedor Yuri pela Elaboração, aprovador Edmundo.
+- **Efeito na Comissão de outubro:** tipo Tarefas de 313 para 320 tarefas (7 com crédito novo,
+  nenhuma saiu); tipo Teste de 116 para 125 (Edmundo 29 → 34, Estefany 16 → 18, Marcio 50 → 52).
+  As tarefas novas são as que só tinham, em outubro, a entrada na etapa final: antes elas não
+  formavam nenhuma passagem e sumiam do relatório.
+- **CA-9:** ranking do Dashboard e Resumo da Comissão (tipo Tarefas) com o mesmo total para todos
+  os 14 colaboradores (320 tarefas). Pelo crédito antigo do Dashboard, só 1 das 321 tarefas
+  concluídas mudava de dono.
+- **Risco "final sem responsável":** 1 tarefa em agosto, 3 em setembro e 1 em outubro.
+- Builds do backend e do frontend sem erro.
+
+**Conferência na tela:** feita por Daniel em 2026-10-30. (CA-3, CA-5, CA-6, CA-7 e CA-10 não foram
+exercitados com casos reais montados.)

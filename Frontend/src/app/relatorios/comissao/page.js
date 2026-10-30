@@ -111,11 +111,15 @@ export default function RelatorioComissaoPage() {
   // é preciso ver TODAS as reatribuições da tarefa (mudanças de etapa e de colaborador), mesmo
   // as de outros colaboradores — filtrar por colaborador aqui perderia justamente os eventos
   // necessários pra reconstruir a atribuição correta (ver useItensAgrupados).
+  // O período escolhe as tarefas, mas cada uma vem com o histórico inteiro até o fim dele
+  // (COM-02): a tarefa elaborada num mês e concluída no outro precisa da elaboração e do teste
+  // do mês anterior para o crédito sair certo.
   const queryParams = useMemo(
     () => ({
       clienteId: clienteFilter,
       dataInicio: toIsoStartOfDay(dataInicioFilter),
       dataFim: toIsoEndOfDay(dataFimFilter),
+      historicoCompleto: true,
     }),
     [clienteFilter, dataInicioFilter, dataFimFilter]
   );
@@ -211,6 +215,7 @@ export default function RelatorioComissaoPage() {
     etapas: etapasRaw,
     exibicaoNomeCliente,
     somenteConcluidas: true,
+    inicioPeriodo: queryParamsDebounced.dataInicio,
     tipoItem: tipoItemFilter,
   });
 

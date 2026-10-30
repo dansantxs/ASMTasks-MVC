@@ -54,6 +54,7 @@ export async function getHistoricoTarefas(params = {}) {
   if (params.clienteId && params.clienteId !== 'todos') query.set('clienteId', params.clienteId);
   if (params.etapaId && params.etapaId !== 'todos') query.set('etapaId', params.etapaId);
   if (params.ultimaOcorrencia) query.set('ultimaOcorrencia', 'true');
+  if (params.historicoCompleto) query.set('historicoCompleto', 'true');
   if (params.dataInicio) query.set('dataInicio', params.dataInicio);
   if (params.dataFim) query.set('dataFim', params.dataFim);
 

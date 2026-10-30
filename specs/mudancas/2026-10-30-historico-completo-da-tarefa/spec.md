@@ -1,9 +1,9 @@
 # Relatórios mostram a tarefa inteira, não só o pedaço dentro do período
 
-- **Status:** aprovada (2026-10-30)
+- **Status:** implementada (2026-10-30), conferida na tela por Daniel
 - **Pedido por:** Daniel, 2026-10-30
 - **Branch:** `fix/historico-completo-da-tarefa`
-- **Versão:**
+- **Versão:** 1.14.0
 - **Specs de domínio afetadas:** `dominio/comissao.md` (COM-02, COM-03, COM-10, COM-11, COM-14);
   `relatorios-historico.md` (a escrever)
 
@@ -13,7 +13,7 @@ Os relatórios de Comissão e de Histórico de Tarefas (visão Agrupada) só rec
 aconteceram **dentro** do período filtrado. Uma tarefa que começou num mês e terminou no outro
 chega pela metade, e o relatório monta o bloco e calcula o crédito só com essa metade.
 
-Caso real, tarefa 355 (Granja Indaiá, "Vendas de ovos — impressão romaneio"):
+Caso real, tarefa 2494 (Granja Indaiá, "Vendas de ovos — impressão romaneio"; era o item 355 do relatório):
 
 | Data | Colaborador | Etapa |
 |---|---|---|
@@ -49,7 +49,7 @@ antes do início.
 
 ### Comissão
 
-- **CA-1.** Dada a tarefa 355, quando o relatório de Comissão é filtrado só por outubro, então
+- **CA-1.** Dada a tarefa 2494, quando o relatório de Comissão é filtrado só por outubro, então
   ela aparece com as seis linhas da tabela acima, "Aprovado por: Edmundo", e o crédito de
   elaboração do Yuri vem da etapa Elaboração, sem a linha "Sem passagem pela elaboração".
 - **CA-2.** Dada a mesma tarefa, quando o tipo é "Teste" e o período é outubro, então ela entra
@@ -69,6 +69,9 @@ antes do início.
   histórico inteiro até o fim do período, como em CA-1.
 - **CA-8.** A visão Detalhada (log de eventos) continua mostrando só os eventos dentro do
   período.
+- **CA-11.** Na visão Agrupada, os blocos saem pela data da linha de Elaboração (a real ou a
+  deduzida), da mais antiga para a mais recente. Tarefas que ainda não chegaram à elaboração vão
+  para o fim, pela data da linha de Atendimento. A ordem é a mesma na tela e nas exportações.
 
 ### Dashboard
 
@@ -93,3 +96,5 @@ antes do início.
 - **2026-10-30 (Daniel):** a visão Agrupada do Histórico mostra a tarefa inteira (CA-7), inclusive
   a linha de Atendimento, mesmo que ela seja anterior ao período.
 - **2026-10-30 (Daniel):** o Dashboard é corrigido nesta mesma mudança (CA-9).
+- **2026-10-30 (Daniel):** com a linha de Atendimento sempre presente, ordenar os blocos por ela
+  levava tarefas lançadas meses antes para o topo. Os blocos passam a sair pela elaboração (CA-11).
