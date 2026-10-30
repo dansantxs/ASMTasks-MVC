@@ -107,11 +107,7 @@ namespace API.Models
 
             var docNumerico = Regex.Replace(Documento, "[^0-9]", "");
 
-            if (!DataReferencia.HasValue)
-                throw new ValidationException(TipoPessoa == 'J'
-                    ? "A data de inauguração é obrigatória."
-                    : "A data de nascimento é obrigatória.");
-
+            // A data (nascimento ou inauguração) é opcional; quando vem, continua validada.
             if (DataReferencia > DateTime.Today)
                 throw new ValidationException("A data informada não pode ser futura.");
 
@@ -120,10 +116,13 @@ namespace API.Models
                 if (!ValidarCPF(docNumerico))
                     throw new ValidationException("CPF inválido.");
 
-                var idade = DateTime.Today.Year - DataReferencia.Value.Year;
-                if (DataReferencia.Value > DateTime.Today.AddYears(-idade)) idade--;
-                if (idade < 0)
-                    throw new ValidationException("A data de nascimento é inválida.");
+                if (DataReferencia.HasValue)
+                {
+                    var idade = DateTime.Today.Year - DataReferencia.Value.Year;
+                    if (DataReferencia.Value > DateTime.Today.AddYears(-idade)) idade--;
+                    if (idade < 0)
+                        throw new ValidationException("A data de nascimento é inválida.");
+                }
             }
 
             if (TipoPessoa == 'J')

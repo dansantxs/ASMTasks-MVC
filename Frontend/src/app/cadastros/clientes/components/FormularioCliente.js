@@ -327,12 +327,8 @@ export default function FormularioCliente({
       newErrors.documento = 'CNPJ inválido';
     }
 
-    if (!formData.dataReferencia) {
-      newErrors.dataReferencia =
-        formData.tipoPessoa === 'J'
-          ? 'Data de inauguração é obrigatória'
-          : 'Data de nascimento é obrigatória';
-    } else {
+    // A data é opcional; quando informada, não pode ser futura.
+    if (formData.dataReferencia) {
       const dataSelecionada = new Date(formData.dataReferencia);
       const hoje = new Date();
       hoje.setHours(0, 0, 0, 0);
@@ -474,7 +470,7 @@ export default function FormularioCliente({
 
               <div>
                 <Label htmlFor="dataReferencia">
-                  {formData.tipoPessoa === 'J' ? 'Data de Inauguração' : 'Data de Nascimento'} <span className="text-destructive">*</span>
+                  {formData.tipoPessoa === 'J' ? 'Data de Inauguração' : 'Data de Nascimento'}
                 </Label>
                 <Input
                   id="dataReferencia"
