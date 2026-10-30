@@ -1,5 +1,6 @@
 'use client';
 import { useState, useCallback } from 'react';
+import { usePreferenciaLocal } from '../../../hooks/usePreferenciaLocal';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from '../../../components/ui/base/button';
 import { Plus, Handshake } from 'lucide-react';
@@ -18,7 +19,7 @@ export default function ClientesPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [clienteSelecionado, setClienteSelecionado] = useState(null);
-  const [modoVisualizacao, setModoVisualizacao] = useState('cards');
+  const [modoVisualizacao, setModoVisualizacao] = usePreferenciaLocal('asm_clientes_visualizacao', 'cards');
 
   const queryClient = useQueryClient();
   const { data: systemSettings = configuracoesPadrao } = useConfiguracoesSistema();

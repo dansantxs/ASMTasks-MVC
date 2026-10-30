@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { usePreferenciaLocal } from '../../../hooks/usePreferenciaLocal';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from '../../../components/ui/base/button';
 import { Plus, Building2 } from 'lucide-react';
@@ -18,7 +19,7 @@ export default function SetoresPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [setorSelecionado, setSetorSelecionado] = useState(null);
-  const [modoVisualizacao, setModoVisualizacao] = useState('cards');
+  const [modoVisualizacao, setModoVisualizacao] = usePreferenciaLocal('asm_setores_visualizacao', 'cards');
 
   const queryClient = useQueryClient();
 

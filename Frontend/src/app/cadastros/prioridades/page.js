@@ -1,5 +1,6 @@
 'use client';
 import { useState, useCallback } from 'react';
+import { usePreferenciaLocal } from '../../../hooks/usePreferenciaLocal';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from '../../../components/ui/base/button';
 import { Plus, Flag } from 'lucide-react';
@@ -17,7 +18,7 @@ export default function PrioridadesPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [prioridadeSelecionada, setPrioridadeSelecionada] = useState(null);
-  const [modoVisualizacao, setModoVisualizacao] = useState('cards');
+  const [modoVisualizacao, setModoVisualizacao] = usePreferenciaLocal('asm_prioridades_visualizacao', 'cards');
 
   const queryClient = useQueryClient();
 

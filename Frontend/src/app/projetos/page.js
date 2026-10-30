@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState, useCallback } from 'react';
+import { usePreferenciaLocal } from '../../hooks/usePreferenciaLocal';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { FolderKanban, Plus } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
@@ -37,7 +38,7 @@ export default function ProjetosPage() {
   const [selectedProject, setSelectedProject] = useState(null);
   const [editingProject, setEditingProject] = useState(null);
   const [duplicatingProject, setDuplicatingProject] = useState(null);
-  const [modoVisualizacao, setModoVisualizacao] = useState('cards');
+  const [modoVisualizacao, setModoVisualizacao] = usePreferenciaLocal('asm_projetos_visualizacao', 'cards');
   const queryClient = useQueryClient();
   const { usuario } = useUsuarioAtual();
   const { data: config = configuracoesPadrao } = useConfiguracoesSistema();
