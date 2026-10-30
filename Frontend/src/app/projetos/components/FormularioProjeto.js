@@ -25,6 +25,26 @@ function gerarTempId() {
     : Math.random().toString(36).slice(2);
 }
 
+// Último setor usado num lançamento de tarefa, guardado no navegador de quem lança. Storage
+// bloqueado (navegação anônima) só faz o formulário deixar de lembrar.
+const CHAVE_ULTIMO_SETOR = 'asm_lancamento_ultimo_setor';
+
+function lerUltimoSetor() {
+  try {
+    return localStorage.getItem(CHAVE_ULTIMO_SETOR);
+  } catch {
+    return null;
+  }
+}
+
+function guardarUltimoSetor(setorId) {
+  try {
+    localStorage.setItem(CHAVE_ULTIMO_SETOR, String(setorId));
+  } catch {
+    // segue sem lembrar
+  }
+}
+
 function criarTarefaInicial(setorId = '') {
   return { _tempId: gerarTempId(), titulo: '', descricao: '', prioridadeId: '', setorId: setorId ? String(setorId) : '', tempoExecucaoValor: '', tempoExecucaoUnidade: 'H', tempoTesteValor: '', tempoTesteUnidade: 'H' };
 }
@@ -320,10 +340,10 @@ export default function FormularioProjeto({
           clienteId: dadosIniciais.clienteId ? String(dadosIniciais.clienteId) : '',
           tarefas: (dadosIniciais.tarefas ?? []).length
             ? dadosIniciais.tarefas.map(criarTarefaDoProjeto)
-            : [criarTarefaInicial(setorLogadoId)],
+            : [criarTarefaInicial(setorSugerido())],
         });
       } else {
-        setFormData({ titulo: '', descricao: '', clienteId: '', tarefas: [criarTarefaInicial(setorLogadoId)] });
+        setFormData({ titulo: '', descricao: '', clienteId: '', tarefas: [criarTarefaInicial(setorSugerido())] });
       }
       setPendingFiles({});
       setErrors({});
@@ -368,6 +388,14 @@ export default function FormularioProjeto({
     );
   }, [isEditMode, clientesMatrizes, clientes, dadosIniciais?.clienteId, resolverNomeCliente]);
   const setoresAtivos = useMemo(() => setores.filter((item) => item.ativo), [setores]);
+
+  // Setor que a tarefa nova já traz: o último usado num lançamento, se ainda estiver ativo;
+  // senão, o setor de quem está logado.
+  const setorSugerido = () => {
+    const ultimo = lerUltimoSetor();
+    if (ultimo && setoresAtivos.some((setor) => String(setor.id) === ultimo)) return ultimo;
+    return setorLogadoId;
+  };
   const prioridadesAtivas = useMemo(() => prioridades.filter((item) => item.ativo), [prioridades]);
 
   const projetosAtivosDoCliente = useMemo(() => {
@@ -388,7 +416,7 @@ export default function FormularioProjeto({
   };
 
   const adicionarTarefa = () => {
-    setFormData((prev) => ({ ...prev, tarefas: [...prev.tarefas, criarTarefaInicial(setorLogadoId)] }));
+    setFormData((prev) => ({ ...prev, tarefas: [...prev.tarefas, criarTarefaInicial(setorSugerido())] }));
     setTimeout(() => {
       if (tarefasContainerRef.current) {
         tarefasContainerRef.current.scrollTop = tarefasContainerRef.current.scrollHeight;
@@ -551,6 +579,10 @@ export default function FormularioProjeto({
         if (files.length > 0) pendingFilesByIndex[index] = files;
       }
     });
+
+    // Guarda o setor só ao salvar, e não a cada troca no seletor: vale o que de fato foi lançado.
+    const ultimaTarefaNova = [...formData.tarefas].reverse().find((tarefa) => !tarefa.id && tarefa.setorId);
+    if (ultimaTarefaNova) guardarUltimoSetor(ultimaTarefaNova.setorId);
 
     aoSalvar(
       {
