@@ -69,6 +69,9 @@ antes do início.
   histórico inteiro até o fim do período, como em CA-1.
 - **CA-8.** A visão Detalhada (log de eventos) continua mostrando só os eventos dentro do
   período.
+- **CA-11.** Na visão Agrupada, os blocos saem pela data da linha de Elaboração (a real ou a
+  deduzida), da mais antiga para a mais recente. Tarefas que ainda não chegaram à elaboração vão
+  para o fim, pela data da linha de Atendimento. A ordem é a mesma na tela e nas exportações.
 
 ### Dashboard
 
@@ -93,3 +96,5 @@ antes do início.
 - **2026-10-30 (Daniel):** a visão Agrupada do Histórico mostra a tarefa inteira (CA-7), inclusive
   a linha de Atendimento, mesmo que ela seja anterior ao período.
 - **2026-10-30 (Daniel):** o Dashboard é corrigido nesta mesma mudança (CA-9).
+- **2026-10-30 (Daniel):** com a linha de Atendimento sempre presente, ordenar os blocos por ela
+  levava tarefas lançadas meses antes para o topo. Os blocos passam a sair pela elaboração (CA-11).

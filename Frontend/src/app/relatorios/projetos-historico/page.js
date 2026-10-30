@@ -20,7 +20,7 @@ import { getHistoricoTarefas, getHistoricoProjetosRelatorio } from './api/histor
 import { getColaboradoresKanban, getClientesKanban, getEtapasKanban } from '../../projetos/kanban/api/kanban';
 import { useDebouncedValue } from '../../../hooks/useDebouncedValue';
 import { usePreferenciaLocal } from '../../../hooks/usePreferenciaLocal';
-import { useItensAgrupados, formatarTempoComPrevisto, ETAPA_LANCAMENTO } from '../useItensAgrupados';
+import { useItensAgrupados, formatarTempoComPrevisto, ETAPA_LANCAMENTO, ehEtapaDesenvolvimento } from '../useItensAgrupados';
 import { mesAtualParaInputs } from '../../../utils/periodoRelatorio';
 import { ROTULO_RESERVADO, ehEtapaElaboracao } from '../../../utils/situacaoTarefa';
 
@@ -279,8 +279,11 @@ export default function HistoricoTarefasReportPage() {
   });
 
   // O motor devolve os itens na ordem em que os encontrou, que e a da consulta. Aqui a ordem
-  // e explicita: pela linha de Atendimento, que e quando a demanda entrou, do mais antigo para
-  // o mais recente.
+  // e explicita: pela linha de Elaboracao (inclusive a deduzida), do mais antigo para o mais
+  // recente. Tarefa que ainda nao chegou a elaboracao vai para o fim, pela linha de Atendimento.
+  const dataDaElaboracao = (grupo) =>
+    grupo.itens.find((item) => ehEtapaDesenvolvimento(item.etapaNome))?.rawDataHoraAcao ?? null;
+
   const dataDoAtendimento = (grupo) => {
     const lancamento = grupo.itens.find((item) => item.etapaNome === ETAPA_LANCAMENTO);
     if (lancamento?.rawDataHoraAcao) return lancamento.rawDataHoraAcao;
@@ -295,7 +298,14 @@ export default function HistoricoTarefasReportPage() {
   // A tarefa aparece inteira, inclusive a linha de Atendimento e as passagens anteriores ao
   // periodo: o periodo escolhe quais tarefas entram, nao corta a historia delas.
   const gruposOrdenados = useMemo(
-    () => [...grupos].sort((a, b) => (dataDoAtendimento(a) ?? 0) - (dataDoAtendimento(b) ?? 0)),
+    () =>
+      [...grupos].sort((a, b) => {
+        const elaboracaoA = dataDaElaboracao(a);
+        const elaboracaoB = dataDaElaboracao(b);
+        if (elaboracaoA && elaboracaoB) return elaboracaoA - elaboracaoB;
+        if (elaboracaoA || elaboracaoB) return elaboracaoA ? -1 : 1;
+        return (dataDoAtendimento(a) ?? 0) - (dataDoAtendimento(b) ?? 0);
+      }),
     [grupos]
   );
 
