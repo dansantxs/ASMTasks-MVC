@@ -1,6 +1,6 @@
 # Relatórios mostram a tarefa inteira, não só o pedaço dentro do período
 
-- **Status:** implementada (2026-10-30), aguardando conferência na tela
+- **Status:** implementada (2026-10-30), conferida na tela por Daniel
 - **Pedido por:** Daniel, 2026-10-30
 - **Branch:** `fix/historico-completo-da-tarefa`
 - **Versão:** 1.14.0

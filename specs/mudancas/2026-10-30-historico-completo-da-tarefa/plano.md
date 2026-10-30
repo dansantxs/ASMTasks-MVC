@@ -142,5 +142,5 @@ Contra a base de desenvolvimento (cópia de produção), outubro de 2026, chaman
 - **Risco "final sem responsável":** 1 tarefa em agosto, 3 em setembro e 1 em outubro.
 - Builds do backend e do frontend sem erro.
 
-**Falta:** conferir na tela, com o sistema rodando (CA-3, CA-5, CA-6, CA-7 e CA-10 não foram
-exercitados com casos reais).
+**Conferência na tela:** feita por Daniel em 2026-10-30. (CA-3, CA-5, CA-6, CA-7 e CA-10 não foram
+exercitados com casos reais montados.)
