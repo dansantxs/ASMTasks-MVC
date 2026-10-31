@@ -1,6 +1,6 @@
 # Ajustes da 1.14.0
 
-- **Status:** aprovada (2026-10-30)
+- **Status:** A a G implementados e conferidos na tela por Daniel (2026-10-31); H a L pendentes
 - **Pedido por:** Álvaro e Daniel; plano aprovado por Daniel em 2026-10-30
 - **Branches:** uma por item, indicada em cada seção
 - **Versão:** 1.14.0
