@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
+import { Fragment, useCallback, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/layout/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../components/ui/layout/table';
@@ -97,7 +97,6 @@ export default function RelatorioComissaoPage() {
   const [dataFimFilter, setDataFimFilter] = useState(() => paraInputDate(periodoPadrao.fim));
   const [colaboradorFilter, setColaboradorFilter] = useState('todos');
   const [clienteFilter, setClienteFilter] = useState('todos');
-  const [aprovadorFilter, setAprovadorFilter] = useState('todos'); // colaborador da etapa de teste
   const [tipoItemFilter, setTipoItemFilter] = useState('todos'); // todos | tarefa | atendimento | teste
   const [selectedColumns, setSelectedColumns] = useState(todasColunas.map((c) => c.id));
   // Agrupamento: por Colaborador(Desenvolvedor), ou por quem testou quando o Tipo é "Teste";
@@ -220,33 +219,6 @@ export default function RelatorioComissaoPage() {
   });
 
   const colaboradorIdFiltro = colaboradorFilter === 'todos' ? null : Number(colaboradorFilter);
-  const aprovadorIdFiltro = aprovadorFilter === 'todos' ? null : Number(aprovadorFilter);
-
-  // Opções do "Aprovado por": só quem consta como aprovador de algum item do período — não a
-  // lista inteira de colaboradores. Sai do mesmo `grupo.aprovadorId` que o filtro compara, então
-  // toda opção oferecida devolve pelo menos um item.
-  const aprovadoresDisponiveis = useMemo(() => {
-    const mapa = new Map();
-    grupos.forEach((grupo) => {
-      if (grupo.aprovadorId == null || mapa.has(grupo.aprovadorId)) return;
-      mapa.set(grupo.aprovadorId, grupo.aprovadorNome ?? `#${grupo.aprovadorId}`);
-    });
-    return Array.from(mapa, ([id, nome]) => ({ id, nome })).sort((a, b) => compararTexto(a.nome, b.nome));
-  }, [grupos]);
-
-  // Trocar o período (ou o tipo) pode tirar da lista o aprovador escolhido. Sem isto o relatório
-  // ficaria vazio exibindo um nome que nem está mais entre as opções.
-  useEffect(() => {
-    if (aprovadorFilter === 'todos') return;
-    if (!aprovadoresDisponiveis.some((a) => String(a.id) === aprovadorFilter)) setAprovadorFilter('todos');
-  }, [aprovadoresDisponiveis, aprovadorFilter]);
-
-  // "Aprovado por" restringe os ITENS de fato (entra também no Resumo), diferente do filtro de
-  // colaborador, que só escolhe quais itens aparecem sem mexer na contagem por colaborador.
-  const gruposPorAprovador = useMemo(
-    () => (aprovadorIdFiltro == null ? grupos : grupos.filter((grupo) => grupo.aprovadorId === aprovadorIdFiltro)),
-    [grupos, aprovadorIdFiltro]
-  );
 
   // O filtro de colaborador seleciona os itens pelo CRÉDITO, não pela participação: entra a tarefa
   // que a pessoa elaborou e o atendimento que ela concluiu. Ter só lançado, testado ou feito uma
@@ -254,9 +226,9 @@ export default function RelatorioComissaoPage() {
   // Detalhada e o Resumo mostram sempre o mesmo número. As etapas das outras pessoas continuam
   // visíveis dentro de cada item; muda só quais itens entram.
   const gruposVisiveis = useMemo(() => {
-    if (colaboradorIdFiltro == null) return gruposPorAprovador;
-    return gruposPorAprovador.filter((grupo) => grupo.desenvolvedorId === colaboradorIdFiltro);
-  }, [gruposPorAprovador, colaboradorIdFiltro]);
+    if (colaboradorIdFiltro == null) return grupos;
+    return grupos.filter((grupo) => grupo.desenvolvedorId === colaboradorIdFiltro);
+  }, [grupos, colaboradorIdFiltro]);
 
   // Itens 1 e 2: relatório dividido em seções por quem recebe o crédito do item, cada item numerado
   // dentro da sua seção.
@@ -300,7 +272,7 @@ export default function RelatorioComissaoPage() {
 
   // Item 4: contagem por colaborador. Por elaboração: quem fez o desenvolvimento (tarefa) ou
   // concluiu o atendimento. Por teste: quem fez a etapa de teste — só tarefa, atendimento não
-  // passa por teste. Respeita período/cliente/tipo/"aprovado por"; o filtro de colaborador só
+  // passa por teste. Respeita período/cliente/tipo; o filtro de colaborador só
   // restringe a linha exibida — menos em "Teste", onde ele escolhe as tarefas (ver abaixo).
   const resumoColaboradores = useMemo(() => {
     const porTeste = creditoPorTeste || totalizarPor === 'teste';
@@ -308,7 +280,7 @@ export default function RelatorioComissaoPage() {
     // Em "Teste" o Resumo soma sobre os mesmos itens da Detalhada: o filtro de colaborador
     // escolhe as tarefas pela elaboração e o total sai por testador, então não dá para filtrar a
     // linha exibida por esse mesmo id — ele é de outra pessoa.
-    (creditoPorTeste ? gruposVisiveis : gruposPorAprovador).forEach((grupo) => {
+    (creditoPorTeste ? gruposVisiveis : grupos).forEach((grupo) => {
       // Reforça o filtro de tipo aqui (além de `grupos`) pra não sobrar tarefa quando o filtro é
       // "Atendimentos" nem o contrário.
       if (tipoItemBase !== 'todos' && grupo.itemTipo !== tipoItemBase) return;
@@ -326,7 +298,7 @@ export default function RelatorioComissaoPage() {
     }
     lista.sort((a, b) => b.total - a.total || compararTexto(a.nome, b.nome));
     return lista;
-  }, [gruposPorAprovador, gruposVisiveis, tipoItemBase, creditoPorTeste, colaboradorIdFiltro, totalizarPor]);
+  }, [grupos, gruposVisiveis, tipoItemBase, creditoPorTeste, colaboradorIdFiltro, totalizarPor]);
 
   const rotuloTotalResumo =
     creditoPorTeste || totalizarPor === 'teste'
@@ -395,17 +367,11 @@ export default function RelatorioComissaoPage() {
             ? 'Teste (tarefas, por quem testou)'
             : null;
 
-    const aprovadorNome =
-      aprovadorFilter === 'todos'
-        ? null
-        : aprovadoresDisponiveis.find((a) => a.id === Number(aprovadorFilter))?.nome ?? `#${aprovadorFilter}`;
-
     const filters = [
       dataInicioFilter ? `Data início: ${new Date(`${dataInicioFilter}T00:00:00`).toLocaleDateString('pt-BR')}` : null,
       dataFimFilter ? `Data fim: ${new Date(`${dataFimFilter}T00:00:00`).toLocaleDateString('pt-BR')}` : null,
       tipoLabel ? `Tipo: ${tipoLabel}` : null,
       colaboradorNome ? `Elaborado por: ${colaboradorNome}` : null,
-      aprovadorNome ? `Aprovado por: ${aprovadorNome}` : null,
       clienteNome ? `Cliente: ${clienteNome}` : null,
       viewMode === 'resumo'
         ? `Visão: Resumo (total por colaborador, por ${totalizarPor === 'teste' ? 'teste' : 'elaboração'})`
@@ -598,7 +564,7 @@ export default function RelatorioComissaoPage() {
           },
           {
             element: '#tour-comissao-filtros',
-            popover: { title: 'Filtros', description: 'Filtre por <strong>período</strong>, <strong>tipo</strong> (Tarefas, Atendimentos ou Teste — este último traz só tarefas, agrupadas e somadas por quem as testou, deixando de fora as que não passaram pelo teste), <strong>elaborado por</strong>, <strong>aprovado por</strong> e <strong>cliente</strong>. <strong>Elaborado por</strong> traz os itens <strong>creditados</strong> à pessoa — a tarefa que ela elaborou e o atendimento que ela concluiu; ter só lançado ou testado não traz o item. Dentro de cada item, as etapas das outras pessoas continuam visíveis. Já <strong>Aprovado por</strong> deixa só os itens cuja etapa de teste foi feita pela pessoa escolhida, e conta também no Resumo; o nome dela aparece no cabeçalho de cada item.', side: 'bottom', align: 'start' },
+            popover: { title: 'Filtros', description: 'Filtre por <strong>período</strong>, <strong>tipo</strong> (Tarefas, Atendimentos ou Teste — este último traz só tarefas, agrupadas e somadas por quem as testou, deixando de fora as que não passaram pelo teste), <strong>elaborado por</strong> e <strong>cliente</strong>. <strong>Elaborado por</strong> traz os itens <strong>creditados</strong> à pessoa — a tarefa que ela elaborou e o atendimento que ela concluiu; ter só lançado ou testado não traz o item. Dentro de cada item, as etapas das outras pessoas continuam visíveis. Quem fez o teste aparece como <strong>Aprovado por</strong> no cabeçalho de cada item.', side: 'bottom', align: 'start' },
           },
           {
             element: '#tour-comissao-colunas',
@@ -690,19 +656,6 @@ export default function RelatorioComissaoPage() {
                     options={[
                       { value: 'todos', label: 'Todos' },
                       ...colaboradores.map((c) => ({ value: String(c.id), label: c.nome })),
-                    ]}
-                  />
-                </div>
-                <div>
-                  <Label>Aprovado por</Label>
-                  <Combobox
-                    value={aprovadorFilter}
-                    onValueChange={setAprovadorFilter}
-                    placeholder="Aprovado por"
-                    searchPlaceholder="Buscar colaborador..."
-                    options={[
-                      { value: 'todos', label: 'Todos' },
-                      ...aprovadoresDisponiveis.map((a) => ({ value: String(a.id), label: a.nome })),
                     ]}
                   />
                 </div>

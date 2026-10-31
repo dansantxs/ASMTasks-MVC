@@ -33,7 +33,7 @@ O relatório não calcula valores, só conta itens por colaborador.
 - **COM-02. Recorte por período.** O período (início 00:00:00, fim 23:59:59) e o filtro de
   cliente escolhem as **tarefas**: as que têm algum evento no período. Cada uma vem com o
   histórico inteiro até o fim do período, inclusive o que aconteceu antes do início. Eventos
-  depois do fim são ignorados. Colaborador, tipo e "Aprovado por" **não** restringem a busca: o
+  depois do fim são ignorados. Colaborador e tipo **não** restringem a busca: o
   crédito depende de todas as reatribuições da tarefa, inclusive as de outras pessoas.
   *Por quê:* a tarefa que atravessa a virada do mês chegava pela metade, sem a elaboração ou o
   teste do mês anterior, e o crédito saía errado (corrigido na
@@ -98,9 +98,8 @@ O relatório não calcula valores, só conta itens por colaborador.
   entram as tarefas que a pessoa elaborou e os atendimentos que ela concluiu. Dentro de cada item,
   as passagens das outras pessoas continuam visíveis. No tipo "Teste", o filtro continua
   escolhendo as tarefas pela elaboração, mas as seções e o total saem por quem testou.
-- **COM-18. Aprovado por.** Restringe os itens ao aprovador escolhido, na visão Detalhada e no
-  Resumo. Só aparecem como opção os colaboradores que são aprovadores de algum item do período.
-  Se uma troca de período ou de tipo tirar o escolhido da lista, o filtro volta para "Todos".
+- **COM-18.** *Removida na 1.14.0.* Era o filtro "Aprovado por", que saiu a pedido do Álvaro.
+  O aprovador continua aparecendo no cabeçalho de cada item (COM-14).
 
 ### Visões
 
