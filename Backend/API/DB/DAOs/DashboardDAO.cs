@@ -151,7 +151,7 @@ namespace API.DB.DAOs
             {
                 resultado.Projetos = await ObterProjetosAsync(con, usarNomeFantasia, periodo);
                 resultado.Colaboradores = await ObterColaboradoresAsync(con, usarNomeFantasia, periodo);
-                resultado.ProjetosSemMovimentacao = await ObterProjetosSemMovimentacaoAsync(con);
+                resultado.ProjetosSemMovimentacao = await ObterProjetosSemMovimentacaoAsync(con, usarNomeFantasia);
             }
 
             if (ehAdministrador)
@@ -221,6 +221,11 @@ namespace API.DB.DAOs
             var valor = reader[coluna];
             return valor == DBNull.Value ? null : Convert.ToDateTime(valor);
         }
+
+        // Nome do cliente (alias c) já escolhido no SQL, para as listas que não passam por
+        // MapearLinha. Mesma regra de lá: nome fantasia quando a configuração pede e ele existe.
+        private static string NomeClienteSql(bool usarNomeFantasia) =>
+            usarNomeFantasia ? "COALESCE(NULLIF(LTRIM(RTRIM(c.NomeFantasia)), ''), c.Nome)" : "c.Nome";
 
         private static DashboardLinhaDTO MapearLinha(SqlDataReader reader, bool usarNomeFantasia)
         {
@@ -399,7 +404,7 @@ namespace API.DB.DAOs
             }
 
             cmd.CommandText = $@"
-                SELECT TOP 5 a.Id, a.Titulo, c.Nome, a.DataHoraInicio
+                SELECT TOP 5 a.Id, a.Titulo, {NomeClienteSql(usarNomeFantasia)}, a.DataHoraInicio
                 FROM Atendimento a
                 INNER JOIN Cliente c ON c.Id = a.ClienteId
                 WHERE a.Status = 'A'
@@ -848,11 +853,11 @@ namespace API.DB.DAOs
             return dto;
         }
 
-        private async Task<List<ProjetoSemMovimentacaoDTO>> ObterProjetosSemMovimentacaoAsync(SqlConnection con)
+        private async Task<List<ProjetoSemMovimentacaoDTO>> ObterProjetosSemMovimentacaoAsync(SqlConnection con, bool usarNomeFantasia)
         {
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = @"
-                SELECT p.Id, p.Titulo, c.Nome,
+            cmd.CommandText = $@"
+                SELECT p.Id, p.Titulo, {NomeClienteSql(usarNomeFantasia)},
                        MAX(h.DataHoraAcao) as UltimaMovimentacao,
                        DATEDIFF(DAY, MAX(h.DataHoraAcao), GETDATE()) as DiasParado
                 FROM Projeto p
@@ -860,7 +865,7 @@ namespace API.DB.DAOs
                 LEFT JOIN ProjetoTarefa t ON t.ProjetoId = p.Id
                 LEFT JOIN ProjetoTarefaHistorico h ON h.TarefaId = t.Id
                 WHERE p.Ativo = 1 AND p.Concluido = 0
-                GROUP BY p.Id, p.Titulo, c.Nome, p.DataCadastro
+                GROUP BY p.Id, p.Titulo, c.Nome, c.NomeFantasia, p.DataCadastro
                 HAVING MAX(h.DataHoraAcao) < DATEADD(DAY, -15, GETDATE())
                     OR (MAX(h.DataHoraAcao) IS NULL AND p.DataCadastro < DATEADD(DAY, -15, GETDATE()))
                 ORDER BY UltimaMovimentacao ASC
