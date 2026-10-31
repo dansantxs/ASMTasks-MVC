@@ -229,7 +229,7 @@ export default function ClientesPage() {
             element: '#tour-cli-form-identificacao',
             popover: {
               title: 'Identificação',
-              description: 'Informe <strong>Nome/Razão Social</strong>, <strong>Tipo de Pessoa</strong> (Física ou Jurídica), <strong>CPF/CNPJ</strong> e <strong>data de nascimento/inauguração</strong>. Campos obrigatórios marcados com *.',
+              description: 'Informe <strong>Nome/Razão Social</strong>, <strong>Tipo de Pessoa</strong> (Física ou Jurídica) e <strong>CPF/CNPJ</strong>. A <strong>data de nascimento/inauguração</strong> é opcional. Campos obrigatórios marcados com *.',
               side: 'bottom',
             },
           },
