@@ -31,6 +31,15 @@ relatórios de histórico e de comissão.
 | `P` | Pausa | O responsável que pausou |
 | `F` | Fim da elaboração por mudança de etapa com cronômetro aberto | — |
 
+### Como o histórico é mostrado
+
+No detalhe da tarefa, os eventos não aparecem um por linha: os gravados no mesmo instante pela
+mesma pessoa (`F`, `P` de troca, `A` e `E`, ver ETP-05) formam **uma ação**, mostrada como frase
+("Fulano moveu de Elaboração para Aprovação e passou para Beltrano"). A etapa de origem é
+reconstruída percorrendo os `E` em ordem. `I` e `P` avulsos viram "começou a trabalhar" e "pausou
+o trabalho". Detalhes e exemplos em
+[linha-do-tempo-legivel](../mudancas/2026-11-03-linha-do-tempo-legivel/spec.md).
+
 ## Regras
 
 ### Cadastro de etapas
