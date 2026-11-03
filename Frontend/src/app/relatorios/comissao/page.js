@@ -336,10 +336,8 @@ export default function RelatorioComissaoPage() {
     if (selectedColumns.includes('tarefaTitulo')) partes.push(grupo.tarefaTitulo);
     if (selectedColumns.includes('descricao') && grupo.descricao?.trim()) partes.push(grupo.descricao.trim());
     const titulo = partes.length > 0 ? partes.join(' — ') : `Tarefa #${grupo.tarefaId}`;
-    // Quem aprovou fica no cabeçalho do item, ao lado do que identifica a tarefa.
-    const comAprovador = grupo.aprovadorNome ? `${titulo} · Aprovado por: ${grupo.aprovadorNome}` : titulo;
-
-    return grupo.numero ? `${grupo.numero} - ${comAprovador}` : comAprovador;
+    // Quem aprovou não vai no cabeçalho: aparece na linha da etapa de teste, dentro do item.
+    return grupo.numero ? `${grupo.numero} - ${titulo}` : titulo;
   }
 
   /**
@@ -587,7 +585,7 @@ export default function RelatorioComissaoPage() {
           },
           {
             element: '#tour-comissao-filtros',
-            popover: { title: 'Filtros', description: 'Filtre por <strong>período</strong>, <strong>tipo</strong> (Elaboração, Atendimentos ou Aprovação — esta última traz só tarefas, agrupadas e somadas por quem as aprovou na etapa de teste, deixando de fora as que não passaram por ela), <strong>elaborado por</strong> e <strong>cliente</strong>. <strong>Elaborado por</strong> traz os itens <strong>creditados</strong> à pessoa — a tarefa que ela elaborou e o atendimento que ela concluiu; ter só lançado ou testado não traz o item. Dentro de cada item, as etapas das outras pessoas continuam visíveis. Quem fez o teste aparece como <strong>Aprovado por</strong> no cabeçalho de cada item.', side: 'bottom', align: 'start' },
+            popover: { title: 'Filtros', description: 'Filtre por <strong>período</strong>, <strong>tipo</strong> (Elaboração, Atendimentos ou Aprovação — esta última traz só tarefas, agrupadas e somadas por quem as aprovou na etapa de teste, deixando de fora as que não passaram por ela), <strong>elaborado por</strong> e <strong>cliente</strong>. <strong>Elaborado por</strong> traz os itens <strong>creditados</strong> à pessoa — a tarefa que ela elaborou e o atendimento que ela concluiu; ter só lançado ou testado não traz o item. Dentro de cada item, as etapas das outras pessoas continuam visíveis. Quem fez o teste aparece na linha da etapa de teste, dentro de cada item.', side: 'bottom', align: 'start' },
           },
           {
             element: '#tour-comissao-colunas',
