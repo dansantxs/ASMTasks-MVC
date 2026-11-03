@@ -10,6 +10,7 @@ import DialogoPausarTarefa from './DialogoPausarTarefa';
 import DialogoAnexosTarefa from '../../components/DialogoAnexosTarefa';
 import { Combobox } from '../../../../components/ui/form/combobox';
 import { montarOpcoesColaboradores, montarOpcoesSuporte } from '../utils/opcoesResponsavel';
+import { acoesDoHistorico } from '../utils/acoesDoHistorico';
 import { resolverNomeCliente } from '../utils/nomeCliente';
 
 const formatDateTime = (value) =>
@@ -22,28 +23,6 @@ const formatDateTime = (value) =>
         minute: '2-digit',
       }).format(new Date(value))
     : '—';
-
-const getTipoLabel = (tipo) => {
-  if (tipo === 'E') return 'Movida para etapa';
-  if (tipo === 'A') return 'Responsável atribuído';
-  if (tipo === 'I') return 'Elaboração iniciada';
-  if (tipo === 'P') return 'Elaboração pausada';
-  if (tipo === 'F') return 'Elaboração finalizada';
-  if (tipo === 'C') return 'Projeto concluído';
-  if (tipo === 'R') return 'Projeto reaberto';
-  return tipo;
-};
-
-const getTipoCor = (tipo) => {
-  if (tipo === 'E') return 'bg-blue-100 text-blue-700';
-  if (tipo === 'A') return 'bg-amber-100 text-amber-700';
-  if (tipo === 'I') return 'bg-green-100 text-green-700';
-  if (tipo === 'P') return 'bg-orange-100 text-orange-700';
-  if (tipo === 'F') return 'bg-purple-100 text-purple-700';
-  if (tipo === 'C') return 'bg-teal-100 text-teal-700';
-  if (tipo === 'R') return 'bg-red-100 text-red-700';
-  return 'bg-gray-100 text-gray-700';
-};
 
 const HISTORICO_PAGINA = 5;
 
@@ -97,9 +76,9 @@ export default function DialogoVisualizarTarefa({
       dataHoraAcao: item.dataHoraAcao,
       realizadoPorColaboradorNome: item.realizadoPorColaboradorNome,
     }));
-    return [...historicoTarefa, ...projetoNormalizado].sort(
-      (a, b) => new Date(b.dataHoraAcao) - new Date(a.dataHoraAcao)
-    );
+    // Uma frase por ação ("Fulano moveu de X para Y e passou para Beltrano"), e não um evento
+    // gravado por linha: ver acoesDoHistorico. Já vem do mais recente para o mais antigo.
+    return acoesDoHistorico([...historicoTarefa, ...projetoNormalizado]);
   }, [historicoTarefa, historicoProjeto]);
 
   const handleOpenChange = (v) => {
@@ -368,40 +347,14 @@ export default function DialogoVisualizarTarefa({
                     </p>
                   </div>
                   <div className="space-y-2 pr-1">
-                    {historico.slice(0, historicoVisiveis).map((item) => (
-                      <div key={item.id} className="flex items-start gap-2 text-xs">
-                        <span className={`flex-shrink-0 px-1.5 py-0.5 rounded font-medium ${getTipoCor(item.tipo)}`}>
-                          {getTipoLabel(item.tipo)}
+                    {historico.slice(0, historicoVisiveis).map((acao) => (
+                      <div key={acao.id} className="flex items-start gap-2 text-xs">
+                        <span className={`flex-shrink-0 w-[5.5rem] text-center px-1.5 py-0.5 rounded font-medium ${acao.cor}`}>
+                          {acao.rotulo}
                         </span>
-                        <div className="text-gray-600 min-w-0">
-                          {item.tipo === 'E' && (
-                            <span>
-                              {item.etapaNome ? `→ ${item.etapaNome}` : '→ Sem etapa'}
-                              {/* colaboradorNome do 'E' é o responsável da etapa deixada; exibe quem moveu */}
-                              {item.realizadoPorColaboradorNome ? ` · por ${item.realizadoPorColaboradorNome}` : ''}
-                            </span>
-                          )}
-                          {item.tipo === 'A' && (
-                            <span>{item.colaboradorNome ?? 'Sem responsável'}</span>
-                          )}
-                          {item.tipo === 'I' && (
-                            <span>{item.colaboradorNome ?? '—'}</span>
-                          )}
-                          {item.tipo === 'P' && (
-                            <span>
-                              {item.colaboradorNome ?? '—'}
-                              {item.observacao && (
-                                <span className="ml-1 italic text-gray-500">· "{item.observacao}"</span>
-                              )}
-                            </span>
-                          )}
-                          {item.tipo === 'F' && (
-                            <span>{item.colaboradorNome ?? '—'}</span>
-                          )}
-                          {(item.tipo === 'C' || item.tipo === 'R') && (
-                            <span>{item.colaboradorNome ?? '—'}</span>
-                          )}
-                          <span className="ml-1 text-gray-400">{formatDateTime(item.dataHoraAcao)}</span>
+                        <div className="text-gray-700 min-w-0">
+                          <span>{acao.frase}</span>
+                          <span className="ml-1 text-gray-400 whitespace-nowrap">{formatDateTime(acao.quando)}</span>
                         </div>
                       </div>
                     ))}
