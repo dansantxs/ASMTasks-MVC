@@ -4,7 +4,7 @@
 - **Pedido por:** Álvaro
 - **Branch:** `fix/cadastros-ordem-tab` (por último entre os fixes, porque mexe em formulários que
   outras branches também alteram)
-- **Versão:** 1.14.0
+- **Versão:** 1.15.0
 - **Specs de domínio afetadas:** nenhuma
 
 ## Contexto

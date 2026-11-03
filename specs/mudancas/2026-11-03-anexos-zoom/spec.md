@@ -3,7 +3,7 @@
 - **Status:** rascunho
 - **Pedido por:** Daniel, 2026-11-03
 - **Branch:** `feat/anexos-zoom`
-- **Versão:**
+- **Versão:** 1.15.0
 - **Specs de domínio afetadas:** nenhuma
 
 ## Contexto

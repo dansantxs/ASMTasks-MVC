@@ -3,7 +3,7 @@
 - **Status:** rascunho
 - **Pedido por:** Daniel, 2026-11-03
 - **Branch:** `feat/dashboard-tarefas-ultimos-6-meses`
-- **Versão:**
+- **Versão:** 1.15.0
 - **Specs de domínio afetadas:** `dashboard.md` (a escrever); `dominio/comissao.md` (COM-03, COM-10)
 
 ## Contexto
