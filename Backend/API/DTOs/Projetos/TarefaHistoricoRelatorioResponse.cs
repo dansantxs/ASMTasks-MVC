@@ -57,5 +57,8 @@ namespace API.DTOs.Projetos
         /// com false; sem ele, todo evento devolvido é true.
         /// </summary>
         public bool DentroDoFiltro { get; set; } = true;
+
+        /// <summary>A tarefa está hoje na etapa final (filtro "Situação" do Histórico de Tarefas).</summary>
+        public bool TarefaConcluida { get; set; }
     }
 }
