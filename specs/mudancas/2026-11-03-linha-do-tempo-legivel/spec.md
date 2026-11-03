@@ -1,6 +1,6 @@
 # Linha do tempo da tarefa em frases
 
-- **Status:** aprovada (2026-11-03)
+- **Status:** implementada (2026-11-03), aguardando conferência na tela
 - **Pedido por:** Daniel, 2026-11-03 ("frequentemente pedem para eu explicar")
 - **Branch:** `feat/linha-do-tempo-legivel`
 - **Versão:**

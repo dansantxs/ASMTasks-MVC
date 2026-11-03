@@ -9,7 +9,7 @@
 ## Propósito
 
 Base de cálculo da comissão do mês. Lista as tarefas e os atendimentos **concluídos** no período
-e diz quem recebe o crédito de cada um: quem desenvolveu (padrão) ou quem testou (tipo "Teste").
+e diz quem recebe o crédito de cada um: quem desenvolveu (padrão) ou quem testou (tipo "Aprovação", chamado "Teste" até a 1.13).
 O relatório não calcula valores, só conta itens por colaborador.
 
 ## Glossário
@@ -47,7 +47,7 @@ O relatório não calcula valores, só conta itens por colaborador.
   (marcado como Realizado) no período **e** continua Realizado hoje. Se foi reaberto depois, não
   entra. Se foi concluído mais de uma vez no período, conta uma vez só.
 - **COM-05. Item sem crédito fica de fora.** O item em que ninguém pode ser creditado (nenhuma
-  passagem com responsável, ou, no tipo "Teste", nenhuma passagem pela etapa de teste) não
+  passagem com responsável, ou, no tipo "Aprovação", nenhuma passagem pela etapa de teste) não
   aparece. *Por quê:* o relatório é de comissão, e é falha de cadastro da tarefa, não do relatório.
 
 ### Montagem de cada item
@@ -87,16 +87,16 @@ O relatório não calcula valores, só conta itens por colaborador.
 
 - **COM-14. Aprovador.** O aprovador de uma tarefa é o responsável pela última passagem por uma
   etapa de teste. Atendimento não tem aprovador.
-- **COM-15. Tipo "Teste".** "Teste" não é um tipo de item: são as mesmas tarefas concluídas, com o
+- **COM-15. Tipo "Aprovação".** "Aprovação" (chamado "Teste" até a 1.13) não é um tipo de item: são as mesmas tarefas concluídas, com o
   crédito indo para o aprovador em vez do desenvolvedor. Atendimentos não entram. Tarefa sem
   aprovador fica de fora.
 
 ### Filtros
 
-- **COM-16. Tipo.** Todos, Tarefas, Atendimentos ou Teste (ver COM-15).
+- **COM-16. Tipo.** Todos, Elaboração (as tarefas, por quem elaborou; "Tarefas" até a 1.13), Atendimentos ou Aprovação (ver COM-15).
 - **COM-17. Colaborador.** Escolhe os itens pelo **crédito de elaboração**, não pela participação:
   entram as tarefas que a pessoa elaborou e os atendimentos que ela concluiu. Dentro de cada item,
-  as passagens das outras pessoas continuam visíveis. No tipo "Teste", o filtro continua
+  as passagens das outras pessoas continuam visíveis. No tipo "Aprovação", o filtro continua
   escolhendo as tarefas pela elaboração, mas as seções e o total saem por quem testou.
 - **COM-18.** *Removida na 1.14.0.* Era o filtro "Aprovado por", que saiu a pedido do Álvaro.
   O aprovador continua aparecendo no cabeçalho de cada item (COM-14).
@@ -107,9 +107,14 @@ O relatório não calcula valores, só conta itens por colaborador.
   alfabética. Dentro da seção, os itens são numerados a partir de 1 e ordenados por Cliente ou
   por Data de conclusão (a mais recente das passagens), crescente ou decrescente; a chave não
   escolhida serve de desempate.
-- **COM-20. Resumo.** Quantidade de itens por colaborador, do maior total para o menor (empate
-  por nome). Pode totalizar por elaboração ou por teste; por teste, só contam tarefas. Detalhada
-  e Resumo sempre mostram o mesmo número para o mesmo colaborador com os mesmos filtros.
+- **COM-20. Resumo.** Por colaborador, a quantidade de itens e as horas realizadas deles, do
+  maior total para o menor (empate por nome), com uma linha final de total. Pode totalizar por
+  elaboração ou por aprovação; por aprovação, só contam tarefas. Detalhada e Resumo sempre
+  mostram o mesmo número para o mesmo colaborador com os mesmos filtros.
+- **COM-21. Horas do Resumo.** Só o tempo realizado, sem o previsto: o de execução da tarefa
+  creditada por elaboração, o de teste da tarefa creditada por aprovação e, no atendimento, que
+  não tem cronômetro, a duração agendada (do início ao fim marcados; sem fim, zero). O tempo da
+  tarefa é o do histórico inteiro dela (COM-09), inclusive de antes do período.
 
 ## Dependências do cadastro
 

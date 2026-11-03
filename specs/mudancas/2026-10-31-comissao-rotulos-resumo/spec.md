@@ -1,6 +1,6 @@
 # Comissão: Elaboração e Aprovação, e horas no Resumo
 
-- **Status:** aprovada (2026-11-03)
+- **Status:** implementada (2026-11-03), aguardando conferência na tela
 - **Pedido por:** Álvaro; Daniel em 2026-10-31
 - **Branch:** `feat/comissao-rotulos-resumo` (depois de `feat/comissao-sem-aprovado-por`, já na `main`)
 - **Versão:** 1.14.0

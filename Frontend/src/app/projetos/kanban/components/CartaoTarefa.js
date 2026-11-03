@@ -9,7 +9,7 @@ import { cn } from '../../../../components/ui/form/utils';
 const formatarLancamento = (valor) =>
   new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(valor));
 
-function CartaoTarefa({ tarefa, podeMover, onVisualizar, nomeCliente, mostrarLancamento = false }) {
+function CartaoTarefa({ tarefa, podeMover, onVisualizar, nomeCliente, mostrarLancamento = false, selecionada = false, onAlternarSelecao }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `tarefa-${tarefa.id}`,
     data: { type: 'tarefa', tarefa },
@@ -27,14 +27,37 @@ function CartaoTarefa({ tarefa, podeMover, onVisualizar, nomeCliente, mostrarLan
       ref={setNodeRef}
       style={{ ...style, borderLeftColor: corBorda }}
       className={cn(
-        'bg-white border border-l-4 border-gray-200 rounded-lg p-3 shadow-sm select-none',
+        'group bg-white border border-l-4 border-gray-200 rounded-lg p-3 shadow-sm select-none',
         isDragging ? 'opacity-50 shadow-lg ring-2 ring-brand-blue' : 'hover:shadow-md',
+        selecionada && !isDragging && 'ring-2 ring-brand-blue bg-brand-blue/5',
         podeMover ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'
       )}
       {...attributes}
       {...listeners}
+      // Ctrl+clique (Cmd no Mac) marca a tarefa para mover junto com outras. O clique simples não
+      // faz nada no cartão (a tarefa abre pelo olho), então não há conflito.
+      onClick={(e) => {
+        if (!onAlternarSelecao || !(e.ctrlKey || e.metaKey)) return;
+        e.preventDefault();
+        onAlternarSelecao(tarefa.id);
+      }}
     >
       <div className="flex items-start gap-2">
+        {onAlternarSelecao && (
+          <input
+            type="checkbox"
+            checked={selecionada}
+            onChange={() => onAlternarSelecao(tarefa.id)}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+            className={cn(
+              'mt-0.5 h-3.5 w-3.5 flex-shrink-0 cursor-pointer rounded accent-brand-blue',
+              selecionada ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus:opacity-100'
+            )}
+            aria-label={selecionada ? 'Desmarcar tarefa' : 'Marcar tarefa para mover junto'}
+            title="Marcar para mover junto com outras (ou Ctrl+clique no cartão)"
+          />
+        )}
         {podeMover && (
           <GripVertical className="h-4 w-4 text-gray-300 flex-shrink-0 mt-0.5" />
         )}

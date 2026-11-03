@@ -7,17 +7,10 @@ import { GripVertical, CheckCircle2 } from 'lucide-react';
 import { cn } from '../../../../components/ui/form/utils';
 import { ROTULO_RESERVADO, ehEtapaElaboracao, ehReservado } from '../../../../utils/situacaoTarefa';
 import CartaoTarefa from './CartaoTarefa';
-import { resolverNomeCliente } from '../utils/nomeCliente';
+import { nomeClienteDaTarefa } from '../../../../utils/nomeCliente';
+import { podeMoverTarefa } from '../utils/regrasMover';
 
-function ColunaKanban({ etapaId, titulo, tarefas, ehAdmin, colaboradorLogadoId, isAtendimento, isEtapaFinal, onVisualizarTarefa, exibicaoNomeCliente = 'razaoSocial', mostrarLancamento = false }) {
-  const podeMoverTarefa = (tarefa) => {
-    if (isAtendimento && !ehAdmin) return false;
-    return (
-      ehAdmin ||
-      tarefa.colaboradorResponsavelId == null ||
-      tarefa.colaboradorResponsavelId === colaboradorLogadoId
-    );
-  };
+function ColunaKanban({ etapaId, titulo, tarefas, ehAdmin, colaboradorLogadoId, isAtendimento, isEtapaFinal, onVisualizarTarefa, exibicaoNomeCliente = 'razaoSocial', mostrarLancamento = false, selecionadas, onAlternarSelecao }) {
   const podeReordenar = ehAdmin && !isAtendimento && !isEtapaFinal;
 
   // Na etapa de elaboração, o que alguém vai fazer (Reservado) fica separado do que já começou.
@@ -34,10 +27,12 @@ function ColunaKanban({ etapaId, titulo, tarefas, ehAdmin, colaboradorLogadoId, 
     <CartaoTarefa
       key={tarefa.id}
       tarefa={tarefa}
-      podeMover={podeMoverTarefa(tarefa)}
+      podeMover={podeMoverTarefa(tarefa, { ehAdmin, colaboradorLogadoId })}
       onVisualizar={onVisualizarTarefa}
-      nomeCliente={resolverNomeCliente(tarefa, exibicaoNomeCliente)}
+      nomeCliente={nomeClienteDaTarefa(tarefa, exibicaoNomeCliente)}
       mostrarLancamento={mostrarLancamento}
+      selecionada={selecionadas?.has(tarefa.id) ?? false}
+      onAlternarSelecao={onAlternarSelecao}
     />
   );
 

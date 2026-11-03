@@ -776,6 +776,12 @@ namespace API.DB.DAOs
                 : @",
                     CAST(1 AS bit) AS DentroDoFiltro";
 
+            // A tarefa está HOJE na etapa final, qualquer que seja o período consultado. É o que o
+            // filtro "Situação" do Histórico de Tarefas usa; a Comissão tem critério próprio (COM-03).
+            const string colunaTarefaConcluida = @",
+                    CASE WHEN EXISTS (SELECT 1 FROM Etapa ef WHERE ef.Id = pt.EtapaId AND ef.EhEtapaFinal = 1)
+                         THEN 1 ELSE 0 END AS TarefaConcluida";
+
             string baseSelect = @"
                 SELECT
                     h.Id,
@@ -810,7 +816,7 @@ namespace API.DB.DAOs
                                OR (hi.DataHoraAcao = h.DataHoraAcao AND hi.Id <= h.Id))
                     ) THEN 1 ELSE 0 END AS ElaboracaoJaIniciadaNoEvento,
                     " + colaboradorEfetivoId + @" AS ResponsavelReservaId,
-                    " + colaboradorEfetivoNome + @" AS ResponsavelReservaNome" + colunasTempos + colunaDentroDoFiltro + @"
+                    " + colaboradorEfetivoNome + @" AS ResponsavelReservaNome" + colunasTempos + colunaDentroDoFiltro + colunaTarefaConcluida + @"
                 FROM ProjetoTarefaHistorico h
                 INNER JOIN ProjetoTarefa pt ON h.TarefaId = pt.Id
                 INNER JOIN Projeto p ON pt.ProjetoId = p.Id
@@ -851,7 +857,7 @@ namespace API.DB.DAOs
                                {colaboradorEfetivoNome} AS ResponsavelReservaNome,
                                pt.TempoExecucaoValor, pt.TempoExecucaoUnidade,
                                pt.TempoTesteValor, pt.TempoTesteUnidade,
-                               elab.MinutosElaboracao, teste.MinutosTeste,
+                               elab.MinutosElaboracao, teste.MinutosTeste{colunaTarefaConcluida},
                                ROW_NUMBER() OVER (PARTITION BY h.TarefaId, h.EtapaId ORDER BY h.DataHoraAcao DESC) AS rn
                         FROM ProjetoTarefaHistorico h
                         INNER JOIN ProjetoTarefa pt ON h.TarefaId = pt.Id
@@ -876,7 +882,7 @@ namespace API.DB.DAOs
                            CadastradoPorColaboradorId, CadastradoPorNome, TarefaDataCadastro,
                            ElaboracaoJaIniciadaNoEvento, ResponsavelReservaId, ResponsavelReservaNome,
                            TempoExecucaoValor, TempoExecucaoUnidade, TempoTesteValor, TempoTesteUnidade,
-                           MinutosElaboracao, MinutosTeste,
+                           MinutosElaboracao, MinutosTeste, TarefaConcluida,
                            CAST(1 AS bit) AS DentroDoFiltro
                     FROM Ranked WHERE rn = 1
                     ORDER BY DataHoraAcao DESC;
@@ -949,6 +955,7 @@ namespace API.DB.DAOs
                     MinutosElaboracao = dr["MinutosElaboracao"] == DBNull.Value ? null : Convert.ToInt32(dr["MinutosElaboracao"]),
                     MinutosTeste = dr["MinutosTeste"] == DBNull.Value ? null : Convert.ToInt32(dr["MinutosTeste"]),
                     DentroDoFiltro = Convert.ToBoolean(dr["DentroDoFiltro"]),
+                    TarefaConcluida = Convert.ToBoolean(dr["TarefaConcluida"]),
                 });
             }
 
