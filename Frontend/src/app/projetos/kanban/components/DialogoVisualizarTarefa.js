@@ -377,7 +377,8 @@ export default function DialogoVisualizarTarefa({
                           {item.tipo === 'E' && (
                             <span>
                               {item.etapaNome ? `→ ${item.etapaNome}` : '→ Sem etapa'}
-                              {item.colaboradorNome ? ` · ${item.colaboradorNome}` : ''}
+                              {/* colaboradorNome do 'E' é o responsável da etapa deixada; exibe quem moveu */}
+                              {item.realizadoPorColaboradorNome ? ` · por ${item.realizadoPorColaboradorNome}` : ''}
                             </span>
                           )}
                           {item.tipo === 'A' && (
