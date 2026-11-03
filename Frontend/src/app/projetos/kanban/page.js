@@ -258,6 +258,36 @@ export default function KanbanPage() {
     if (atualizada) setTarefaVisualizando(atualizada);
   }, [tarefas]);
 
+  // Várias tarefas de uma vez: o mesmo endpoint de mover uma, chamado uma vez por tarefa e em
+  // sequência, para cada uma passar pelas mesmas regras (permissão, histórico, conclusão do
+  // projeto). Uma falha não interrompe as outras; o aviso no fim diz quais ficaram.
+  const [progressoLote, setProgressoLote] = useState(null); // { feitas, total }
+  const handleMoverVarias = async (lista, etapaIdDestino) => {
+    const nomeDestino = etapas.find((e) => e.id === etapaIdDestino)?.nome ?? 'Atendimento';
+    const falhas = [];
+    setProgressoLote({ feitas: 0, total: lista.length });
+    for (let i = 0; i < lista.length; i++) {
+      const { tarefa, colaboradorResponsavelId } = lista[i];
+      try {
+        await moverTarefaEtapa(tarefa.id, etapaIdDestino, colaboradorResponsavelId);
+      } catch (error) {
+        falhas.push(`${tarefa.titulo} (${error?.message ?? 'erro ao mover'})`);
+      }
+      setProgressoLote({ feitas: i + 1, total: lista.length });
+    }
+    setProgressoLote(null);
+    queryClient.invalidateQueries({ queryKey: ['kanban-tarefas'] });
+
+    const movidas = lista.length - falhas.length;
+    if (falhas.length === 0) {
+      toast.success(`${movidas} tarefas movidas para ${nomeDestino}.`);
+    } else if (movidas === 0) {
+      toast.error(`Nenhuma tarefa foi movida. ${falhas.join('; ')}`);
+    } else {
+      toast.warning(`${movidas} de ${lista.length} movidas para ${nomeDestino}. Não foi possível mover: ${falhas.join('; ')}`, { duration: 10000 });
+    }
+  };
+
   const handleMoverTarefa = (tarefa, etapaIdDestino, colaboradorResponsavelId) => {
     mover.mutate({
       tarefaId: tarefa.id,
@@ -451,13 +481,20 @@ export default function KanbanPage() {
           </div>
         ) : (
           <div id="tour-kanban-quadro">
+          {progressoLote && (
+            <p className="mb-2 text-sm text-brand-blue">
+              Movendo {progressoLote.feitas} de {progressoLote.total}…
+            </p>
+          )}
           <QuadroKanban
             tarefas={tarefasFiltradas}
             etapas={etapas}
             colaboradores={colaboradoresAtivos}
             colaboradorLogadoId={colaboradorLogadoId}
             onMoverTarefa={handleMoverTarefa}
-            isMovendo={mover.isPending}
+            onMoverVarias={handleMoverVarias}
+            isMovendo={mover.isPending || !!progressoLote}
+            chaveFiltros={JSON.stringify(filtros)}
             ehAdmin={ehAdmin}
             onReordenarColunas={handleReordenarColunas}
             onVisualizarTarefa={setTarefaVisualizando}
