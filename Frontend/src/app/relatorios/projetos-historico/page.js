@@ -88,6 +88,8 @@ export default function HistoricoTarefasReportPage() {
   const [dataInicioFilter, setDataInicioFilter] = useState(() => mesAtualParaInputs().inicio);
   const [dataFimFilter, setDataFimFilter] = useState(() => mesAtualParaInputs().fim);
   const [etapaFilter, setEtapaFilter] = useState('todos');
+  // Situação de HOJE da tarefa: abre sempre sem as concluídas (não fica guardada de propósito).
+  const [situacaoFilter, setSituacaoFilter] = useState('naoConcluidas'); // naoConcluidas | concluidas | todas
   const [sortConfig, setSortConfig] = useState({ column: 'dataHoraAcao', direction: 'asc' });
   const [selectedColumns, setSelectedColumns] = useState(columns.map((c) => c.id));
   // Guardada por pessoa: a tela volta do jeito que ela deixou.
@@ -118,6 +120,15 @@ export default function HistoricoTarefasReportPage() {
     queryKey: ['relatorio-historico-tarefas', queryParamsDebounced],
     queryFn: () => getHistoricoTarefas(queryParamsDebounced),
   });
+
+  // Recorte por situação feito aqui, antes das duas visões, para a Agrupada, a Detalhada e os
+  // totais concordarem. Fica no navegador: trocar a situação não refaz a busca.
+  const registrosDaSituacao = useMemo(() => {
+    const registros = historicoTarefasApi.registros ?? [];
+    if (situacaoFilter === 'todas') return registros;
+    const querConcluidas = situacaoFilter === 'concluidas';
+    return registros.filter((item) => Boolean(item.tarefaConcluida) === querConcluidas);
+  }, [historicoTarefasApi, situacaoFilter]);
 
   const { data: historicoProjetosApi = [], isLoading: isLoadingProjetos } = useQuery({
     queryKey: ['relatorio-historico-projetos', queryParamsDebounced],
@@ -170,7 +181,7 @@ export default function HistoricoTarefasReportPage() {
   const data = useMemo(() => {
     // A visao Detalhada e o log do periodo: os eventos anteriores, que vem para a Agrupada
     // montar a tarefa inteira, ficam de fora.
-    const tarefas = (historicoTarefasApi.registros ?? []).filter((item) => item.dentroDoFiltro !== false).map((item) => {
+    const tarefas = registrosDaSituacao.filter((item) => item.dentroDoFiltro !== false).map((item) => {
       // Entrar na etapa de elaboração sem nunca ter sido iniciada é o momento em que a tarefa
       // ficou reservada. O fim desse período é a linha "Início de Elaboração".
       const reservada =
@@ -198,7 +209,8 @@ export default function HistoricoTarefasReportPage() {
       };
     });
 
-    const projetos = etapaFilter !== 'todos' ? [] : historicoProjetosApi.map((item) => ({
+    // Eventos de projeto não são de tarefa: saem quando o recorte é por etapa ou por situação.
+    const projetos = etapaFilter !== 'todos' || situacaoFilter !== 'todas' ? [] : historicoProjetosApi.map((item) => ({
       id: `p-${item.id}`,
       rawDataHoraAcao: item.dataHoraAcao ? new Date(item.dataHoraAcao) : null,
       dataHoraAcao: formatDateTime(item.dataHoraAcao),
@@ -216,7 +228,7 @@ export default function HistoricoTarefasReportPage() {
     }));
 
     return [...tarefas, ...projetos];
-  }, [historicoTarefasApi, historicoProjetosApi, exibicaoNomeCliente, etapaFilter]);
+  }, [registrosDaSituacao, historicoProjetosApi, exibicaoNomeCliente, etapaFilter, situacaoFilter]);
 
   const filteredData = useMemo(
     () =>
@@ -269,7 +281,7 @@ export default function HistoricoTarefasReportPage() {
   // da tarefa: passagens por etapa, a linha de lancamento, o Reservado e a elaboracao deduzida.
   // A diferenca e o recorte: la so entra o que chegou na etapa final; aqui entra tudo.
   const { grupos } = useItensAgrupados({
-    registrosTarefa: historicoTarefasApi.registros ?? [],
+    registrosTarefa: registrosDaSituacao,
     colaboradores: colaboradoresRaw,
     clientes: clientesRaw,
     etapas: etapasRaw,
@@ -347,6 +359,7 @@ export default function HistoricoTarefasReportPage() {
       colaboradorNome ? `Colaborador: ${colaboradorNome}` : null,
       clienteNome ? `Cliente: ${clienteNome}` : null,
       etapaNome ? `Etapa: ${etapaNome}` : null,
+      situacaoFilter !== 'todas' ? `Situação: ${situacaoFilter === 'concluidas' ? 'Concluídas' : 'Não concluídas'}` : null,
       dataInicioFilter ? `Data início: ${new Date(`${dataInicioFilter}T00:00:00`).toLocaleDateString('pt-BR')}` : null,
       dataFimFilter ? `Data fim: ${new Date(`${dataFimFilter}T00:00:00`).toLocaleDateString('pt-BR')}` : null,
     ].filter(Boolean);
@@ -501,7 +514,7 @@ export default function HistoricoTarefasReportPage() {
           },
           {
             element: '#tour-relatorio-filtros',
-            popover: { title: 'Filtros', description: 'Filtre por <strong>tipo de ação</strong>, <strong>colaborador</strong>, <strong>cliente</strong>, <strong>etapa</strong> e <strong>período</strong>, todos consultados no servidor. A <strong>busca</strong> procura na tarefa, na descrição e no projeto — colaborador e cliente têm filtro próprio ao lado.<br>A ação <strong>Reservada</strong> é a entrada na etapa de elaboração antes de qualquer início — o fim desse período é a linha <strong>Início de Elaboração</strong>.', side: 'bottom', align: 'start' },
+            popover: { title: 'Filtros', description: 'Filtre por <strong>tipo de ação</strong>, <strong>colaborador</strong>, <strong>cliente</strong>, <strong>etapa</strong> e <strong>período</strong>, todos consultados no servidor. A <strong>situação</strong> é a de hoje: o relatório abre em <strong>Não concluídas</strong>, sem as tarefas que estão agora na etapa final — uma tarefa concluída e reaberta depois aparece como não concluída em qualquer período. A <strong>busca</strong> procura na tarefa, na descrição e no projeto — colaborador e cliente têm filtro próprio ao lado.<br>A ação <strong>Reservada</strong> é a entrada na etapa de elaboração antes de qualquer início — o fim desse período é a linha <strong>Início de Elaboração</strong>.', side: 'bottom', align: 'start' },
           },
           {
             element: '#tour-relatorio-colunas',
@@ -671,6 +684,17 @@ export default function HistoricoTarefasReportPage() {
                       {etapas.map((e) => (
                         <SelectItem key={e.id} value={String(e.id)}>{e.nome}</SelectItem>
                       ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Situação</Label>
+                  <Select value={situacaoFilter} onValueChange={setSituacaoFilter}>
+                    <SelectTrigger><SelectValue placeholder="Situação" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="naoConcluidas">Não concluídas</SelectItem>
+                      <SelectItem value="concluidas">Concluídas</SelectItem>
+                      <SelectItem value="todas">Todas</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
