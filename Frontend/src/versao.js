@@ -1,4 +1,4 @@
-export const VERSAO_ATUAL = '1.13.0';
+export const VERSAO_ATUAL = '1.14.0';
 
 /**
  * Regra de versionamento (major.minor.patch):
@@ -18,6 +18,31 @@ export const VERSAO_ATUAL = '1.13.0';
  *  2. Adicione uma nova entrada NO INÍCIO do array CHANGELOG.
  */
 export const CHANGELOG = [
+  {
+    versao: '1.14.0',
+    data: '2026-11-03',
+    titulo: 'Comissão que Atravessa o Mês, Mover Várias Tarefas de Uma Vez e Histórico da Tarefa em Frases',
+    mudancas: [
+      'Relatório de Comissão: a tarefa elaborada ou testada num mês e concluída no outro passa a aparecer inteira. Antes, filtrando só o mês da conclusão, sumiam a elaboração e o teste do mês anterior: o crédito de elaboração ia para quem estava na etapa anterior à final, e o de teste se perdia em todos os meses. A tarefa conta só no mês em que entrou na etapa final',
+      'Relatório de Comissão: o tipo "Tarefas" passa a se chamar Elaboração e o "Teste", Aprovação. O Resumo ganha a coluna Horas — o tempo realizado de execução (elaboração), de teste (aprovação) ou a duração agendada (atendimento) — e uma linha de total, na tela, no PDF e no Excel',
+      'Relatório de Comissão: sai o filtro "Aprovado por". Quem testou continua no cabeçalho de cada item, e o tipo Aprovação continua mostrando o total por quem testou',
+      'Relatório de Histórico de Tarefas: na visão Agrupada, cada tarefa aparece inteira, inclusive o que aconteceu antes do período escolhido, e os blocos saem pela data da elaboração; as que ainda não chegaram nela vão para o fim. A visão Detalhada continua mostrando só os eventos do período',
+      'Relatório de Histórico de Tarefas: novo filtro Situação, que abre em "Não concluídas" e deixa de fora as tarefas que estão hoje na etapa final. "Concluídas" e "Todas" estão a um clique',
+      'Início: as listas de tarefas ganham um seletor de ordem — Etapa e colaborador (a de sempre) ou Mais recentes primeiro —, que fica guardado para a próxima visita. Cada tarefa mostra a data de lançamento, e o nome do cliente aparece em negrito',
+      'Início: o ranking de tarefas concluídas passa a creditar quem elaborou a tarefa, como o Relatório de Comissão. Antes ia para quem estava na etapa anterior à final',
+      'Início: "Próximos atendimentos" e "Projetos sem movimentação" passam a mostrar o cliente conforme a configuração do sistema (razão social ou nome fantasia), como o resto da tela',
+      'Kanban: dá para mover várias tarefas de uma vez. Marque as tarefas com Ctrl+clique ou pela caixinha que aparece no cartão e arraste uma delas: todas vão juntas, com um diálogo só. As que você não pode mover ficam de fora, com o motivo',
+      'Kanban: o histórico da tarefa passa a ser contado em frases — "Fulano moveu de Elaboração para Aprovação e passou para Beltrano" — em vez de uma linha solta para cada registro. Vale também para o histórico antigo',
+      'Kanban: o cartão mostra sempre a data de lançamento, e o detalhe da tarefa mostra quando ela foi lançada. O quadro passa a abrir ordenado pelos lançamentos mais recentes (quem já escolheu outra ordem continua com a sua), e o nome do cliente aparece em negrito, quebrando linha em vez de ser cortado',
+      'Kanban: ao escolher cliente(s), o filtro de Projeto passa a listar só os projetos deles, e o de Colaborador, só os responsáveis por tarefas desse recorte',
+      'Kanban: ao arrastar uma tarefa, o cartão mantém o nome do cliente da configuração, em vez de trocar para a razão social',
+      'Atendimentos: a lista, o calendário e o detalhe passam a mostrar o cliente conforme a configuração do sistema (razão social ou nome fantasia)',
+      'Projetos: excluir uma tarefa que já passou por alguma etapa do quadro deixa de dar erro. Agora o sistema avisa antes que o histórico dela vai junto; tarefa que já chegou na etapa final não pode ser excluída, porque entra no Relatório de Comissão, e o sistema explica isso',
+      'Projetos: a tarefa nova já vem com o setor usado no último lançamento',
+      'Cadastros e Projetos: cada tela lembra se você prefere ver em cartões ou em lista',
+      'Clientes: a data de nascimento (ou de inauguração) deixa de ser obrigatória',
+    ],
+  },
   {
     versao: '1.13.0',
     data: '2026-09-30',
