@@ -85,9 +85,10 @@ function CartaoTarefa({ tarefa, podeMover, onVisualizar, nomeCliente, mostrarLan
               <Folder className="h-3 w-3 flex-shrink-0" />
               {tarefa.projetoTitulo}
             </p>
-            <p className="text-xs font-semibold text-gray-600 truncate flex items-center gap-1" title={nomeCliente ?? tarefa.clienteNome}>
-              <Building2 className="h-3 w-3 flex-shrink-0" />
-              {nomeCliente ?? tarefa.clienteNome}
+            {/* Cliente em negrito quebra linha em vez de cortar: é por ele que a equipe acha o pedido. */}
+            <p className="text-xs font-semibold text-gray-600 flex items-start gap-1" title={nomeCliente ?? tarefa.clienteNome}>
+              <Building2 className="h-3 w-3 flex-shrink-0 mt-0.5" />
+              <span className="min-w-0 break-words">{nomeCliente ?? tarefa.clienteNome}</span>
             </p>
           </div>
 
