@@ -1,6 +1,6 @@
 # Kanban: mover várias tarefas de uma vez
 
-- **Status:** aprovada (2026-10-30)
+- **Status:** implementada (2026-11-03), aguardando conferência na tela
 - **Pedido por:** Daniel, 2026-10-30
 - **Branch:** `feat/kanban-mover-varias-tarefas`
 - **Versão:**
