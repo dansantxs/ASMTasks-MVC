@@ -51,7 +51,9 @@ na jurídica. Fica opcional nas duas.
 ## F. Comissão sem o filtro "Aprovado por" — `feat/comissao-sem-aprovado-por`
 
 - **CA-F1.** O filtro "Aprovado por" sai da tela, das exportações e do resumo de filtros impresso.
-- **CA-F2.** O "Aprovado por: <nome>" continua no cabeçalho de cada item, e o tipo "Teste"
+- **CA-F2.** ~~O "Aprovado por: <nome>" continua no cabeçalho de cada item~~ (mudou em 2026-11-03,
+  a pedido de Daniel: o "Aprovado por" sai também do cabeçalho dos itens, na Comissão e no
+  Histórico de Tarefas), e o tipo "Teste"
   continua funcionando (COM-14, COM-15).
 - **CA-F3.** Ao concluir, a regra COM-18 sai de `dominio/comissao.md`. As regras seguintes mantêm
   os números: ID de regra não é reaproveitado.

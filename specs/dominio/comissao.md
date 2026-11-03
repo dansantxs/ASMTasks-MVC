@@ -99,7 +99,8 @@ O relatório não calcula valores, só conta itens por colaborador.
   as passagens das outras pessoas continuam visíveis. No tipo "Aprovação", o filtro continua
   escolhendo as tarefas pela elaboração, mas as seções e o total saem por quem testou.
 - **COM-18.** *Removida na 1.14.0.* Era o filtro "Aprovado por", que saiu a pedido do Álvaro.
-  O aprovador continua aparecendo no cabeçalho de cada item (COM-14).
+  O aprovador também saiu do cabeçalho dos itens (Daniel, 2026-11-03): aparece na linha da etapa de
+  teste, dentro do item (COM-14).
 
 ### Visões
 

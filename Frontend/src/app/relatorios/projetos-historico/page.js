@@ -559,9 +559,8 @@ export default function HistoricoTarefasReportPage() {
     if (selectedColumns.includes('tarefaTitulo')) partes.push(grupo.tarefaTitulo);
     if (grupo.descricao?.trim()) partes.push(grupo.descricao.trim());
     const titulo = partes.length > 0 ? partes.join(' — ') : `Tarefa #${grupo.tarefaId}`;
-    // Quem aprovou fica no cabeçalho do item, ao lado do que identifica a tarefa.
-    const comAprovador = grupo.aprovadorNome ? `${titulo} · Aprovado por: ${grupo.aprovadorNome}` : titulo;
-    return numero ? `${numero} - ${comAprovador}` : comAprovador;
+    // Quem aprovou não vai no cabeçalho: aparece na linha da etapa de teste, dentro do item.
+    return numero ? `${numero} - ${titulo}` : titulo;
   };
 
   /** Execução e teste do item: realizado e, entre parênteses, o previsto na tarefa. */
