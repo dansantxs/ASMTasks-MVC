@@ -22,6 +22,7 @@ import {
 } from './api/atendimentos';
 import { useUsuarioAtual } from '../../hooks/useUsuarioAtual';
 import { configuracoesPadrao, useConfiguracoesSistema } from '../../services/configuracoes/api';
+import { nomeClienteDoCadastro } from '../../utils/nomeCliente';
 
 function inicioDaSemana(data) {
   const d = new Date(data);
@@ -89,9 +90,11 @@ export default function AgendaAtendimentosPage() {
 
   const clientesPorId = useMemo(() => {
     const mapa = new Map();
-    clientes.forEach((c) => mapa.set(c.id, c.nome));
+    // Nome já resolvido pela configuração (razão social ou nome fantasia), para a lista, o
+    // calendário e o detalhe mostrarem o mesmo nome que o resto do sistema.
+    clientes.forEach((c) => mapa.set(c.id, nomeClienteDoCadastro(c, configuracoes.exibicaoNomeCliente)));
     return mapa;
-  }, [clientes]);
+  }, [clientes, configuracoes.exibicaoNomeCliente]);
 
   const colaboradoresPorId = useMemo(() => {
     const mapa = new Map();
