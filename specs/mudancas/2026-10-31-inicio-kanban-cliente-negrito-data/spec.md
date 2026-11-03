@@ -41,6 +41,9 @@ cada item e de quando ele é, nas listas do Início e nos cartões do Kanban.
 
 - **CA-8.** O Kanban abre ordenado por **Lançamento, do mais recente para o mais antigo**. Quem já
   escolheu outra ordenação continua com a sua (ela já fica guardada no navegador).
+- **CA-9.** O cartão do Kanban mostra sempre "Lançada em dd/mm/aaaa", qualquer que seja a
+  ordenação escolhida (antes, só com a ordenação por Lançamento).
+- **CA-10.** No detalhe da tarefa, abaixo do "Lançado por", aparece a data e a hora do lançamento.
 
 ## Decisões
 
@@ -48,3 +51,5 @@ cada item e de quando ele é, nas listas do Início e nos cartões do Kanban.
   etapa e colaborador, e a escolha fica lembrada (CA-5, CA-6).
 - **2026-11-03:** sem resposta às perguntas da data (CA-4) e da ordem já escolhida no Kanban
   (CA-8), valem as recomendações.
+- **2026-11-03 (Daniel, na conferência):** a data de lançamento aparece sempre no cartão e também
+  no detalhe da tarefa (CA-9, CA-10).

@@ -9,7 +9,7 @@ import { cn } from '../../../../components/ui/form/utils';
 const formatarLancamento = (valor) =>
   new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(valor));
 
-function CartaoTarefa({ tarefa, podeMover, onVisualizar, nomeCliente, mostrarLancamento = false, selecionada = false, onAlternarSelecao }) {
+function CartaoTarefa({ tarefa, podeMover, onVisualizar, nomeCliente, selecionada = false, onAlternarSelecao }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `tarefa-${tarefa.id}`,
     data: { type: 'tarefa', tarefa },
@@ -115,7 +115,7 @@ function CartaoTarefa({ tarefa, podeMover, onVisualizar, nomeCliente, mostrarLan
             </p>
           </div>
 
-          {mostrarLancamento && tarefa.dataCadastro && (
+          {tarefa.dataCadastro && (
             <p className="mt-2 text-xs text-gray-400 flex items-center gap-1" title="Data de lançamento da tarefa">
               <CalendarDays className="h-3 w-3 flex-shrink-0" />
               Lançada em {formatarLancamento(tarefa.dataCadastro)}

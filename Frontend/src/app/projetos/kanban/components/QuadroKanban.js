@@ -239,7 +239,6 @@ export default function QuadroKanban({ tarefas, etapas, colaboradores, colaborad
               isEtapaFinal={coluna.ehEtapaFinal ?? false}
               onVisualizarTarefa={onVisualizarTarefa}
               exibicaoNomeCliente={exibicaoNomeCliente}
-              mostrarLancamento={ordenacao === 'lancamento'}
               selecionadas={selecionadas}
               onAlternarSelecao={alternarSelecao}
             />
