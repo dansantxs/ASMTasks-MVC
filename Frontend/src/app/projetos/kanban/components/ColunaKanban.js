@@ -10,7 +10,7 @@ import CartaoTarefa from './CartaoTarefa';
 import { nomeClienteDaTarefa } from '../../../../utils/nomeCliente';
 import { podeMoverTarefa } from '../utils/regrasMover';
 
-function ColunaKanban({ etapaId, titulo, tarefas, ehAdmin, colaboradorLogadoId, isAtendimento, isEtapaFinal, onVisualizarTarefa, exibicaoNomeCliente = 'razaoSocial', mostrarLancamento = false, selecionadas, onAlternarSelecao }) {
+function ColunaKanban({ etapaId, titulo, tarefas, ehAdmin, colaboradorLogadoId, isAtendimento, isEtapaFinal, onVisualizarTarefa, exibicaoNomeCliente = 'razaoSocial', selecionadas, onAlternarSelecao }) {
   const podeReordenar = ehAdmin && !isAtendimento && !isEtapaFinal;
 
   // Na etapa de elaboração, o que alguém vai fazer (Reservado) fica separado do que já começou.
@@ -30,7 +30,6 @@ function ColunaKanban({ etapaId, titulo, tarefas, ehAdmin, colaboradorLogadoId, 
       podeMover={podeMoverTarefa(tarefa, { ehAdmin, colaboradorLogadoId })}
       onVisualizar={onVisualizarTarefa}
       nomeCliente={nomeClienteDaTarefa(tarefa, exibicaoNomeCliente)}
-      mostrarLancamento={mostrarLancamento}
       selecionada={selecionadas?.has(tarefa.id) ?? false}
       onAlternarSelecao={onAlternarSelecao}
     />

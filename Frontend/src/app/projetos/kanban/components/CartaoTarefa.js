@@ -9,7 +9,7 @@ import { cn } from '../../../../components/ui/form/utils';
 const formatarLancamento = (valor) =>
   new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(valor));
 
-function CartaoTarefa({ tarefa, podeMover, onVisualizar, nomeCliente, mostrarLancamento = false, selecionada = false, onAlternarSelecao }) {
+function CartaoTarefa({ tarefa, podeMover, onVisualizar, nomeCliente, selecionada = false, onAlternarSelecao }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `tarefa-${tarefa.id}`,
     data: { type: 'tarefa', tarefa },
@@ -108,13 +108,14 @@ function CartaoTarefa({ tarefa, podeMover, onVisualizar, nomeCliente, mostrarLan
               <Folder className="h-3 w-3 flex-shrink-0" />
               {tarefa.projetoTitulo}
             </p>
-            <p className="text-xs text-gray-400 truncate flex items-center gap-1" title={nomeCliente ?? tarefa.clienteNome}>
-              <Building2 className="h-3 w-3 flex-shrink-0" />
-              {nomeCliente ?? tarefa.clienteNome}
+            {/* Cliente em negrito quebra linha em vez de cortar: é por ele que a equipe acha o pedido. */}
+            <p className="text-xs font-semibold text-gray-600 flex items-start gap-1" title={nomeCliente ?? tarefa.clienteNome}>
+              <Building2 className="h-3 w-3 flex-shrink-0 mt-0.5" />
+              <span className="min-w-0 break-words">{nomeCliente ?? tarefa.clienteNome}</span>
             </p>
           </div>
 
-          {mostrarLancamento && tarefa.dataCadastro && (
+          {tarefa.dataCadastro && (
             <p className="mt-2 text-xs text-gray-400 flex items-center gap-1" title="Data de lançamento da tarefa">
               <CalendarDays className="h-3 w-3 flex-shrink-0" />
               Lançada em {formatarLancamento(tarefa.dataCadastro)}

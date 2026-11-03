@@ -25,7 +25,8 @@ import DialogoVisualizarTarefa from './components/DialogoVisualizarTarefa';
 import { configuracoesPadrao, useConfiguracoesSistema } from '../../../services/configuracoes/api';
 
 const CHAVE_ORDENACAO = 'asm_kanban_ordenacao';
-const ORDENACAO_PADRAO = { ordenacao: 'prioridade', direcao: 'asc' };
+// Mais recentes primeiro. Quem já escolheu outra ordenação continua com a sua (localStorage).
+const ORDENACAO_PADRAO = { ordenacao: 'lancamento', direcao: 'desc' };
 
 export default function KanbanPage() {
   const { usuario } = useUsuarioAtual();

@@ -224,6 +224,9 @@ export default function DialogoVisualizarTarefa({
                     <div>
                       <p className="text-xs text-gray-400">Lançado por</p>
                       <p className="text-sm text-gray-700">{tarefa.cadastradoPorNome}</p>
+                      {tarefa.dataCadastro && (
+                        <p className="text-xs text-gray-500">em {formatDateTime(tarefa.dataCadastro)}</p>
+                      )}
                     </div>
                   </div>
                 )}

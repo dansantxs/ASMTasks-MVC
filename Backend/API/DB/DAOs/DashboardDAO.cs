@@ -31,6 +31,7 @@ namespace API.DB.DAOs
                     {TarefaSql.StatusAtual("t")} AS StatusAtual,
                     {TarefaSql.ElaboracaoJaIniciada("t")} AS ElaboracaoJaIniciada,
                     t.DataHoraAtribuicao AS DesdeQuando,
+                    t.DataCadastro AS DataLancamento,
                     ult.UltimaAcaoPor,
                     ult.UltimaAcaoEm";
 
@@ -55,13 +56,24 @@ namespace API.DB.DAOs
         // Reservado antes do resto da elaboração e a etapa final por último, como no Kanban — e,
         // dentro da etapa, colaborador ("Sem responsável" no fim). Serve para o ORDER BY da lista
         // e para o ORDER BY do ROW_NUMBER(), que decide quais itens entram no limite dela.
-        private static readonly string OrdemTarefaEtapaColaborador = $@"
+        private static readonly string OrdemEtapaColaborador = $@"
                     CASE WHEN e.Id IS NULL THEN 0 WHEN e.EhEtapaFinal = 1 THEN 2 ELSE 1 END,
                     e.Ordem,
                     CASE WHEN {TarefaSql.EhEtapaElaboracao("e")} AND {TarefaSql.ElaboracaoJaIniciada("t")} = 0 THEN 0 ELSE 1 END,
                     CASE WHEN col.Id IS NULL THEN 1 ELSE 0 END,
                     col.Nome,
                     t.Titulo";
+
+        // Ordem escolhida no Início (seletor guardado no navegador): "etapa" é a de cima;
+        // "recentes" põe o lançamento mais recente primeiro, com a de cima como desempate. Tem de
+        // ser no SQL, e não na tela, porque o ROW_NUMBER() decide quais tarefas entram no limite.
+        private string OrdemTarefaEtapaColaborador = OrdemEtapaColaborador;
+
+        private static string OrdemTarefas(string? ordem) =>
+            ordem == "recentes"
+                ? $@"
+                    t.DataCadastro DESC,{OrdemEtapaColaborador}"
+                : OrdemEtapaColaborador;
 
         private const string ColunasAtendimento = @"
                     a.Id,
@@ -74,6 +86,7 @@ namespace API.DB.DAOs
                     CASE a.Status WHEN 'R' THEN 'Realizado' WHEN 'A' THEN 'Agendado' ELSE 'Cancelado' END AS StatusAtual,
                     CAST(0 AS bit) AS ElaboracaoJaIniciada,
                     a.DataHoraInicio AS DesdeQuando,
+                    CAST(NULL AS datetime2) AS DataLancamento,
                     conc.Nome AS UltimaAcaoPor,
                     a.DataHoraConclusao AS UltimaAcaoEm";
 
@@ -126,9 +139,11 @@ namespace API.DB.DAOs
             bool ehAdministrador,
             int? filtroColaboradorId,
             string? periodoId = null,
-            string exibicaoNomeCliente = "razaoSocial")
+            string exibicaoNomeCliente = "razaoSocial",
+            string? ordem = null)
         {
             await using var con = await dbContext.GetConnectionAsync();
+            OrdemTarefaEtapaColaborador = OrdemTarefas(ordem);
 
             bool filtrarPorColaborador = !ehAdministrador || filtroColaboradorId.HasValue;
             int idParaFiltro = (ehAdministrador && filtroColaboradorId.HasValue)
@@ -227,6 +242,13 @@ namespace API.DB.DAOs
         private static string NomeClienteSql(bool usarNomeFantasia) =>
             usarNomeFantasia ? "COALESCE(NULLIF(LTRIM(RTRIM(c.NomeFantasia)), ''), c.Nome)" : "c.Nome";
 
+        private static bool TemColuna(SqlDataReader reader, string coluna)
+        {
+            for (var i = 0; i < reader.FieldCount; i++)
+                if (string.Equals(reader.GetName(i), coluna, StringComparison.OrdinalIgnoreCase)) return true;
+            return false;
+        }
+
         private static DashboardLinhaDTO MapearLinha(SqlDataReader reader, bool usarNomeFantasia)
         {
             var fantasia = Texto(reader, "ClienteNomeFantasia");
@@ -243,6 +265,9 @@ namespace API.DB.DAOs
                 StatusAtual = Texto(reader, "StatusAtual"),
                 ElaboracaoJaIniciada = Convert.ToBoolean(reader["ElaboracaoJaIniciada"]),
                 DesdeQuando = Data(reader, "DesdeQuando"),
+                // Só as listas de tarefa (e, vazia, as de atendimento) trazem a coluna; as de
+                // projeto, que também passam por aqui, não.
+                DataLancamento = TemColuna(reader, "DataLancamento") ? Data(reader, "DataLancamento") : null,
                 UltimaAcaoPor = Texto(reader, "UltimaAcaoPor"),
                 UltimaAcaoEm = Data(reader, "UltimaAcaoEm")
             };

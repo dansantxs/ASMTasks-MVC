@@ -22,8 +22,10 @@ import {
   Inbox,
   Bookmark,
   CalendarRange,
+  ArrowUpDown,
 } from 'lucide-react';
 import { getDashboard } from './api/dashboard';
+import { usePreferenciaLocal } from '../../hooks/usePreferenciaLocal';
 import { useUsuarioAtual } from '../../hooks/useUsuarioAtual';
 import TourGuia from '../../components/TourGuia';
 import { Combobox } from '../../components/ui/form/combobox';
@@ -54,7 +56,6 @@ const juntar = (...partes) => partes.filter((p) => p != null && p !== '').join('
  * e o do responsável são justamente o que se quer ler aqui.
  */
 function LinhaIndicador({ item }) {
-  const contexto = juntar(item.projetoTitulo, item.clienteNome);
   // "Reservado" já diz que a tarefa não foi iniciada: repetir "Ociosa" ao lado só polui.
   const reservado = ehReservado(item.etapaNome, item.elaboracaoJaIniciada);
   const situacao = juntar(
@@ -75,8 +76,20 @@ function LinhaIndicador({ item }) {
   return (
     <div className="py-2 border-b last:border-0">
       <p className="text-sm font-semibold text-gray-800 break-words leading-snug">{item.titulo}</p>
-      {contexto && <p className="text-xs text-gray-500 mt-1 break-words">{contexto}</p>}
+      {(item.projetoTitulo || item.clienteNome) && (
+        <p className="text-xs text-gray-500 mt-1 break-words">
+          {item.projetoTitulo}
+          {item.projetoTitulo && item.clienteNome && ' · '}
+          {/* Cliente em destaque: é por ele que a equipe identifica o pedido. */}
+          {item.clienteNome && <span className="font-semibold text-gray-700">{item.clienteNome}</span>}
+        </p>
+      )}
       {situacao && <p className="text-xs text-gray-600 mt-0.5 break-words">{situacao}</p>}
+      {item.dataLancamento && (
+        <p className="text-xs text-gray-400 mt-0.5">
+          Lançado em {new Date(item.dataLancamento).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' })}
+        </p>
+      )}
       {ultimaAcao && <p className="text-xs text-gray-400 mt-0.5 break-words">{ultimaAcao}</p>}
     </div>
   );
@@ -318,7 +331,7 @@ function ProximosAtendimentos({ itens }) {
             <Clock className={`h-4 w-4 mt-0.5 shrink-0 ${urgente ? 'text-amber-500' : 'text-gray-400'}`} />
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-gray-800 truncate">{item.titulo}</p>
-              <p className="text-xs text-gray-500 truncate">{item.clienteNome}</p>
+              <p className="text-xs font-semibold text-gray-700 truncate">{item.clienteNome}</p>
             </div>
             <div className="text-right shrink-0">
               <p className={`text-xs font-semibold ${urgente ? 'text-amber-600' : 'text-gray-500'}`}>{proximidade}</p>
@@ -351,7 +364,7 @@ function ProjetosSemMovimentacao({ itens }) {
             <PackageX className={`h-4 w-4 mt-0.5 shrink-0 ${critico ? 'text-red-500' : 'text-amber-500'}`} />
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-gray-800 truncate">{item.titulo}</p>
-              <p className="text-xs text-gray-500 truncate">{item.clienteNome}</p>
+              <p className="text-xs font-semibold text-gray-700 truncate">{item.clienteNome}</p>
             </div>
             <span className={`text-xs font-semibold shrink-0 ${critico ? 'text-red-600' : 'text-amber-600'}`}>
               {label}
@@ -506,10 +519,13 @@ export default function DashboardPage() {
 
   const [filtroColaboradorId, setFiltroColaboradorId] = useState('');
   const [periodoId, setPeriodoId] = useState('mesAtual');
+  // Ordem das listas de tarefas, guardada no navegador de cada pessoa. O padrão é a de sempre
+  // (etapa e colaborador); a ordem é feita no servidor, que escolhe quais itens entram no limite.
+  const [ordemListas, setOrdemListas] = usePreferenciaLocal('asm_inicio_ordem', 'etapa');
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['dashboard', filtroColaboradorId, periodoId],
-    queryFn: () => getDashboard(filtroColaboradorId ? Number(filtroColaboradorId) : null, periodoId),
+    queryKey: ['dashboard', filtroColaboradorId, periodoId, ordemListas],
+    queryFn: () => getDashboard(filtroColaboradorId ? Number(filtroColaboradorId) : null, periodoId, ordemListas),
     staleTime: 60_000,
     refetchOnWindowFocus: false,
   });
@@ -668,6 +684,18 @@ export default function DashboardPage() {
                 {PERIODOS.map((p) => (
                   <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
                 ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center gap-2">
+            <ArrowUpDown className="h-4 w-4 text-gray-400 shrink-0" />
+            <Select value={ordemListas} onValueChange={setOrdemListas}>
+              <SelectTrigger className="min-w-[200px] bg-white" aria-label="Ordem das listas">
+                <SelectValue placeholder="Ordem" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="etapa">Etapa e colaborador</SelectItem>
+                <SelectItem value="recentes">Mais recentes primeiro</SelectItem>
               </SelectContent>
             </Select>
           </div>
