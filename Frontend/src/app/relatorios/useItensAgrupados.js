@@ -50,6 +50,23 @@ const MINUTOS_POR_UNIDADE = { D: 1440, H: 60, M: 1 };
 export const previstoEmMinutos = (valor, unidade) =>
   valor ? valor * (MINUTOS_POR_UNIDADE[unidade] ?? 60) : 0;
 
+// Total de horas do Resumo da Comissão. Diferente de formatarMinutos, não vira dias: "30h"
+// de trabalho não são "1d 6h", e quem confere a comissão lê em horas.
+export function formatarHoras(minutos) {
+  const total = Math.max(0, Math.round(minutos ?? 0));
+  const horas = Math.floor(total / 60);
+  const restoMin = total % 60;
+  return restoMin ? `${horas}h ${String(restoMin).padStart(2, '0')}min` : `${horas}h`;
+}
+
+// Atendimento não tem cronômetro: as horas dele são as agendadas, do início ao fim marcados.
+// Sem horário de fim (ou com fim antes do início), zero.
+function duracaoAgendadaEmMinutos(atendimento) {
+  if (!atendimento?.dataHoraInicio || !atendimento?.dataHoraFim) return 0;
+  const minutos = (new Date(atendimento.dataHoraFim) - new Date(atendimento.dataHoraInicio)) / 60000;
+  return minutos > 0 ? Math.round(minutos) : 0;
+}
+
 export function formatarMinutos(minutos) {
   if (!minutos) return null;
   if (minutos < 60) return `${minutos}min`;
@@ -229,6 +246,7 @@ export function useItensAgrupados({
           lancadoPorColaboradorId: atendimento?.cadastradoPorColaboradorId ?? null,
           lancadoPorNome: colaboradorNomePorId.get(atendimento?.cadastradoPorColaboradorId) ?? null,
           lancadoPorData: atendimento?.dataCadastro ? new Date(atendimento.dataCadastro) : null,
+          duracaoAgendadaMin: duracaoAgendadaEmMinutos(atendimento),
         });
       });
 
@@ -454,6 +472,7 @@ export function useItensAgrupados({
         // Quem concluiu é o crédito. Faltando o registro, cai no colaborador atribuído ao
         // atendimento — é quem o atendeu, e sem isso o item ficaria sem ninguém.
         const atribuido = ref?.participantesIds?.find((id) => id != null) ?? null;
+        grupo.duracaoAgendadaMin = ref?.duracaoAgendadaMin ?? 0;
         grupo.desenvolvedorId = ref?.concluidoPorId ?? atribuido;
         grupo.desenvolvedorNome =
           ref?.concluidoPorId != null

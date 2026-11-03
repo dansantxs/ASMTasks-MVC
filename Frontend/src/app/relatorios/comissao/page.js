@@ -21,7 +21,7 @@ import { getColaboradoresKanban, getClientesKanban, getEtapasKanban } from '../.
 import { getHistoricoAtendimentos } from '../atendimentos-historico/api/historicoAtendimentos';
 import { getAtendimentos } from '../../atendimentos/api/atendimentos';
 import { useDebouncedValue } from '../../../hooks/useDebouncedValue';
-import { useItensAgrupados, formatarTempoComPrevisto } from '../useItensAgrupados';
+import { useItensAgrupados, formatarTempoComPrevisto, formatarHoras } from '../useItensAgrupados';
 
 // Colunas que formam o cabeçalho de cada grupo (cliente / projeto / tarefa / descrição)
 const colunasGrupo = [
@@ -288,8 +288,15 @@ export default function RelatorioComissaoPage() {
       const id = porTeste ? grupo.aprovadorId : grupo.desenvolvedorId;
       if (id == null) return;
       const nome = porTeste ? grupo.aprovadorNome : grupo.desenvolvedorNome;
-      const atual = tally.get(id) ?? { colaboradorId: id, nome, total: 0 };
+      const atual = tally.get(id) ?? { colaboradorId: id, nome, total: 0, minutos: 0 };
       atual.total += 1;
+      // Horas realizadas sobre os mesmos itens da contagem: execução da tarefa elaborada, teste da
+      // tarefa aprovada, ou a duração agendada do atendimento (que não tem cronômetro).
+      atual.minutos += porTeste
+        ? grupo.testeRealizadoMin ?? 0
+        : grupo.itemTipo === 'atendimento'
+          ? grupo.duracaoAgendadaMin ?? 0
+          : grupo.execucaoRealizadaMin ?? 0;
       tally.set(id, atual);
     });
     let lista = Array.from(tally.values());
@@ -302,12 +309,22 @@ export default function RelatorioComissaoPage() {
 
   const rotuloTotalResumo =
     creditoPorTeste || totalizarPor === 'teste'
-      ? 'Total (teste)'
+      ? 'Total (aprovação)'
       : tipoItemFilter === 'tarefa'
-        ? 'Total (desenvolvimento)'
+        ? 'Total (elaboração)'
         : tipoItemFilter === 'atendimento'
           ? 'Total (atendimentos concluídos)'
-          : 'Total (desenvolvimento + atendimentos)';
+          : 'Total (elaboração + atendimentos)';
+
+  // Linha final do Resumo: soma das duas colunas.
+  const totaisResumo = useMemo(
+    () =>
+      resumoColaboradores.reduce(
+        (acc, r) => ({ total: acc.total + r.total, minutos: acc.minutos + r.minutos }),
+        { total: 0, minutos: 0 }
+      ),
+    [resumoColaboradores]
+  );
 
   const colunasLinhaAtivas = colunasLinha.filter((c) => selectedColumns.includes(c.id));
   const numColunasLinha = Math.max(colunasLinhaAtivas.length, 1);
@@ -360,11 +377,11 @@ export default function RelatorioComissaoPage() {
 
     const tipoLabel =
       tipoItemFilter === 'tarefa'
-        ? 'Tarefas'
+        ? 'Elaboração'
         : tipoItemFilter === 'atendimento'
           ? 'Atendimentos'
           : tipoItemFilter === 'teste'
-            ? 'Teste (tarefas, por quem testou)'
+            ? 'Aprovação (tarefas, por quem testou)'
             : null;
 
     const filters = [
@@ -374,7 +391,7 @@ export default function RelatorioComissaoPage() {
       colaboradorNome ? `Elaborado por: ${colaboradorNome}` : null,
       clienteNome ? `Cliente: ${clienteNome}` : null,
       viewMode === 'resumo'
-        ? `Visão: Resumo (total por colaborador, por ${totalizarPor === 'teste' ? 'teste' : 'elaboração'})`
+        ? `Visão: Resumo (total e horas por colaborador, por ${totalizarPor === 'teste' ? 'aprovação' : 'elaboração'})`
         : null,
     ].filter(Boolean);
 
@@ -399,8 +416,13 @@ export default function RelatorioComissaoPage() {
     let head;
     const body = [];
     if (viewMode === 'resumo') {
-      head = [['Colaborador', rotuloTotalResumo]];
-      resumoColaboradores.forEach((r) => body.push([r.nome, String(r.total)]));
+      head = [['Colaborador', rotuloTotalResumo, 'Horas']];
+      resumoColaboradores.forEach((r) => body.push([r.nome, String(r.total), formatarHoras(r.minutos)]));
+      body.push([
+        { content: 'Total', styles: { fontStyle: 'bold' } },
+        { content: String(totaisResumo.total), styles: { fontStyle: 'bold' } },
+        { content: formatarHoras(totaisResumo.minutos), styles: { fontStyle: 'bold' } },
+      ]);
     } else {
       head = [colunasLinhaAtivas.map((c) => c.label)];
       secoes.forEach((secao) => {
@@ -480,8 +502,9 @@ export default function RelatorioComissaoPage() {
     let colunasCabecalho;
 
     if (viewMode === 'resumo') {
-      colunasCabecalho = ['Colaborador', rotuloTotalResumo];
-      resumoColaboradores.forEach((r) => dataRows.push([r.nome, r.total]));
+      colunasCabecalho = ['Colaborador', rotuloTotalResumo, 'Horas'];
+      resumoColaboradores.forEach((r) => dataRows.push([r.nome, r.total, formatarHoras(r.minutos)]));
+      dataRows.push(['Total', totaisResumo.total, formatarHoras(totaisResumo.minutos)]);
     } else {
       colunasCabecalho = colunasLinhaAtivas.map((c) => c.label);
       const larguraLinha = Math.max(colunasCabecalho.length, 1);
@@ -553,7 +576,7 @@ export default function RelatorioComissaoPage() {
             popover: {
               title: 'Relatório de Comissão',
               description:
-                'Base de cálculo da comissão: tarefas que chegaram na etapa final e atendimentos concluídos no período. Cada item aparece sob o <strong>Colaborador(Desenvolvedor)</strong> — quem fez a etapa de desenvolvimento (ou concluiu o atendimento). Em <strong>Tipo: Teste</strong>, as mesmas tarefas aparecem sob quem fez a <strong>etapa de teste</strong>.',
+                'Base de cálculo da comissão: tarefas que chegaram na etapa final e atendimentos concluídos no período. Cada item aparece sob o <strong>Colaborador(Desenvolvedor)</strong> — quem fez a etapa de desenvolvimento (ou concluiu o atendimento). Em <strong>Tipo: Aprovação</strong>, as mesmas tarefas aparecem sob quem fez a <strong>etapa de teste</strong>.',
               side: 'bottom',
               align: 'start',
             },
@@ -564,7 +587,7 @@ export default function RelatorioComissaoPage() {
           },
           {
             element: '#tour-comissao-filtros',
-            popover: { title: 'Filtros', description: 'Filtre por <strong>período</strong>, <strong>tipo</strong> (Tarefas, Atendimentos ou Teste — este último traz só tarefas, agrupadas e somadas por quem as testou, deixando de fora as que não passaram pelo teste), <strong>elaborado por</strong> e <strong>cliente</strong>. <strong>Elaborado por</strong> traz os itens <strong>creditados</strong> à pessoa — a tarefa que ela elaborou e o atendimento que ela concluiu; ter só lançado ou testado não traz o item. Dentro de cada item, as etapas das outras pessoas continuam visíveis. Quem fez o teste aparece como <strong>Aprovado por</strong> no cabeçalho de cada item.', side: 'bottom', align: 'start' },
+            popover: { title: 'Filtros', description: 'Filtre por <strong>período</strong>, <strong>tipo</strong> (Elaboração, Atendimentos ou Aprovação — esta última traz só tarefas, agrupadas e somadas por quem as aprovou na etapa de teste, deixando de fora as que não passaram por ela), <strong>elaborado por</strong> e <strong>cliente</strong>. <strong>Elaborado por</strong> traz os itens <strong>creditados</strong> à pessoa — a tarefa que ela elaborou e o atendimento que ela concluiu; ter só lançado ou testado não traz o item. Dentro de cada item, as etapas das outras pessoas continuam visíveis. Quem fez o teste aparece como <strong>Aprovado por</strong> no cabeçalho de cada item.', side: 'bottom', align: 'start' },
           },
           {
             element: '#tour-comissao-colunas',
@@ -572,7 +595,7 @@ export default function RelatorioComissaoPage() {
           },
           {
             element: '#tour-comissao-visao',
-            popover: { title: 'Visão e Ordenação', description: '<strong>Detalhada</strong>: todas as etapas de cada item, numeradas por colaborador.<br><strong>Resumo</strong>: o total por colaborador, totalizado por <strong>Elaboração</strong> (desenvolvimento e atendimentos concluídos) ou por <strong>Teste</strong> (quem fez a etapa de teste) — com <strong>Tipo: Teste</strong> o total já sai por testador e esse seletor não aparece, com o <strong>tempo de execução e de teste</strong> somado — realizado (pelo histórico) e previsto (cadastrado na tarefa).<br>A ordem dos itens dentro do colaborador pode ser <strong>Cliente → Data</strong> ou <strong>Data → Cliente</strong>.', side: 'bottom', align: 'end' },
+            popover: { title: 'Visão e Ordenação', description: '<strong>Detalhada</strong>: todas as etapas de cada item, numeradas por colaborador.<br><strong>Resumo</strong>: a quantidade de itens e as <strong>horas realizadas</strong> por colaborador, totalizadas por <strong>Elaboração</strong> (desenvolvimento e atendimentos concluídos) ou por <strong>Aprovação</strong> (quem fez a etapa de teste) — com <strong>Tipo: Aprovação</strong> o total já sai por quem aprovou e esse seletor não aparece. As horas são o tempo de execução (elaboração), o tempo de teste (aprovação) ou a duração agendada (atendimento, que não tem cronômetro); o tempo da tarefa é o do histórico inteiro dela, inclusive de meses anteriores.<br>A ordem dos itens dentro do colaborador pode ser <strong>Cliente → Data</strong> ou <strong>Data → Cliente</strong>.', side: 'bottom', align: 'end' },
           },
           {
             element: '#tour-comissao-tabela',
@@ -640,9 +663,9 @@ export default function RelatorioComissaoPage() {
                     <SelectTrigger><SelectValue placeholder="Tipo" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="todos">Todos</SelectItem>
-                      <SelectItem value="tarefa">Tarefas</SelectItem>
+                      <SelectItem value="tarefa">Elaboração</SelectItem>
                       <SelectItem value="atendimento">Atendimentos</SelectItem>
-                      <SelectItem value="teste">Teste</SelectItem>
+                      <SelectItem value="teste">Aprovação</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -721,7 +744,7 @@ export default function RelatorioComissaoPage() {
                       <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="elaboracao">Elaboração</SelectItem>
-                        <SelectItem value="teste">Teste</SelectItem>
+                        <SelectItem value="teste">Aprovação</SelectItem>
                       </SelectContent>
                     </Select>
                   </>
@@ -764,23 +787,32 @@ export default function RelatorioComissaoPage() {
                       <TableHead className="font-semibold text-brand-blue text-right">
                         {rotuloTotalResumo}
                       </TableHead>
+                      <TableHead className="font-semibold text-brand-blue text-right">Horas</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {isLoading && (
                       <TableRow>
-                        <TableCell colSpan={2} className="text-center text-muted-foreground">Carregando...</TableCell>
+                        <TableCell colSpan={3} className="text-center text-muted-foreground">Carregando...</TableCell>
                       </TableRow>
                     )}
                     {!isLoading && resumoColaboradores.map((r) => (
                       <TableRow key={r.colaboradorId} className="hover:bg-muted/40">
                         <TableCell>{r.nome}</TableCell>
                         <TableCell className="text-right font-semibold">{r.total}</TableCell>
+                        <TableCell className="text-right">{formatarHoras(r.minutos)}</TableCell>
                       </TableRow>
                     ))}
+                    {!isLoading && resumoColaboradores.length > 0 && (
+                      <TableRow className="border-t-2 bg-muted/30">
+                        <TableCell className="font-semibold">Total</TableCell>
+                        <TableCell className="text-right font-semibold">{totaisResumo.total}</TableCell>
+                        <TableCell className="text-right font-semibold">{formatarHoras(totaisResumo.minutos)}</TableCell>
+                      </TableRow>
+                    )}
                     {!isLoading && resumoColaboradores.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={2} className="text-center text-muted-foreground">
+                        <TableCell colSpan={3} className="text-center text-muted-foreground">
                           Nenhum registro encontrado com os filtros selecionados.
                         </TableCell>
                       </TableRow>
