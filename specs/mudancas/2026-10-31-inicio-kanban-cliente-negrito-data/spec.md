@@ -1,6 +1,6 @@
 # Início e Kanban: cliente em negrito, data visível e ordem escolhida
 
-- **Status:** aprovada (2026-11-03)
+- **Status:** implementada (2026-11-03), aguardando conferência na tela
 - **Pedido por:** Álvaro (folha impressa de pedidos)
 - **Branch:** `feat/inicio-kanban-cliente-negrito-data`
 - **Versão:** 1.14.0

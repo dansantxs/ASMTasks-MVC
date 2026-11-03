@@ -61,6 +61,8 @@ namespace API.DTOs.Dashboard
         public bool ElaboracaoJaIniciada { get; set; }
         /// <summary>Desde quando está assim: atribuição da tarefa, ou agendamento do atendimento.</summary>
         public DateTime? DesdeQuando { get; set; }
+        /// <summary>Tarefa: quando foi lançada. Atendimento: vazio.</summary>
+        public DateTime? DataLancamento { get; set; }
         /// <summary>Quem mexeu por último e quando — responde "quem está mexendo, quando".</summary>
         public string? UltimaAcaoPor { get; set; }
         public DateTime? UltimaAcaoEm { get; set; }

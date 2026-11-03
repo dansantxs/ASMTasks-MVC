@@ -85,7 +85,7 @@ function CartaoTarefa({ tarefa, podeMover, onVisualizar, nomeCliente, mostrarLan
               <Folder className="h-3 w-3 flex-shrink-0" />
               {tarefa.projetoTitulo}
             </p>
-            <p className="text-xs text-gray-400 truncate flex items-center gap-1" title={nomeCliente ?? tarefa.clienteNome}>
+            <p className="text-xs font-semibold text-gray-600 truncate flex items-center gap-1" title={nomeCliente ?? tarefa.clienteNome}>
               <Building2 className="h-3 w-3 flex-shrink-0" />
               {nomeCliente ?? tarefa.clienteNome}
             </p>
