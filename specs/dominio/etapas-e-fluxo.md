@@ -47,7 +47,12 @@ relatórios de histórico e de comissão.
 - **ETP-04. Voltar para Atendimento** remove o responsável, e o sistema pede confirmação antes.
 - **ETP-15. Atendimento é do administrador.** Só um administrador tira uma tarefa do Atendimento
   ou a devolve para lá. Para os demais, os cartões da coluna Atendimento não podem ser arrastados.
-- **ETP-16. Mover várias de uma vez.** Tarefas marcadas (Ctrl+clique ou a caixinha do cartão) vão  juntas ao arrastar uma delas, com um diálogo só. Cada uma é movida como se fosse sozinha, uma  depois da outra, e segue ETP-03 a ETP-07 e ETP-13. As que a pessoa não pode mover aparecem  riscadas, com o motivo, e não são enviadas; se uma falhar no servidor, as outras seguem e o  aviso final diz quais ficaram. Quando a sugestão de responsável (ETP-06) não é a mesma para  todas, o padrão é "Manter o sugerido de cada tarefa".
+- **ETP-16. Mover várias de uma vez.** Tarefas marcadas (Ctrl+clique ou a caixinha do cartão) vão
+  juntas ao arrastar uma delas, com um diálogo só. Cada uma é movida como se fosse sozinha, uma
+  depois da outra, e segue ETP-03 a ETP-07 e ETP-13. As que a pessoa não pode mover aparecem
+  riscadas, com o motivo, e não são enviadas; se uma falhar no servidor, as outras seguem e o
+  aviso final diz quais ficaram. Quando a sugestão de responsável (ETP-06) não é a mesma para
+  todas, o padrão é "Manter o sugerido de cada tarefa".
 - **ETP-05. O que é gravado ao mover.** Nesta ordem:
   1. se o cronômetro estava aberto e a etapa mudou, um `F` encerra a elaboração;
   2. se o responsável mudou, um `A` com o novo responsável (e, se o cronômetro estava aberto e
