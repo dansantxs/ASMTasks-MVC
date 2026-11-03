@@ -1,6 +1,6 @@
 # Linha do tempo da tarefa em frases
 
-- **Status:** rascunho
+- **Status:** aprovada (2026-11-03)
 - **Pedido por:** Daniel, 2026-11-03 ("frequentemente pedem para eu explicar")
 - **Branch:** `feat/linha-do-tempo-legivel`
 - **Versão:**
@@ -62,10 +62,13 @@ O mesmo histórico, como passaria a aparecer:
   agrupada.
 - **CA-8.** Eventos antigos, gravados antes desta mudança, também aparecem em frases.
 
-## Perguntas em aberto
+- **CA-9.** A ordem continua do mais recente para o mais antigo.
 
-1. **Ordem.** Hoje é do mais recente para o mais antigo. Mantém? *Recomendação:* sim, o que
-   acabou de acontecer é o que mais se procura.
-2. **Mesmo texto nos relatórios?** A visão Detalhada do Histórico de Tarefas é o mesmo log, em
-   tabela. *Recomendação:* não nesta mudança; o relatório tem colunas próprias e é usado para
-   conferência.
+## Fora de escopo
+
+- A visão Detalhada do Histórico de Tarefas, que é o mesmo log em tabela, usada para conferência.
+
+## Decisões
+
+- **2026-11-03:** sem resposta às perguntas da ordem e do relatório, valem as recomendações
+  (CA-9; relatório fora de escopo).

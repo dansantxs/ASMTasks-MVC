@@ -1,6 +1,6 @@
 # Comissão: Elaboração e Aprovação, e horas no Resumo
 
-- **Status:** rascunho
+- **Status:** aprovada (2026-11-03)
 - **Pedido por:** Álvaro; Daniel em 2026-10-31
 - **Branch:** `feat/comissao-rotulos-resumo` (depois de `feat/comissao-sem-aprovado-por`, já na `main`)
 - **Versão:** 1.14.0
@@ -24,19 +24,18 @@ em elaboração e aprovação. E o Resumo só conta itens: para a comissão, fal
 
 - **CA-3.** O Resumo ganha a coluna **Horas** ao lado do total de itens, em **todos** os tipos,
   na tela, no PDF e no Excel, com uma linha de total geral.
-- **CA-4.** As horas de cada colaborador somam o tempo **realizado** dos itens creditados a ele,
-  no formato já usado nos itens (ex.: "12h 30min"), com o previsto entre parênteses:
+- **CA-4.** As horas de cada colaborador somam só o tempo **realizado** dos itens creditados a
+  ele, sem o previsto, no formato já usado nos itens (ex.: "12h 30min"):
   - **Elaboração:** tempo de execução das tarefas que ele elaborou;
   - **Aprovação:** tempo de teste das tarefas que ele aprovou;
-  - **Atendimentos:** ver pergunta 1;
+  - **Atendimentos:** duração agendada de cada atendimento (do início ao fim marcados); sem
+    horário de fim, zero;
   - **Todos:** elaboração mais atendimentos, como a contagem de itens.
 - **CA-5.** O total de horas respeita os mesmos filtros da contagem de itens, e Detalhada e
   Resumo continuam batendo (COM-20).
 
-## Perguntas em aberto
+## Decisões
 
-1. **Horas de atendimento.** O atendimento não tem cronômetro. O que conta: a duração agendada
-   (do início ao fim marcados), ou o atendimento entra no Resumo sem horas?
-   *Recomendação:* a duração agendada, quando o atendimento tem horário de fim; sem fim, zero.
-2. **Previsto entre parênteses** no Resumo, ou só o realizado? *Recomendação:* os dois, no mesmo
-   formato dos itens, para dar para comparar.
+- **2026-11-03 (Daniel):** o Resumo mostra só o realizado, sem o previsto (CA-4).
+- **2026-11-03:** sem resposta à pergunta das horas de atendimento, vale a recomendação: duração
+  agendada (CA-4).

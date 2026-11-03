@@ -16,8 +16,8 @@ Uma linha por item, inclusive os fixes (regra do `versao.js`).
 | A a G (nome do cliente no Dashboard e no arrasto, modo cartões/lista, setor lembrado, data de nascimento opcional, Comissão sem "Aprovado por", excluir tarefa com histórico) | [ajustes-1-14-0](../2026-10-30-ajustes-1-14-0/spec.md) | na `main` |
 | H. Busca por texto no Kanban | `origin/feat/kanban-busca-texto-tarefa` | parada |
 | I. Filtros combinados no Kanban | `origin/feat/kanban-filtros-cascata` | parada |
-| J. HTTPS na rede interna | `origin/claude/site-security-issue-112l9v` | parada |
-| K. Backup no Google Drive | revert do `18990bd` | parado; a linha só vale com o rclone configurado no servidor |
+| J. HTTPS na rede interna | `origin/claude/site-security-issue-112l9v` | parada; pode entrar: só liga quando o sistema sobe com o `docker-compose.https.yml`, então não muda nada até ser usado |
+| K. Backup no Google Drive | revert do `18990bd` | **fora da 1.14.0** até o rclone estar configurado no servidor: sem ele, o backup local continua sendo feito, mas a tarefa agendada passa a terminar com erro (código 2) todo dia |
 | L. Linha do tempo mostra quem moveu | `fix/timeline-quem-moveu-etapa` | aguardando conferência |
 | Cliente em negrito, data e ordem no Início e no Kanban | [inicio-kanban-cliente-negrito-data](../2026-10-31-inicio-kanban-cliente-negrito-data/spec.md) | spec |
 | Histórico sem as concluídas por padrão | [rel-historico-nao-concluidas](../2026-10-31-rel-historico-nao-concluidas/spec.md) | spec |
@@ -25,7 +25,7 @@ Uma linha por item, inclusive os fixes (regra do `versao.js`).
 | Atendimentos com o nome do cliente da configuração | [atendimento-nome-cliente](../2026-10-31-atendimento-nome-cliente/spec.md) | spec |
 | Tab na ordem da tela nos cadastros | [cadastros-ordem-tab](../2026-10-31-cadastros-ordem-tab/spec.md) | spec |
 
-Ficam **fora** da 1.14.0, pausados por mexerem no banco: recorrência de atendimento e flag de
+Ficam **fora** da 1.14.0 o backup no Drive (K, até o rclone ser configurado) e, pausados por mexerem no banco, recorrência de atendimento e flag de
 elaboração/setor de teste (e, por depender dela, o Reservado só com início na elaboração).
 "Mover várias tarefas" e "atendimentos por dia da semana" entram se ficarem prontos a tempo.
 
