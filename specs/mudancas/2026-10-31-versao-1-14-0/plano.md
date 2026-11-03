@@ -14,9 +14,9 @@ Uma linha por item, inclusive os fixes (regra do `versao.js`).
 |---|---|---|
 | Relatórios mostram a tarefa inteira; Dashboard credita como a Comissão; Agrupada ordenada pela elaboração | [historico-completo-da-tarefa](../2026-10-30-historico-completo-da-tarefa/spec.md) | na `main` |
 | A a G (nome do cliente no Dashboard e no arrasto, modo cartões/lista, setor lembrado, data de nascimento opcional, Comissão sem "Aprovado por", excluir tarefa com histórico) | [ajustes-1-14-0](../2026-10-30-ajustes-1-14-0/spec.md) | na `main` |
-| H. Busca por texto no Kanban | `origin/feat/kanban-busca-texto-tarefa` | parada |
-| I. Filtros combinados no Kanban | `origin/feat/kanban-filtros-cascata` | parada |
-| J. HTTPS na rede interna | `origin/claude/site-security-issue-112l9v` | parada; pode entrar: só liga quando o sistema sobe com o `docker-compose.https.yml`, então não muda nada até ser usado |
+| H. Busca por texto no Kanban | `origin/feat/kanban-busca-texto-tarefa` | revisada em 2026-11-03: conflita com a `main` em `kanban/page.js` e `FiltrosKanban.js`, mas só porque a `main` e ela acrescentaram código no mesmo lugar; resolve mantendo os dois. Compila junto com a I |
+| I. Filtros combinados no Kanban | `origin/feat/kanban-filtros-cascata` | revisada em 2026-11-03: entra sem conflito, inclusive depois da H. Usa as tarefas que vêm na lista de projetos, que trazem o responsável |
+| J. HTTPS na rede interna | `origin/claude/site-security-issue-112l9v` | revisada em 2026-11-03: entra sem conflito; aponta para o serviço `frontend:3000` e a rede `asmtasks`, que existem na `main`; o login funciona por HTTPS porque a produção usa `SameSite=Strict` e o backend já lê os cabeçalhos de proxy. Pode entrar: só liga quando o sistema sobe com o `docker-compose.https.yml`, então não muda nada até ser usado |
 | K. Backup no Google Drive | revert do `18990bd` | **fora da 1.14.0** até o rclone estar configurado no servidor: sem ele, o backup local continua sendo feito, mas a tarefa agendada passa a terminar com erro (código 2) todo dia |
 | L. Linha do tempo mostra quem moveu | `fix/timeline-quem-moveu-etapa` | aguardando conferência |
 | Cliente em negrito, data e ordem no Início e no Kanban | [inicio-kanban-cliente-negrito-data](../2026-10-31-inicio-kanban-cliente-negrito-data/spec.md) | spec |
