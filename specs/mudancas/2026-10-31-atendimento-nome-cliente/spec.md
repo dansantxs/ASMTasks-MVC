@@ -1,6 +1,6 @@
 # Atendimentos: nome do cliente conforme a configuração
 
-- **Status:** implementada (2026-11-03), aguardando conferência na tela
+- **Status:** implementada (2026-11-03), conferida na tela por Daniel
 - **Pedido por:** Álvaro
 - **Branch:** `fix/atendimento-nome-cliente` (depois de `feat/inicio-kanban-cliente-negrito-data`,
   porque as duas usam o mesmo helper de nome)

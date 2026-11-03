@@ -73,7 +73,7 @@ o código já existe; entram como estão, depois de revisadas contra a `main` at
 
 | Item | Onde está o código | O que faz |
 |---|---|---|
-| **H.** Busca por texto no Kanban | `origin/feat/kanban-busca-texto-tarefa` | Campo de busca nos filtros do Kanban, pelo título ou descrição da tarefa |
+| **H.** Busca por texto no Kanban | — | **Retirada** (Daniel, 2026-11-03): chegou a entrar na `main` e saiu pela `feat/kanban-sem-busca-texto` antes da versão. Não vai para o changelog. |
 | **I.** Filtros combinados no Kanban | `origin/feat/kanban-filtros-cascata` | Escolher cliente restringe as opções de Projeto e Colaborador |
 | **J.** HTTPS na rede interna | `origin/claude/site-security-issue-112l9v` | Proxy Caddy com certificado interno; tira o aviso "Não seguro". **Fica para a versão das mudanças de banco** (Daniel, 2026-11-03) |
 | **K.** Backup no Google Drive | revert do commit `18990bd` (a branch `feat/backup-nuvem` já está toda na `main`) | Backups de produção e teste também vão para o Drive via rclone. A linha no changelog só vale depois de o rclone ser configurado no servidor. **Fica para a versão das mudanças de banco** (Daniel, 2026-11-03) |
