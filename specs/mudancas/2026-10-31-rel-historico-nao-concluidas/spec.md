@@ -1,6 +1,6 @@
 # Histórico de Tarefas: sem as concluídas por padrão
 
-- **Status:** implementada (2026-11-03), aguardando conferência na tela
+- **Status:** implementada (2026-11-03), conferida na tela por Daniel
 - **Pedido por:** Álvaro ("trazer só etapas não concluídas")
 - **Branch:** `feat/rel-historico-nao-concluidas`
 - **Versão:** 1.14.0

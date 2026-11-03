@@ -3,7 +3,7 @@
 - **Status:** aprovada (2026-10-30)
 - **Pedido por:** Álvaro
 - **Branch:** `feat/dashboard-dia-semana-atendimentos` (mergear depois de `fix/dashboard-nome-cliente`)
-- **Versão:** 1.14.0
+- **Versão:** 1.15.0
 - **Specs de domínio afetadas:** `dashboard.md` (a escrever)
 
 ## Comportamento esperado
