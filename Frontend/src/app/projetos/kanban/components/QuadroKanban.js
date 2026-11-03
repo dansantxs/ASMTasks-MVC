@@ -5,7 +5,7 @@ import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors, closestC
 import ColunaKanban from './ColunaKanban';
 import CartaoTarefa from './CartaoTarefa';
 import DialogoMoverTarefa from './DialogoMoverTarefa';
-import { resolverNomeCliente } from '../utils/nomeCliente';
+import { nomeClienteDaTarefa } from '../../../../utils/nomeCliente';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -171,7 +171,7 @@ export default function QuadroKanban({ tarefas, etapas, colaboradores, colaborad
             <CartaoTarefa
               tarefa={tarefaArrastando}
               podeMover={false}
-              nomeCliente={resolverNomeCliente(tarefaArrastando, exibicaoNomeCliente)}
+              nomeCliente={nomeClienteDaTarefa(tarefaArrastando, exibicaoNomeCliente)}
             />
           ) : null}
         </DragOverlay>

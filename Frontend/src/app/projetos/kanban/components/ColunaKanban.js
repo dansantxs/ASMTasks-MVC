@@ -7,7 +7,7 @@ import { GripVertical, CheckCircle2 } from 'lucide-react';
 import { cn } from '../../../../components/ui/form/utils';
 import { ROTULO_RESERVADO, ehEtapaElaboracao, ehReservado } from '../../../../utils/situacaoTarefa';
 import CartaoTarefa from './CartaoTarefa';
-import { resolverNomeCliente } from '../utils/nomeCliente';
+import { nomeClienteDaTarefa } from '../../../../utils/nomeCliente';
 
 function ColunaKanban({ etapaId, titulo, tarefas, ehAdmin, colaboradorLogadoId, isAtendimento, isEtapaFinal, onVisualizarTarefa, exibicaoNomeCliente = 'razaoSocial', mostrarLancamento = false }) {
   const podeMoverTarefa = (tarefa) => {
@@ -36,7 +36,7 @@ function ColunaKanban({ etapaId, titulo, tarefas, ehAdmin, colaboradorLogadoId, 
       tarefa={tarefa}
       podeMover={podeMoverTarefa(tarefa)}
       onVisualizar={onVisualizarTarefa}
-      nomeCliente={resolverNomeCliente(tarefa, exibicaoNomeCliente)}
+      nomeCliente={nomeClienteDaTarefa(tarefa, exibicaoNomeCliente)}
       mostrarLancamento={mostrarLancamento}
     />
   );

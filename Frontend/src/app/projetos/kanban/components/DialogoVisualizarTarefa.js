@@ -10,7 +10,7 @@ import DialogoPausarTarefa from './DialogoPausarTarefa';
 import DialogoAnexosTarefa from '../../components/DialogoAnexosTarefa';
 import { Combobox } from '../../../../components/ui/form/combobox';
 import { montarOpcoesColaboradores, montarOpcoesSuporte } from '../utils/opcoesResponsavel';
-import { resolverNomeCliente } from '../utils/nomeCliente';
+import { nomeClienteDaTarefa } from '../../../../utils/nomeCliente';
 
 const formatDateTime = (value) =>
   value
@@ -235,7 +235,7 @@ export default function DialogoVisualizarTarefa({
                   <Building2 className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
                   <div>
                     <p className="text-xs text-gray-400">Cliente</p>
-                    <p className="text-sm text-gray-700">{resolverNomeCliente(tarefa, exibicaoNomeCliente) ?? '—'}</p>
+                    <p className="text-sm text-gray-700">{nomeClienteDaTarefa(tarefa, exibicaoNomeCliente) ?? '—'}</p>
                   </div>
                 </div>
 

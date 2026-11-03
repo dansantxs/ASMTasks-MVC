@@ -1,6 +1,6 @@
 # Atendimentos: nome do cliente conforme a configuração
 
-- **Status:** aprovada (2026-10-31)
+- **Status:** implementada (2026-11-03), aguardando conferência na tela
 - **Pedido por:** Álvaro
 - **Branch:** `fix/atendimento-nome-cliente` (depois de `feat/inicio-kanban-cliente-negrito-data`,
   porque as duas usam o mesmo helper de nome)
@@ -20,7 +20,7 @@ que a tela já carrega traz o nome fantasia.
   nos cartões, no calendário e no detalhe do atendimento. Cliente sem nome fantasia mostra a razão
   social.
 - **CA-2.** Com "Razão social", nada muda.
-- **CA-3.** A busca por cliente na tela encontra o atendimento pelos dois nomes.
+- **CA-3.** ~~A busca por cliente na tela encontra o atendimento pelos dois nomes.~~ Não se aplica: a tela de Atendimentos não tem busca por texto nem filtro de cliente, só o de colaborador (conferido na implementação, 2026-11-03).
 - **CA-4.** A regra do nome fica num helper só, compartilhado com o Kanban e o Início, para as
   telas não divergirem de novo.
 
