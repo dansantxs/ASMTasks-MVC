@@ -44,7 +44,9 @@ relatórios de histórico e de comissão.
 
 - **ETP-03. Quem pode mover.** Se a tarefa tem responsável, só ele ou um administrador pode
   movê-la. Tarefa sem responsável pode ser movida por qualquer pessoa.
-- **ETP-04. Voltar para Atendimento** remove o responsável.
+- **ETP-04. Voltar para Atendimento** remove o responsável, e o sistema pede confirmação antes.
+- **ETP-15. Atendimento é do administrador.** Só um administrador tira uma tarefa do Atendimento
+  ou a devolve para lá. Para os demais, os cartões da coluna Atendimento não podem ser arrastados.
 - **ETP-05. O que é gravado ao mover.** Nesta ordem:
   1. se o cronômetro estava aberto e a etapa mudou, um `F` encerra a elaboração;
   2. se o responsável mudou, um `A` com o novo responsável (e, se o cronômetro estava aberto e
